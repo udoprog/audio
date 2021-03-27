@@ -1,5 +1,6 @@
 //! A dynamically sized, multi-channel audio buffer.
 
+use crate::buf::Buf;
 use crate::mask::Mask;
 use crate::masked_audio_buffer::MaskedAudioBuffer;
 use crate::sample::Sample;
@@ -91,7 +92,7 @@ where
 
     /// Allocate an audio buffer from a fixed-size array.
     ///
-    /// See [crate::macros::audio_buffer!].
+    /// See [audio_buffer!].
     ///
     /// # Examples
     ///
@@ -560,7 +561,7 @@ where
 
 /// Allocate an audio buffer from a fixed-size array.
 ///
-/// See [crate::macros::audio_buffer!].
+/// See [audio_buffer!].
 impl<T, const F: usize, const C: usize> From<[[T; F]; C]> for AudioBuffer<T>
 where
     T: Sample,
@@ -633,6 +634,24 @@ where
                 channel.drop_in_place(self.frames_cap);
             }
         }
+    }
+}
+
+impl<T> Buf<T> for AudioBuffer<T>
+where
+    T: Sample,
+{
+    fn channels(&self) -> usize {
+        self.channels.len()
+    }
+
+    fn is_masked(&self, _: usize) -> bool {
+        // Masking is not supported for audio buffers.
+        false
+    }
+
+    fn channel(&self, channel: usize) -> &[T] {
+        &self[channel]
     }
 }
 

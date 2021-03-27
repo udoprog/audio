@@ -14,12 +14,22 @@
 /// ```
 #[macro_export]
 macro_rules! audio_buffer {
-    ([$inst:expr; $frames:literal]; $channels:literal) => {
-        $crate::AudioBuffer::from_array([[$inst; $frames]; $channels]);
+    // Branch of the macro used when we can perform a literal instantiation of
+    // the audio buffer.
+    //
+    // This is typically more performant, since it doesn't require looping and
+    // writing through the buffer.
+    ([$sample:expr; $frames:literal]; $channels:literal) => {
+        $crate::AudioBuffer::from_array([[$sample; $frames]; $channels]);
     };
 
-    ([$inst:expr; $frames:expr]; $channels:expr) => {{
-        let value = $inst;
+    // Branch of the macro used when we can evaluate an expression that is
+    // built into an audio buffer.
+    //
+    // `$sample`, `$frames`, and `$channels` are all expected to implement
+    // `Copy`. `$frames` and `$channels` should evaluate to `usize`.
+    ([$sample:expr; $frames:expr]; $channels:expr) => {{
+        let value = $sample;
         let mut buffer = $crate::AudioBuffer::with_topology($channels, $frames);
 
         for chan in &mut buffer {

@@ -2,14 +2,14 @@
 //!
 //! See [MaskedAudioBuffer] for more information.
 
+use crate::audio_buffer;
+use crate::buf::Buf;
+use crate::mask::Mask;
+use crate::sample::Sample;
 use std::cmp;
 use std::fmt;
 use std::hash;
 use std::ops;
-
-use crate::audio_buffer;
-use crate::mask::Mask;
-use crate::sample::Sample;
 
 /// A dynamically sized, multi-channel audio buffer that supports masking.
 ///
@@ -733,6 +733,24 @@ where
             Some(slice) => slice,
             None => panic!("index `{}` is not a channel", index,),
         }
+    }
+}
+
+impl<T, M> Buf<T> for MaskedAudioBuffer<T, M>
+where
+    T: Sample,
+    M: Mask,
+{
+    fn channels(&self) -> usize {
+        self.buffer.channels()
+    }
+
+    fn is_masked(&self, channel: usize) -> bool {
+        self.mask.test(channel)
+    }
+
+    fn channel(&self, channel: usize) -> &[T] {
+        &self.buffer[channel]
     }
 }
 

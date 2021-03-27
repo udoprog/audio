@@ -76,6 +76,7 @@
 mod macros;
 pub mod audio_buffer;
 pub mod bit_set;
+mod buf;
 mod mask;
 pub mod masked_audio_buffer;
 mod sample;
@@ -84,6 +85,7 @@ mod tests;
 
 pub use self::audio_buffer::AudioBuffer;
 pub use self::bit_set::BitSet;
+pub use self::buf::Buf;
 pub use self::mask::Mask;
 pub use self::masked_audio_buffer::MaskedAudioBuffer;
 pub use self::sample::Sample;
