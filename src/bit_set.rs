@@ -30,6 +30,7 @@
 /// assert!(!set.test(172));
 /// ```
 #[derive(Clone, Copy)]
+#[repr(transparent)]
 pub struct BitSet<T>
 where
     T: Bits,
@@ -188,16 +189,17 @@ where
 
 /// An iterator over a bit bits. Created through [BitSet::iter].
 #[derive(Clone, Copy)]
+#[repr(transparent)]
 pub struct Iter<T>
 where
-    T: Bits + Num,
+    T: Bits + Number,
 {
     bits: T,
 }
 
 impl<T> Iterator for Iter<T>
 where
-    T: Bits + Num,
+    T: Bits + Number,
 {
     type Item = usize;
 
@@ -216,7 +218,7 @@ where
 #[derive(Clone, Copy)]
 pub struct ArrayIter<T, const N: usize>
 where
-    T: Bits + Num,
+    T: Bits + Number,
 {
     bits: [T; N],
     o: usize,
@@ -224,34 +226,29 @@ where
 
 impl<T, const N: usize> Iterator for ArrayIter<T, N>
 where
-    T: Bits + Num,
+    T: Bits + Number,
 {
     type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            if self.o >= N {
-                return None;
+        while let Some(bits) = self.bits.get_mut(self.o) {
+            if !bits.is_zero() {
+                let index = bits.trailing_zeros();
+                bits.clear(index);
+                return Some(self.o * T::BITS + index);
             }
 
-            let bits = &mut self.bits[self.o];
-
-            if bits.is_zero() {
-                self.o += 1;
-                continue;
-            }
-
-            let index = bits.trailing_zeros();
-            bits.clear(index);
-            return Some(self.o * T::BITS + index);
+            self.o += 1;
         }
+
+        None
     }
 }
 
 /// Basic numerical traits for the plumbing of a bit set.
-pub trait Num: Copy {
+pub trait Number: Bits {
     /// How many bits there are in this number.
-    const BITS: usize;
+    const BITS: usize = std::mem::size_of::<Self>() * 8;
 
     /// Number of trailing zeros.
     fn trailing_zeros(self) -> usize;
@@ -261,7 +258,7 @@ pub trait Num: Copy {
 }
 
 /// The trait for a bit pattern.
-pub trait Bits: Copy {
+pub trait Bits: Sized + Copy {
     /// The iterator over this bit pattern.
     ///
     /// See [BitSet::iter].
@@ -298,13 +295,11 @@ pub trait Bits: Copy {
     fn iter(self) -> Self::Iter;
 }
 
-macro_rules! impl_bits {
+macro_rules! impl_num_bits {
     ($ty:ty) => {
-        impl Num for $ty {
-            const BITS: usize = std::mem::size_of::<$ty>() * 8;
-
+        impl Number for $ty {
             fn trailing_zeros(self) -> usize {
-                <$ty>::trailing_zeros(self) as usize
+                <Self>::trailing_zeros(self) as usize
             }
 
             fn is_zero(self) -> bool {
@@ -313,7 +308,7 @@ macro_rules! impl_bits {
         }
 
         impl Bits for $ty {
-            type Iter = Iter<$ty>;
+            type Iter = Iter<Self>;
 
             const EMPTY: Self = 0;
             const FULL: Self = !0;
@@ -337,13 +332,15 @@ macro_rules! impl_bits {
     };
 }
 
-impl_bits!(u128);
-impl_bits!(u64);
-impl_bits!(u32);
+impl_num_bits!(u128);
+impl_num_bits!(u64);
+impl_num_bits!(u32);
+impl_num_bits!(u16);
+impl_num_bits!(u8);
 
 impl<T, const N: usize> Bits for [T; N]
 where
-    T: Bits + Num,
+    T: Bits + Number,
 {
     type Iter = ArrayIter<T, N>;
 
