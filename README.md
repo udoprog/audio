@@ -7,6 +7,10 @@
 A library for dealing efficiently with AudioBuffer non-interleaved audio
 buffers.
 
+The buffer is constructed similarly to a `Vec<Vec<T>>`, except the interior
+vector has a fixed size. And the buffer makes no attempt to clear data which
+is freed when using functions such as [AudioBuffer::resize].
+
 ```rust
 use rand::Rng as _;
 
@@ -43,5 +47,7 @@ assert_eq!(&buffer[1], &[][..]);
 assert_eq!(&buffer[2], &expected[..]);
 assert_eq!(&buffer[3], &expected[..]);
 ```
+
+[AudioBuffer::resize]: https://docs.rs/rotary/0/rotary/audio_buffer/struct.AudioBuffer.html#method.resize
 
 License: MIT/Apache-2.0
