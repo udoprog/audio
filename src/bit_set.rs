@@ -16,7 +16,7 @@
 /// assert!(!set.test(1));
 /// ```
 ///
-/// The bit set can also use arrays as its backing storage:
+/// The bit set can also use arrays as its backing storage.
 ///
 /// ```rust
 /// use rotary::Mask as _;
