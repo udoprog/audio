@@ -154,3 +154,8 @@ fn test_stale_allocation() {
     buffer.resize(256);
     assert_eq!(buffer[1][128], 42.0);
 }
+
+#[test]
+fn test_from_array() {
+    let _ = crate::audio_buffer![[0.0; 1024]; 2];
+}

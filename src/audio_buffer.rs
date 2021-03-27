@@ -435,6 +435,41 @@ where
     }
 }
 
+/// Allocate an audio buffer from a fixed-size array.
+///
+/// See [crate::macros::audio_buffer!].
+impl<T, const F: usize, const C: usize> From<[[T; F]; C]> for AudioBuffer<T>
+where
+    T: Sample,
+{
+    #[inline]
+    fn from(channels: [[T; F]; C]) -> Self {
+        return Self {
+            channels: channels_from_array(channels),
+            frames_cap: F,
+            frames_len: F,
+        };
+
+        #[inline]
+        fn channels_from_array<T: Sample, const F: usize, const C: usize>(
+            values: [[T; F]; C],
+        ) -> Vec<RawSlice<T>> {
+            let mut channels = Vec::with_capacity(C);
+
+            for frames in std::array::IntoIter::new(values) {
+                let data = Box::<[T]>::from(frames);
+
+                // Safety: We just created the box with the data.
+                let data = unsafe { ptr::NonNull::new_unchecked(Box::into_raw(data) as *mut T) };
+
+                channels.push(RawSlice { data });
+            }
+
+            channels
+        }
+    }
+}
+
 impl<'a, T> IntoIterator for &'a AudioBuffer<T>
 where
     T: Sample,

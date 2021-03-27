@@ -509,6 +509,21 @@ where
     }
 }
 
+/// Allocate a masked audio buffer from a fixed-size array.
+impl<T, M, const F: usize, const C: usize> From<[[T; F]; C]> for MaskedAudioBuffer<T, M>
+where
+    T: Sample,
+    M: Mask,
+{
+    #[inline]
+    fn from(channels: [[T; F]; C]) -> Self {
+        Self {
+            buffer: channels.into(),
+            mask: M::full(),
+        }
+    }
+}
+
 impl<'a, T, M> IntoIterator for &'a mut MaskedAudioBuffer<T, M>
 where
     T: Sample,

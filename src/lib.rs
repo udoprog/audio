@@ -50,6 +50,8 @@
 
 #![deny(missing_docs)]
 
+#[macro_use]
+mod macros;
 pub mod audio_buffer;
 pub mod bit_set;
 mod mask;
