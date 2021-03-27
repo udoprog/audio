@@ -2,6 +2,9 @@
 //!
 //! See [MaskedAudioBuffer] for more information.
 
+use std::cmp;
+use std::fmt;
+use std::hash;
 use std::ops;
 
 use crate::audio_buffer;
@@ -185,6 +188,8 @@ where
     ///     }
     /// }
     ///
+    /// assert_eq!(channels, vec![0, 2, 3]);
+    ///
     /// let all_zeros = vec![0.0; 256];
     /// let all_ones = vec![1.0; 256];
     ///
@@ -239,6 +244,45 @@ where
     /// ```
     pub fn iter(&self) -> Iter<'_, T, M> {
         Iter {
+            slices: self.buffer.iter(),
+            iter: self.mask.iter(),
+            last: 0,
+        }
+    }
+
+    /// Build an iterator over all enabled channels.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rotary::BitSet;
+    ///
+    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 256);
+    ///
+    /// buffer.mask(1);
+    ///
+    /// let mut channels = Vec::new();
+    ///
+    /// for (n, chan) in buffer.iter_with_channels() {
+    ///     channels.push(n);
+    /// }
+    ///
+    /// assert_eq!(channels, vec![0, 2, 3]);
+    ///
+    /// let all_zeros = vec![0.0; 256];
+    ///
+    /// assert_eq!(&buffer[1], &[][..]);
+    ///
+    /// buffer.unmask(1);
+    ///
+    /// assert_eq!(&channels[..], &[0, 2, 3]);
+    /// assert_eq!(&buffer[0], &all_zeros[..]);
+    /// assert_eq!(&buffer[1], &all_zeros[..]);
+    /// assert_eq!(&buffer[2], &all_zeros[..]);
+    /// assert_eq!(&buffer[3], &all_zeros[..]);
+    /// ```
+    pub fn iter_with_channels(&self) -> IterWithChannels<'_, T, M> {
+        IterWithChannels {
             slices: self.buffer.iter(),
             iter: self.mask.iter(),
             last: 0,
@@ -509,6 +553,66 @@ where
     }
 }
 
+impl<T, M> fmt::Debug for MaskedAudioBuffer<T, M>
+where
+    T: Sample + fmt::Debug,
+    M: Mask,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
+
+impl<T, M> cmp::PartialEq for MaskedAudioBuffer<T, M>
+where
+    T: Sample + cmp::PartialEq,
+    M: Mask,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.iter_with_channels().eq(other.iter_with_channels())
+    }
+}
+
+impl<T, M> cmp::Eq for MaskedAudioBuffer<T, M>
+where
+    T: Sample + cmp::Eq,
+    M: Mask,
+{
+}
+
+impl<T, M> cmp::PartialOrd for MaskedAudioBuffer<T, M>
+where
+    T: Sample + cmp::PartialOrd,
+    M: Mask,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        self.iter_with_channels()
+            .partial_cmp(other.iter_with_channels())
+    }
+}
+
+impl<T, M> cmp::Ord for MaskedAudioBuffer<T, M>
+where
+    T: Sample + cmp::Ord,
+    M: Mask,
+{
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.iter_with_channels().cmp(other.iter_with_channels())
+    }
+}
+
+impl<T, M> hash::Hash for MaskedAudioBuffer<T, M>
+where
+    T: Sample + hash::Hash,
+    M: Mask,
+{
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        for channel in self.iter_with_channels() {
+            channel.hash(state);
+        }
+    }
+}
+
 /// Allocate a masked audio buffer from a fixed-size array.
 impl<T, M, const F: usize, const C: usize> From<[[T; F]; C]> for MaskedAudioBuffer<T, M>
 where
@@ -661,7 +765,36 @@ where
     }
 }
 
-/// Iterate over all enabled channels and their corresponding indexes.
+/// Iterate over all channels and their corresponding indexes.
+///
+/// See [MaskedAudioBuffer::iter_mut_with_channels].
+pub struct IterWithChannels<'a, T, M>
+where
+    T: Sample,
+    M: Mask,
+{
+    slices: crate::audio_buffer::Iter<'a, T>,
+    iter: M::Iter,
+    last: usize,
+}
+
+impl<'a, T, M> Iterator for IterWithChannels<'a, T, M>
+where
+    T: Sample,
+    M: Mask,
+{
+    type Item = (usize, &'a [T]);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let index = self.iter.next()?;
+        let offset = index - self.last;
+        let buf = self.slices.nth(offset)?;
+        self.last = index + 1;
+        Some((index, buf))
+    }
+}
+
+/// Iterate mutably over all enabled channels and their corresponding indexes.
 ///
 /// See [MaskedAudioBuffer::iter_mut_with_channels].
 pub struct IterMutWithChannels<'a, T, M>

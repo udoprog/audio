@@ -1,6 +1,9 @@
 //! A dynamically sized, multi-channel audio buffer.
 
 use crate::sample::Sample;
+use std::cmp;
+use std::fmt;
+use std::hash;
 use std::mem;
 use std::ops;
 use std::ptr;
@@ -432,6 +435,55 @@ where
         }
 
         vecs
+    }
+}
+
+impl<T> fmt::Debug for AudioBuffer<T>
+where
+    T: Sample + fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
+
+impl<T> cmp::PartialEq for AudioBuffer<T>
+where
+    T: Sample + cmp::PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.iter().eq(other.iter())
+    }
+}
+
+impl<T> cmp::Eq for AudioBuffer<T> where T: Sample + cmp::Eq {}
+
+impl<T> cmp::PartialOrd for AudioBuffer<T>
+where
+    T: Sample + cmp::PartialOrd,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        self.iter().partial_cmp(other.iter())
+    }
+}
+
+impl<T> cmp::Ord for AudioBuffer<T>
+where
+    T: Sample + cmp::Ord,
+{
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.iter().cmp(other.iter())
+    }
+}
+
+impl<T> hash::Hash for AudioBuffer<T>
+where
+    T: Sample + hash::Hash,
+{
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        for channel in self.iter() {
+            channel.hash(state);
+        }
     }
 }
 

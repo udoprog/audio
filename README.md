@@ -33,7 +33,7 @@ channels.
 ```rust
 use rotary::BitSet;
 
-let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 1024);
+let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 128);
 
 buffer.mask(1);
 
@@ -43,7 +43,7 @@ for  channel in buffer.iter_mut() {
     }
 }
 
-let expected = vec![1.0f32; 1024];
+let expected = vec![1.0f32; 128];
 
 assert_eq!(&buffer[0], &expected[..]);
 assert_eq!(&buffer[1], &[][..]);
@@ -51,7 +51,25 @@ assert_eq!(&buffer[2], &expected[..]);
 assert_eq!(&buffer[3], &expected[..]);
 ```
 
+For convenience we also provide the [audio_buffer!] macro when constructing
+audio buffers.
+
+```rust
+use rotary::BitSet;
+
+let mut buf = rotary::AudioBuffer::<f32>::with_topology(4, 128);
+
+for channel in &mut buf {
+    for f in channel {
+        *f = 2.0;
+    }
+}
+
+assert_eq!(buf, rotary::audio_buffer![[2.0; 128]; 4])
+```
+
 [AudioBuffer::resize]: https://docs.rs/rotary/0/rotary/audio_buffer/struct.AudioBuffer.html#method.resize
 [BitSet<u128>]: https://docs.rs/rotary/0/rotary/bit_set/struct.BitSet.html
+[audio_buffer!]: https://docs.rs/rotary/0/rotary/macros/macro.audio_buffer.html
 
 License: MIT/Apache-2.0

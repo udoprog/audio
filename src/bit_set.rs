@@ -1,12 +1,14 @@
 //! A fixed size bit set.
 
+use std::cmp;
+use std::fmt;
+use std::hash;
+
 /// A fixed size bit set.
 ///
 /// # Examples
 ///
 /// ```rust
-/// use rotary::Mask as _;
-///
 /// let mut set = rotary::BitSet::<u128>::empty();
 ///
 /// assert!(!set.test(1));
@@ -19,8 +21,6 @@
 /// The bit set can also use arrays as its backing storage.
 ///
 /// ```rust
-/// use rotary::Mask as _;
-///
 /// let mut set = rotary::BitSet::<[u64; 16]>::empty();
 ///
 /// assert!(!set.test(172));
@@ -28,6 +28,21 @@
 /// assert!(set.test(172));
 /// set.clear(172);
 /// assert!(!set.test(172));
+/// ```
+///
+/// Two bit sets of different kinds can be compared to each other.
+///
+/// ```rust
+/// let mut a = rotary::BitSet::<[u64; 2]>::empty();
+/// let mut b = rotary::BitSet::<u128>::empty();
+///
+/// assert_eq!(a, b);
+///
+/// a.set(111);
+/// assert_ne!(a, b);
+///
+/// b.set(111);
+/// assert_eq!(a, b);
 /// ```
 #[derive(Clone, Copy)]
 #[repr(transparent)]
@@ -172,6 +187,57 @@ where
     /// ```
     pub fn iter(&self) -> T::Iter {
         self.bits.iter()
+    }
+}
+
+impl<T> fmt::Debug for BitSet<T>
+where
+    T: Bits,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
+
+impl<T, U> cmp::PartialEq<BitSet<U>> for BitSet<T>
+where
+    T: Bits,
+    U: Bits,
+{
+    fn eq(&self, other: &BitSet<U>) -> bool {
+        self.iter().eq(other.iter())
+    }
+}
+
+impl<T> cmp::Eq for BitSet<T> where T: Bits {}
+
+impl<T, U> cmp::PartialOrd<BitSet<U>> for BitSet<T>
+where
+    T: Bits,
+    U: Bits,
+{
+    fn partial_cmp(&self, other: &BitSet<U>) -> Option<cmp::Ordering> {
+        self.iter().partial_cmp(other.iter())
+    }
+}
+
+impl<T> cmp::Ord for BitSet<T>
+where
+    T: Bits,
+{
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.iter().cmp(other.iter())
+    }
+}
+
+impl<T> hash::Hash for BitSet<T>
+where
+    T: Bits + hash::Hash,
+{
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        for index in self.iter() {
+            index.hash(state);
+        }
     }
 }
 
