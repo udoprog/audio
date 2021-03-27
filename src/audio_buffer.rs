@@ -1,5 +1,7 @@
 //! A dynamically sized, multi-channel audio buffer.
 
+use crate::mask::Mask;
+use crate::masked_audio_buffer::MaskedAudioBuffer;
 use crate::sample::Sample;
 use std::cmp;
 use std::fmt;
@@ -85,6 +87,75 @@ where
             frames_len: frames,
             frames_cap: frames,
         }
+    }
+
+    /// Allocate an audio buffer from a fixed-size array.
+    ///
+    /// See [crate::macros::audio_buffer!].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::BitSet;
+    ///
+    /// let mut buffer = rotary::AudioBuffer::<f32>::from_array([[2.0; 256]; 4]);
+    ///
+    /// assert_eq!(buffer.frames(), 256);
+    /// assert_eq!(buffer.channels(), 4);
+    ///
+    /// for chan in &buffer {
+    ///     assert_eq!(chan, vec![2.0; 256]);
+    /// }
+    /// ```
+    pub fn from_array<const F: usize, const C: usize>(channels: [[T; F]; C]) -> Self {
+        return Self {
+            channels: channels_from_array(channels),
+            frames_cap: F,
+            frames_len: F,
+        };
+
+        #[inline]
+        fn channels_from_array<T: Sample, const F: usize, const C: usize>(
+            values: [[T; F]; C],
+        ) -> Vec<RawSlice<T>> {
+            let mut channels = Vec::with_capacity(C);
+
+            for frames in std::array::IntoIter::new(values) {
+                let data = Box::<[T]>::from(frames);
+                // Safety: We just created the box with the data.
+                let data = unsafe { ptr::NonNull::new_unchecked(Box::into_raw(data) as *mut T) };
+                channels.push(RawSlice { data });
+            }
+
+            channels
+        }
+    }
+
+    /// Convert into a masked audio buffer. The kind of mask needs to be
+    /// specified through `M`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let buffer = rotary::audio_buffer![[2.0; 128]; 4];
+    /// let mut buffer = buffer.into_masked::<rotary::BitSet<u128>>();
+    ///
+    /// buffer.mask(1);
+    ///
+    /// let mut channels = Vec::new();
+    ///
+    /// for (n, chan) in buffer.iter_with_channels() {
+    ///     channels.push(n);
+    ///     assert_eq!(chan, vec![2.0; 128]);
+    /// }
+    ///
+    /// assert_eq!(channels, vec![0, 2, 3]);
+    /// ```
+    pub fn into_masked<M>(self) -> MaskedAudioBuffer<T, M>
+    where
+        M: Mask,
+    {
+        MaskedAudioBuffer::with_buffer(self)
     }
 
     /// Get the number of frames in the channels of an audio buffer.
@@ -496,29 +567,7 @@ where
 {
     #[inline]
     fn from(channels: [[T; F]; C]) -> Self {
-        return Self {
-            channels: channels_from_array(channels),
-            frames_cap: F,
-            frames_len: F,
-        };
-
-        #[inline]
-        fn channels_from_array<T: Sample, const F: usize, const C: usize>(
-            values: [[T; F]; C],
-        ) -> Vec<RawSlice<T>> {
-            let mut channels = Vec::with_capacity(C);
-
-            for frames in std::array::IntoIter::new(values) {
-                let data = Box::<[T]>::from(frames);
-
-                // Safety: We just created the box with the data.
-                let data = unsafe { ptr::NonNull::new_unchecked(Box::into_raw(data) as *mut T) };
-
-                channels.push(RawSlice { data });
-            }
-
-            channels
-        }
+        Self::from_array(channels)
     }
 }
 

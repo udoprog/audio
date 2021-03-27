@@ -99,6 +99,63 @@ where
         }
     }
 
+    /// Construct a masked audio buffer from an existing audio buffer. The kind
+    /// of mask needs to be specified through `M`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let buffer = rotary::audio_buffer![[2.0; 128]; 4];
+    /// let mut buffer = rotary::MaskedAudioBuffer::<_, rotary::BitSet<u128>>::with_buffer(buffer);
+    ///
+    /// buffer.mask(1);
+    ///
+    /// let mut channels = Vec::new();
+    ///
+    /// for (n, chan) in buffer.iter_with_channels() {
+    ///     channels.push(n);
+    ///     assert_eq!(chan, vec![2.0; 128]);
+    /// }
+    ///
+    /// assert_eq!(channels, vec![0, 2, 3]);
+    /// ```
+    pub fn with_buffer(buffer: audio_buffer::AudioBuffer<T>) -> Self {
+        Self {
+            buffer,
+            mask: M::full(),
+        }
+    }
+
+    /// Allocate a masked audio buffer from a fixed-size array.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::BitSet;
+    ///
+    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::from_array([[2.0; 256]; 4]);
+    ///
+    /// assert_eq!(buffer.frames(), 256);
+    /// assert_eq!(buffer.channels(), 4);
+    ///
+    /// buffer.mask(1);
+    ///
+    /// let mut channels = Vec::new();
+    ///
+    /// for (n, chan) in buffer.iter_with_channels() {
+    ///     channels.push(n);
+    ///     assert_eq!(chan, vec![2.0; 256]);
+    /// }
+    ///
+    /// assert_eq!(channels, vec![0, 2, 3]);
+    /// ```
+    pub fn from_array<const F: usize, const C: usize>(channels: [[T; F]; C]) -> Self {
+        Self {
+            buffer: audio_buffer::AudioBuffer::from_array(channels),
+            mask: M::full(),
+        }
+    }
+
     /// Iterate over the index of all enabled channels.
     ///
     /// # Examples
@@ -621,10 +678,7 @@ where
 {
     #[inline]
     fn from(channels: [[T; F]; C]) -> Self {
-        Self {
-            buffer: channels.into(),
-            mask: M::full(),
-        }
+        Self::from_array(channels)
     }
 }
 

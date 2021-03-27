@@ -14,7 +14,20 @@
 /// ```
 #[macro_export]
 macro_rules! audio_buffer {
-    ([$inst:expr; $frames:expr]; $channels:expr) => {
-        $crate::AudioBuffer::from([[$inst; $frames]; $channels]);
+    ([$inst:expr; $frames:literal]; $channels:literal) => {
+        $crate::AudioBuffer::from_array([[$inst; $frames]; $channels]);
     };
+
+    ([$inst:expr; $frames:expr]; $channels:expr) => {{
+        let value = $inst;
+        let mut buffer = $crate::AudioBuffer::with_topology($channels, $frames);
+
+        for chan in &mut buffer {
+            for f in chan {
+                *f = value;
+            }
+        }
+
+        buffer
+    }};
 }
