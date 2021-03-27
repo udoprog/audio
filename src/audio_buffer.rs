@@ -160,13 +160,41 @@ where
     /// Set the size of the buffer. The size is the size of each channel's
     /// buffer.
     ///
+    /// If the size of the buffer increases as a result, the new regions in the
+    /// frames will be zeroed. If the size decreases, the region will be left
+    /// untouched. So if followed by another increase, the data will be "dirty".
+    ///
     /// # Examples
     ///
     /// ```rust
     /// let mut buffer = rotary::AudioBuffer::<f32>::new();
     ///
+    /// assert_eq!(buffer.channels(), 0);
+    /// assert_eq!(buffer.frames(), 0);
+    ///
     /// buffer.resize_channels(4);
     /// buffer.resize(256);
+    ///
+    /// assert_eq!(buffer[1][128], 0.0);
+    /// buffer[1][128] = 42.0;
+    ///
+    /// assert_eq!(buffer.channels(), 4);
+    /// assert_eq!(buffer.frames(), 256);
+    /// ```
+    ///
+    /// Decreasing and increasing the size will not touch a buffer that has
+    /// already been allocated.
+    ///
+    /// ```rust
+    /// # let mut buffer = rotary::AudioBuffer::<f32>::with_topology(4, 256);
+    /// assert_eq!(buffer[1][128], 0.0);
+    /// buffer[1][128] = 42.0;
+    ///
+    /// buffer.resize(64);
+    /// assert!(buffer[1].get(128).is_none());
+    ///
+    /// buffer.resize(256);
+    /// assert_eq!(buffer[1][128], 42.0);
     /// ```
     pub fn resize(&mut self, len: usize) {
         if self.frames_cap < len {
@@ -195,14 +223,23 @@ where
 
     /// Set the number of channels in use.
     ///
+    /// If the size of the buffer increases as a result, the new channels will
+    /// be zeroed. If the size decreases, the channels that falls outside of the
+    /// new size will be dropped.
+    ///
     /// # Examples
     ///
     /// ```rust
     /// let mut buffer = rotary::AudioBuffer::<f32>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
+    /// assert_eq!(buffer.frames(), 0);
+    ///
     /// buffer.resize_channels(4);
+    /// buffer.resize(256);
+    ///
     /// assert_eq!(buffer.channels(), 4);
+    /// assert_eq!(buffer.frames(), 256);
     /// ```
     pub fn resize_channels(&mut self, channels: usize) {
         if channels < self.channels.len() {

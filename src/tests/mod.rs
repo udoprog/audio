@@ -141,3 +141,16 @@ fn test_enabled_mut() {
     assert_eq!(&buffer[2], &expected[..]);
     assert_eq!(&buffer[3], &expected[..]);
 }
+
+#[test]
+fn test_stale_allocation() {
+    let mut buffer = crate::AudioBuffer::<f32>::with_topology(4, 256);
+    assert_eq!(buffer[1][128], 0.0);
+    buffer[1][128] = 42.0;
+
+    buffer.resize(64);
+    assert!(buffer[1].get(128).is_none());
+
+    buffer.resize(256);
+    assert_eq!(buffer[1][128], 42.0);
+}

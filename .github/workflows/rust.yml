@@ -4,19 +4,23 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
     - uses: actions/checkout@v1
     - uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
         override: true
-    - name: cargo build
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
     - name: cargo test
       uses: actions-rs/cargo@v1
       with:
         command: test
         args: --all-features
+    - name: cargo test
+      uses: actions-rs/cargo@v1
+      with:
+        command: miri
+        args: test

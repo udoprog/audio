@@ -202,7 +202,7 @@ where
     type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.bits.is_empty() {
+        if self.bits.is_zero() {
             return None;
         }
 
@@ -236,7 +236,7 @@ where
 
             let bits = &mut self.bits[self.o];
 
-            if bits.is_empty() {
+            if bits.is_zero() {
                 self.o += 1;
                 continue;
             }
@@ -250,33 +250,51 @@ where
 
 /// Basic numerical traits for the plumbing of a bit set.
 pub trait Num: Copy {
+    /// How many bits there are in this number.
     const BITS: usize;
 
-    /// Trailing zeros.
+    /// Number of trailing zeros.
     fn trailing_zeros(self) -> usize;
 
-    /// Test if the bits are empty.
-    fn is_empty(self) -> bool;
+    /// Test if the number is zero.
+    fn is_zero(self) -> bool;
 }
 
-/// The trait for a bit set.
+/// The trait for a bit pattern.
 pub trait Bits: Copy {
+    /// The iterator over this bit pattern.
+    ///
+    /// See [BitSet::iter].
     type Iter: Iterator<Item = usize>;
 
-    /// Bit-pattern for an empty bit set.
+    /// Bit-pattern for an empty bit pattern.
+    ///
+    /// See [BitSet::empty].
     const EMPTY: Self;
-    /// Bit-pattern for a full bit set.
+
+    /// Bit-pattern for a full bit pattern.
+    ///
+    /// See [BitSet::full].
     const FULL: Self;
 
     /// Test if the given bit is set.
+    ///
+    /// See [BitSet::test].
     fn test(self, index: usize) -> bool;
 
-    /// Set the given bit.
+    /// Set the given bit in the bit pattern.
+    ///
+    /// See [BitSet::set].
     fn set(&mut self, index: usize);
 
-    /// Clear the given bit.
+    /// Clear the given bit in the bit pattern.
+    ///
+    /// See [BitSet::clear].
     fn clear(&mut self, index: usize);
 
+    /// Construct an iterator over a bit pattern.
+    ///
+    /// See [BitSet::iter].
     fn iter(self) -> Self::Iter;
 }
 
@@ -289,7 +307,7 @@ macro_rules! impl_bits {
                 <$ty>::trailing_zeros(self) as usize
             }
 
-            fn is_empty(self) -> bool {
+            fn is_zero(self) -> bool {
                 self == 0
             }
         }
