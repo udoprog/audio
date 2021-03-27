@@ -23,7 +23,10 @@
 //! rng.fill(&mut buffer[1]);
 //! ```
 //!
-//! # Creating and using a masked audio buffer.
+//! You can use masked audio buffers if you need the ability to temporarily
+//! enable or disable channels. This requires that you specify the type of the
+//! mask. A good option for this is a [BitSet<u128>], which supports up to 128
+//! channels.
 //!
 //! ```rust
 //! use rotary::BitSet;
@@ -45,8 +48,9 @@
 //! assert_eq!(&buffer[2], &expected[..]);
 //! assert_eq!(&buffer[3], &expected[..]);
 //! ```
-//!
+//! 
 //! [AudioBuffer::resize]: https://docs.rs/rotary/0/rotary/audio_buffer/struct.AudioBuffer.html#method.resize
+//! [BitSet<u128>]: https://docs.rs/rotary/0/rotary/bit_set/struct.BitSet.html
 
 #![deny(missing_docs)]
 

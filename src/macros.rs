@@ -1,5 +1,7 @@
 /// Instantiate a literal audio buffer.
 ///
+/// This is useful when testing.
+///
 /// # Examples
 ///
 /// ```rust
