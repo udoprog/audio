@@ -1,3 +1,7 @@
+//! [![Documentation](https://docs.rs/rotary/badge.svg)](https://docs.rs/rotary)
+//! [![Crates](https://img.shields.io/crates/v/rotary.svg)](https://crates.io/crates/rotary)
+//! [![Actions Status](https://github.com/udoprog/rotary/workflows/Rust/badge.svg)](https://github.com/udoprog/rotary/actions)
+//!
 //! A library for dealing efficiently with AudioBuffer non-interleaved audio
 //! buffers.
 //!
