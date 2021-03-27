@@ -277,7 +277,7 @@ pub trait Bits: Sized + Copy {
     /// Test if the given bit is set.
     ///
     /// See [BitSet::test].
-    fn test(self, index: usize) -> bool;
+    fn test(&self, index: usize) -> bool;
 
     /// Set the given bit in the bit pattern.
     ///
@@ -313,18 +313,22 @@ macro_rules! impl_num_bits {
             const EMPTY: Self = 0;
             const FULL: Self = !0;
 
-            fn test(self, index: usize) -> bool {
-                (self & (1 << index)) != 0
+            #[inline]
+            fn test(&self, index: usize) -> bool {
+                (*self & (1 << index)) != 0
             }
 
+            #[inline]
             fn set(&mut self, index: usize) {
                 *self |= 1 << index;
             }
 
+            #[inline]
             fn clear(&mut self, index: usize) {
                 *self &= !(1 << index);
             }
 
+            #[inline]
             fn iter(self) -> Self::Iter {
                 Iter { bits: self }
             }
@@ -347,7 +351,7 @@ where
     const EMPTY: Self = [T::EMPTY; N];
     const FULL: Self = [T::FULL; N];
 
-    fn test(self, index: usize) -> bool {
+    fn test(&self, index: usize) -> bool {
         if let Some(bits) = self.get(index / T::BITS) {
             return bits.test(index % T::BITS);
         }
