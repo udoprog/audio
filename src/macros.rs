@@ -5,7 +5,7 @@
 /// # Examples
 ///
 /// ```rust
-/// let buf = rotary::audio_buffer![[0.0; 1024]; 2];
+/// let buf = rotary::dynamic![[0.0; 1024]; 2];
 ///
 /// let mut expected = vec![0.0; 1024];
 ///
@@ -13,14 +13,14 @@
 /// assert_eq!(&buf[1], &expected[..]);
 /// ```
 #[macro_export]
-macro_rules! audio_buffer {
+macro_rules! dynamic {
     // Branch of the macro used when we can perform a literal instantiation of
     // the audio buffer.
     //
     // This is typically more performant, since it doesn't require looping and
     // writing through the buffer.
     ([$sample:expr; $frames:literal]; $channels:literal) => {
-        $crate::AudioBuffer::from_array([[$sample; $frames]; $channels]);
+        $crate::Dynamic::from_array([[$sample; $frames]; $channels]);
     };
 
     // Branch of the macro used when we can evaluate an expression that is
@@ -30,7 +30,7 @@ macro_rules! audio_buffer {
     // `Copy`. `$frames` and `$channels` should evaluate to `usize`.
     ([$sample:expr; $frames:expr]; $channels:expr) => {{
         let value = $sample;
-        let mut buffer = $crate::AudioBuffer::with_topology($channels, $frames);
+        let mut buffer = $crate::Dynamic::with_topology($channels, $frames);
 
         for chan in &mut buffer {
             for f in chan {

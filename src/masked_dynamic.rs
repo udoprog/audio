@@ -1,9 +1,9 @@
 //! A dynamically sized, multi-channel audio buffer that supports.
 //!
-//! See [MaskedAudioBuffer] for more information.
+//! See [MaskedDynamic] for more information.
 
-use crate::audio_buffer;
 use crate::buf::{Buf, BufChannel};
+use crate::dynamic;
 use crate::mask::Mask;
 use crate::sample::Sample;
 use std::cmp;
@@ -18,7 +18,7 @@ use std::ops;
 /// ```rust
 /// use rotary::BitSet;
 ///
-/// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(2, 256);
+/// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::with_topology(2, 256);
 ///
 /// let all_zeros = vec![0.0; 256];
 ///
@@ -32,13 +32,13 @@ use std::ops;
 /// ```
 ///
 /// Masked channels will also be skipped by iterators, such as
-/// [MaskedAudioBuffer::iter_mut] and
-/// [MaskedAudioBuffer::iter_mut_with_channels].
+/// [MaskedDynamic::iter_mut] and
+/// [MaskedDynamic::iter_mut_with_channels].
 ///
 /// ```rust
 /// use rotary::BitSet;
 ///
-/// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(2, 256);
+/// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::with_topology(2, 256);
 ///
 /// assert_eq!(buffer.iter_mut().count(), 2);
 ///
@@ -46,16 +46,16 @@ use std::ops;
 ///
 /// assert_eq!(buffer.iter_mut().count(), 1);
 /// ```
-pub struct MaskedAudioBuffer<T, M>
+pub struct MaskedDynamic<T, M>
 where
     T: Sample,
     M: Mask,
 {
-    buffer: audio_buffer::AudioBuffer<T>,
+    buffer: dynamic::Dynamic<T>,
     mask: M,
 }
 
-impl<T, M> MaskedAudioBuffer<T, M>
+impl<T, M> MaskedDynamic<T, M>
 where
     T: Sample,
     M: Mask,
@@ -67,13 +67,13 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::new();
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::new();
     ///
     /// assert_eq!(buffer.frames(), 0);
     /// ```
     pub fn new() -> Self {
         Self {
-            buffer: audio_buffer::AudioBuffer::new(),
+            buffer: dynamic::Dynamic::new(),
             mask: M::full(),
         }
     }
@@ -87,14 +87,14 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 256);
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::with_topology(4, 256);
     ///
     /// assert_eq!(buffer.frames(), 256);
     /// assert_eq!(buffer.channels(), 4);
     /// ```
     pub fn with_topology(channels: usize, frames: usize) -> Self {
         Self {
-            buffer: audio_buffer::AudioBuffer::with_topology(channels, frames),
+            buffer: dynamic::Dynamic::with_topology(channels, frames),
             mask: M::full(),
         }
     }
@@ -105,8 +105,8 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let buffer = rotary::audio_buffer![[2.0; 128]; 4];
-    /// let mut buffer = rotary::MaskedAudioBuffer::<_, rotary::BitSet<u128>>::with_buffer(buffer);
+    /// let buffer = rotary::dynamic![[2.0; 128]; 4];
+    /// let mut buffer = rotary::MaskedDynamic::<_, rotary::BitSet<u128>>::with_buffer(buffer);
     ///
     /// buffer.mask(1);
     ///
@@ -119,7 +119,7 @@ where
     ///
     /// assert_eq!(channels, vec![0, 2, 3]);
     /// ```
-    pub fn with_buffer(buffer: audio_buffer::AudioBuffer<T>) -> Self {
+    pub fn with_buffer(buffer: dynamic::Dynamic<T>) -> Self {
         Self {
             buffer,
             mask: M::full(),
@@ -133,7 +133,7 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::from_array([[2.0; 256]; 4]);
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::from_array([[2.0; 256]; 4]);
     ///
     /// assert_eq!(buffer.frames(), 256);
     /// assert_eq!(buffer.channels(), 4);
@@ -151,7 +151,7 @@ where
     /// ```
     pub fn from_array<const F: usize, const C: usize>(channels: [[T; F]; C]) -> Self {
         Self {
-            buffer: audio_buffer::AudioBuffer::from_array(channels),
+            buffer: dynamic::Dynamic::from_array(channels),
             mask: M::full(),
         }
     }
@@ -163,7 +163,7 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 256);
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::with_topology(4, 256);
     ///
     /// assert_eq!(vec![0, 1, 2, 3], buffer.unmasked().collect::<Vec<usize>>());
     ///
@@ -189,7 +189,7 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 256);
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::with_topology(4, 256);
     ///
     /// let expected = vec![0.0; 256];
     ///
@@ -210,7 +210,7 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 256);
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::with_topology(4, 256);
     ///
     /// let expected = vec![0.0; 256];
     ///
@@ -231,7 +231,7 @@ where
     /// ```
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 256);
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::with_topology(4, 256);
     ///
     /// buffer.mask(1);
     ///
@@ -277,7 +277,7 @@ where
     /// ```
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 256);
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::with_topology(4, 256);
     ///
     /// let all_zeros = vec![0.0; 256];
     ///
@@ -314,7 +314,7 @@ where
     /// ```
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 256);
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::with_topology(4, 256);
     ///
     /// buffer.mask(1);
     ///
@@ -354,7 +354,7 @@ where
     /// use rotary::BitSet;
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 256);
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::with_topology(4, 256);
     /// let mut rng = rand::thread_rng();
     ///
     /// for chan in buffer.iter_mut() {
@@ -367,7 +367,7 @@ where
     /// ```
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 256);
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::with_topology(4, 256);
     ///
     /// buffer.mask(1);
     ///
@@ -406,7 +406,7 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::new();
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::new();
     ///
     /// assert_eq!(buffer.frames(), 0);
     /// buffer.resize(256);
@@ -423,7 +423,7 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::new();
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// buffer.resize_channels(2);
@@ -441,7 +441,7 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::new();
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::new();
     ///
     /// buffer.resize_channels(4);
     /// buffer.resize(256);
@@ -457,7 +457,7 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::new();
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// buffer.resize_channels(4);
@@ -474,7 +474,7 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::new();
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::new();
     ///
     /// buffer.resize_channels(4);
     /// buffer.resize(256);
@@ -502,7 +502,7 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::new();
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::new();
     ///
     /// buffer.resize(256);
     ///
@@ -529,7 +529,7 @@ where
     /// use rand::Rng as _;
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::new();
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::new();
     ///
     /// buffer.resize_channels(2);
     /// buffer.resize(256);
@@ -562,7 +562,7 @@ where
     /// use rand::Rng as _;
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::new();
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::new();
     ///
     /// buffer.resize(256);
     ///
@@ -588,7 +588,7 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::new();
+    /// let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::new();
     ///
     /// buffer.resize_channels(4);
     /// buffer.resize(512);
@@ -610,7 +610,7 @@ where
     }
 }
 
-impl<T, M> fmt::Debug for MaskedAudioBuffer<T, M>
+impl<T, M> fmt::Debug for MaskedDynamic<T, M>
 where
     T: Sample + fmt::Debug,
     M: Mask,
@@ -620,7 +620,7 @@ where
     }
 }
 
-impl<T, M> cmp::PartialEq for MaskedAudioBuffer<T, M>
+impl<T, M> cmp::PartialEq for MaskedDynamic<T, M>
 where
     T: Sample + cmp::PartialEq,
     M: Mask,
@@ -630,14 +630,14 @@ where
     }
 }
 
-impl<T, M> cmp::Eq for MaskedAudioBuffer<T, M>
+impl<T, M> cmp::Eq for MaskedDynamic<T, M>
 where
     T: Sample + cmp::Eq,
     M: Mask,
 {
 }
 
-impl<T, M> cmp::PartialOrd for MaskedAudioBuffer<T, M>
+impl<T, M> cmp::PartialOrd for MaskedDynamic<T, M>
 where
     T: Sample + cmp::PartialOrd,
     M: Mask,
@@ -648,7 +648,7 @@ where
     }
 }
 
-impl<T, M> cmp::Ord for MaskedAudioBuffer<T, M>
+impl<T, M> cmp::Ord for MaskedDynamic<T, M>
 where
     T: Sample + cmp::Ord,
     M: Mask,
@@ -658,7 +658,7 @@ where
     }
 }
 
-impl<T, M> hash::Hash for MaskedAudioBuffer<T, M>
+impl<T, M> hash::Hash for MaskedDynamic<T, M>
 where
     T: Sample + hash::Hash,
     M: Mask,
@@ -671,7 +671,7 @@ where
 }
 
 /// Allocate a masked audio buffer from a fixed-size array.
-impl<T, M, const F: usize, const C: usize> From<[[T; F]; C]> for MaskedAudioBuffer<T, M>
+impl<T, M, const F: usize, const C: usize> From<[[T; F]; C]> for MaskedDynamic<T, M>
 where
     T: Sample,
     M: Mask,
@@ -682,7 +682,7 @@ where
     }
 }
 
-impl<'a, T, M> IntoIterator for &'a mut MaskedAudioBuffer<T, M>
+impl<'a, T, M> IntoIterator for &'a mut MaskedDynamic<T, M>
 where
     T: Sample,
     M: Mask,
@@ -695,7 +695,7 @@ where
     }
 }
 
-impl<'a, T, M> IntoIterator for &'a MaskedAudioBuffer<T, M>
+impl<'a, T, M> IntoIterator for &'a MaskedDynamic<T, M>
 where
     T: Sample,
     M: Mask,
@@ -708,7 +708,7 @@ where
     }
 }
 
-impl<T, M> ops::Index<usize> for MaskedAudioBuffer<T, M>
+impl<T, M> ops::Index<usize> for MaskedDynamic<T, M>
 where
     T: Sample,
     M: Mask,
@@ -723,7 +723,7 @@ where
     }
 }
 
-impl<T, M> ops::IndexMut<usize> for MaskedAudioBuffer<T, M>
+impl<T, M> ops::IndexMut<usize> for MaskedDynamic<T, M>
 where
     T: Sample,
     M: Mask,
@@ -736,7 +736,7 @@ where
     }
 }
 
-impl<T, M> Buf<T> for MaskedAudioBuffer<T, M>
+impl<T, M> Buf<T> for MaskedDynamic<T, M>
 where
     T: Sample,
     M: Mask,
@@ -756,7 +756,7 @@ where
 
 /// Iterate over all unmasked channels and their corresponding indexes.
 ///
-/// See [MaskedAudioBuffer::unmasked].
+/// See [MaskedDynamic::unmasked].
 pub struct Unmasked<I> {
     channels: usize,
     iter: I,
@@ -781,13 +781,13 @@ where
 
 /// Iterate over all unmasked channels and their corresponding indexes.
 ///
-/// See [MaskedAudioBuffer::iter].
+/// See [MaskedDynamic::iter].
 pub struct Iter<'a, T, M>
 where
     T: Sample,
     M: Mask,
 {
-    slices: crate::audio_buffer::Iter<'a, T>,
+    slices: crate::dynamic::Iter<'a, T>,
     iter: M::Iter,
     last: usize,
 }
@@ -810,13 +810,13 @@ where
 
 /// Iterate over all enabled channels and their corresponding indexes.
 ///
-/// See [MaskedAudioBuffer::iter_mut].
+/// See [MaskedDynamic::iter_mut].
 pub struct IterMut<'a, T, M>
 where
     T: Sample,
     M: Mask,
 {
-    slices: crate::audio_buffer::IterMut<'a, T>,
+    slices: crate::dynamic::IterMut<'a, T>,
     iter: M::Iter,
     last: usize,
 }
@@ -839,13 +839,13 @@ where
 
 /// Iterate over all channels and their corresponding indexes.
 ///
-/// See [MaskedAudioBuffer::iter_mut_with_channels].
+/// See [MaskedDynamic::iter_mut_with_channels].
 pub struct IterWithChannels<'a, T, M>
 where
     T: Sample,
     M: Mask,
 {
-    slices: crate::audio_buffer::Iter<'a, T>,
+    slices: crate::dynamic::Iter<'a, T>,
     iter: M::Iter,
     last: usize,
 }
@@ -868,13 +868,13 @@ where
 
 /// Iterate mutably over all enabled channels and their corresponding indexes.
 ///
-/// See [MaskedAudioBuffer::iter_mut_with_channels].
+/// See [MaskedDynamic::iter_mut_with_channels].
 pub struct IterMutWithChannels<'a, T, M>
 where
     T: Sample,
     M: Mask,
 {
-    slices: crate::audio_buffer::IterMut<'a, T>,
+    slices: crate::dynamic::IterMut<'a, T>,
     iter: M::Iter,
     last: usize,
 }

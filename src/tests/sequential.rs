@@ -162,5 +162,5 @@ fn test_stale_allocation() {
 
 #[test]
 fn test_from_array() {
-    let _ = crate::audio_buffer![[0.0; 128]; 2];
+    let _ = crate::dynamic![[0.0; 128]; 2];
 }

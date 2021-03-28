@@ -2,17 +2,17 @@
 //! [![Crates](https://img.shields.io/crates/v/rotary.svg)](https://crates.io/crates/rotary)
 //! [![Actions Status](https://github.com/udoprog/rotary/workflows/Rust/badge.svg)](https://github.com/udoprog/rotary/actions)
 //!
-//! A library for dealing efficiently with AudioBuffer non-interleaved audio
+//! A library for dealing efficiently with Dynamic non-interleaved audio
 //! buffers.
 //!
 //! The buffer is constructed similarly to a `Vec<Vec<T>>`, except the interior
 //! vector has a fixed size. And the buffer makes no attempt to clear data which
-//! is freed when using functions such as [AudioBuffer::resize].
+//! is freed when using functions such as [Dynamic::resize].
 //!
 //! ```rust
 //! use rand::Rng as _;
 //!
-//! let mut buffer = rotary::AudioBuffer::<f32>::new();
+//! let mut buffer = rotary::Dynamic::<f32>::new();
 //!
 //! buffer.resize_channels(2);
 //! buffer.resize(2048);
@@ -31,7 +31,7 @@
 //! ```rust
 //! use rotary::BitSet;
 //!
-//! let mut buffer = rotary::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 128);
+//! let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::with_topology(4, 128);
 //!
 //! buffer.mask(1);
 //!
@@ -49,13 +49,13 @@
 //! assert_eq!(&buffer[3], &expected[..]);
 //! ```
 //!
-//! For convenience we also provide the [audio_buffer!] macro when constructing
+//! For convenience we also provide the [dynamic!] macro when constructing
 //! audio buffers.
 //!
 //! ```rust
 //! use rotary::BitSet;
 //!
-//! let mut buf = rotary::AudioBuffer::<f32>::with_topology(4, 128);
+//! let mut buf = rotary::Dynamic::<f32>::with_topology(4, 128);
 //!
 //! for channel in &mut buf {
 //!     for f in channel {
@@ -63,34 +63,34 @@
 //!     }
 //! }
 //!
-//! assert_eq!(buf, rotary::audio_buffer![[2.0; 128]; 4])
+//! assert_eq!(buf, rotary::dynamic![[2.0; 128]; 4])
 //! ```
 //!
-//! [AudioBuffer::resize]: https://docs.rs/rotary/0/rotary/audio_buffer/struct.AudioBuffer.html#method.resize
+//! [Dynamic::resize]: https://docs.rs/rotary/0/rotary/dynamic/struct.Dynamic.html#method.resize
 //! [BitSet<u128>]: https://docs.rs/rotary/0/rotary/bit_set/struct.BitSet.html
-//! [audio_buffer!]: https://docs.rs/rotary/0/rotary/macros/macro.audio_buffer.html
+//! [dynamic!]: https://docs.rs/rotary/0/rotary/macros/macro.dynamic.html
 
 #![deny(missing_docs)]
 
 #[macro_use]
 mod macros;
-pub mod audio_buffer;
 pub mod bit_set;
 mod buf;
 pub mod channel;
-mod interleaved;
+pub mod dynamic;
+pub mod interleaved;
 mod mask;
-pub mod masked_audio_buffer;
+pub mod masked_dynamic;
 mod sample;
-mod sequential;
+pub mod sequential;
 #[cfg(test)]
 mod tests;
 
-pub use self::audio_buffer::AudioBuffer;
 pub use self::bit_set::BitSet;
 pub use self::buf::{Buf, BufChannel};
+pub use self::dynamic::Dynamic;
 pub use self::interleaved::Interleaved;
 pub use self::mask::Mask;
-pub use self::masked_audio_buffer::MaskedAudioBuffer;
+pub use self::masked_dynamic::MaskedDynamic;
 pub use self::sample::Sample;
 pub use self::sequential::Sequential;

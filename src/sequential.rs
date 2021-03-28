@@ -104,7 +104,7 @@ where
 
     /// Allocate an audio buffer from a fixed-size array.
     ///
-    /// See [audio_buffer!].
+    /// See [dynamic!].
     ///
     /// # Examples
     ///

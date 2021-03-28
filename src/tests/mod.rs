@@ -1,3 +1,3 @@
-mod audio_buffer;
+mod dynamic;
 mod interleaved;
 mod sequential;

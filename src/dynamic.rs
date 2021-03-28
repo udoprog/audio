@@ -2,7 +2,7 @@
 
 use crate::buf::{Buf, BufChannel};
 use crate::mask::Mask;
-use crate::masked_audio_buffer::MaskedAudioBuffer;
+use crate::masked_dynamic::MaskedDynamic;
 use crate::sample::Sample;
 use std::cmp;
 use std::fmt;
@@ -12,11 +12,21 @@ use std::ops;
 use std::ptr;
 use std::slice;
 
-/// A multi-channel audio buffer for the given type.
+/// A dynamically sized, multi-channel audio buffer.
 ///
 /// An audio buffer is constrained to only support sample-apt types. For more
 /// information of what this means, see [Sample].
-pub struct AudioBuffer<T>
+///
+/// This kind of buffer stores each channel in its own heap-allocated slice of
+/// memory, meaning they can be manipulated more cheaply independently of each
+/// other than say [Interleaved][crate::Interleaved] or
+/// [Sequential][crate::Sequential]. These would have to re-organize every
+/// constituent channel when resizing, while [Dynamic] generally only requires
+/// [growing and shrinking][std::alloc::Allocator] of a memory region.
+///
+/// This kind of buffer is a good choice if you need to
+/// [resize][Dynamic::resize] frequently.
+pub struct Dynamic<T>
 where
     T: Sample,
 {
@@ -29,7 +39,7 @@ where
     frames_cap: usize,
 }
 
-impl<T> AudioBuffer<T>
+impl<T> Dynamic<T>
 where
     T: Sample,
 {
@@ -46,7 +56,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = rotary::AudioBuffer::<f32>::new();
+    /// let mut buffer = rotary::Dynamic::<f32>::new();
     ///
     /// assert_eq!(buffer.frames(), 0);
     /// ```
@@ -65,7 +75,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = rotary::AudioBuffer::<f32>::with_topology(4, 256);
+    /// let mut buffer = rotary::Dynamic::<f32>::with_topology(4, 256);
     ///
     /// assert_eq!(buffer.frames(), 256);
     /// assert_eq!(buffer.channels(), 4);
@@ -86,14 +96,14 @@ where
 
     /// Allocate an audio buffer from a fixed-size array.
     ///
-    /// See [audio_buffer!].
+    /// See [dynamic!].
     ///
     /// # Examples
     ///
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::AudioBuffer::<f32>::from_array([[2.0; 256]; 4]);
+    /// let mut buffer = rotary::Dynamic::<f32>::from_array([[2.0; 256]; 4]);
     ///
     /// assert_eq!(buffer.frames(), 256);
     /// assert_eq!(buffer.channels(), 4);
@@ -132,7 +142,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let buffer = rotary::audio_buffer![[2.0; 128]; 4];
+    /// let buffer = rotary::dynamic![[2.0; 128]; 4];
     /// let mut buffer = buffer.into_masked::<rotary::BitSet<u128>>();
     ///
     /// buffer.mask(1);
@@ -146,11 +156,11 @@ where
     ///
     /// assert_eq!(channels, vec![0, 2, 3]);
     /// ```
-    pub fn into_masked<M>(self) -> MaskedAudioBuffer<T, M>
+    pub fn into_masked<M>(self) -> MaskedDynamic<T, M>
     where
         M: Mask,
     {
-        MaskedAudioBuffer::with_buffer(self)
+        MaskedDynamic::with_buffer(self)
     }
 
     /// Get the number of frames in the channels of an audio buffer.
@@ -158,7 +168,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = rotary::AudioBuffer::<f32>::new();
+    /// let mut buffer = rotary::Dynamic::<f32>::new();
     ///
     /// assert_eq!(buffer.frames(), 0);
     /// buffer.resize(256);
@@ -173,7 +183,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = rotary::AudioBuffer::<f32>::new();
+    /// let mut buffer = rotary::Dynamic::<f32>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// buffer.resize_channels(2);
@@ -190,7 +200,7 @@ where
     /// ```
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = rotary::AudioBuffer::<f32>::with_topology(4, 256);
+    /// let mut buffer = rotary::Dynamic::<f32>::with_topology(4, 256);
     ///
     /// let all_zeros = vec![0.0; 256];
     ///
@@ -212,7 +222,7 @@ where
     /// ```
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = rotary::AudioBuffer::<f32>::with_topology(4, 256);
+    /// let mut buffer = rotary::Dynamic::<f32>::with_topology(4, 256);
     /// let mut rng = rand::thread_rng();
     ///
     /// for chan in buffer.iter_mut() {
@@ -236,7 +246,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = rotary::AudioBuffer::<f32>::new();
+    /// let mut buffer = rotary::Dynamic::<f32>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// assert_eq!(buffer.frames(), 0);
@@ -255,7 +265,7 @@ where
     /// already been allocated.
     ///
     /// ```rust
-    /// # let mut buffer = rotary::AudioBuffer::<f32>::with_topology(4, 256);
+    /// # let mut buffer = rotary::Dynamic::<f32>::with_topology(4, 256);
     /// assert_eq!(buffer[1][128], 0.0);
     /// buffer[1][128] = 42.0;
     ///
@@ -299,7 +309,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = rotary::AudioBuffer::<f32>::new();
+    /// let mut buffer = rotary::Dynamic::<f32>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// assert_eq!(buffer.frames(), 0);
@@ -340,7 +350,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = rotary::AudioBuffer::<f32>::new();
+    /// let mut buffer = rotary::Dynamic::<f32>::new();
     ///
     /// buffer.resize_channels(4);
     /// buffer.resize(256);
@@ -367,7 +377,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = rotary::AudioBuffer::<f32>::new();
+    /// let mut buffer = rotary::Dynamic::<f32>::new();
     ///
     /// buffer.resize(256);
     ///
@@ -397,7 +407,7 @@ where
     /// ```rust
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = rotary::AudioBuffer::<f32>::new();
+    /// let mut buffer = rotary::Dynamic::<f32>::new();
     ///
     /// buffer.resize_channels(2);
     /// buffer.resize(256);
@@ -430,7 +440,7 @@ where
     /// ```rust
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = rotary::AudioBuffer::<f32>::new();
+    /// let mut buffer = rotary::Dynamic::<f32>::new();
     ///
     /// buffer.resize(256);
     ///
@@ -458,7 +468,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = rotary::AudioBuffer::<f32>::new();
+    /// let mut buffer = rotary::Dynamic::<f32>::new();
     /// buffer.resize_channels(4);
     /// buffer.resize(512);
     ///
@@ -502,8 +512,8 @@ where
 
 /// Allocate an audio buffer from a fixed-size array.
 ///
-/// See [audio_buffer!].
-impl<T, const F: usize, const C: usize> From<[[T; F]; C]> for AudioBuffer<T>
+/// See [dynamic!].
+impl<T, const F: usize, const C: usize> From<[[T; F]; C]> for Dynamic<T>
 where
     T: Sample,
 {
@@ -513,7 +523,7 @@ where
     }
 }
 
-impl<T> fmt::Debug for AudioBuffer<T>
+impl<T> fmt::Debug for Dynamic<T>
 where
     T: Sample + fmt::Debug,
 {
@@ -522,7 +532,7 @@ where
     }
 }
 
-impl<T> cmp::PartialEq for AudioBuffer<T>
+impl<T> cmp::PartialEq for Dynamic<T>
 where
     T: Sample + cmp::PartialEq,
 {
@@ -531,9 +541,9 @@ where
     }
 }
 
-impl<T> cmp::Eq for AudioBuffer<T> where T: Sample + cmp::Eq {}
+impl<T> cmp::Eq for Dynamic<T> where T: Sample + cmp::Eq {}
 
-impl<T> cmp::PartialOrd for AudioBuffer<T>
+impl<T> cmp::PartialOrd for Dynamic<T>
 where
     T: Sample + cmp::PartialOrd,
 {
@@ -542,7 +552,7 @@ where
     }
 }
 
-impl<T> cmp::Ord for AudioBuffer<T>
+impl<T> cmp::Ord for Dynamic<T>
 where
     T: Sample + cmp::Ord,
 {
@@ -551,7 +561,7 @@ where
     }
 }
 
-impl<T> hash::Hash for AudioBuffer<T>
+impl<T> hash::Hash for Dynamic<T>
 where
     T: Sample + hash::Hash,
 {
@@ -562,7 +572,7 @@ where
     }
 }
 
-impl<'a, T> IntoIterator for &'a AudioBuffer<T>
+impl<'a, T> IntoIterator for &'a Dynamic<T>
 where
     T: Sample,
 {
@@ -574,7 +584,7 @@ where
     }
 }
 
-impl<'a, T> IntoIterator for &'a mut AudioBuffer<T>
+impl<'a, T> IntoIterator for &'a mut Dynamic<T>
 where
     T: Sample,
 {
@@ -586,7 +596,7 @@ where
     }
 }
 
-impl<T> ops::Index<usize> for AudioBuffer<T>
+impl<T> ops::Index<usize> for Dynamic<T>
 where
     T: Sample,
 {
@@ -600,7 +610,7 @@ where
     }
 }
 
-impl<T> ops::IndexMut<usize> for AudioBuffer<T>
+impl<T> ops::IndexMut<usize> for Dynamic<T>
 where
     T: Sample,
 {
@@ -612,7 +622,7 @@ where
     }
 }
 
-impl<T> Drop for AudioBuffer<T>
+impl<T> Drop for Dynamic<T>
 where
     T: Sample,
 {
@@ -627,7 +637,7 @@ where
     }
 }
 
-impl<T> Buf<T> for AudioBuffer<T>
+impl<T> Buf<T> for Dynamic<T>
 where
     T: Sample,
 {
@@ -731,7 +741,7 @@ where
 
 /// A mutable iterator over the channels in the buffer.
 ///
-/// Created with [AudioBuffer::iter_mut].
+/// Created with [Dynamic::iter_mut].
 pub struct Iter<'a, T>
 where
     T: Sample,
@@ -759,7 +769,7 @@ where
 
 /// A mutable iterator over the channels in the buffer.
 ///
-/// Created with [AudioBuffer::iter_mut].
+/// Created with [Dynamic::iter_mut].
 pub struct IterMut<'a, T>
 where
     T: Sample,

@@ -64,7 +64,7 @@ impl<'a, T> BufChannel<'a, T> {
     ///     assert_eq!(right.frames(), 16);
     /// }
     ///
-    /// test(&rotary::audio_buffer![[0.0; 16]; 2]);
+    /// test(&rotary::dynamic![[0.0; 16]; 2]);
     /// test(&rotary::sequential![[0.0; 16]; 2]);
     /// test(&rotary::interleaved![[0.0; 16]; 2]);
     /// ```
@@ -96,7 +96,7 @@ impl<'a, T> BufChannel<'a, T> {
     ///     assert_eq!(right.chunks(6), 3);
     /// }
     ///
-    /// test(&rotary::audio_buffer![[0.0; 16]; 2]);
+    /// test(&rotary::dynamic![[0.0; 16]; 2]);
     /// test(&rotary::sequential![[0.0; 16]; 2]);
     /// test(&rotary::interleaved![[0.0; 16]; 2]);
     /// ```
@@ -126,7 +126,7 @@ impl<'a, T> BufChannel<'a, T> {
     ///     assert!(buf.iter().all(|f| *f == 1.0));
     /// }
     ///
-    /// test(&rotary::audio_buffer![[1.0; 16]; 2]);
+    /// test(&rotary::dynamic![[1.0; 16]; 2]);
     /// test(&rotary::sequential![[1.0; 16]; 2]);
     /// test(&rotary::interleaved![[1.0; 16]; 2]);
     /// ```
@@ -169,7 +169,7 @@ impl<'a, T> BufChannel<'a, T> {
     ///     assert!(buf.iter().all(|f| *f == 1.0));
     /// }
     ///
-    /// test(&rotary::audio_buffer![[1.0; 16]; 2]);
+    /// test(&rotary::dynamic![[1.0; 16]; 2]);
     /// test(&rotary::sequential![[1.0; 16]; 2]);
     /// test(&rotary::interleaved![[1.0; 16]; 2]);
     /// ```
@@ -222,7 +222,7 @@ impl<'a, T> BufChannel<'a, T> {
     ///     }
     /// }
     ///
-    /// test(&rotary::audio_buffer![[1.0; 16]; 2]);
+    /// test(&rotary::dynamic![[1.0; 16]; 2]);
     /// test(&rotary::sequential![[1.0; 16]; 2]);
     /// test(&rotary::interleaved![[1.0; 16]; 2]);
     /// ```
@@ -273,7 +273,7 @@ impl<'a, T> BufChannel<'a, T> {
     ///     }
     /// }
     ///
-    /// test(&rotary::audio_buffer![[1.0; 16]; 2]);
+    /// test(&rotary::dynamic![[1.0; 16]; 2]);
     /// test(&rotary::sequential![[1.0; 16]; 2]);
     /// test(&rotary::interleaved![[1.0; 16]; 2]);
     /// ```

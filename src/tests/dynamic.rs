@@ -4,7 +4,7 @@
 
 #[test]
 fn test_channels_then_resize() {
-    let mut buffer = crate::AudioBuffer::<f32>::new();
+    let mut buffer = crate::Dynamic::<f32>::new();
 
     buffer.resize_channels(4);
     buffer.resize(1024);
@@ -20,7 +20,7 @@ fn test_channels_then_resize() {
 
 #[test]
 fn test_resize_then_channels() {
-    let mut buffer = crate::AudioBuffer::<f32>::new();
+    let mut buffer = crate::Dynamic::<f32>::new();
 
     buffer.resize(1024);
     buffer.resize_channels(4);
@@ -36,7 +36,7 @@ fn test_resize_then_channels() {
 
 #[test]
 fn test_empty_channels() {
-    let mut buffer = crate::AudioBuffer::<f32>::new();
+    let mut buffer = crate::Dynamic::<f32>::new();
 
     buffer.resize_channels(4);
 
@@ -49,7 +49,7 @@ fn test_empty_channels() {
 
 #[test]
 fn test_empty() {
-    let buffer = crate::AudioBuffer::<f32>::new();
+    let buffer = crate::Dynamic::<f32>::new();
 
     assert_eq!(buffer.frames(), 0);
     assert_eq!(buffer.get(0), None);
@@ -57,7 +57,7 @@ fn test_empty() {
 
 #[test]
 fn test_multiple_resizes() {
-    let mut buffer = crate::AudioBuffer::<f32>::new();
+    let mut buffer = crate::Dynamic::<f32>::new();
 
     buffer.resize_channels(4);
     buffer.resize(1024);
@@ -73,7 +73,7 @@ fn test_multiple_resizes() {
 
 #[test]
 fn test_multiple_channel_resizes() {
-    let mut buffer = crate::AudioBuffer::<f32>::new();
+    let mut buffer = crate::Dynamic::<f32>::new();
 
     buffer.resize_channels(4);
     buffer.resize(1024);
@@ -97,7 +97,7 @@ fn test_multiple_channel_resizes() {
 
 #[test]
 fn test_drop_empty() {
-    let mut buffer = crate::AudioBuffer::<f32>::new();
+    let mut buffer = crate::Dynamic::<f32>::new();
 
     assert_eq!(buffer.frames(), 0);
     buffer.resize(1024);
@@ -106,7 +106,7 @@ fn test_drop_empty() {
 
 #[test]
 fn test_into_vecs() {
-    let mut buffer = crate::AudioBuffer::<f32>::new();
+    let mut buffer = crate::Dynamic::<f32>::new();
     buffer.resize_channels(4);
     buffer.resize(512);
 
@@ -124,7 +124,7 @@ fn test_into_vecs() {
 fn test_enabled_mut() {
     use crate::BitSet;
 
-    let mut buffer = crate::MaskedAudioBuffer::<f32, BitSet<u128>>::with_topology(4, 1024);
+    let mut buffer = crate::MaskedDynamic::<f32, BitSet<u128>>::with_topology(4, 1024);
 
     buffer.mask(1);
 
@@ -144,7 +144,7 @@ fn test_enabled_mut() {
 
 #[test]
 fn test_stale_allocation() {
-    let mut buffer = crate::AudioBuffer::<f32>::with_topology(4, 256);
+    let mut buffer = crate::Dynamic::<f32>::with_topology(4, 256);
     assert_eq!(buffer[1][128], 0.0);
     buffer[1][128] = 42.0;
 
@@ -157,5 +157,5 @@ fn test_stale_allocation() {
 
 #[test]
 fn test_from_array() {
-    let _ = crate::audio_buffer![[0.0; 1024]; 2];
+    let _ = crate::dynamic![[0.0; 1024]; 2];
 }

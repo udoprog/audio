@@ -1,6 +1,6 @@
 use crate::bit_set::{BitSet, Bits};
 
-/// The trait for a mask that can be used with [crate::MaskedAudioBuffer].
+/// The trait for a mask that can be used with [crate::MaskedDynamic].
 pub trait Mask: Sized {
     /// The iterator over a mask, indicating all items in the mask.
     type Iter: Iterator<Item = usize>;
