@@ -23,7 +23,7 @@ where
     /// The stored data for each channel.
     channels: Vec<RawSlice<T>>,
     /// The length of each channel.
-    frames_len: usize,
+    frames: usize,
     /// Allocated capacity of each channel. Each channel is guaranteed to be
     /// filled with as many values as is specified in this capacity.
     frames_cap: usize,
@@ -53,7 +53,7 @@ where
     pub fn new() -> Self {
         Self {
             channels: Vec::new(),
-            frames_len: 0,
+            frames: 0,
             frames_cap: 0,
         }
     }
@@ -79,7 +79,7 @@ where
 
         Self {
             channels,
-            frames_len: frames,
+            frames,
             frames_cap: frames,
         }
     }
@@ -106,7 +106,7 @@ where
         return Self {
             channels: channels_from_array(channels),
             frames_cap: F,
-            frames_len: F,
+            frames: F,
         };
 
         #[inline]
@@ -165,7 +165,7 @@ where
     /// assert_eq!(buffer.frames(), 256);
     /// ```
     pub fn frames(&self) -> usize {
-        self.frames_len
+        self.frames
     }
 
     /// Check how many channels there are in the buffer.
@@ -201,7 +201,7 @@ where
     pub fn iter(&self) -> Iter<'_, T> {
         Iter {
             iter: self.channels.iter(),
-            len: self.frames_len,
+            len: self.frames,
         }
     }
 
@@ -222,7 +222,7 @@ where
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
         IterMut {
             iter: self.channels.iter_mut(),
-            len: self.frames_len,
+            len: self.frames,
         }
     }
 
@@ -287,7 +287,7 @@ where
             }
         }
 
-        self.frames_len = len;
+        self.frames = len;
     }
 
     /// Set the number of channels in use.
@@ -358,7 +358,7 @@ where
         // it is both allocated and initialized up to `len`.
         unsafe {
             let slice = self.channels.get(index)?;
-            Some(slice.as_ref(self.frames_len))
+            Some(slice.as_ref(self.frames))
         }
     }
 
@@ -387,7 +387,7 @@ where
 
         // Safety: We initialized the given index just above and we know the
         // trusted length.
-        unsafe { self.channels.get_unchecked(index).as_ref(self.frames_len) }
+        unsafe { self.channels.get_unchecked(index).as_ref(self.frames) }
     }
 
     /// Get a mutable reference to the buffer of the given channel.
@@ -417,7 +417,7 @@ where
         // it is both allocated and initialized up to `len`.
         unsafe {
             let slice = self.channels.get_mut(index)?;
-            Some(slice.as_mut(self.frames_len))
+            Some(slice.as_mut(self.frames))
         }
     }
 
@@ -450,11 +450,7 @@ where
 
         // Safety: We initialized the given index just above and we know the
         // trusted length.
-        unsafe {
-            self.channels
-                .get_unchecked_mut(index)
-                .as_mut(self.frames_len)
-        }
+        unsafe { self.channels.get_unchecked_mut(index).as_mut(self.frames) }
     }
 
     /// Convert into a vector of vectors.
@@ -483,7 +479,7 @@ where
         let mut this = mem::ManuallyDrop::new(self);
         let mut vecs = Vec::with_capacity(this.channels.len());
 
-        let len = this.frames_len;
+        let len = this.frames;
         let cap = this.frames_cap;
         let channels = std::mem::take(&mut this.channels);
 

@@ -270,7 +270,7 @@ where
         }
     }
 
-    /// Construct a mutable iterator over all available channels.
+    /// Construct an iterator over all available channels.
     ///
     /// # Examples
     ///

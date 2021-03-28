@@ -13,6 +13,9 @@ use std::slice;
 /// A *sequential* audio buffer stores all audio data sequentially in memory,
 /// one channel after another.
 ///
+/// An audio buffer is constrained to only support sample-apt types. For more
+/// information of what this means, see [Sample].
+///
 /// Resizing the buffer might therefore cause a fair bit of copying, and for the
 /// worst cases, this might result in having to copy a memory region
 /// byte-by-byte since they might overlap.
@@ -46,11 +49,8 @@ use std::slice;
 ///
 /// buffer.resize(3);
 ///
-/// assert_eq!(buffer.as_slice(), &[1.0, 2.0, 3.0, 2.0, 3.0, 4.0])
+/// assert_eq!(buffer.as_slice(), &[1.0, 2.0, 3.0, 2.0, 3.0, 4.0]);
 /// ```
-///
-/// An audio buffer is constrained to only support sample-apt types. For more
-/// information of what this means, see [Sample].
 pub struct Sequential<T>
 where
     T: Sample,
@@ -191,7 +191,7 @@ where
         self.channels
     }
 
-    /// Construct a mutable iterator over all available channels.
+    /// Construct an iterator over all available channels.
     ///
     /// # Examples
     ///
