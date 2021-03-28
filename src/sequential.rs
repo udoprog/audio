@@ -1,5 +1,6 @@
 //! A dynamically sized, multi-channel sequential audio buffer.
 
+use crate::buf::{Buf, BufIndex};
 use crate::sample::Sample;
 use std::cmp;
 use std::fmt;
@@ -570,6 +571,28 @@ where
             Some(slice) => slice,
             None => panic!("index `{}` is not a channel", index,),
         }
+    }
+}
+
+impl<T> Buf<T> for Sequential<T>
+where
+    T: Sample,
+{
+    fn index(&self) -> BufIndex {
+        BufIndex::Linear
+    }
+
+    fn channels(&self) -> usize {
+        self.channels
+    }
+
+    fn is_masked(&self, _: usize) -> bool {
+        false
+    }
+
+    fn channel(&self, channel: usize) -> &[T] {
+        let data = &self.data[self.frames * channel..];
+        &data[..self.frames]
     }
 }
 

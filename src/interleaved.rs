@@ -1,5 +1,6 @@
 //! A dynamically sized, multi-channel sequential audio buffer.
 
+use crate::buf::{Buf, BufIndex};
 use crate::channel::{Channel, ChannelMut};
 use crate::sample::Sample;
 use std::cmp;
@@ -489,6 +490,29 @@ where
         for channel in self.iter() {
             channel.hash(state);
         }
+    }
+}
+
+impl<T> Buf<T> for Interleaved<T>
+where
+    T: Sample,
+{
+    fn index(&self) -> BufIndex {
+        BufIndex::Interleaved {
+            channels: self.channels,
+        }
+    }
+
+    fn channels(&self) -> usize {
+        self.channels
+    }
+
+    fn is_masked(&self, _: usize) -> bool {
+        false
+    }
+
+    fn channel(&self, _: usize) -> &[T] {
+        &self.data
     }
 }
 

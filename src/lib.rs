@@ -89,6 +89,7 @@ mod tests;
 pub use self::audio_buffer::AudioBuffer;
 pub use self::bit_set::BitSet;
 pub use self::buf::Buf;
+pub use self::buf::BufIndex;
 pub use self::interleaved::Interleaved;
 pub use self::mask::Mask;
 pub use self::masked_audio_buffer::MaskedAudioBuffer;

@@ -1,6 +1,6 @@
 //! A dynamically sized, multi-channel audio buffer.
 
-use crate::buf::Buf;
+use crate::buf::{Buf, BufIndex};
 use crate::mask::Mask;
 use crate::masked_audio_buffer::MaskedAudioBuffer;
 use crate::sample::Sample;
@@ -631,6 +631,10 @@ impl<T> Buf<T> for AudioBuffer<T>
 where
     T: Sample,
 {
+    fn index(&self) -> BufIndex {
+        BufIndex::Linear
+    }
+
     fn channels(&self) -> usize {
         self.channels.len()
     }
