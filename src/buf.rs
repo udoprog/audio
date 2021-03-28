@@ -1,4 +1,5 @@
-use crate::Sample;
+use crate::range::Range;
+use crate::sample::Sample;
 
 /// A trait describing an immutable audio buffer.
 pub trait Buf<T> {
@@ -401,25 +402,6 @@ impl<'a, T> BufChannelMut<'a, T> {
         }
     }
 
-    /// Copy data from the given iterator.
-    pub fn copy_from_iter<I>(&mut self, iter: I)
-    where
-        I: IntoIterator<Item = T>,
-    {
-        match self.kind {
-            BufChannelKind::Linear => {
-                for (o, f) in self.buf.iter_mut().zip(iter) {
-                    *o = f;
-                }
-            }
-            BufChannelKind::Interleaved { channels, channel } => {
-                for (o, f) in self.buf[channel..].iter_mut().step_by(channels).zip(iter) {
-                    *o = f;
-                }
-            }
-        }
-    }
-
     /// Copy from the given slice.
     pub fn copy_from_slice(&mut self, buf: &[T])
     where
@@ -437,59 +419,18 @@ impl<'a, T> BufChannelMut<'a, T> {
         }
     }
 
-    /// Copy an offset destination from an iterator.
-    pub fn copy_from_iter_offset<I>(&mut self, o: usize, iter: I)
-    where
-        I: IntoIterator<Item = T>,
-    {
-        match self.kind {
-            BufChannelKind::Linear => {
-                let buf = &mut self.buf[o..];
-
-                for (o, f) in buf.iter_mut().zip(iter) {
-                    *o = f;
-                }
-            }
-            BufChannelKind::Interleaved { channels, channel } => {
-                let iter = self.buf[channel..]
-                    .iter_mut()
-                    .step_by(channels)
-                    .skip(o)
-                    .zip(iter);
-
-                for (o, f) in iter {
-                    *o = f;
-                }
-            }
-        }
-    }
-
     /// Copy a chunked destination from an iterator.
-    pub fn copy_from_iter_chunk<I>(&mut self, o: usize, n: usize, len: usize, iter: I)
+    pub fn copy_from_iter<R, I>(&mut self, range: R, iter: I)
     where
+        R: Range,
         I: IntoIterator<Item = T>,
     {
         match self.kind {
             BufChannelKind::Linear => {
-                let buf = &mut self.buf[o + n * len..];
-                let len = usize::min(buf.len(), len);
-                let buf = &mut buf[..len];
-
-                for (o, f) in buf.iter_mut().zip(iter) {
-                    *o = f;
-                }
+                range.copy_from_iter_linear(self.buf, iter);
             }
             BufChannelKind::Interleaved { channels, channel } => {
-                let iter = self.buf[channel..]
-                    .iter_mut()
-                    .step_by(channels)
-                    .skip(o + n * len)
-                    .take(len)
-                    .zip(iter);
-
-                for (o, f) in iter {
-                    *o = f;
-                }
+                range.copy_from_iter_interleaved(channels, channel, self.buf, iter);
             }
         }
     }

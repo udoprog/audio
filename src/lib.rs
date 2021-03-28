@@ -81,6 +81,7 @@ pub mod dynamic;
 pub mod interleaved;
 mod mask;
 pub mod masked_dynamic;
+pub mod range;
 mod sample;
 pub mod sequential;
 #[cfg(test)]
@@ -92,5 +93,6 @@ pub use self::dynamic::Dynamic;
 pub use self::interleaved::Interleaved;
 pub use self::mask::Mask;
 pub use self::masked_dynamic::MaskedDynamic;
+pub use self::range::Range;
 pub use self::sample::Sample;
 pub use self::sequential::Sequential;
