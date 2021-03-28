@@ -372,6 +372,24 @@ impl<'a, T> BufChannelMut<'a, T> {
     }
 
     /// The number of frames in the buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::BufMut;
+    ///
+    /// fn test(buf: &dyn BufMut<f32>) {
+    ///     let left = buf.channel(0);
+    ///     let right = buf.channel(1);
+    ///
+    ///     assert_eq!(left.frames(), 16);
+    ///     assert_eq!(right.frames(), 16);
+    /// }
+    ///
+    /// test(&rotary::dynamic![[0.0; 16]; 2]);
+    /// test(&rotary::sequential![[0.0; 16]; 2]);
+    /// test(&rotary::interleaved![[0.0; 16]; 2]);
+    /// ```
     pub fn frames(&self) -> usize {
         match self.kind {
             BufChannelKind::Linear => self.buf.len(),
@@ -380,6 +398,27 @@ impl<'a, T> BufChannelMut<'a, T> {
     }
 
     /// The number of chunks that can fit with the given size.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::BufMut;
+    ///
+    /// fn test(buf: &dyn BufMut<f32>) {
+    ///     let left = buf.channel(0);
+    ///     let right = buf.channel(1);
+    ///
+    ///     assert_eq!(left.chunks(4), 4);
+    ///     assert_eq!(right.chunks(4), 4);
+    ///
+    ///     assert_eq!(left.chunks(6), 3);
+    ///     assert_eq!(right.chunks(6), 3);
+    /// }
+    ///
+    /// test(&rotary::dynamic![[0.0; 16]; 2]);
+    /// test(&rotary::sequential![[0.0; 16]; 2]);
+    /// test(&rotary::interleaved![[0.0; 16]; 2]);
+    /// ```
     pub fn chunks(&self, chunk: usize) -> usize {
         let len = self.frames();
 
@@ -391,6 +430,27 @@ impl<'a, T> BufChannelMut<'a, T> {
     }
 
     /// Set the value at the given frame in the current channel.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::BufMut;
+    /// use rotary::Range as _;
+    ///
+    /// fn test(buf: &mut dyn BufMut<f32>) {
+    ///     buf.channel_mut(0).set(1, 1.0);
+    ///     buf.channel_mut(0).set(7, 1.0);
+    ///
+    ///     let mut out = vec![0.0; 8];
+    ///     buf.channel(0).copy_into_slice(&mut out);
+    ///
+    ///     assert_eq!(out, vec![0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]);
+    /// }
+    ///
+    /// test(&mut rotary::dynamic![[0.0; 8]; 2]);
+    /// test(&mut rotary::sequential![[0.0; 8]; 2]);
+    /// test(&mut rotary::interleaved![[0.0; 8]; 2]);
+    /// ```
     pub fn set(&mut self, n: usize, value: T) {
         match self.kind {
             BufChannelKind::Linear => {
@@ -403,13 +463,34 @@ impl<'a, T> BufChannelMut<'a, T> {
     }
 
     /// Copy from the given slice.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::BufMut;
+    /// use rotary::Range as _;
+    ///
+    /// fn test(buf: &mut dyn BufMut<f32>) {
+    ///     buf.channel_mut(0).copy_from_slice(&[1.0; 4][..]);
+    ///
+    ///     let mut out = vec![0.0; 8];
+    ///     buf.channel(0).copy_into_slice(&mut out);
+    ///
+    ///     assert_eq!(out, vec![1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]);
+    /// }
+    ///
+    /// test(&mut rotary::dynamic![[0.0; 8]; 2]);
+    /// test(&mut rotary::sequential![[0.0; 8]; 2]);
+    /// test(&mut rotary::interleaved![[0.0; 8]; 2]);
+    /// ```
     pub fn copy_from_slice(&mut self, buf: &[T])
     where
         T: Copy,
     {
         match self.kind {
             BufChannelKind::Linear => {
-                self.buf.copy_from_slice(buf);
+                let len = usize::min(self.buf.len(), buf.len());
+                self.buf[..len].copy_from_slice(&buf[..len]);
             }
             BufChannelKind::Interleaved { channels, channel } => {
                 for (o, f) in self.buf[channel..].iter_mut().step_by(channels).zip(buf) {
@@ -420,6 +501,44 @@ impl<'a, T> BufChannelMut<'a, T> {
     }
 
     /// Copy a chunked destination from an iterator.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::BufMut;
+    /// use rotary::Range as _;
+    ///
+    /// fn test(buf: &mut dyn BufMut<f32>) {
+    ///     buf.channel_mut(0).copy_from_iter(rotary::range::full().offset(2), vec![1.0; 4]);
+    ///
+    ///     let mut out = vec![0.0; 8];
+    ///     buf.channel(0).copy_into_slice(&mut out);
+    ///
+    ///     assert_eq!(out, vec![0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0]);
+    /// }
+    ///
+    /// test(&mut rotary::dynamic![[0.0; 8]; 2]);
+    /// test(&mut rotary::sequential![[0.0; 8]; 2]);
+    /// test(&mut rotary::interleaved![[0.0; 8]; 2]);
+    /// ```
+    ///
+    /// ```rust
+    /// use rotary::BufMut;
+    /// use rotary::Range as _;
+    ///
+    /// fn test(buf: &mut dyn BufMut<f32>) {
+    ///     buf.channel_mut(0).copy_from_iter(rotary::range::full().offset(2).chunk(0, 2), vec![1.0; 4]);
+    ///
+    ///     let mut out = vec![0.0; 8];
+    ///     buf.channel(0).copy_into_slice(&mut out);
+    ///
+    ///     assert_eq!(out, vec![0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]);
+    /// }
+    ///
+    /// test(&mut rotary::dynamic![[0.0; 8]; 2]);
+    /// test(&mut rotary::sequential![[0.0; 8]; 2]);
+    /// test(&mut rotary::interleaved![[0.0; 8]; 2]);
+    /// ```
     pub fn copy_from_iter<R, I>(&mut self, range: R, iter: I)
     where
         R: Range,
@@ -427,10 +546,13 @@ impl<'a, T> BufChannelMut<'a, T> {
     {
         match self.kind {
             BufChannelKind::Linear => {
-                range.copy_from_iter_linear(self.buf, iter);
+                for (o, f) in range.map_mut_linear(self.buf).iter_mut().zip(iter) {
+                    *o = f;
+                }
             }
             BufChannelKind::Interleaved { channels, channel } => {
-                range.copy_from_iter_interleaved(channels, channel, self.buf, iter);
+                let buf = self.buf[channel..].iter_mut().step_by(channels);
+                range.map_iter_interleaved(buf, iter, |(o, f)| *o = f);
             }
         }
     }
