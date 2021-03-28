@@ -12,21 +12,15 @@ use std::ops;
 use std::ptr;
 use std::slice;
 
-/// A multi-channel AudioBuffer audio buffer for the given type.
+/// A multi-channel audio buffer for the given type.
 ///
-/// A AudioBuffer audio buffer is constrained to only support sample-apt types,
-/// which have the following properties allowing the container to work more
-/// efficiently:
-///
-/// * The type `T` does not need to be dropped.
-/// * The type `T` can safely be initialized with the all-zeros bit pattern.
+/// An audio buffer is constrained to only support sample-apt types. For more
+/// information of what this means, see [Sample].
 pub struct AudioBuffer<T>
 where
     T: Sample,
 {
     /// The stored data for each channel.
-    // TODO: Figure out how to remove `pub(crate)` by creating safer APIs for
-    // iterating over the available channels.
     channels: Vec<RawSlice<T>>,
     /// The length of each channel.
     frames_len: usize,
@@ -510,6 +504,19 @@ where
     }
 }
 
+/// Allocate an audio buffer from a fixed-size array.
+///
+/// See [audio_buffer!].
+impl<T, const F: usize, const C: usize> From<[[T; F]; C]> for AudioBuffer<T>
+where
+    T: Sample,
+{
+    #[inline]
+    fn from(channels: [[T; F]; C]) -> Self {
+        Self::from_array(channels)
+    }
+}
+
 impl<T> fmt::Debug for AudioBuffer<T>
 where
     T: Sample + fmt::Debug,
@@ -556,19 +563,6 @@ where
         for channel in self.iter() {
             channel.hash(state);
         }
-    }
-}
-
-/// Allocate an audio buffer from a fixed-size array.
-///
-/// See [audio_buffer!].
-impl<T, const F: usize, const C: usize> From<[[T; F]; C]> for AudioBuffer<T>
-where
-    T: Sample,
-{
-    #[inline]
-    fn from(channels: [[T; F]; C]) -> Self {
-        Self::from_array(channels)
     }
 }
 

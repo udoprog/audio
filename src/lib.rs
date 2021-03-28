@@ -80,6 +80,7 @@ mod buf;
 mod mask;
 pub mod masked_audio_buffer;
 mod sample;
+mod sequential;
 #[cfg(test)]
 mod tests;
 
@@ -89,3 +90,4 @@ pub use self::buf::Buf;
 pub use self::mask::Mask;
 pub use self::masked_audio_buffer::MaskedAudioBuffer;
 pub use self::sample::Sample;
+pub use self::sequential::Sequential;
