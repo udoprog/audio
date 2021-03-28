@@ -2,7 +2,7 @@
 //!
 //! See [MaskedDynamic] for more information.
 
-use crate::buf::{Buf, BufChannel};
+use crate::buf::{Buf, BufChannel, BufChannelMut, BufMut};
 use crate::dynamic;
 use crate::mask::Mask;
 use crate::sample::Sample;
@@ -746,11 +746,38 @@ where
     }
 
     fn is_masked(&self, channel: usize) -> bool {
-        self.mask.test(channel)
+        !self.mask.test(channel)
     }
 
     fn channel(&self, channel: usize) -> BufChannel<'_, T> {
         BufChannel::linear(&self.buffer[channel])
+    }
+}
+
+impl<T, M> BufMut<T> for MaskedDynamic<T, M>
+where
+    T: Sample,
+    M: Mask,
+{
+    fn channel_mut(&mut self, channel: usize) -> BufChannelMut<'_, T> {
+        BufChannelMut::linear(&mut self.buffer[channel])
+    }
+
+    fn resize(&mut self, frames: usize) {
+        Self::resize(self, frames);
+    }
+
+    fn resize_topology(&mut self, channels: usize, frames: usize) {
+        self.resize(frames);
+        self.resize_channels(channels);
+    }
+
+    fn set_masked(&mut self, channel: usize, masked: bool) {
+        if masked {
+            self.mask(channel);
+        } else {
+            self.unmask(channel);
+        }
     }
 }
 

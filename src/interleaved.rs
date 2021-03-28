@@ -1,6 +1,6 @@
 //! A dynamically sized, multi-channel interleaved audio buffer.
 
-use crate::buf::{Buf, BufChannel};
+use crate::buf::{Buf, BufChannel, BufChannelMut, BufMut};
 use crate::channel::{Channel, ChannelMut};
 use crate::sample::Sample;
 use std::cmp;
@@ -508,6 +508,26 @@ where
     fn channel(&self, channel: usize) -> BufChannel<'_, T> {
         BufChannel::interleaved(&self.data, self.channels, channel)
     }
+}
+
+impl<T> BufMut<T> for Interleaved<T>
+where
+    T: Sample,
+{
+    fn channel_mut(&mut self, channel: usize) -> BufChannelMut<'_, T> {
+        BufChannelMut::interleaved(&mut self.data, self.channels, channel)
+    }
+
+    fn resize(&mut self, frames: usize) {
+        Self::resize(self, frames);
+    }
+
+    fn resize_topology(&mut self, channels: usize, frames: usize) {
+        Self::resize(self, frames);
+        Self::resize_channels(self, channels);
+    }
+
+    fn set_masked(&mut self, _: usize, _: bool) {}
 }
 
 impl<'a, T> IntoIterator for &'a Interleaved<T>

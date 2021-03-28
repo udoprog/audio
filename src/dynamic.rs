@@ -1,6 +1,6 @@
 //! A dynamically sized, multi-channel audio buffer.
 
-use crate::buf::{Buf, BufChannel};
+use crate::buf::{Buf, BufChannel, BufChannelMut, BufMut};
 use crate::mask::Mask;
 use crate::masked_dynamic::MaskedDynamic;
 use crate::sample::Sample;
@@ -653,6 +653,26 @@ where
     fn channel(&self, channel: usize) -> BufChannel<'_, T> {
         BufChannel::linear(&self[channel])
     }
+}
+
+impl<T> BufMut<T> for Dynamic<T>
+where
+    T: Sample,
+{
+    fn channel_mut(&mut self, channel: usize) -> BufChannelMut<'_, T> {
+        BufChannelMut::linear(&mut self[channel])
+    }
+
+    fn resize(&mut self, frames: usize) {
+        Self::resize(self, frames);
+    }
+
+    fn resize_topology(&mut self, channels: usize, frames: usize) {
+        Self::resize(self, frames);
+        self.resize_channels(channels);
+    }
+
+    fn set_masked(&mut self, _: usize, _: bool) {}
 }
 
 /// A raw slice.

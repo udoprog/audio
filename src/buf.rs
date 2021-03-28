@@ -1,3 +1,5 @@
+use crate::Sample;
+
 /// A trait describing an immutable audio buffer.
 pub trait Buf<T> {
     /// The number of channels in the buffer.
@@ -20,6 +22,26 @@ pub trait Buf<T> {
     /// Panics if the specified channel is out of bound as reported by
     /// [Buf::channels].
     fn channel(&self, channel: usize) -> BufChannel<'_, T>;
+}
+
+/// A trait describing a mutable audio buffer.
+pub trait BufMut<T>: Buf<T> {
+    /// Return a mutable handler to the buffer associated with the channel.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the specified channel is out of bound as reported by
+    /// [Buf::channels].
+    fn channel_mut(&mut self, channel: usize) -> BufChannelMut<'_, T>;
+
+    /// Resize the number of frames.
+    fn resize(&mut self, frames: usize);
+
+    /// Resize the buffer to match the given topology.
+    fn resize_topology(&mut self, channels: usize, frames: usize);
+
+    /// Set if the given channel is masked or not.
+    fn set_masked(&mut self, channel: usize, masked: bool);
 }
 
 /// The buffer of a single channel.
@@ -295,10 +317,184 @@ impl<'a, T> BufChannel<'a, T> {
             }
         }
     }
+
+    /// Copy the given range into a slice.
+    ///
+    /// The range to be copied is designated with a starting position `start`
+    /// and a length `len`.
+    pub fn range_into_slice(&self, out: &mut [T], start: usize, len: usize)
+    where
+        T: Copy,
+    {
+        match self.kind {
+            BufChannelKind::Linear => {
+                let buf = &self.buf[start..];
+                out.copy_from_slice(&buf[..len]);
+            }
+            BufChannelKind::Interleaved { channels, channel } => {
+                for (o, f) in out
+                    .iter_mut()
+                    .zip(self.buf[start * channels + channel..].iter().take(len))
+                {
+                    *o = *f;
+                }
+            }
+        }
+    }
 }
 
-/// The simple vector of vectors buffer where an empty vector indicates that the
-/// channel is masked.
+/// The mutable buffer of a single channel.
+///
+/// This doesn't provide direct access to the underlying buffer, but rather
+/// allows us to copy data usinga  number of utility functions.
+#[derive(Debug)]
+pub struct BufChannelMut<'a, T> {
+    buf: &'a mut [T],
+    kind: BufChannelKind,
+}
+
+impl<'a, T> BufChannelMut<'a, T> {
+    /// Construct a linear buffer.
+    pub fn linear(buf: &'a mut [T]) -> Self {
+        Self {
+            buf,
+            kind: BufChannelKind::Linear,
+        }
+    }
+
+    /// Construct an interleaved buffer.
+    pub fn interleaved(buf: &'a mut [T], channels: usize, channel: usize) -> Self {
+        Self {
+            buf,
+            kind: BufChannelKind::Interleaved { channels, channel },
+        }
+    }
+
+    /// The number of frames in the buffer.
+    pub fn frames(&self) -> usize {
+        match self.kind {
+            BufChannelKind::Linear => self.buf.len(),
+            BufChannelKind::Interleaved { channels, .. } => self.buf.len() / channels,
+        }
+    }
+
+    /// The number of chunks that can fit with the given size.
+    pub fn chunks(&self, chunk: usize) -> usize {
+        let len = self.frames();
+
+        if len % chunk == 0 {
+            len / chunk
+        } else {
+            len / chunk + 1
+        }
+    }
+
+    /// Set the value at the given frame in the current channel.
+    pub fn set(&mut self, n: usize, value: T) {
+        match self.kind {
+            BufChannelKind::Linear => {
+                self.buf[n] = value;
+            }
+            BufChannelKind::Interleaved { channels, channel } => {
+                self.buf[channel + channels * n] = value;
+            }
+        }
+    }
+
+    /// Copy data from the given iterator.
+    pub fn copy_from_iter<I>(&mut self, iter: I)
+    where
+        I: IntoIterator<Item = T>,
+    {
+        match self.kind {
+            BufChannelKind::Linear => {
+                for (o, f) in self.buf.iter_mut().zip(iter) {
+                    *o = f;
+                }
+            }
+            BufChannelKind::Interleaved { channels, channel } => {
+                for (o, f) in self.buf[channel..].iter_mut().step_by(channels).zip(iter) {
+                    *o = f;
+                }
+            }
+        }
+    }
+
+    /// Copy from the given slice.
+    pub fn copy_from_slice(&mut self, buf: &[T])
+    where
+        T: Copy,
+    {
+        match self.kind {
+            BufChannelKind::Linear => {
+                self.buf.copy_from_slice(buf);
+            }
+            BufChannelKind::Interleaved { channels, channel } => {
+                for (o, f) in self.buf[channel..].iter_mut().step_by(channels).zip(buf) {
+                    *o = *f;
+                }
+            }
+        }
+    }
+
+    /// Copy an offset destination from an iterator.
+    pub fn copy_from_iter_offset<I>(&mut self, o: usize, iter: I)
+    where
+        I: IntoIterator<Item = T>,
+    {
+        match self.kind {
+            BufChannelKind::Linear => {
+                let buf = &mut self.buf[o..];
+
+                for (o, f) in buf.iter_mut().zip(iter) {
+                    *o = f;
+                }
+            }
+            BufChannelKind::Interleaved { channels, channel } => {
+                let iter = self.buf[channel..]
+                    .iter_mut()
+                    .step_by(channels)
+                    .skip(o)
+                    .zip(iter);
+
+                for (o, f) in iter {
+                    *o = f;
+                }
+            }
+        }
+    }
+
+    /// Copy a chunked destination from an iterator.
+    pub fn copy_from_iter_chunk<I>(&mut self, o: usize, n: usize, len: usize, iter: I)
+    where
+        I: IntoIterator<Item = T>,
+    {
+        match self.kind {
+            BufChannelKind::Linear => {
+                let buf = &mut self.buf[o + n * len..];
+                let len = usize::min(buf.len(), len);
+                let buf = &mut buf[..len];
+
+                for (o, f) in buf.iter_mut().zip(iter) {
+                    *o = f;
+                }
+            }
+            BufChannelKind::Interleaved { channels, channel } => {
+                let iter = self.buf[channel..]
+                    .iter_mut()
+                    .step_by(channels)
+                    .skip(o + n * len)
+                    .take(len)
+                    .zip(iter);
+
+                for (o, f) in iter {
+                    *o = f;
+                }
+            }
+        }
+    }
+}
+
 impl<T> Buf<T> for Vec<Vec<T>> {
     fn channels(&self) -> usize {
         self.len()
@@ -313,8 +509,33 @@ impl<T> Buf<T> for Vec<Vec<T>> {
     }
 }
 
-/// The simple slice of vectors buffer where an empty vector indicates that the
-/// channel is masked.
+impl<T> BufMut<T> for Vec<Vec<T>>
+where
+    T: Sample,
+{
+    fn channel_mut(&mut self, channel: usize) -> BufChannelMut<'_, T> {
+        BufChannelMut::linear(&mut self[channel])
+    }
+
+    fn resize(&mut self, frames: usize) {
+        for buf in self.iter_mut() {
+            buf.resize(frames, T::ZERO);
+        }
+    }
+
+    fn resize_topology(&mut self, channels: usize, frames: usize) {
+        for buf in self.iter_mut() {
+            buf.resize(frames, T::ZERO);
+        }
+
+        for _ in self.len()..channels {
+            self.push(vec![T::ZERO; frames]);
+        }
+    }
+
+    fn set_masked(&mut self, _: usize, _: bool) {}
+}
+
 impl<T> Buf<T> for [Vec<T>] {
     fn channels(&self) -> usize {
         self.as_ref().len()
