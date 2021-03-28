@@ -1,67 +1,77 @@
-use crate::sample::Sample;
-
 /// A trait describing an immutable audio buffer.
 pub trait Buf<T> {
-    /// How a channel is indexed.
-    fn index(&self) -> BufIndex;
-
     /// The number of channels in the buffer.
     fn channels(&self) -> usize;
 
     /// Test if the given channel is masked.
     fn is_masked(&self, channel: usize) -> bool;
 
-    /// Return the buffer associated with the given channel.
+    /// Return a handler to the buffer associated with the channel.
     ///
-    /// Note that the buffer might not be linear, and should be processed
-    /// according to the mode provided in [index].
+    /// Note that we don't access the buffer for the underlying channel directly
+    /// as a linear buffer like `&[T]`, because the underlying representation
+    /// might be different.
+    ///
+    /// We must instead make use of the various utility functions found on
+    /// [BufChannel] to copy data out of the channel.
     ///
     /// # Panics
     ///
-    /// Panics if the specified channel is out of bound.
-    fn channel(&self, channel: usize) -> &[T];
+    /// Panics if the specified channel is out of bound as reported by
+    /// [Buf::channels].
+    fn channel(&self, channel: usize) -> BufChannel<'_, T>;
 }
 
-/// The default vector of vectors buffer.
-impl<T> Buf<T> for Vec<Vec<T>> {
-    fn index(&self) -> BufIndex {
-        BufIndex::Linear
-    }
-
-    fn channels(&self) -> usize {
-        self.len()
-    }
-
-    fn is_masked(&self, channel: usize) -> bool {
-        self[channel].is_empty()
-    }
-
-    fn channel(&self, channel: usize) -> &[T] {
-        &self[channel]
-    }
-}
-
-/// Used to determine how a buffer is indexed.
+/// The buffer of a single channel.
+///
+/// This doesn't provide direct access to the underlying buffer, but rather
+/// allows us to copy data usinga  number of utility functions.
 #[derive(Debug, Clone, Copy)]
-pub enum BufIndex {
-    /// Returned channel buffer is indexed in a linear manner.
-    Linear,
-    /// Returned channel buffer is indexed in an interleaved manner.
-    Interleaved {
-        /// The number of channels in the interleaved buffer.
-        channels: usize,
-    },
+pub struct BufChannel<'a, T> {
+    buf: &'a [T],
+    kind: BufChannelKind,
 }
 
-impl BufIndex {
-    /// Access the length of the provided buffer.
-    pub fn len<T>(&self, buf: &[T]) -> usize
-    where
-        T: Sample,
-    {
-        match self {
-            BufIndex::Linear => buf.len(),
-            BufIndex::Interleaved { channels } => buf.len() / channels,
+impl<'a, T> BufChannel<'a, T> {
+    /// Construct a linear buffer.
+    pub fn linear(buf: &'a [T]) -> Self {
+        Self {
+            buf,
+            kind: BufChannelKind::Linear,
+        }
+    }
+
+    /// Construct an interleaved buffer.
+    pub fn interleaved(buf: &'a [T], channels: usize, channel: usize) -> Self {
+        Self {
+            buf,
+            kind: BufChannelKind::Interleaved { channels, channel },
+        }
+    }
+
+    /// Access the number of frames on the current channel.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::Buf;
+    ///
+    /// fn test(buf: &dyn Buf<f32>) {
+    ///     let left = buf.channel(0);
+    ///     let right = buf.channel(1);
+    ///
+    ///     assert_eq!(left.frames(), 16);
+    ///     assert_eq!(right.frames(), 16);
+    /// }
+    ///
+    /// test(&rotary::audio_buffer![[0.0; 16]; 2]);
+    /// test(&rotary::sequential![[0.0; 16]; 2]);
+    /// test(&rotary::interleaved![[0.0; 16]; 2]);
+    /// ```
+    pub fn frames(&self) -> usize {
+        match self.kind {
+            BufChannelKind::Linear => self.buf.len(),
+            BufChannelKind::Interleaved { channels, .. } => self.buf.len() / channels,
         }
     }
 
@@ -69,11 +79,29 @@ impl BufIndex {
     ///
     /// This includes one extra chunk even if the chunk doesn't divide the frame
     /// length evenly.
-    pub fn chunks<T>(&self, buf: &[T], chunk: usize) -> usize
-    where
-        T: Sample,
-    {
-        let len = self.len(buf);
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::Buf;
+    ///
+    /// fn test(buf: &dyn Buf<f32>) {
+    ///     let left = buf.channel(0);
+    ///     let right = buf.channel(1);
+    ///
+    ///     assert_eq!(left.chunks(4), 4);
+    ///     assert_eq!(right.chunks(4), 4);
+    ///
+    ///     assert_eq!(left.chunks(6), 3);
+    ///     assert_eq!(right.chunks(6), 3);
+    /// }
+    ///
+    /// test(&rotary::audio_buffer![[0.0; 16]; 2]);
+    /// test(&rotary::sequential![[0.0; 16]; 2]);
+    /// test(&rotary::interleaved![[0.0; 16]; 2]);
+    /// ```
+    pub fn chunks(&self, chunk: usize) -> usize {
+        let len = self.frames();
 
         if len % chunk == 0 {
             len / chunk
@@ -83,43 +111,85 @@ impl BufIndex {
     }
 
     /// Copy into the given slice of output.
-    pub fn copy_into_slice<T>(&self, buf: &[T], channel: usize, out: &mut [T])
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::Buf;
+    ///
+    /// fn test(buf: &dyn Buf<f32>) {
+    ///     let channel = buf.channel(0);
+    ///
+    ///     let mut buf = vec![0.0; 16];
+    ///     channel.copy_into_slice(&mut buf[..]);
+    ///
+    ///     assert!(buf.iter().all(|f| *f == 1.0));
+    /// }
+    ///
+    /// test(&rotary::audio_buffer![[1.0; 16]; 2]);
+    /// test(&rotary::sequential![[1.0; 16]; 2]);
+    /// test(&rotary::interleaved![[1.0; 16]; 2]);
+    /// ```
+    pub fn copy_into_slice(&self, out: &mut [T])
     where
-        T: Sample,
+        T: Copy,
     {
-        match self {
-            BufIndex::Linear => {
-                out.copy_from_slice(buf);
+        match self.kind {
+            BufChannelKind::Linear => {
+                out.copy_from_slice(self.buf);
             }
-            BufIndex::Interleaved { channels } => {
-                for (o, f) in out.iter_mut().zip(buf[channel..].iter().step_by(*channels)) {
+            BufChannelKind::Interleaved { channels, channel } => {
+                for (o, f) in out
+                    .iter_mut()
+                    .zip(self.buf[channel..].iter().step_by(channels))
+                {
                     *o = *f;
                 }
             }
         }
     }
 
-    /// Copy into the given slice of output.
-    pub fn copy_chunk<T>(
-        &self,
-        buf: &[T],
-        channel: usize,
-        index: usize,
-        chunk: usize,
-        out: &mut [T],
-    ) where
-        T: Sample,
+    /// Copy the given chunk of a channel into a buffer.
+    ///
+    /// The length of the chunk to copy is determined by `len`. The offset of
+    /// the chunk to copy is determined by `n`, where `n` is the number of `len`
+    /// sized chunks.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::Buf;
+    ///
+    /// fn test(buf: &dyn Buf<f32>) {
+    ///     let channel = buf.channel(0);
+    ///
+    ///     let mut buf = vec![0.0; 4];
+    ///     channel.copy_chunk(&mut buf[..], 3, 4);
+    ///
+    ///     assert!(buf.iter().all(|f| *f == 1.0));
+    /// }
+    ///
+    /// test(&rotary::audio_buffer![[1.0; 16]; 2]);
+    /// test(&rotary::sequential![[1.0; 16]; 2]);
+    /// test(&rotary::interleaved![[1.0; 16]; 2]);
+    /// ```
+    pub fn copy_chunk(&self, out: &mut [T], n: usize, len: usize)
+    where
+        T: Copy,
     {
-        match self {
-            BufIndex::Linear => {
-                let buf = &buf[chunk * index..];
-                let end = usize::min(buf.len(), chunk);
+        match self.kind {
+            BufChannelKind::Linear => {
+                let buf = &self.buf[len * n..];
+                let end = usize::min(buf.len(), len);
                 let end = usize::min(end, out.len());
                 out[..end].copy_from_slice(&buf[..end]);
             }
-            BufIndex::Interleaved { channels } => {
-                let start = chunk * index;
-                let it = buf[channel + start..].iter().step_by(*channels).take(chunk);
+            BufChannelKind::Interleaved { channels, channel } => {
+                let start = len * n;
+                let it = self.buf[channel + start..]
+                    .iter()
+                    .step_by(channels)
+                    .take(len);
 
                 for (o, f) in out.iter_mut().zip(it) {
                     *o = *f;
@@ -128,22 +198,49 @@ impl BufIndex {
         }
     }
 
-    /// Copy into the given integer.
-    pub fn copy_into_iter<'a, T, I>(&self, buf: &[T], channel: usize, iter: I)
+    /// Copy into the given iterator.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::Buf;
+    ///
+    /// fn test(buf: &dyn Buf<f32>) {
+    ///     let channel = buf.channel(0);
+    ///
+    ///     let mut buf = vec![0.0; 16];
+    ///
+    ///     // Copy into every other position in `buf`.
+    ///     channel.copy_into_iter(buf.iter_mut().step_by(2));
+    ///
+    ///     for (n, f) in buf.into_iter().enumerate() {
+    ///         if n % 2 == 0 {
+    ///             assert_eq!(f, 1.0);
+    ///         } else {
+    ///             assert_eq!(f, 0.0);
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// test(&rotary::audio_buffer![[1.0; 16]; 2]);
+    /// test(&rotary::sequential![[1.0; 16]; 2]);
+    /// test(&rotary::interleaved![[1.0; 16]; 2]);
+    /// ```
+    pub fn copy_into_iter<'out, I>(&self, iter: I)
     where
-        T: 'a + Sample,
-        I: IntoIterator<Item = &'a mut T>,
+        I: IntoIterator<Item = &'out mut T>,
+        T: 'out + Copy,
     {
-        match self {
-            BufIndex::Linear => {
-                for (o, f) in iter.into_iter().zip(buf) {
+        match self.kind {
+            BufChannelKind::Linear => {
+                for (o, f) in iter.into_iter().zip(self.buf) {
                     *o = *f;
                 }
             }
-            BufIndex::Interleaved { channels } => {
+            BufChannelKind::Interleaved { channels, channel } => {
                 for (o, f) in iter
                     .into_iter()
-                    .zip(buf[channel..].iter().step_by(*channels))
+                    .zip(self.buf[channel..].iter().step_by(channels))
                 {
                     *o = *f;
                 }
@@ -151,23 +248,81 @@ impl BufIndex {
         }
     }
 
-    /// Copy into the given integer.
-    pub fn map_into_slice<'a, T, M>(&self, buf: &[T], channel: usize, out: &mut [T], m: M)
+    /// Copy into the given slice, mapping the index by the given mapping
+    /// function.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::Buf;
+    ///
+    /// fn test(buf: &dyn Buf<f32>) {
+    ///     let channel = buf.channel(0);
+    ///
+    ///     let mut buf = vec![0.0; channel.frames() * 2];
+    ///
+    ///     // Copy into every other position in `buf`.
+    ///     channel.map_into_slice(&mut buf[..], |n| n * 2);
+    ///
+    ///     for (n, f) in buf.into_iter().enumerate() {
+    ///         if n % 2 == 0 {
+    ///             assert_eq!(f, 1.0);
+    ///         } else {
+    ///             assert_eq!(f, 0.0);
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// test(&rotary::audio_buffer![[1.0; 16]; 2]);
+    /// test(&rotary::sequential![[1.0; 16]; 2]);
+    /// test(&rotary::interleaved![[1.0; 16]; 2]);
+    /// ```
+    pub fn map_into_slice<M>(&self, out: &mut [T], m: M)
     where
-        T: 'a + Sample,
         M: Fn(usize) -> usize,
+        T: Copy,
     {
-        match self {
-            BufIndex::Linear => {
-                for (f, s) in buf.iter().enumerate() {
+        match self.kind {
+            BufChannelKind::Linear => {
+                for (f, s) in self.buf.iter().enumerate() {
                     out[m(f)] = *s;
                 }
             }
-            BufIndex::Interleaved { channels } => {
-                for (f, s) in buf[channel..].iter().step_by(*channels).enumerate() {
+            BufChannelKind::Interleaved { channels, channel } => {
+                for (f, s) in self.buf[channel..].iter().step_by(channels).enumerate() {
                     out[m(f)] = *s;
                 }
             }
         }
     }
+}
+
+/// The simple vector of vectors buffer where an empty vector indicates that the
+/// channel is masked.
+impl<T> Buf<T> for Vec<Vec<T>> {
+    fn channels(&self) -> usize {
+        self.len()
+    }
+
+    fn is_masked(&self, channel: usize) -> bool {
+        self[channel].is_empty()
+    }
+
+    fn channel(&self, channel: usize) -> BufChannel<'_, T> {
+        BufChannel::linear(&self[channel])
+    }
+}
+
+/// Used to determine how a buffer is indexed.
+#[derive(Debug, Clone, Copy)]
+enum BufChannelKind {
+    /// Returned channel buffer is indexed in a linear manner.
+    Linear,
+    /// Returned channel buffer is indexed in an interleaved manner.
+    Interleaved {
+        /// The number of channels in the interleaved buffer.
+        channels: usize,
+        /// The channel that is being accessed.
+        channel: usize,
+    },
 }

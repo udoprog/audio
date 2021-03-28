@@ -1,6 +1,6 @@
 //! A dynamically sized, multi-channel sequential audio buffer.
 
-use crate::buf::{Buf, BufIndex};
+use crate::buf::{Buf, BufChannel};
 use crate::sample::Sample;
 use std::cmp;
 use std::fmt;
@@ -578,10 +578,6 @@ impl<T> Buf<T> for Sequential<T>
 where
     T: Sample,
 {
-    fn index(&self) -> BufIndex {
-        BufIndex::Linear
-    }
-
     fn channels(&self) -> usize {
         self.channels
     }
@@ -590,9 +586,9 @@ where
         false
     }
 
-    fn channel(&self, channel: usize) -> &[T] {
+    fn channel(&self, channel: usize) -> BufChannel<'_, T> {
         let data = &self.data[self.frames * channel..];
-        &data[..self.frames]
+        BufChannel::linear(&data[..self.frames])
     }
 }
 

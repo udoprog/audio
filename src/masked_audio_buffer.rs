@@ -3,7 +3,7 @@
 //! See [MaskedAudioBuffer] for more information.
 
 use crate::audio_buffer;
-use crate::buf::{Buf, BufIndex};
+use crate::buf::{Buf, BufChannel};
 use crate::mask::Mask;
 use crate::sample::Sample;
 use std::cmp;
@@ -741,10 +741,6 @@ where
     T: Sample,
     M: Mask,
 {
-    fn index(&self) -> BufIndex {
-        BufIndex::Linear
-    }
-
     fn channels(&self) -> usize {
         self.buffer.channels()
     }
@@ -753,8 +749,8 @@ where
         self.mask.test(channel)
     }
 
-    fn channel(&self, channel: usize) -> &[T] {
-        &self.buffer[channel]
+    fn channel(&self, channel: usize) -> BufChannel<'_, T> {
+        BufChannel::linear(&self.buffer[channel])
     }
 }
 

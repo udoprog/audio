@@ -1,6 +1,6 @@
-//! A dynamically sized, multi-channel sequential audio buffer.
+//! A dynamically sized, multi-channel interleaved audio buffer.
 
-use crate::buf::{Buf, BufIndex};
+use crate::buf::{Buf, BufChannel};
 use crate::channel::{Channel, ChannelMut};
 use crate::sample::Sample;
 use std::cmp;
@@ -104,13 +104,13 @@ where
     /// ```rust
     /// use rotary::BitSet;
     ///
-    /// let mut buffer = rotary::sequential![[2.0; 256]; 4];
+    /// let mut buffer = rotary::interleaved![[2.0; 256]; 4];
     ///
     /// assert_eq!(buffer.frames(), 256);
     /// assert_eq!(buffer.channels(), 4);
     ///
     /// for chan in &buffer {
-    ///     assert_eq!(chan, vec![2.0; 256]);
+    ///     assert!(chan.iter().eq(&[2.0; 256][..]));
     /// }
     /// ```
     pub fn from_vec(data: Vec<T>, channels: usize, frames: usize) -> Self {
@@ -497,12 +497,6 @@ impl<T> Buf<T> for Interleaved<T>
 where
     T: Sample,
 {
-    fn index(&self) -> BufIndex {
-        BufIndex::Interleaved {
-            channels: self.channels,
-        }
-    }
-
     fn channels(&self) -> usize {
         self.channels
     }
@@ -511,8 +505,8 @@ where
         false
     }
 
-    fn channel(&self, _: usize) -> &[T] {
-        &self.data
+    fn channel(&self, channel: usize) -> BufChannel<'_, T> {
+        BufChannel::interleaved(&self.data, self.channels, channel)
     }
 }
 

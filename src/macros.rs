@@ -1,4 +1,4 @@
-/// Instantiate a literal audio buffer.
+/// Construct an audio buffer.
 ///
 /// This is useful when testing.
 ///
@@ -42,7 +42,7 @@ macro_rules! audio_buffer {
     }};
 }
 
-/// Instantiate a literal sequential audio buffer.
+/// Construct a sequential audio buffer.
 ///
 /// This is useful for testing.
 ///
@@ -65,5 +65,31 @@ macro_rules! sequential {
     // `Copy`. `$frames` and `$channels` should evaluate to `usize`.
     ([$sample:expr; $frames:expr]; $channels:expr) => {
         $crate::Sequential::from_vec(vec![$sample; $channels * $frames], $channels, $frames)
+    };
+}
+
+/// Construct an interleaved audio buffer.
+///
+/// This is useful for testing.
+///
+/// # Examples
+///
+/// ```rust
+/// let buf = rotary::interleaved![[0.0; 1024]; 2];
+///
+/// let mut expected = vec![0.0; 1024];
+///
+/// assert!(buf.get(0).unwrap().iter().eq(&expected[..]));
+/// assert!(buf.get(1).unwrap().iter().eq(&expected[..]));
+/// ```
+#[macro_export]
+macro_rules! interleaved {
+    // Branch of the macro used when we can evaluate an expression that is
+    // built into a interleaved audio buffer.
+    //
+    // `$sample`, `$frames`, and `$channels` are all expected to implement
+    // `Copy`. `$frames` and `$channels` should evaluate to `usize`.
+    ([$sample:expr; $frames:expr]; $channels:expr) => {
+        $crate::Interleaved::from_vec(vec![$sample; $channels * $frames], $channels, $frames)
     };
 }
