@@ -44,12 +44,16 @@ where
     T: Sample,
 {
     /// The stored data for each channel.
-    channels: Vec<RawSlice<T>>,
+    data: ptr::NonNull<RawSlice<T>>,
+    /// The number of channels stored.
+    channels: usize,
+    /// The capacity of channels stored.
+    channels_cap: usize,
     /// The length of each channel.
     frames: usize,
     /// Allocated capacity of each channel. Each channel is guaranteed to be
     /// filled with as many values as is specified in this capacity.
-    cap: usize,
+    frames_cap: usize,
 }
 
 impl<T> Dynamic<T>
@@ -70,9 +74,14 @@ where
     /// ```
     pub fn new() -> Self {
         Self {
-            channels: Vec::new(),
+            // Safety: we know that a newly created vector is non-null.
+            data: unsafe {
+                ptr::NonNull::new_unchecked(mem::ManuallyDrop::new(Vec::new()).as_mut_ptr())
+            },
+            channels: 0,
+            channels_cap: 0,
             frames: 0,
-            cap: 0,
+            frames_cap: 0,
         }
     }
 
@@ -89,16 +98,23 @@ where
     /// assert_eq!(buffer.channels(), 4);
     /// ```
     pub fn with_topology(channels: usize, frames: usize) -> Self {
-        let mut channels = Vec::with_capacity(channels);
+        let data = mem::ManuallyDrop::new(Vec::<RawSlice<T>>::with_capacity(channels)).as_mut_ptr();
 
-        for _ in 0..channels.capacity() {
-            channels.push(RawSlice::with_capacity(frames));
+        for n in 0..channels {
+            // Safety: We just allocated the vector w/ a capacity matching channels.
+            unsafe {
+                ptr::write(data.add(n), RawSlice::with_capacity(frames));
+            }
         }
 
         Self {
+            // Safety: we just initialized the associated array with the
+            // expected topology.
+            data: unsafe { ptr::NonNull::new_unchecked(data) },
             channels,
+            channels_cap: channels,
             frames,
-            cap: frames,
+            frames_cap: frames,
         }
     }
 
@@ -122,26 +138,28 @@ where
     /// ```
     pub fn from_array<const F: usize, const C: usize>(channels: [[T; F]; C]) -> Self {
         return Self {
-            channels: channels_from_array(channels),
+            // Safety: We just created the box with the data so we know that
+            // it's initialized.
+            data: unsafe { data_from_array(channels) },
+            channels: C,
+            channels_cap: C,
             frames: F,
-            cap: F,
+            frames_cap: F,
         };
 
         #[inline]
-        fn channels_from_array<T: Sample, const F: usize, const C: usize>(
+        unsafe fn data_from_array<T: Sample, const F: usize, const C: usize>(
             values: [[T; F]; C],
-        ) -> Vec<RawSlice<T>> {
-            let mut channels = Vec::with_capacity(C);
+        ) -> ptr::NonNull<RawSlice<T>> {
+            let mut data = Vec::with_capacity(C);
 
             for frames in std::array::IntoIter::new(values) {
-                let data = Box::<[T]>::from(frames);
-                // Safety: We just created the box with the data so we know that
-                // it's initialized.
-                let data = unsafe { ptr::NonNull::new_unchecked(Box::into_raw(data) as *mut T) };
-                channels.push(RawSlice { data });
+                let slice = Box::<[T]>::from(frames);
+                let slice = ptr::NonNull::new_unchecked(Box::into_raw(slice) as *mut T);
+                data.push(RawSlice { data: slice });
             }
 
-            channels
+            ptr::NonNull::new_unchecked(mem::ManuallyDrop::new(data).as_mut_ptr())
         }
     }
 
@@ -199,7 +217,7 @@ where
     /// assert_eq!(buffer.channels(), 2);
     /// ```
     pub fn channels(&self) -> usize {
-        self.channels.len()
+        self.channels
     }
 
     /// Construct a mutable iterator over all available channels.
@@ -219,7 +237,8 @@ where
     /// ```
     pub fn iter(&self) -> Iter<'_, T> {
         Iter {
-            iter: self.channels.iter(),
+            // Safety: we're using a trusted length to build the slice.
+            iter: unsafe { slice::from_raw_parts(self.data.as_ptr(), self.channels).into_iter() },
             len: self.frames,
         }
     }
@@ -240,7 +259,10 @@ where
     /// ```
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
         IterMut {
-            iter: self.channels.iter_mut(),
+            // Safety: we're using a trusted length to build the slice.
+            iter: unsafe {
+                slice::from_raw_parts_mut(self.data.as_ptr(), self.channels).into_iter()
+            },
             len: self.frames,
         }
     }
@@ -285,23 +307,23 @@ where
     /// assert_eq!(buffer[1][128], 42.0);
     /// ```
     pub fn resize(&mut self, frames: usize) {
-        if self.cap < frames {
-            let from = self.cap;
+        if self.frames_cap < frames {
+            let from = self.frames_cap;
 
             let to = usize::max(from * 2, frames);
             let to = usize::max(Self::MIN_NON_ZERO_CAP, to);
 
-            if self.channels.capacity() > 0 {
+            if self.channels_cap > 0 {
                 let additional = to - from;
 
-                for n in 0..self.channels.capacity() {
+                for n in 0..self.channels_cap {
                     // Safety: We control the known sizes, so we can guarantee
                     // that the slice is allocated and sized tio exactly `from`.
-                    unsafe { self.channels.get_unchecked_mut(n).reserve(from, additional) };
+                    unsafe { (*self.data.as_ptr().add(n)).reserve(from, additional) };
                 }
             }
 
-            self.cap = to;
+            self.frames_cap = to;
         }
 
         self.frames = frames;
@@ -328,37 +350,42 @@ where
     /// assert_eq!(buffer.frames(), 256);
     /// ```
     pub fn resize_channels(&mut self, channels: usize) {
-        if channels == self.channels.len() {
+        if channels == self.channels {
             return;
         }
 
-        if channels > self.channels.capacity() {
-            let old_cap = self.channels.capacity();
-
+        if channels > self.channels_cap {
+            let old_cap = self.channels_cap;
             let new_cap = usize::max(old_cap * 2, channels);
             let new_cap = usize::max(Self::MIN_NON_ZERO_CHANNELS_CAP, new_cap);
 
             let additional = new_cap - old_cap;
-            self.channels.reserve_exact(additional);
+
+            // Safety: we're constructing the vector from trusted data.
+            let data = unsafe {
+                let mut data = Vec::from_raw_parts(self.data.as_ptr(), 0, self.channels_cap);
+                data.reserve_exact(additional);
+                mem::ManuallyDrop::new(data).as_mut_ptr()
+            };
 
             for n in old_cap..new_cap {
-                let slice = RawSlice::with_capacity(self.cap);
+                let slice = RawSlice::with_capacity(self.frames_cap);
 
                 // Safety: we control the capacity of channels and have just
                 // guranteed above that it is appropriate.
                 unsafe {
-                    ptr::write(self.channels.as_mut_ptr().add(n), slice);
+                    ptr::write(data.add(n), slice);
                 }
             }
+
+            // Safety: We just allocated and modified the vector associated w/
+            // the pointer.
+            self.data = unsafe { ptr::NonNull::new_unchecked(data) };
+            self.channels_cap = new_cap;
         }
 
-        debug_assert!(channels <= self.channels.capacity());
-
-        // Safety: We specifically only update the length of the number of
-        // channels since there is no need to re-allocate.
-        unsafe {
-            self.channels.set_len(channels);
-        }
+        debug_assert!(channels <= self.channels_cap);
+        self.channels = channels;
     }
 
     /// Get a reference to the buffer of the given channel.
@@ -379,12 +406,13 @@ where
     /// assert_eq!(Some(&expected[..]), buffer.get(3));
     /// assert_eq!(None, buffer.get(4));
     /// ```
-    pub fn get(&self, index: usize) -> Option<&[T]> {
-        // Safety: We control the length of each channel so we can assert that
-        // it is both allocated and initialized up to `len`.
-        unsafe {
-            let slice = self.channels.get(index)?;
-            Some(slice.as_ref(self.frames))
+    pub fn get(&self, channel: usize) -> Option<&[T]> {
+        if channel < self.channels {
+            // Safety: We control the length of each channel so we can assert that
+            // it is both allocated and initialized up to `len`.
+            unsafe { Some((*self.data.as_ptr().add(channel)).as_ref(self.frames)) }
+        } else {
+            None
         }
     }
 
@@ -409,7 +437,7 @@ where
 
         // Safety: We initialized the given index just above and we know the
         // trusted length.
-        unsafe { self.channels.get_unchecked(channel).as_ref(self.frames) }
+        unsafe { (*self.data.as_ptr().add(channel)).as_ref(self.frames) }
     }
 
     /// Get a mutable reference to the buffer of the given channel.
@@ -434,12 +462,13 @@ where
     ///     rng.fill(right);
     /// }
     /// ```
-    pub fn get_mut(&mut self, index: usize) -> Option<&mut [T]> {
-        // Safety: We control the length of each channel so we can assert that
-        // it is both allocated and initialized up to `len`.
-        unsafe {
-            let slice = self.channels.get_mut(index)?;
-            Some(slice.as_mut(self.frames))
+    pub fn get_mut(&mut self, channel: usize) -> Option<&mut [T]> {
+        if channel < self.channels {
+            // Safety: We control the length of each channel so we can assert that
+            // it is both allocated and initialized up to `len`.
+            unsafe { Some((*self.data.as_ptr().add(channel)).as_mut(self.frames)) }
+        } else {
+            None
         }
     }
 
@@ -468,7 +497,7 @@ where
 
         // Safety: We initialized the given index just above and we know the
         // trusted length.
-        unsafe { self.channels.get_unchecked_mut(channel).as_mut(self.frames) }
+        unsafe { (*self.data.as_ptr().add(channel)).as_mut(self.frames) }
     }
 
     /// Convert into a vector of vectors.
@@ -494,24 +523,39 @@ where
     }
 
     pub(crate) fn into_vecs_if(self, mut m: impl FnMut(usize) -> bool) -> Vec<Vec<T>> {
-        let mut this = mem::ManuallyDrop::new(self);
-        let mut vecs = Vec::with_capacity(this.channels.len());
+        let this = mem::ManuallyDrop::new(self);
+        let mut vecs = Vec::with_capacity(this.channels);
 
-        let len = this.frames;
-        let cap = this.cap;
-        let channels = std::mem::take(&mut this.channels);
-
-        for (n, mut slice) in channels.into_iter().enumerate() {
+        for n in 0..this.channels {
             // Safety: The capacity end lengths are trusted since they're part
             // of the audio buffer.
             unsafe {
+                let mut slice = ptr::read(this.data.as_ptr().add(n));
+
                 if m(n) {
-                    vecs.push(slice.into_vec(len, cap));
+                    vecs.push(slice.into_vec(this.frames, this.frames_cap));
                 } else {
-                    slice.drop_in_place(len);
+                    slice.drop_in_place(this.frames_cap);
                     vecs.push(Vec::new());
                 }
             }
+        }
+
+        // Drop the tail of the channels capacity which is not in use.
+        for n in this.channels..this.channels_cap {
+            // Safety: The capacity end lengths are trusted since they're part
+            // of the audio buffer.
+            unsafe {
+                let slice = &mut *this.data.as_ptr().add(n);
+                slice.drop_in_place(this.frames_cap);
+            }
+        }
+
+        // Drop the backing vector for all channels.
+        //
+        // Safety: we trust the capacity provided here.
+        unsafe {
+            let _ = Vec::from_raw_parts(this.data.as_ptr(), 0, this.channels_cap);
         }
 
         vecs
@@ -635,12 +679,17 @@ where
     T: Sample,
 {
     fn drop(&mut self) {
-        for n in 0..self.channels.capacity() {
+        for n in 0..self.channels_cap {
             // Safety: We're being dropped, so there's no subsequent access to
             // the current collection.
             unsafe {
-                self.channels.get_unchecked_mut(n).drop_in_place(self.cap);
+                (*self.data.as_ptr().add(n)).drop_in_place(self.frames_cap);
             }
+        }
+
+        // Safety: We trust the length of the underlying array.
+        unsafe {
+            let _ = Vec::from_raw_parts(self.data.as_ptr(), 0, self.channels_cap);
         }
     }
 }
@@ -650,7 +699,7 @@ where
     T: Sample,
 {
     fn channels(&self) -> usize {
-        self.channels.len()
+        self.channels
     }
 
     fn channel(&self, channel: usize) -> BufChannel<'_, T> {
@@ -709,7 +758,7 @@ where
     /// This will change the underlying allocation, so subsequent calls must
     /// provide the new length of `len + extra`.
     unsafe fn reserve(&mut self, len: usize, additional: usize) {
-        let mut channel = Vec::from_raw_parts(self.data.as_ptr(), len, len);
+        let mut channel = Vec::from_raw_parts(self.data.as_ptr(), 0, len);
         channel.reserve_exact(additional);
 
         // Safety: the type constrain of `T` guarantees that an all-zeros bit pattern is legal.
@@ -744,7 +793,7 @@ where
     /// After calling drop, the slice must not be used every again because the
     /// data it is pointing to have been dropped.
     unsafe fn drop_in_place(&mut self, len: usize) {
-        let _ = Vec::from_raw_parts(self.data.as_ptr(), len, len);
+        let _ = Vec::from_raw_parts(self.data.as_ptr(), 0, len);
     }
 
     /// Convert into a vector.
