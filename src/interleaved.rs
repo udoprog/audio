@@ -218,43 +218,7 @@ where
     /// assert_eq!(buffer.frames(), 256);
     /// ```
     pub fn resize_channels(&mut self, channels: usize) {
-        if self.channels == channels {
-            return;
-        }
-
-        self.try_resize(channels, self.frames);
-
-        let end = usize::min(self.channels, channels);
-
-        if channels < self.channels {
-            // NB: the initial set of frames does not have to be moved.
-            for f in 1..self.frames {
-                for chan in 0..end {
-                    let from = f * self.channels + chan;
-                    let to = f * channels + chan;
-
-                    unsafe {
-                        let v = ptr::read(self.data.as_mut_ptr().add(from));
-                        ptr::write(self.data.as_mut_ptr().add(to), v);
-                    }
-                }
-            }
-        } else {
-            // NB: the initial set of frames does not have to be moved.
-            for f in (1..self.frames).rev() {
-                for chan in 0..end {
-                    let from = f * self.channels + chan;
-                    let to = f * channels + chan;
-
-                    unsafe {
-                        let v = ptr::read(self.data.as_mut_ptr().add(from));
-                        ptr::write(self.data.as_mut_ptr().add(to), v);
-                    }
-                }
-            }
-        }
-
-        self.channels = channels;
+        self.inner_resize(channels, self.frames);
     }
 
     /// Set the size of the buffer. The size is the size of each channel's
@@ -285,19 +249,7 @@ where
     /// assert_eq!(chan.get(127), Some(&42.0));
     /// ```
     pub fn resize(&mut self, frames: usize) {
-        if frames == self.frames {
-            return;
-        }
-
-        self.try_resize(self.channels, frames);
-
-        // Safety: since we're decreasing the number of frames we're sure
-        // that the data for them is already allocated.
-        unsafe {
-            self.data.set_len(frames * self.channels);
-        }
-
-        self.frames = frames;
+        self.inner_resize(self.channels, frames);
     }
 
     /// Get a reference to a channel.
@@ -426,20 +378,61 @@ where
         }
     }
 
-    fn try_resize(&mut self, channels: usize, frames: usize) {
-        if channels > self.channels || frames > self.frames {
-            let old_cap = self.data.capacity();
-            let new_cap = frames * channels;
+    /// The internal resize function for interleaved channel buffers.
+    fn inner_resize(&mut self, channels: usize, frames: usize) {
+        if channels == self.channels && frames == self.frames {
+            return;
+        }
 
-            if new_cap > old_cap {
-                self.data.reserve(new_cap - old_cap);
-                let new_cap = self.data.capacity();
+        let old_cap = self.data.capacity();
+        let new_cap = frames * channels;
 
-                // Safety: capacity is governed by the underlying vector.
-                unsafe {
-                    ptr::write_bytes(self.data.as_mut_ptr().add(old_cap), 0, new_cap - old_cap);
-                }
+        if new_cap > old_cap {
+            self.data.reserve(new_cap - old_cap);
+            let new_cap = self.data.capacity();
+
+            // Safety: capacity is governed by the underlying vector.
+            unsafe {
+                ptr::write_bytes(self.data.as_mut_ptr().add(old_cap), 0, new_cap - old_cap);
             }
+        }
+
+        if self.channels != channels {
+            let len = usize::min(self.channels, channels);
+
+            // Safety: We trust the known lengths lengths.
+            unsafe {
+                self.inner_shuffle_channels(1..frames, len, channels);
+            }
+        }
+
+        // Safety: since we're decreasing the number of frames we're sure
+        // that the data for them is already allocated.
+        unsafe {
+            self.data.set_len(frames * channels);
+        }
+
+        self.channels = channels;
+        self.frames = frames;
+    }
+
+    /// Internal function to re-shuffle channels.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the ranges of frames, the length and that
+    /// the updates `channels` argument is validly within the buffer.
+    #[inline]
+    unsafe fn inner_shuffle_channels<F>(&mut self, frames: F, len: usize, channels: usize)
+    where
+        F: IntoIterator<Item = usize>,
+    {
+        let base = self.data.as_mut_ptr();
+
+        for f in frames {
+            let from = f * self.channels;
+            let to = f * channels;
+            ptr::copy(base.add(from), base.add(to), len)
         }
     }
 }
