@@ -203,8 +203,8 @@ where
     /// This is provided as a special operation for this buffer kind, because it
     /// can be done more efficiently than what is available through
     /// [Buf::offset].
-    pub fn offset(&self, offset: usize) -> wrap::Interleaved<&[T]> {
-        wrap::interleaved(&self.data[offset..], self.channels)
+    pub fn interleaved_offset(&self, offset: usize) -> wrap::Interleaved<&[T]> {
+        wrap::interleaved(&self.data[offset * self.channels..], self.channels)
     }
 
     /// Offset the interleaved buffer and return a mutable wrapped buffer.
@@ -220,11 +220,11 @@ where
     ///
     /// let mut buffer = rotary::Interleaved::with_topology(2, 4);
     ///
-    /// buffer.offset_mut(2).channel_mut(0).copy_from_slice(&[1.0, 1.0]);
+    /// buffer.interleaved_offset_mut(2).channel_mut(0).copy_from_slice(&[1.0, 1.0]);
     ///
     /// assert_eq!(buffer.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
     /// ```
-    pub fn offset_mut(&mut self, offset: usize) -> wrap::Interleaved<&mut [T]> {
+    pub fn interleaved_offset_mut(&mut self, offset: usize) -> wrap::Interleaved<&mut [T]> {
         wrap::interleaved(&mut self.data[offset * self.channels..], self.channels)
     }
 
@@ -242,11 +242,11 @@ where
     /// let from = rotary::interleaved![[1.0f32; 4]; 2];
     /// let mut to = rotary::Interleaved::<f32>::with_topology(2, 4);
     ///
-    /// to.channel_mut(0).copy_from(from.limit(2).channel(0));
+    /// to.channel_mut(0).copy_from(from.interleaved_limit(2).channel(0));
     /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
     /// ```
-    pub fn limit(&self, limit: usize) -> wrap::Interleaved<&[T]> {
-        wrap::interleaved(&self.data[..limit], self.channels)
+    pub fn interleaved_limit(&self, limit: usize) -> wrap::Interleaved<&[T]> {
+        wrap::interleaved(&self.data[..limit * self.channels], self.channels)
     }
 
     /// Limit the interleaved buffer and return a mutable wrapped buffer.
@@ -254,8 +254,8 @@ where
     /// This is provided as a special operation for this buffer kind, because it
     /// can be done more efficiently than what is available through
     /// [Buf::limit].
-    pub fn limit_mut(&mut self, limit: usize) -> wrap::Interleaved<&mut [T]> {
-        wrap::interleaved(&mut self.data[limit * self.channels..], self.channels)
+    pub fn interleaved_limit_mut(&mut self, limit: usize) -> wrap::Interleaved<&mut [T]> {
+        wrap::interleaved(&mut self.data[..limit * self.channels], self.channels)
     }
 
     /// Resize to the given number of channels in use.

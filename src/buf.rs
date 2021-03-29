@@ -37,6 +37,21 @@ pub trait Buf<T> {
     /// ```rust
     /// use rotary::{Buf as _, BufMut as _};
     ///
+    /// let mut from = rotary::interleaved![[0.0f32; 4]; 2];
+    /// *from.frame_mut(0, 2).unwrap() = 1.0;
+    /// *from.frame_mut(0, 3).unwrap() = 1.0;
+    ///
+    /// let mut to = rotary::Interleaved::<f32>::with_topology(2, 4);
+    ///
+    /// to.channel_mut(0).copy_from((&from).offset(2).channel(0));
+    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    /// ```
+    ///
+    /// Test with a mutable buffer.
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
     /// let mut buffer = rotary::Interleaved::with_topology(2, 4);
     ///
     /// (&mut buffer).offset(2).channel_mut(0).copy_from_slice(&[1.0, 1.0]);
@@ -107,7 +122,7 @@ pub trait BufMut<T>: Buf<T> {
 
 impl<B, T> Buf<T> for &mut B
 where
-    B: Buf<T>,
+    B: ?Sized + Buf<T>,
 {
     fn frames(&self) -> usize {
         (**self).frames()
@@ -124,7 +139,7 @@ where
 
 impl<B, T> BufMut<T> for &mut B
 where
-    B: BufMut<T>,
+    B: ?Sized + BufMut<T>,
 {
     fn channel_mut(&mut self, channel: usize) -> BufChannelMut<'_, T> {
         (**self).channel_mut(channel)
