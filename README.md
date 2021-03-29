@@ -4,8 +4,7 @@
 [![Crates](https://img.shields.io/crates/v/rotary.svg)](https://crates.io/crates/rotary)
 [![Actions Status](https://github.com/udoprog/rotary/workflows/Rust/badge.svg)](https://github.com/udoprog/rotary/actions)
 
-A library for dealing efficiently with Dynamic non-interleaved audio
-buffers.
+A library for working with audio buffers
 
 The buffer is constructed similarly to a `Vec<Vec<T>>`, except the interior
 vector has a fixed size. And the buffer makes no attempt to clear data which
