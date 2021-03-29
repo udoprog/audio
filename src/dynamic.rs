@@ -12,6 +12,19 @@ use std::ops;
 use std::ptr;
 use std::slice;
 
+struct MinAllocationFor<T>(std::marker::PhantomData<T>);
+
+/// Helper to calculate the minimum allocation needed for `T`.
+impl<T> MinAllocationFor<T> {
+    const VALUE: usize = if mem::size_of::<T>() == 1 {
+        8
+    } else if mem::size_of::<T>() <= 256 {
+        4
+    } else {
+        1
+    };
+}
+
 /// A dynamically sized, multi-channel audio buffer.
 ///
 /// An audio buffer is constrained to only support sample-apt types. For more
@@ -36,20 +49,15 @@ where
     frames: usize,
     /// Allocated capacity of each channel. Each channel is guaranteed to be
     /// filled with as many values as is specified in this capacity.
-    frames_cap: usize,
+    cap: usize,
 }
 
 impl<T> Dynamic<T>
 where
     T: Sample,
 {
-    const MIN_NON_ZERO_CAP: usize = if mem::size_of::<T>() == 1 {
-        8
-    } else if mem::size_of::<T>() <= 256 {
-        4
-    } else {
-        1
-    };
+    const MIN_NON_ZERO_CAP: usize = MinAllocationFor::<T>::VALUE;
+    const MIN_NON_ZERO_CHANNELS_CAP: usize = MinAllocationFor::<RawSlice<T>>::VALUE;
 
     /// Construct a new empty audio buffer.
     ///
@@ -64,7 +72,7 @@ where
         Self {
             channels: Vec::new(),
             frames: 0,
-            frames_cap: 0,
+            cap: 0,
         }
     }
 
@@ -90,7 +98,7 @@ where
         Self {
             channels,
             frames,
-            frames_cap: frames,
+            cap: frames,
         }
     }
 
@@ -115,8 +123,8 @@ where
     pub fn from_array<const F: usize, const C: usize>(channels: [[T; F]; C]) -> Self {
         return Self {
             channels: channels_from_array(channels),
-            frames_cap: F,
             frames: F,
+            cap: F,
         };
 
         #[inline]
@@ -127,7 +135,8 @@ where
 
             for frames in std::array::IntoIter::new(values) {
                 let data = Box::<[T]>::from(frames);
-                // Safety: We just created the box with the data.
+                // Safety: We just created the box with the data so we know that
+                // it's initialized.
                 let data = unsafe { ptr::NonNull::new_unchecked(Box::into_raw(data) as *mut T) };
                 channels.push(RawSlice { data });
             }
@@ -275,29 +284,27 @@ where
     /// buffer.resize(256);
     /// assert_eq!(buffer[1][128], 42.0);
     /// ```
-    pub fn resize(&mut self, len: usize) {
-        if self.frames_cap < len {
-            if self.channels.is_empty() {
-                let cap = usize::max(self.frames_cap * 2, len);
-                self.frames_cap = usize::max(Self::MIN_NON_ZERO_CAP, cap);
-            } else {
-                let from = self.frames_cap;
-                let to = usize::max(from * 2, len);
-                let to = usize::max(Self::MIN_NON_ZERO_CAP, to);
+    pub fn resize(&mut self, frames: usize) {
+        if self.cap < frames {
+            let from = self.cap;
 
+            let to = usize::max(from * 2, frames);
+            let to = usize::max(Self::MIN_NON_ZERO_CAP, to);
+
+            if self.channels.capacity() > 0 {
                 let additional = to - from;
 
-                for slice in &mut self.channels {
+                for n in 0..self.channels.capacity() {
                     // Safety: We control the known sizes, so we can guarantee
                     // that the slice is allocated and sized tio exactly `from`.
-                    unsafe { slice.reserve(from, additional) };
+                    unsafe { self.channels.get_unchecked_mut(n).reserve(from, additional) };
                 }
-
-                self.frames_cap = to;
             }
+
+            self.cap = to;
         }
 
-        self.frames = len;
+        self.frames = frames;
     }
 
     /// Set the number of channels in use.
@@ -321,27 +328,36 @@ where
     /// assert_eq!(buffer.frames(), 256);
     /// ```
     pub fn resize_channels(&mut self, channels: usize) {
-        if channels < self.channels.len() {
-            // Drop the tail.
-            for slice in &mut self.channels[channels..] {
-                // Safety: We immediately set the length the the channels
-                // buffer after dropping the slice.
+        if channels == self.channels.len() {
+            return;
+        }
+
+        if channels > self.channels.capacity() {
+            let old_cap = self.channels.capacity();
+
+            let new_cap = usize::max(old_cap * 2, channels);
+            let new_cap = usize::max(Self::MIN_NON_ZERO_CHANNELS_CAP, new_cap);
+
+            let additional = new_cap - old_cap;
+            self.channels.reserve_exact(additional);
+
+            for n in old_cap..new_cap {
+                let slice = RawSlice::with_capacity(self.cap);
+
+                // Safety: we control the capacity of channels and have just
+                // guranteed above that it is appropriate.
                 unsafe {
-                    slice.drop_in_place(self.frames_cap);
+                    ptr::write(self.channels.as_mut_ptr().add(n), slice);
                 }
             }
+        }
 
-            // Safety: We specifically only update the length of the number of
-            // channels since there is no need to re-allocate.
-            unsafe {
-                self.channels.set_len(channels);
-            }
-        } else if channels > self.channels.len() {
-            let extra = channels - self.channels.len();
+        debug_assert!(channels <= self.channels.capacity());
 
-            for _ in 0..extra {
-                self.channels.push(RawSlice::with_capacity(self.frames_cap));
-            }
+        // Safety: We specifically only update the length of the number of
+        // channels since there is no need to re-allocate.
+        unsafe {
+            self.channels.set_len(channels);
         }
     }
 
@@ -388,16 +404,12 @@ where
     ///
     /// assert_eq!(buffer.channels(), 2);
     /// ```
-    pub fn get_or_default(&mut self, index: usize) -> &[T] {
-        if index >= self.channels.len() {
-            for _ in 0..=(index - self.channels.len()) {
-                self.channels.push(RawSlice::with_capacity(self.frames_cap));
-            }
-        }
+    pub fn get_or_default(&mut self, channel: usize) -> &[T] {
+        self.resize_channels(channel + 1);
 
         // Safety: We initialized the given index just above and we know the
         // trusted length.
-        unsafe { self.channels.get_unchecked(index).as_ref(self.frames) }
+        unsafe { self.channels.get_unchecked(channel).as_ref(self.frames) }
     }
 
     /// Get a mutable reference to the buffer of the given channel.
@@ -451,16 +463,12 @@ where
     ///
     /// assert_eq!(buffer.channels(), 2);
     /// ```
-    pub fn get_or_default_mut(&mut self, index: usize) -> &mut [T] {
-        if index >= self.channels.len() {
-            for _ in 0..=(index - self.channels.len()) {
-                self.channels.push(RawSlice::with_capacity(self.frames_cap));
-            }
-        }
+    pub fn get_or_default_mut(&mut self, channel: usize) -> &mut [T] {
+        self.resize_channels(channel + 1);
 
         // Safety: We initialized the given index just above and we know the
         // trusted length.
-        unsafe { self.channels.get_unchecked_mut(index).as_mut(self.frames) }
+        unsafe { self.channels.get_unchecked_mut(channel).as_mut(self.frames) }
     }
 
     /// Convert into a vector of vectors.
@@ -490,7 +498,7 @@ where
         let mut vecs = Vec::with_capacity(this.channels.len());
 
         let len = this.frames;
-        let cap = this.frames_cap;
+        let cap = this.cap;
         let channels = std::mem::take(&mut this.channels);
 
         for (n, mut slice) in channels.into_iter().enumerate() {
@@ -627,11 +635,11 @@ where
     T: Sample,
 {
     fn drop(&mut self) {
-        for channel in &mut self.channels {
+        for n in 0..self.channels.capacity() {
             // Safety: We're being dropped, so there's no subsequent access to
             // the current collection.
             unsafe {
-                channel.drop_in_place(self.frames_cap);
+                self.channels.get_unchecked_mut(n).drop_in_place(self.cap);
             }
         }
     }
@@ -669,7 +677,8 @@ where
 }
 
 /// A raw slice.
-pub(crate) struct RawSlice<T>
+#[repr(transparent)]
+struct RawSlice<T>
 where
     T: Sample,
 {

@@ -159,3 +159,37 @@ fn test_stale_allocation() {
 fn test_from_array() {
     let _ = crate::dynamic![[0.0; 1024]; 2];
 }
+
+#[test]
+fn test_get_mut() {
+    use rand::Rng as _;
+
+    let mut buffer = crate::Dynamic::<f32>::new();
+
+    buffer.resize_channels(2);
+    buffer.resize(256);
+
+    let mut rng = rand::thread_rng();
+
+    if let Some(left) = buffer.get_mut(0) {
+        rng.fill(left);
+    }
+
+    if let Some(right) = buffer.get_mut(1) {
+        rng.fill(right);
+    }
+}
+
+#[test]
+fn test_get_or_default() {
+    let mut buffer = crate::Dynamic::<f32>::new();
+
+    buffer.resize(256);
+
+    let expected = vec![0f32; 256];
+
+    assert_eq!(buffer.get_or_default(0), &expected[..]);
+    assert_eq!(buffer.get_or_default(1), &expected[..]);
+
+    assert_eq!(buffer.channels(), 2);
+}
