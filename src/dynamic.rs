@@ -645,11 +645,6 @@ where
         self.channels.len()
     }
 
-    fn is_masked(&self, _: usize) -> bool {
-        // Masking is not supported for audio buffers.
-        false
-    }
-
     fn channel(&self, channel: usize) -> BufChannel<'_, T> {
         BufChannel::linear(&self[channel])
     }
@@ -671,8 +666,6 @@ where
         Self::resize(self, frames);
         self.resize_channels(channels);
     }
-
-    fn set_masked(&mut self, _: usize, _: bool) {}
 }
 
 /// A raw slice.

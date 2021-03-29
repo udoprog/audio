@@ -6,9 +6,6 @@ pub trait Buf<T> {
     /// The number of channels in the buffer.
     fn channels(&self) -> usize;
 
-    /// Test if the given channel is masked.
-    fn is_masked(&self, channel: usize) -> bool;
-
     /// Return a handler to the buffer associated with the channel.
     ///
     /// Note that we don't access the buffer for the underlying channel directly
@@ -23,6 +20,12 @@ pub trait Buf<T> {
     /// Panics if the specified channel is out of bound as reported by
     /// [Buf::channels].
     fn channel(&self, channel: usize) -> BufChannel<'_, T>;
+}
+
+/// A [Buf] that can have its channels masked.
+pub trait MaskedBuf<T>: Buf<T> {
+    /// Test if the given channel is masked.
+    fn is_masked(&self, channel: usize) -> bool;
 }
 
 /// A trait describing a mutable audio buffer.
@@ -40,7 +43,10 @@ pub trait BufMut<T>: Buf<T> {
 
     /// Resize the buffer to match the given topology.
     fn resize_topology(&mut self, channels: usize, frames: usize);
+}
 
+/// A [BufMut] that can have its channels masked.
+pub trait MaskedBufMut<T>: BufMut<T> {
     /// Set if the given channel is masked or not.
     fn set_masked(&mut self, channel: usize, masked: bool);
 }
@@ -563,12 +569,14 @@ impl<T> Buf<T> for Vec<Vec<T>> {
         self.len()
     }
 
-    fn is_masked(&self, channel: usize) -> bool {
-        self[channel].is_empty()
-    }
-
     fn channel(&self, channel: usize) -> BufChannel<'_, T> {
         BufChannel::linear(&self[channel])
+    }
+}
+
+impl<T> MaskedBuf<T> for Vec<Vec<T>> {
+    fn is_masked(&self, channel: usize) -> bool {
+        self[channel].is_empty()
     }
 }
 
@@ -588,6 +596,11 @@ where
 
     fn resize_topology(&mut self, channels: usize, frames: usize) {
         for buf in self.iter_mut() {
+            // channel is masked, so ignore.
+            if buf.is_empty() {
+                continue;
+            }
+
             buf.resize(frames, T::ZERO);
         }
 
@@ -595,8 +608,27 @@ where
             self.push(vec![T::ZERO; frames]);
         }
     }
+}
 
-    fn set_masked(&mut self, _: usize, _: bool) {}
+impl<T> MaskedBufMut<T> for Vec<Vec<T>>
+where
+    T: Sample,
+{
+    fn set_masked(&mut self, channel: usize, masked: bool) {
+        if masked {
+            self[channel].clear()
+        } else {
+            let frames = self
+                .iter()
+                .filter(|c| !c.is_empty())
+                .map(|c| c.len())
+                .next();
+
+            if let Some(frames) = frames {
+                self[channel].resize(frames, T::ZERO);
+            }
+        }
+    }
 }
 
 impl<T> Buf<T> for [Vec<T>] {
@@ -604,12 +636,14 @@ impl<T> Buf<T> for [Vec<T>] {
         self.as_ref().len()
     }
 
-    fn is_masked(&self, channel: usize) -> bool {
-        self.as_ref()[channel].is_empty()
-    }
-
     fn channel(&self, channel: usize) -> BufChannel<'_, T> {
         BufChannel::linear(&self.as_ref()[channel])
+    }
+}
+
+impl<T> MaskedBuf<T> for [Vec<T>] {
+    fn is_masked(&self, channel: usize) -> bool {
+        self.as_ref()[channel].is_empty()
     }
 }
 

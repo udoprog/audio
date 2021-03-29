@@ -2,7 +2,7 @@
 //!
 //! See [MaskedDynamic] for more information.
 
-use crate::buf::{Buf, BufChannel, BufChannelMut, BufMut};
+use crate::buf::{Buf, BufChannel, BufChannelMut, BufMut, MaskedBuf, MaskedBufMut};
 use crate::dynamic;
 use crate::mask::Mask;
 use crate::sample::Sample;
@@ -745,12 +745,18 @@ where
         self.buffer.channels()
     }
 
-    fn is_masked(&self, channel: usize) -> bool {
-        !self.mask.test(channel)
-    }
-
     fn channel(&self, channel: usize) -> BufChannel<'_, T> {
         BufChannel::linear(&self.buffer[channel])
+    }
+}
+
+impl<T, M> MaskedBuf<T> for MaskedDynamic<T, M>
+where
+    T: Sample,
+    M: Mask,
+{
+    fn is_masked(&self, channel: usize) -> bool {
+        !self.mask.test(channel)
     }
 }
 
@@ -771,7 +777,13 @@ where
         self.resize(frames);
         self.resize_channels(channels);
     }
+}
 
+impl<T, M> MaskedBufMut<T> for MaskedDynamic<T, M>
+where
+    T: Sample,
+    M: Mask,
+{
     fn set_masked(&mut self, channel: usize, masked: bool) {
         if masked {
             self.mask(channel);

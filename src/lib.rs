@@ -88,7 +88,7 @@ pub mod sequential;
 mod tests;
 
 pub use self::bit_set::BitSet;
-pub use self::buf::{Buf, BufChannel, BufChannelMut, BufMut};
+pub use self::buf::{Buf, BufChannel, BufChannelMut, BufMut, MaskedBuf, MaskedBufMut};
 pub use self::dynamic::Dynamic;
 pub use self::interleaved::Interleaved;
 pub use self::mask::Mask;

@@ -582,10 +582,6 @@ where
         self.channels
     }
 
-    fn is_masked(&self, _: usize) -> bool {
-        false
-    }
-
     fn channel(&self, channel: usize) -> BufChannel<'_, T> {
         let data = &self.data[self.frames * channel..];
         BufChannel::linear(&data[..self.frames])
@@ -609,8 +605,6 @@ where
         Self::resize(self, frames);
         self.resize_channels(channels);
     }
-
-    fn set_masked(&mut self, _: usize, _: bool) {}
 }
 
 /// A mutable iterator over the channels in the buffer.

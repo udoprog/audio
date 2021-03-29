@@ -501,10 +501,6 @@ where
         self.channels
     }
 
-    fn is_masked(&self, _: usize) -> bool {
-        false
-    }
-
     fn channel(&self, channel: usize) -> BufChannel<'_, T> {
         BufChannel::interleaved(&self.data, self.channels, channel)
     }
@@ -526,8 +522,6 @@ where
         Self::resize(self, frames);
         Self::resize_channels(self, channels);
     }
-
-    fn set_masked(&mut self, _: usize, _: bool) {}
 }
 
 impl<'a, T> IntoIterator for &'a Interleaved<T>
