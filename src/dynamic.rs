@@ -779,9 +779,10 @@ impl<T> RawSlice<T> {
     where
         T: Sample,
     {
-        let mut channel = Vec::from_raw_parts(self.data.as_ptr(), 0, len);
+        // Note: we need to provide `len` for the `reserve_exact` calculation to
+        // below to be correct.
+        let mut channel = Vec::from_raw_parts(self.data.as_ptr(), len, len);
         channel.reserve_exact(additional);
-
         // Safety: the type constrain of `T` guarantees that an all-zeros bit pattern is legal.
         ptr::write_bytes(channel.as_mut_ptr().add(len), 0, additional);
         self.data = ptr::NonNull::new_unchecked(mem::ManuallyDrop::new(channel).as_mut_ptr());
@@ -796,7 +797,9 @@ impl<T> RawSlice<T> {
     /// This will change the underlying allocation, so subsequent calls must
     /// provide the new length of `len + additional`.
     unsafe fn reserve_uninit(&mut self, len: usize, additional: usize) {
-        let mut channel = Vec::from_raw_parts(self.data.as_ptr(), 0, len);
+        // Note: we need to provide `len` for the `reserve_exact` calculation to
+        // below to be correct.
+        let mut channel = Vec::from_raw_parts(self.data.as_ptr(), len, len);
         channel.reserve_exact(additional);
         self.data = ptr::NonNull::new_unchecked(mem::ManuallyDrop::new(channel).as_mut_ptr());
     }

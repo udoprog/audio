@@ -193,3 +193,11 @@ fn test_get_or_default() {
 
     assert_eq!(buffer.channels(), 2);
 }
+
+#[test]
+fn test_resize_topology() {
+    let mut buffer = crate::Dynamic::<f64>::with_topology(1, 1024);
+
+    buffer.resize(20480);
+    buffer.resize_channels(1);
+}
