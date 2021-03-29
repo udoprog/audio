@@ -1,7 +1,7 @@
 //! A dynamically sized, multi-channel interleaved audio buffer.
 
 use crate::buf::{Buf, BufChannel, BufChannelMut, BufMut};
-use crate::channel::{Channel, ChannelMut};
+use crate::channel::{Channel, ChannelMut, RawChannelMut, RawChannelRef};
 use crate::sample::Sample;
 use std::cmp;
 use std::fmt;
@@ -242,11 +242,25 @@ where
     /// assert_eq!(buffer.channels(), 4);
     /// assert_eq!(buffer.frames(), 256);
     ///
-    /// let mut chan = buffer.get_mut(1).unwrap();
+    /// {
+    ///     let mut chan = buffer.get_mut(1).unwrap();
     ///
-    /// assert_eq!(chan.get(127), Some(&0.0));
-    /// *chan.get_mut(127).unwrap() = 42.0;
-    /// assert_eq!(chan.get(127), Some(&42.0));
+    ///     assert_eq!(chan.get(127), Some(0.0));
+    ///     *chan.get_mut(127).unwrap() = 42.0;
+    ///     assert_eq!(chan.get(127), Some(42.0));
+    /// }
+    ///
+    /// buffer.resize(128);
+    /// assert_eq!(buffer.frame(1, 127), Some(42.0));
+    ///
+    /// buffer.resize(256);
+    /// assert_eq!(buffer.frame(1, 127), Some(42.0));
+    ///
+    /// buffer.resize_channels(2);
+    /// assert_eq!(buffer.frame(1, 127), Some(42.0));
+    ///
+    /// buffer.resize(64);
+    /// assert_eq!(buffer.frame(1, 127), None);
     /// ```
     pub fn resize(&mut self, frames: usize) {
         self.inner_resize(self.channels, frames);
@@ -273,15 +287,32 @@ where
     pub fn get(&self, channel: usize) -> Option<Channel<'_, T>> {
         if channel < self.channels {
             Some(Channel {
-                buffer: self.data.as_ptr(),
-                channel,
-                channels: self.channels,
-                frames: self.frames,
+                inner: RawChannelRef {
+                    buffer: self.data.as_ptr(),
+                    channel,
+                    channels: self.channels,
+                    frames: self.frames,
+                },
                 _marker: marker::PhantomData,
             })
         } else {
             None
         }
+    }
+
+    /// Helper to access a single frame in a single channel.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let mut buffer = rotary::Interleaved::<f32>::with_topology(2, 256);
+    ///
+    /// assert_eq!(buffer.frame(1, 128), Some(0.0));
+    /// *buffer.frame_mut(1, 128).unwrap() = 1.0;
+    /// assert_eq!(buffer.frame(1, 128), Some(1.0));
+    /// ```
+    pub fn frame(&self, channel: usize, frame: usize) -> Option<T> {
+        self.get(channel)?.get(frame)
     }
 
     /// Get a mutable reference to a channel.
@@ -304,15 +335,32 @@ where
     pub fn get_mut(&mut self, channel: usize) -> Option<ChannelMut<'_, T>> {
         if channel < self.channels {
             Some(ChannelMut {
-                buffer: self.data.as_mut_ptr(),
-                channel,
-                channels: self.channels,
-                frames: self.frames,
+                inner: RawChannelMut {
+                    buffer: self.data.as_mut_ptr(),
+                    channel,
+                    channels: self.channels,
+                    frames: self.frames,
+                },
                 _marker: marker::PhantomData,
             })
         } else {
             None
         }
+    }
+
+    /// Helper to access a single frame in a single channel mutably.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let mut buffer = rotary::Interleaved::<f32>::with_topology(2, 256);
+    ///
+    /// assert_eq!(buffer.frame(1, 128), Some(0.0));
+    /// *buffer.frame_mut(1, 128).unwrap() = 1.0;
+    /// assert_eq!(buffer.frame(1, 128), Some(1.0));
+    /// ```
+    pub fn frame_mut(&mut self, channel: usize, frame: usize) -> Option<&mut T> {
+        self.get_mut(channel)?.into_mut(frame)
     }
 
     /// Construct an iterator over all available channels.
@@ -391,6 +439,8 @@ where
             self.data.reserve(new_cap - old_cap);
             let new_cap = self.data.capacity();
 
+            dbg!(old_cap, new_cap);
+
             // Safety: capacity is governed by the underlying vector.
             unsafe {
                 ptr::write_bytes(self.data.as_mut_ptr().add(old_cap), 0, new_cap - old_cap);
@@ -402,7 +452,11 @@ where
 
             // Safety: We trust the known lengths lengths.
             unsafe {
-                self.inner_shuffle_channels(1..frames, len, channels);
+                if channels < self.channels {
+                    self.inner_shuffle_channels(1..frames, len, channels);
+                } else {
+                    self.inner_shuffle_channels((1..frames).rev(), len, channels);
+                }
             }
         }
 
@@ -432,6 +486,7 @@ where
         for f in frames {
             let from = f * self.channels;
             let to = f * channels;
+            dbg!(from, to);
             ptr::copy(base.add(from), base.add(to), len)
         }
     }
@@ -572,10 +627,12 @@ where
             self.channel += 1;
 
             Some(Channel {
-                buffer: self.buffer,
-                channel,
-                frames: self.frames,
-                channels: self.channels,
+                inner: RawChannelRef {
+                    buffer: self.buffer,
+                    channel,
+                    frames: self.frames,
+                    channels: self.channels,
+                },
                 _marker: marker::PhantomData,
             })
         } else {
@@ -615,10 +672,12 @@ where
             self.channel += 1;
 
             Some(ChannelMut {
-                buffer: self.buffer,
-                channel,
-                frames: self.frames,
-                channels: self.channels,
+                inner: RawChannelMut {
+                    buffer: self.buffer,
+                    channel,
+                    frames: self.frames,
+                    channels: self.channels,
+                },
                 _marker: marker::PhantomData,
             })
         } else {

@@ -101,3 +101,37 @@ fn test_iter_mut() {
     assert_eq!(left, &[&mut 1.0, &mut 2.0, &mut 3.0, &mut 4.0]);
     assert_eq!(right, &[&mut 5.0, &mut 6.0, &mut 7.0, &mut 8.0]);
 }
+
+#[test]
+fn test_resize() {
+    let mut buffer = crate::Interleaved::<f32>::new();
+
+    assert_eq!(buffer.channels(), 0);
+    assert_eq!(buffer.frames(), 0);
+
+    buffer.resize_channels(4);
+    buffer.resize(256);
+
+    assert_eq!(buffer.channels(), 4);
+    assert_eq!(buffer.frames(), 256);
+
+    {
+        let mut chan = buffer.get_mut(1).unwrap();
+
+        assert_eq!(chan.get(127), Some(0.0));
+        *chan.get_mut(127).unwrap() = 42.0;
+        assert_eq!(chan.get(127), Some(42.0));
+    }
+
+    buffer.resize(128);
+    assert_eq!(buffer.frame(1, 127), Some(42.0));
+
+    buffer.resize(256);
+    assert_eq!(buffer.frame(1, 127), Some(42.0));
+
+    buffer.resize_channels(2);
+    assert_eq!(buffer.frame(1, 127), Some(42.0));
+
+    buffer.resize(64);
+    assert_eq!(buffer.frame(1, 127), None);
+}
