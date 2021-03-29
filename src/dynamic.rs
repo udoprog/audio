@@ -542,6 +542,11 @@ where
     }
 }
 
+// Safety: dynamic is simply a container of T's, any Send/Sync properties are
+// inherited.
+unsafe impl<T> Send for Dynamic<T> where T: Sample + Send {}
+unsafe impl<T> Sync for Dynamic<T> where T: Sample + Sync {}
+
 /// Allocate an audio buffer from a fixed-size array.
 ///
 /// See [dynamic!].

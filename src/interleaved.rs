@@ -562,6 +562,8 @@ where
     _marker: marker::PhantomData<&'a T>,
 }
 
+// Safety: the iterator is simply a container of T's, any Send/Sync properties
+// are inherited.
 unsafe impl<T> Send for Iter<'_, T> where T: Sample + Send {}
 unsafe impl<T> Sync for Iter<'_, T> where T: Sample + Sync {}
 
@@ -603,6 +605,8 @@ where
     _marker: marker::PhantomData<&'a mut T>,
 }
 
+// Safety: the iterator is simply a container of T's, any Send/Sync properties
+// are inherited.
 unsafe impl<T> Send for IterMut<'_, T> where T: Sample + Send {}
 unsafe impl<T> Sync for IterMut<'_, T> where T: Sample + Sync {}
 
