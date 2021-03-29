@@ -3,6 +3,7 @@
 use crate::buf::{Buf, BufChannel, BufChannelMut, BufMut};
 use crate::channel::{Channel, ChannelMut, RawChannelMut, RawChannelRef};
 use crate::sample::Sample;
+use crate::wrap;
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -195,6 +196,66 @@ where
     /// ```
     pub fn channels(&self) -> usize {
         self.channels
+    }
+
+    /// Offset the interleaved buffer and return a wrapped buffer.
+    ///
+    /// This is provided as a special operation for this buffer kind, because it
+    /// can be done more efficiently than what is available through
+    /// [Buf::offset].
+    pub fn offset(&self, offset: usize) -> wrap::Interleaved<&[T]> {
+        wrap::interleaved(&self.data[offset..], self.channels)
+    }
+
+    /// Offset the interleaved buffer and return a mutable wrapped buffer.
+    ///
+    /// This is provided as a special operation for this buffer kind, because it
+    /// can be done more efficiently than what is available through
+    /// [Buf::offset].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let mut buffer = rotary::Interleaved::with_topology(2, 4);
+    ///
+    /// buffer.offset_mut(2).channel_mut(0).copy_from_slice(&[1.0, 1.0]);
+    ///
+    /// assert_eq!(buffer.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
+    /// ```
+    pub fn offset_mut(&mut self, offset: usize) -> wrap::Interleaved<&mut [T]> {
+        wrap::interleaved(&mut self.data[offset * self.channels..], self.channels)
+    }
+
+    /// Limit the interleaved buffer and return a wrapped buffer.
+    ///
+    /// This is provided as a special operation for this buffer kind, because it
+    /// can be done more efficiently than what is available through
+    /// [Buf::limit].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
+    /// let mut to = rotary::Interleaved::<f32>::with_topology(2, 4);
+    ///
+    /// to.channel_mut(0).copy_from(from.limit(2).channel(0));
+    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    /// ```
+    pub fn limit(&self, limit: usize) -> wrap::Interleaved<&[T]> {
+        wrap::interleaved(&self.data[..limit], self.channels)
+    }
+
+    /// Limit the interleaved buffer and return a mutable wrapped buffer.
+    ///
+    /// This is provided as a special operation for this buffer kind, because it
+    /// can be done more efficiently than what is available through
+    /// [Buf::limit].
+    pub fn limit_mut(&mut self, limit: usize) -> wrap::Interleaved<&mut [T]> {
+        wrap::interleaved(&mut self.data[limit * self.channels..], self.channels)
     }
 
     /// Resize to the given number of channels in use.
@@ -428,7 +489,7 @@ where
 
     /// The internal resize function for interleaved channel buffers.
     fn inner_resize(&mut self, channels: usize, frames: usize) {
-        if channels == self.channels && frames == self.frames {
+        if self.channels == channels && self.frames == frames {
             return;
         }
 
@@ -438,8 +499,6 @@ where
         if new_cap > old_cap {
             self.data.reserve(new_cap - old_cap);
             let new_cap = self.data.capacity();
-
-            dbg!(old_cap, new_cap);
 
             // Safety: capacity is governed by the underlying vector.
             unsafe {
@@ -486,7 +545,6 @@ where
         for f in frames {
             let from = f * self.channels;
             let to = f * channels;
-            dbg!(from, to);
             ptr::copy(base.add(from), base.add(to), len)
         }
     }
@@ -545,6 +603,10 @@ impl<T> Buf<T> for Interleaved<T>
 where
     T: Sample,
 {
+    fn frames(&self) -> usize {
+        self.frames
+    }
+
     fn channels(&self) -> usize {
         self.channels
     }

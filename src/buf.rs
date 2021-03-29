@@ -1,8 +1,17 @@
 use crate::range::Range;
-use crate::sample::Sample;
+use crate::sample::{Sample, Translate};
+
+mod offset;
+pub use self::offset::Offset;
+
+mod limit;
+pub use self::limit::Limit;
 
 /// A trait describing an immutable audio buffer.
 pub trait Buf<T> {
+    /// The number of frames in a buffer.
+    fn frames(&self) -> usize;
+
     /// The number of channels in the buffer.
     fn channels(&self) -> usize;
 
@@ -20,6 +29,63 @@ pub trait Buf<T> {
     /// Panics if the specified channel is out of bound as reported by
     /// [Buf::channels].
     fn channel(&self, channel: usize) -> BufChannel<'_, T>;
+
+    /// Offset the buffer to process by `offset` number of frames.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let mut buffer = rotary::Interleaved::with_topology(2, 4);
+    ///
+    /// (&mut buffer).offset(2).channel_mut(0).copy_from_slice(&[1.0, 1.0]);
+    ///
+    /// assert_eq!(buffer.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
+    /// ```
+    fn offset(self, offset: usize) -> Offset<Self>
+    where
+        Self: Sized,
+    {
+        Offset::new(self, offset)
+    }
+
+    /// Limit the buffer to process by `limit` number of frames.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
+    /// let mut to = rotary::Interleaved::<f32>::with_topology(2, 4);
+    ///
+    /// to.channel_mut(0).copy_from(from.limit(2).channel(0));
+    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    /// ```
+    fn limit(self, limit: usize) -> Limit<Self>
+    where
+        Self: Sized,
+    {
+        Limit::new(self, limit)
+    }
+}
+
+impl<B, T> Buf<T> for &B
+where
+    B: Buf<T>,
+{
+    fn frames(&self) -> usize {
+        (**self).frames()
+    }
+
+    fn channels(&self) -> usize {
+        (**self).channels()
+    }
+
+    fn channel(&self, channel: usize) -> BufChannel<'_, T> {
+        (**self).channel(channel)
+    }
 }
 
 /// A trait describing a mutable audio buffer.
@@ -32,11 +98,45 @@ pub trait BufMut<T>: Buf<T> {
     /// [Buf::channels].
     fn channel_mut(&mut self, channel: usize) -> BufChannelMut<'_, T>;
 
-    /// Resize the number of frames.
+    /// Resize the number of frames in the buffer.
     fn resize(&mut self, frames: usize);
 
     /// Resize the buffer to match the given topology.
     fn resize_topology(&mut self, channels: usize, frames: usize);
+}
+
+impl<B, T> Buf<T> for &mut B
+where
+    B: Buf<T>,
+{
+    fn frames(&self) -> usize {
+        (**self).frames()
+    }
+
+    fn channels(&self) -> usize {
+        (**self).channels()
+    }
+
+    fn channel(&self, channel: usize) -> BufChannel<'_, T> {
+        (**self).channel(channel)
+    }
+}
+
+impl<B, T> BufMut<T> for &mut B
+where
+    B: BufMut<T>,
+{
+    fn channel_mut(&mut self, channel: usize) -> BufChannelMut<'_, T> {
+        (**self).channel_mut(channel)
+    }
+
+    fn resize(&mut self, frames: usize) {
+        (**self).resize(frames);
+    }
+
+    fn resize_topology(&mut self, channels: usize, frames: usize) {
+        (**self).resize_topology(channels, frames);
+    }
 }
 
 /// The buffer of a single channel.
@@ -45,7 +145,7 @@ pub trait BufMut<T>: Buf<T> {
 /// allows us to copy data usinga  number of utility functions.
 #[derive(Debug, Clone, Copy)]
 pub struct BufChannel<'a, T> {
-    buf: &'a [T],
+    pub(crate) buf: &'a [T],
     kind: BufChannelKind,
 }
 
@@ -550,9 +650,97 @@ impl<'a, T> BufChannelMut<'a, T> {
             }
         }
     }
+
+    /// Copy from another channel.
+    pub fn copy_from(&mut self, from: BufChannel<T>)
+    where
+        T: Copy,
+    {
+        match (self.kind, from.kind) {
+            (BufChannelKind::Linear, BufChannelKind::Linear) => {
+                self.buf.copy_from_slice(&from.buf[..]);
+            }
+            (BufChannelKind::Linear, BufChannelKind::Interleaved { channels, channel }) => {
+                let from = from.buf[channel..].iter().step_by(channels);
+
+                for (o, f) in self.buf.iter_mut().zip(from) {
+                    *o = *f;
+                }
+            }
+            (BufChannelKind::Interleaved { channels, channel }, BufChannelKind::Linear) => {
+                let to = self.buf[channel..].iter_mut().step_by(channels);
+
+                for (o, f) in to.zip(from.buf) {
+                    *o = *f;
+                }
+            }
+            (
+                BufChannelKind::Interleaved { channels, channel },
+                BufChannelKind::Interleaved {
+                    channels: from_channels,
+                    channel: from_channel,
+                },
+            ) => {
+                let to = self.buf[channel..].iter_mut().step_by(channels);
+                let from = from.buf[from_channel..].iter().step_by(from_channels);
+
+                for (o, f) in to.zip(from) {
+                    *o = *f;
+                }
+            }
+        }
+    }
+
+    /// Translate from another channel.
+    pub fn translate_from<U>(&mut self, from: BufChannel<U>)
+    where
+        T: Copy,
+        U: Copy,
+        T: Translate<U>,
+    {
+        match (self.kind, from.kind) {
+            (BufChannelKind::Linear, BufChannelKind::Linear) => {
+                for (o, f) in self.buf.iter_mut().zip(from.buf) {
+                    *o = T::translate(*f);
+                }
+            }
+            (BufChannelKind::Linear, BufChannelKind::Interleaved { channels, channel }) => {
+                let from = from.buf[channel..].iter().step_by(channels);
+
+                for (o, f) in self.buf.iter_mut().zip(from) {
+                    *o = T::translate(*f);
+                }
+            }
+            (BufChannelKind::Interleaved { channels, channel }, BufChannelKind::Linear) => {
+                let to = self.buf[channel..].iter_mut().step_by(channels);
+
+                for (o, f) in to.zip(from.buf) {
+                    *o = T::translate(*f);
+                }
+            }
+            (
+                BufChannelKind::Interleaved { channels, channel },
+                BufChannelKind::Interleaved {
+                    channels: from_channels,
+                    channel: from_channel,
+                },
+            ) => {
+                let to = self.buf[channel..].iter_mut().step_by(channels);
+                let from = from.buf[from_channel..].iter().step_by(from_channels);
+
+                for (o, f) in to.zip(from) {
+                    *o = T::translate(*f);
+                }
+            }
+        }
+    }
 }
 
 impl<T> Buf<T> for Vec<Vec<T>> {
+    fn frames(&self) -> usize {
+        self.iter().map(|vec| vec.len()).next().unwrap_or_default()
+    }
+
     fn channels(&self) -> usize {
         self.len()
     }
@@ -593,6 +781,14 @@ where
 }
 
 impl<T> Buf<T> for [Vec<T>] {
+    fn frames(&self) -> usize {
+        self.as_ref()
+            .iter()
+            .map(|c| c.len())
+            .next()
+            .unwrap_or_default()
+    }
+
     fn channels(&self) -> usize {
         self.as_ref().len()
     }
@@ -604,7 +800,7 @@ impl<T> Buf<T> for [Vec<T>] {
 
 /// Used to determine how a buffer is indexed.
 #[derive(Debug, Clone, Copy)]
-enum BufChannelKind {
+pub(crate) enum BufChannelKind {
     /// Returned channel buffer is indexed in a linear manner.
     Linear,
     /// Returned channel buffer is indexed in an interleaved manner.

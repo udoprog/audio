@@ -685,6 +685,10 @@ impl<T> Buf<T> for Dynamic<T>
 where
     T: Sample,
 {
+    fn frames(&self) -> usize {
+        self.frames
+    }
+
     fn channels(&self) -> usize {
         self.channels
     }

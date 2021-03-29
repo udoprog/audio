@@ -84,6 +84,8 @@ mod sample;
 pub mod sequential;
 #[cfg(test)]
 mod tests;
+pub mod utils;
+pub mod wrap;
 
 pub use self::bit_set::BitSet;
 pub use self::buf::{Buf, BufChannel, BufChannelMut, BufMut};
@@ -91,5 +93,5 @@ pub use self::dynamic::Dynamic;
 pub use self::interleaved::Interleaved;
 pub use self::mask::Mask;
 pub use self::range::Range;
-pub use self::sample::Sample;
+pub use self::sample::{Sample, Translate};
 pub use self::sequential::Sequential;
