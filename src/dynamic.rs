@@ -1,8 +1,6 @@
 //! A dynamically sized, multi-channel audio buffer.
 
 use crate::buf::{Buf, BufChannel, BufChannelMut, BufMut};
-use crate::mask::Mask;
-use crate::masked_dynamic::MaskedDynamic;
 use crate::sample::Sample;
 use std::cmp;
 use std::fmt;
@@ -145,33 +143,6 @@ where
                 data: ptr::NonNull::new_unchecked(mem::ManuallyDrop::new(data).as_mut_ptr()),
             }
         }
-    }
-
-    /// Convert into a masked audio buffer. The kind of mask needs to be
-    /// specified through `M`.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// let buffer = rotary::dynamic![[2.0; 128]; 4];
-    /// let mut buffer = buffer.into_masked::<rotary::BitSet<u128>>();
-    ///
-    /// buffer.mask(1);
-    ///
-    /// let mut channels = Vec::new();
-    ///
-    /// for (n, chan) in buffer.iter_with_channels() {
-    ///     channels.push(n);
-    ///     assert_eq!(chan, vec![2.0; 128]);
-    /// }
-    ///
-    /// assert_eq!(channels, vec![0, 2, 3]);
-    /// ```
-    pub fn into_masked<M>(self) -> MaskedDynamic<T, M>
-    where
-        M: Mask,
-    {
-        MaskedDynamic::with_buffer(self)
     }
 
     /// Get the number of frames in the channels of an audio buffer.
@@ -480,6 +451,10 @@ where
 
     /// Convert into a vector of vectors.
     ///
+    /// This is provided for the [Dynamic] type because it's a very cheap
+    /// oepration due to its memory topology. No copying of the underlying
+    /// buffers is necessary.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -489,18 +464,43 @@ where
     ///
     /// let expected = vec![0.0; 512];
     ///
-    /// let buffers = buffer.into_vecs();
+    /// let buffers = buffer.into_vectors();
     /// assert_eq!(buffers.len(), 4);
     /// assert_eq!(buffers[0], &expected[..]);
     /// assert_eq!(buffers[1], &expected[..]);
     /// assert_eq!(buffers[2], &expected[..]);
     /// assert_eq!(buffers[3], &expected[..]);
     /// ```
-    pub fn into_vecs(self) -> Vec<Vec<T>> {
-        self.into_vecs_if(|_| true)
+    pub fn into_vectors(self) -> Vec<Vec<T>> {
+        self.into_vectors_if(|_| true)
     }
 
-    pub(crate) fn into_vecs_if(self, mut m: impl FnMut(usize) -> bool) -> Vec<Vec<T>> {
+    /// Convert into a vector of vectors using a condition.
+    ///
+    /// This is provided for the [Dynamic] type because it's a very cheap
+    /// oepration due to its memory topology. No copying of the underlying
+    /// buffers is necessary.
+    ///
+    /// Channels which does not match the condition will be filled with an empty
+    /// vector.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let mut buffer = rotary::Dynamic::<f32>::new();
+    /// buffer.resize_channels(4);
+    /// buffer.resize(512);
+    ///
+    /// let expected = vec![0.0; 512];
+    ///
+    /// let buffers = buffer.into_vectors_if(|n| n != 1);
+    /// assert_eq!(buffers.len(), 4);
+    /// assert_eq!(buffers[0], &expected[..]);
+    /// assert_eq!(buffers[1], &[][..]);
+    /// assert_eq!(buffers[2], &expected[..]);
+    /// assert_eq!(buffers[3], &expected[..]);
+    /// ```
+    pub fn into_vectors_if(self, mut condition: impl FnMut(usize) -> bool) -> Vec<Vec<T>> {
         let mut this = mem::ManuallyDrop::new(self);
         let mut vecs = Vec::with_capacity(this.channels);
 
@@ -512,7 +512,7 @@ where
             unsafe {
                 let mut slice = this.data.read(n);
 
-                if m(n) {
+                if condition(n) {
                     vecs.push(slice.into_vec(this.frames, frames_cap));
                 } else {
                     slice.drop_in_place(frames_cap);

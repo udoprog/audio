@@ -22,28 +22,28 @@
 //! rng.fill(&mut buffer[1]);
 //! ```
 //!
-//! You can use masked audio buffers if you need the ability to temporarily
-//! enable or disable channels. This requires that you specify the type of the
-//! mask. A good option for this is a [BitSet<u128>], which supports up to 128
-//! channels.
+//! You can use the included [Mask] trait to separately keep track of active and
+//! inactive channels in an audio buffer. This requires that you specify the
+//! type of the mask. A good option for this is a [BitSet<u128>], which supports
+//! up to 128 channels.
 //!
 //! ```rust
-//! use rotary::BitSet;
+//! use rotary::{BitSet, Mask as _};
 //!
-//! let mut buffer = rotary::MaskedDynamic::<f32, BitSet<u128>>::with_topology(4, 128);
+//! let mut buffer = rotary::Dynamic::<f32>::with_topology(4, 1024);
+//! let mask: rotary::BitSet<u128> = rotary::bit_set![0, 2, 3];
 //!
-//! buffer.mask(1);
-//!
-//! for  channel in buffer.iter_mut() {
-//!     for b in channel {
+//! for chan in mask.join(buffer.iter_mut()) {
+//!     for b in chan {
 //!         *b = 1.0;
 //!     }
 //! }
 //!
-//! let expected = vec![1.0f32; 128];
+//! let zeroed = vec![0.0f32; 1024];
+//! let expected = vec![1.0f32; 1024];
 //!
 //! assert_eq!(&buffer[0], &expected[..]);
-//! assert_eq!(&buffer[1], &[][..]);
+//! assert_eq!(&buffer[1], &zeroed[..]);
 //! assert_eq!(&buffer[2], &expected[..]);
 //! assert_eq!(&buffer[3], &expected[..]);
 //! ```
@@ -78,8 +78,7 @@ mod buf;
 pub mod channel;
 pub mod dynamic;
 pub mod interleaved;
-mod mask;
-pub mod masked_dynamic;
+pub mod mask;
 pub mod range;
 mod sample;
 pub mod sequential;
@@ -87,11 +86,10 @@ pub mod sequential;
 mod tests;
 
 pub use self::bit_set::BitSet;
-pub use self::buf::{Buf, BufChannel, BufChannelMut, BufMut, MaskedBuf, MaskedBufMut};
+pub use self::buf::{Buf, BufChannel, BufChannelMut, BufMut};
 pub use self::dynamic::Dynamic;
 pub use self::interleaved::Interleaved;
 pub use self::mask::Mask;
-pub use self::masked_dynamic::MaskedDynamic;
 pub use self::range::Range;
 pub use self::sample::Sample;
 pub use self::sequential::Sequential;

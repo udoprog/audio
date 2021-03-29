@@ -1,24 +1,34 @@
+//! Utilities used for masking indexes.
+//!
+//! Masks keep track of usize indexes which are set through
+//! [testing][Mask::test]. This allows for masking indexes in certain
+//! operations. Like if you want to mask which channels in an audio buffer is in
+//! use or not.
+
+mod all;
+mod none;
+
+pub use self::all::All;
+pub use self::none::None;
 use crate::bit_set::{BitSet, Bits};
 
-/// The trait for a mask that can be used with [crate::MaskedDynamic].
+/// Construct the special mask where every index is set.
+pub fn all() -> All {
+    self::all::All::default()
+}
+
+/// Construct the special mask where no index is set.
+pub fn none() -> None {
+    self::none::None::default()
+}
+
+/// A trait used to check if an index is masked.
 pub trait Mask: Sized {
     /// The iterator over a mask, indicating all items in the mask.
     type Iter: Iterator<Item = usize>;
 
-    /// Construct a bit set where no elements are set.
-    fn empty() -> Self;
-
-    /// Construct a bit set where all elements are set.
-    fn full() -> Self;
-
     /// Test if the given bit is set.
     fn test(&self, index: usize) -> bool;
-
-    /// Set the given bit.
-    fn set(&mut self, index: usize);
-
-    /// Clear the given bit.
-    fn clear(&mut self, index: usize);
 
     /// Construct an iterator over a bit set.
     fn iter(&self) -> Self::Iter;
@@ -60,28 +70,8 @@ where
     type Iter = T::Iter;
 
     #[inline]
-    fn empty() -> Self {
-        <BitSet<T>>::empty()
-    }
-
-    #[inline]
-    fn full() -> Self {
-        <BitSet<T>>::full()
-    }
-
-    #[inline]
     fn test(&self, index: usize) -> bool {
         <BitSet<T>>::test(self, index)
-    }
-
-    #[inline]
-    fn set(&mut self, index: usize) {
-        <BitSet<T>>::set(self, index);
-    }
-
-    #[inline]
-    fn clear(&mut self, index: usize) {
-        <BitSet<T>>::clear(self, index);
     }
 
     #[inline]

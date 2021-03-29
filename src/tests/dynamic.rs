@@ -112,7 +112,7 @@ fn test_into_vecs() {
 
     let expected = vec![0.0; 512];
 
-    let buffers = buffer.into_vecs();
+    let buffers = buffer.into_vectors();
     assert_eq!(buffers.len(), 4);
     assert_eq!(buffers[0], &expected[..]);
     assert_eq!(buffers[1], &expected[..]);
@@ -122,22 +122,22 @@ fn test_into_vecs() {
 
 #[test]
 fn test_enabled_mut() {
-    use crate::BitSet;
+    use crate::Mask as _;
 
-    let mut buffer = crate::MaskedDynamic::<f32, BitSet<u128>>::with_topology(4, 1024);
+    let mut buffer = crate::Dynamic::<f32>::with_topology(4, 1024);
+    let mask: crate::BitSet<u128> = crate::bit_set![0, 2, 3];
 
-    buffer.mask(1);
-
-    for chan in buffer.iter_mut() {
+    for chan in mask.join(buffer.iter_mut()) {
         for b in chan {
             *b = 1.0;
         }
     }
 
+    let zeroed = vec![0.0f32; 1024];
     let expected = vec![1.0f32; 1024];
 
     assert_eq!(&buffer[0], &expected[..]);
-    assert_eq!(&buffer[1], &[][..]);
+    assert_eq!(&buffer[1], &zeroed[..]);
     assert_eq!(&buffer[2], &expected[..]);
     assert_eq!(&buffer[3], &expected[..]);
 }

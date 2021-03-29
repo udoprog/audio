@@ -22,12 +22,6 @@ pub trait Buf<T> {
     fn channel(&self, channel: usize) -> BufChannel<'_, T>;
 }
 
-/// A [Buf] that can have its channels masked.
-pub trait MaskedBuf<T>: Buf<T> {
-    /// Test if the given channel is masked.
-    fn is_masked(&self, channel: usize) -> bool;
-}
-
 /// A trait describing a mutable audio buffer.
 pub trait BufMut<T>: Buf<T> {
     /// Return a mutable handler to the buffer associated with the channel.
@@ -43,12 +37,6 @@ pub trait BufMut<T>: Buf<T> {
 
     /// Resize the buffer to match the given topology.
     fn resize_topology(&mut self, channels: usize, frames: usize);
-}
-
-/// A [BufMut] that can have its channels masked.
-pub trait MaskedBufMut<T>: BufMut<T> {
-    /// Set if the given channel is masked or not.
-    fn set_masked(&mut self, channel: usize, masked: bool);
 }
 
 /// The buffer of a single channel.
@@ -574,12 +562,6 @@ impl<T> Buf<T> for Vec<Vec<T>> {
     }
 }
 
-impl<T> MaskedBuf<T> for Vec<Vec<T>> {
-    fn is_masked(&self, channel: usize) -> bool {
-        self[channel].is_empty()
-    }
-}
-
 impl<T> BufMut<T> for Vec<Vec<T>>
 where
     T: Sample,
@@ -610,27 +592,6 @@ where
     }
 }
 
-impl<T> MaskedBufMut<T> for Vec<Vec<T>>
-where
-    T: Sample,
-{
-    fn set_masked(&mut self, channel: usize, masked: bool) {
-        if masked {
-            self[channel].clear()
-        } else {
-            let frames = self
-                .iter()
-                .filter(|c| !c.is_empty())
-                .map(|c| c.len())
-                .next();
-
-            if let Some(frames) = frames {
-                self[channel].resize(frames, T::ZERO);
-            }
-        }
-    }
-}
-
 impl<T> Buf<T> for [Vec<T>] {
     fn channels(&self) -> usize {
         self.as_ref().len()
@@ -638,12 +599,6 @@ impl<T> Buf<T> for [Vec<T>] {
 
     fn channel(&self, channel: usize) -> BufChannel<'_, T> {
         BufChannel::linear(&self.as_ref()[channel])
-    }
-}
-
-impl<T> MaskedBuf<T> for [Vec<T>] {
-    fn is_masked(&self, channel: usize) -> bool {
-        self.as_ref()[channel].is_empty()
     }
 }
 
