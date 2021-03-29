@@ -93,3 +93,22 @@ macro_rules! interleaved {
         $crate::Interleaved::from_vec(vec![$sample; $channels * $frames], $channels, $frames)
     };
 }
+
+/// Construct a bit set with specific values set.
+///
+/// # Examples
+///
+/// ```rust
+/// let mask: rotary::BitSet<u128> = rotary::bit_set![0, 1, 3];
+///
+/// assert!(mask.test(0));
+/// assert!(mask.test(1));
+/// assert!(!mask.test(2));
+/// assert!(mask.test(3));
+/// ```
+#[macro_export]
+macro_rules! bit_set {
+    ($($set:expr),* $(,)?) => {
+        $crate::bit_set::BitSet::from_array([$($set,)*])
+    };
+}

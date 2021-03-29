@@ -57,6 +57,17 @@ impl<T> BitSet<T>
 where
     T: Bits,
 {
+    /// Construct a bit set from an array.
+    pub fn from_array<const N: usize>(items: [usize; N]) -> Self {
+        let mut set = Self::empty();
+
+        for n in std::array::IntoIter::new(items) {
+            set.set(n);
+        }
+
+        set
+    }
+
     /// Construct a new bit set that is empty, where no element is set.
     ///
     /// # Examples
