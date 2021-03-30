@@ -40,11 +40,12 @@ where
     T: Sample,
 {
     fn resize(&mut self, frames: usize) {
-        self.buf.resize(frames + self.limit);
+        self.buf.resize(frames.saturating_add(self.limit));
     }
 
     fn resize_topology(&mut self, channels: usize, frames: usize) {
-        self.buf.resize_topology(channels, frames + self.limit);
+        self.buf
+            .resize_topology(channels, frames.saturating_add(self.limit));
     }
 
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {

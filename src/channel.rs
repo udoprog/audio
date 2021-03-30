@@ -138,6 +138,42 @@ where
         }
     }
 
+    /// Construct a channel buffer where the last `n` frames are included.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
+    /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
+    ///
+    /// to.channel_mut(0).as_mut().tail(2).copy_from(from.channel(0));
+    /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0]);
+    /// ```
+    pub fn tail(self, n: usize) -> Self {
+        let Self { buf, kind } = self;
+
+        match kind {
+            ChannelKind::Linear => {
+                let start = buf.len().saturating_sub(n);
+
+                Self {
+                    buf: buf.get(start..).unwrap_or_default(),
+                    kind,
+                }
+            }
+            ChannelKind::Interleaved { channels, .. } => {
+                let start = buf.len().saturating_sub(n * channels);
+
+                Self {
+                    buf: buf.get(start..).unwrap_or_default(),
+                    kind,
+                }
+            }
+        }
+    }
+
     /// Limit the channel bufferto `limit` number of frames.
     ///
     /// # Examples
@@ -523,6 +559,42 @@ where
                 buf: buf.get_mut(n * channels..).unwrap_or_default(),
                 kind,
             },
+        }
+    }
+
+    /// Construct a channel buffer where the last `n` frames are included.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
+    /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
+    ///
+    /// to.channel_mut(0).as_mut().tail(2).copy_from(from.channel(0));
+    /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0]);
+    /// ```
+    pub fn tail(self, n: usize) -> Self {
+        let Self { buf, kind } = self;
+
+        match kind {
+            ChannelKind::Linear => {
+                let start = buf.len().saturating_sub(n);
+
+                Self {
+                    buf: buf.get_mut(start..).unwrap_or_default(),
+                    kind,
+                }
+            }
+            ChannelKind::Interleaved { channels, .. } => {
+                let start = buf.len().saturating_sub(n * channels);
+
+                Self {
+                    buf: buf.get_mut(start..).unwrap_or_default(),
+                    kind,
+                }
+            }
         }
     }
 

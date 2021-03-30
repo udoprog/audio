@@ -12,6 +12,9 @@ pub use self::limit::Limit;
 mod chunk;
 pub use self::chunk::Chunk;
 
+mod tail;
+pub use self::tail::Tail;
+
 /// A trait describing an immutable audio buffer.
 pub trait Buf<T>
 where
@@ -71,6 +74,27 @@ where
         Self: Sized,
     {
         Skip::new(self, n)
+    }
+
+    /// Construct a new buffer where `n` frames are skipped.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
+    /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
+    ///
+    /// rotary::utils::copy(from, (&mut to).tail(2));
+    ///
+    /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0]);
+    /// ```
+    fn tail(self, n: usize) -> Tail<Self>
+    where
+        Self: Sized,
+    {
+        Tail::new(self, n)
     }
 
     /// Limit the channel buffer to `limit` number of frames.
