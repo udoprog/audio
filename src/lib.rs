@@ -8,6 +8,16 @@
 //! vector has a fixed size. And the buffer makes no attempt to clear data which
 //! is freed when using functions such as [Dynamic::resize].
 //!
+//! # Example: Playing mp3 files
+//!
+//! Play an mp3 file with [minimp3-rs], [cpal], and [rubato] for resampling.
+//!
+//! ```bash
+//! cargo --manifest-path=examples/Cargo.toml --release --bin play-mp3 -- path/to/file.mp3
+//! ```
+//!
+//! # Examples
+//!
 //! ```rust
 //! use rand::Rng as _;
 //!
@@ -65,6 +75,10 @@
 //! assert_eq!(buf, rotary::dynamic![[2.0; 128]; 4])
 //! ```
 //!
+//! [play-mp3]: https://github.com/udoprog/rotary/tree/main/examples/src/bin/play-mp3.rs
+//! [minimp3-rs]: https://github.com/germangb/minimp3-rs
+//! [cpal]: https://github.com/RustAudio/cpal
+//! [rubato]: https://github.com/HEnquist/rubato
 //! [Dynamic::resize]: https://docs.rs/rotary/0/rotary/dynamic/struct.Dynamic.html#method.resize
 //! [BitSet<u128>]: https://docs.rs/rotary/0/rotary/bit_set/struct.BitSet.html
 //! [dynamic!]: https://docs.rs/rotary/0/rotary/macros/macro.dynamic.html
