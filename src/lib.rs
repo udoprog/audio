@@ -79,7 +79,6 @@ pub mod channel;
 pub mod dynamic;
 pub mod interleaved;
 pub mod mask;
-pub mod range;
 mod sample;
 pub mod sequential;
 #[cfg(test)]
@@ -94,7 +93,6 @@ pub use self::channel::{Channel, ChannelMut};
 pub use self::dynamic::Dynamic;
 pub use self::interleaved::Interleaved;
 pub use self::mask::Mask;
-pub use self::range::Range;
 pub use self::sample::Sample;
 pub use self::sequential::Sequential;
 pub use self::translate::Translate;

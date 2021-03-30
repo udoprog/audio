@@ -3,12 +3,6 @@
 use crate::channel::{Channel, ChannelMut};
 use crate::sample::Sample;
 
-mod offset;
-pub use self::offset::Offset;
-
-mod limit;
-pub use self::limit::Limit;
-
 /// A trait describing an immutable audio buffer.
 pub trait Buf<T>
 where
@@ -34,61 +28,6 @@ where
     /// Panics if the specified channel is out of bound as reported by
     /// [Buf::channels].
     fn channel(&self, channel: usize) -> Channel<'_, T>;
-
-    /// Offset the buffer to process by `offset` number of frames.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
-    ///
-    /// let mut from = rotary::interleaved![[0.0f32; 4]; 2];
-    /// *from.frame_mut(0, 2).unwrap() = 1.0;
-    /// *from.frame_mut(0, 3).unwrap() = 1.0;
-    ///
-    /// let mut to = rotary::Interleaved::<f32>::with_topology(2, 4);
-    ///
-    /// to.channel_mut(0).copy_from((&from).offset(2).channel(0));
-    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
-    /// ```
-    ///
-    /// Test with a mutable buffer.
-    ///
-    /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
-    ///
-    /// let mut buffer = rotary::Interleaved::with_topology(2, 4);
-    ///
-    /// (&mut buffer).offset(2).channel_mut(0).copy_from_slice(&[1.0, 1.0]);
-    ///
-    /// assert_eq!(buffer.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
-    /// ```
-    fn offset(self, offset: usize) -> Offset<Self>
-    where
-        Self: Sized,
-    {
-        Offset::new(self, offset)
-    }
-
-    /// Limit the buffer to process by `limit` number of frames.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
-    ///
-    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
-    /// let mut to = rotary::Interleaved::<f32>::with_topology(2, 4);
-    ///
-    /// to.channel_mut(0).copy_from(from.limit(2).channel(0));
-    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
-    /// ```
-    fn limit(self, limit: usize) -> Limit<Self>
-    where
-        Self: Sized,
-    {
-        Limit::new(self, limit)
-    }
 }
 
 impl<B, T> Buf<T> for &B

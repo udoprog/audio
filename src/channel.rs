@@ -2,7 +2,6 @@
 //! [BufMut::channel_mut][crate::BufMut::channel_mut].
 
 use crate::buf::ChannelKind;
-use crate::range::Range;
 use crate::translate::Translate;
 
 mod iter;
@@ -95,6 +94,89 @@ where
             ChannelKind::Interleaved { channels, channel } => {
                 let start = usize::min(channel, self.buf.len());
                 Iter::new(&self.buf[start..], channels)
+            }
+        }
+    }
+
+    /// Offset the buffer to process by `offset` number of frames.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let mut from = rotary::interleaved![[0.0f32; 4]; 2];
+    /// *from.frame_mut(0, 2).unwrap() = 1.0;
+    /// *from.frame_mut(0, 3).unwrap() = 1.0;
+    ///
+    /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
+    ///
+    /// to.channel_mut(0).copy_from(from.channel(0).offset(2));
+    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    /// ```
+    pub fn offset(&self, offset: usize) -> Self {
+        let Self { buf, kind } = self;
+
+        match *kind {
+            ChannelKind::Linear => Self {
+                buf: buf.get(offset..).unwrap_or_default(),
+                kind: *kind,
+            },
+            ChannelKind::Interleaved { channels, .. } => Self {
+                buf: buf.get(offset * channels..).unwrap_or_default(),
+                kind: *kind,
+            },
+        }
+    }
+
+    /// Limit the buffer to process by `limit` number of frames.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
+    /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
+    ///
+    /// to.channel_mut(0).copy_from(from.channel(0).limit(2));
+    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    /// ```
+    pub fn limit(&self, limit: usize) -> Channel<'_, T> {
+        let Self { buf, kind } = self;
+
+        match *kind {
+            ChannelKind::Linear => Channel {
+                buf: buf.get(..limit).unwrap_or_default(),
+                kind: *kind,
+            },
+            ChannelKind::Interleaved { channels, .. } => Channel {
+                buf: buf.get(..limit * channels).unwrap_or_default(),
+                kind: *kind,
+            },
+        }
+    }
+
+    /// Construct a range of frames corresponds to the chunk with `len` and
+    /// position `n`.
+    ///
+    /// Which is the range `n * len .. n * len + len`.
+    pub fn chunk(&self, n: usize, len: usize) -> Channel<'_, T> {
+        let Self { buf, kind } = self;
+
+        match kind {
+            ChannelKind::Linear => Channel {
+                buf: buf.get(n..n + len).unwrap_or_default(),
+                kind: *kind,
+            },
+            ChannelKind::Interleaved { channels, .. } => {
+                let len = len * channels;
+                let n = n * len;
+
+                Channel {
+                    buf: buf.get(n..n + len).unwrap_or_default(),
+                    kind: *kind,
+                }
             }
         }
     }
@@ -470,6 +552,98 @@ where
         }
     }
 
+    /// Offset the buffer to process by `offset` number of frames.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let mut buffer = rotary::Interleaved::with_topology(2, 4);
+    ///
+    /// buffer.channel_mut(0).offset(2).copy_from_slice(&[1.0, 1.0]);
+    ///
+    /// assert_eq!(buffer.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
+    /// ```
+    pub fn offset(&mut self, offset: usize) -> ChannelMut<'_, T> {
+        let Self { buf, kind } = self;
+
+        match *kind {
+            ChannelKind::Linear => ChannelMut {
+                buf: buf.get_mut(offset..).unwrap_or_default(),
+                kind: *kind,
+            },
+            ChannelKind::Interleaved { channels, .. } => ChannelMut {
+                buf: buf.get_mut(offset * channels..).unwrap_or_default(),
+                kind: *kind,
+            },
+        }
+    }
+
+    /// Limit the buffer to process by `limit` number of frames.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
+    /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
+    ///
+    /// to.channel_mut(0).limit(2).copy_from(from.channel(0));
+    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    /// ```
+    pub fn limit(&mut self, limit: usize) -> ChannelMut<'_, T> {
+        let Self { buf, kind } = self;
+
+        match *kind {
+            ChannelKind::Linear => ChannelMut {
+                buf: buf.get_mut(..limit).unwrap_or_default(),
+                kind: *kind,
+            },
+            ChannelKind::Interleaved { channels, .. } => ChannelMut {
+                buf: buf.get_mut(..limit * channels).unwrap_or_default(),
+                kind: *kind,
+            },
+        }
+    }
+
+    /// Construct a range of frames corresponds to the chunk with `len` and
+    /// position `n`.
+    ///
+    /// Which is the range `n * len .. n * len + len`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
+    /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
+    ///
+    /// to.channel_mut(0).chunk(1, 2).copy_from(from.channel(0));
+    /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0]);
+    /// ```
+    pub fn chunk(&mut self, n: usize, len: usize) -> ChannelMut<'_, T> {
+        let Self { buf, kind } = self;
+
+        match *kind {
+            ChannelKind::Linear => ChannelMut {
+                buf: buf.get_mut(n..n + len).unwrap_or_default(),
+                kind: *kind,
+            },
+            ChannelKind::Interleaved { channels, .. } => {
+                let len = len * channels;
+                let n = n * len;
+
+                ChannelMut {
+                    buf: buf.get_mut(n..n + len).unwrap_or_default(),
+                    kind: *kind,
+                }
+            }
+        }
+    }
+
     /// The number of frames in the buffer.
     ///
     /// # Examples
@@ -534,7 +708,6 @@ where
     ///
     /// ```rust
     /// use rotary::BufMut;
-    /// use rotary::Range as _;
     ///
     /// fn test(buf: &mut dyn BufMut<f32>) {
     ///     buf.channel_mut(0).set(1, 1.0);
@@ -567,7 +740,6 @@ where
     ///
     /// ```rust
     /// use rotary::BufMut;
-    /// use rotary::Range as _;
     ///
     /// fn test(buf: &mut dyn BufMut<f32>) {
     ///     buf.channel_mut(0).copy_from_slice(&[1.0; 4][..]);
@@ -605,10 +777,9 @@ where
     ///
     /// ```rust
     /// use rotary::BufMut;
-    /// use rotary::Range as _;
     ///
     /// fn test(buf: &mut dyn BufMut<f32>) {
-    ///     buf.channel_mut(0).copy_from_iter(rotary::range::full().offset(2), vec![1.0; 4]);
+    ///     buf.channel_mut(0).offset(2).copy_from_iter(vec![1.0; 4]);
     ///
     ///     let mut out = vec![0.0; 8];
     ///     buf.channel(0).copy_into_slice(&mut out);
@@ -623,10 +794,9 @@ where
     ///
     /// ```rust
     /// use rotary::BufMut;
-    /// use rotary::Range as _;
     ///
     /// fn test(buf: &mut dyn BufMut<f32>) {
-    ///     buf.channel_mut(0).copy_from_iter(rotary::range::full().offset(2).chunk(0, 2), vec![1.0; 4]);
+    ///     buf.channel_mut(0).offset(2).chunk(0, 2).copy_from_iter(vec![1.0; 4]);
     ///
     ///     let mut out = vec![0.0; 8];
     ///     buf.channel(0).copy_into_slice(&mut out);
@@ -638,101 +808,83 @@ where
     /// test(&mut rotary::sequential![[0.0; 8]; 2]);
     /// test(&mut rotary::interleaved![[0.0; 8]; 2]);
     /// ```
-    pub fn copy_from_iter<R, I>(&mut self, range: R, iter: I)
+    pub fn copy_from_iter<I>(&mut self, iter: I)
     where
-        R: Range,
         I: IntoIterator<Item = T>,
     {
         match self.kind {
             ChannelKind::Linear => {
-                for (o, f) in range.map_mut_linear(self.buf).iter_mut().zip(iter) {
+                for (o, f) in self.buf.iter_mut().zip(iter) {
                     *o = f;
                 }
             }
             ChannelKind::Interleaved { channels, channel } => {
                 let buf = self.buf[channel..].iter_mut().step_by(channels);
-                range.map_iter_interleaved(buf, iter, |(o, f)| *o = f);
+
+                for (o, f) in buf.zip(iter) {
+                    *o = f;
+                }
             }
         }
     }
 
-    /// Copy from another channel.
-    pub fn copy_from(&mut self, from: Channel<T>) {
+    /// Copy one channel from another.
+    ///
+    /// See [utils::copy][crate::utils::copy] if you want to copy an entire
+    /// buffer into another.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let from = rotary::dynamic![[1.0f32; 4]; 2];
+    /// let mut to = rotary::interleaved![[0.0f32; 4]; 3];
+    ///
+    /// to.channel_mut(0).copy_from(from.channel(1));
+    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]);
+    /// ```
+    pub fn copy_from(&mut self, from: Channel<'_, T>) {
         match (self.kind, from.kind) {
             (ChannelKind::Linear, ChannelKind::Linear) => {
                 self.buf.copy_from_slice(&from.buf[..]);
             }
-            (ChannelKind::Linear, ChannelKind::Interleaved { channels, channel }) => {
-                let from = from.buf[channel..].iter().step_by(channels);
-
-                for (o, f) in self.buf.iter_mut().zip(from) {
-                    *o = *f;
-                }
-            }
-            (ChannelKind::Interleaved { channels, channel }, ChannelKind::Linear) => {
-                let to = self.buf[channel..].iter_mut().step_by(channels);
-
-                for (o, f) in to.zip(from.buf) {
-                    *o = *f;
-                }
-            }
-            (
-                ChannelKind::Interleaved { channels, channel },
-                ChannelKind::Interleaved {
-                    channels: from_channels,
-                    channel: from_channel,
-                },
-            ) => {
-                let to = self.buf[channel..].iter_mut().step_by(channels);
-                let from = from.buf[from_channel..].iter().step_by(from_channels);
-
-                for (o, f) in to.zip(from) {
-                    *o = *f;
+            _ => {
+                for (o, f) in self.iter_mut().zip(from) {
+                    *o = f;
                 }
             }
         }
     }
 
-    /// Translate from another channel.
-    pub fn translate_from<U>(&mut self, from: Channel<U>)
+    /// Translate one channel from another.
+    ///
+    /// This will copy the channel while translating each sample according to
+    /// its [Translate] implementation.
+    ///
+    /// This is used for converting one type of sample to another.
+    ///
+    /// See [utils::translate][crate::utils::translate] if you want to translate
+    /// an entire buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let from = rotary::dynamic![[u16::MAX; 4]; 2];
+    /// let mut to = rotary::interleaved![[0.0f32; 4]; 3];
+    ///
+    /// to.channel_mut(0).translate_from(from.channel(1));
+    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]);
+    /// ```
+    pub fn translate_from<U>(&mut self, from: Channel<'_, U>)
     where
         U: Sample,
         T: Translate<U>,
     {
-        match (self.kind, from.kind) {
-            (ChannelKind::Linear, ChannelKind::Linear) => {
-                for (o, f) in self.buf.iter_mut().zip(from.buf) {
-                    *o = T::translate(*f);
-                }
-            }
-            (ChannelKind::Linear, ChannelKind::Interleaved { channels, channel }) => {
-                let from = from.buf[channel..].iter().step_by(channels);
-
-                for (o, f) in self.buf.iter_mut().zip(from) {
-                    *o = T::translate(*f);
-                }
-            }
-            (ChannelKind::Interleaved { channels, channel }, ChannelKind::Linear) => {
-                let to = self.buf[channel..].iter_mut().step_by(channels);
-
-                for (o, f) in to.zip(from.buf) {
-                    *o = T::translate(*f);
-                }
-            }
-            (
-                ChannelKind::Interleaved { channels, channel },
-                ChannelKind::Interleaved {
-                    channels: from_channels,
-                    channel: from_channel,
-                },
-            ) => {
-                let to = self.buf[channel..].iter_mut().step_by(channels);
-                let from = from.buf[from_channel..].iter().step_by(from_channels);
-
-                for (o, f) in to.zip(from) {
-                    *o = T::translate(*f);
-                }
-            }
+        for (o, f) in self.iter_mut().zip(from) {
+            *o = T::translate(f);
         }
     }
 }
