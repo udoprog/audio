@@ -251,62 +251,14 @@ where
     {
         match self.kind {
             ChannelKind::Linear => {
-                out.copy_from_slice(self.buf);
+                let end = usize::min(out.len(), self.buf.len());
+                out[..end].copy_from_slice(&self.buf[..end]);
             }
             ChannelKind::Interleaved { channels, channel } => {
                 for (o, f) in out
                     .iter_mut()
                     .zip(self.buf[channel..].iter().step_by(channels))
                 {
-                    *o = *f;
-                }
-            }
-        }
-    }
-
-    /// Copy the given chunk of a channel into a buffer.
-    ///
-    /// The length of the chunk to copy is determined by `len`. The offset of
-    /// the chunk to copy is determined by `n`, where `n` is the number of `len`
-    /// sized chunks.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rotary::Buf;
-    ///
-    /// fn test(buf: &dyn Buf<f32>) {
-    ///     let channel = buf.channel(0);
-    ///
-    ///     let mut buf = vec![0.0; 4];
-    ///     channel.copy_chunk(&mut buf[..], 3, 4);
-    ///
-    ///     assert!(buf.iter().all(|f| *f == 1.0));
-    /// }
-    ///
-    /// test(&rotary::dynamic![[1.0; 16]; 2]);
-    /// test(&rotary::sequential![[1.0; 16]; 2]);
-    /// test(&rotary::interleaved![[1.0; 16]; 2]);
-    /// ```
-    pub fn copy_chunk(&self, out: &mut [T], n: usize, len: usize)
-    where
-        T: Copy,
-    {
-        match self.kind {
-            ChannelKind::Linear => {
-                let buf = &self.buf[len * n..];
-                let end = usize::min(buf.len(), len);
-                let end = usize::min(end, out.len());
-                out[..end].copy_from_slice(&buf[..end]);
-            }
-            ChannelKind::Interleaved { channels, channel } => {
-                let start = len * n;
-                let it = self.buf[channel + start..]
-                    .iter()
-                    .step_by(channels)
-                    .take(len);
-
-                for (o, f) in out.iter_mut().zip(it) {
                     *o = *f;
                 }
             }
@@ -406,30 +358,6 @@ where
             ChannelKind::Interleaved { channels, channel } => {
                 for (f, s) in self.buf[channel..].iter().step_by(channels).enumerate() {
                     out[m(f)] = *s;
-                }
-            }
-        }
-    }
-
-    /// Copy the given range into a slice.
-    ///
-    /// The range to be copied is designated with a starting position `start`
-    /// and a length `len`.
-    pub fn range_into_slice(&self, out: &mut [T], start: usize, len: usize)
-    where
-        T: Copy,
-    {
-        match self.kind {
-            ChannelKind::Linear => {
-                let buf = &self.buf[start..];
-                out.copy_from_slice(&buf[..len]);
-            }
-            ChannelKind::Interleaved { channels, channel } => {
-                for (o, f) in out
-                    .iter_mut()
-                    .zip(self.buf[start * channels + channel..].iter().take(len))
-                {
-                    *o = *f;
                 }
             }
         }
@@ -641,6 +569,25 @@ where
     ///
     /// to.channel_mut(0).chunk(1, 2).copy_from(from.channel(0));
     /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0]);
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::Buf;
+    ///
+    /// fn test(buf: &dyn Buf<f32>) {
+    ///     let channel = buf.channel(0);
+    ///
+    ///     let mut buf = vec![0.0; 4];
+    ///     channel.chunk(3, 4).copy_into_slice(&mut buf[..]);
+    ///
+    ///     assert!(buf.iter().all(|f| *f == 1.0));
+    /// }
+    ///
+    /// test(&rotary::dynamic![[1.0; 16]; 2]);
+    /// test(&rotary::sequential![[1.0; 16]; 2]);
+    /// test(&rotary::interleaved![[1.0; 16]; 2]);
     /// ```
     pub fn chunk(self, n: usize, len: usize) -> Self {
         let Self { buf, kind } = self;
