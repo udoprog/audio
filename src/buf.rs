@@ -3,6 +3,15 @@
 use crate::channel::{Channel, ChannelMut};
 use crate::sample::Sample;
 
+mod skip;
+pub use self::skip::Skip;
+
+mod limit;
+pub use self::limit::Limit;
+
+mod chunk;
+pub use self::chunk::Chunk;
+
 /// A trait describing an immutable audio buffer.
 pub trait Buf<T>
 where
@@ -28,6 +37,84 @@ where
     /// Panics if the specified channel is out of bound as reported by
     /// [Buf::channels].
     fn channel(&self, channel: usize) -> Channel<'_, T>;
+
+    /// Construct a new buffer where `n` frames are skipped.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let mut from = rotary::interleaved![[0.0f32; 4]; 2];
+    /// *from.frame_mut(0, 2).unwrap() = 1.0;
+    /// *from.frame_mut(0, 3).unwrap() = 1.0;
+    ///
+    /// let mut to = rotary::Interleaved::<f32>::with_topology(2, 4);
+    ///
+    /// to.channel_mut(0).copy_from((&from).skip(2).channel(0));
+    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    /// ```
+    ///
+    /// Test with a mutable buffer.
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let mut buffer = rotary::Interleaved::with_topology(2, 4);
+    ///
+    /// (&mut buffer).skip(2).channel_mut(0).copy_from_slice(&[1.0, 1.0]);
+    ///
+    /// assert_eq!(buffer.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
+    /// ```
+    fn skip(self, n: usize) -> Skip<Self>
+    where
+        Self: Sized,
+    {
+        Skip::new(self, n)
+    }
+
+    /// Limit the channel buffer to `limit` number of frames.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
+    /// let mut to = rotary::Interleaved::<f32>::with_topology(2, 4);
+    ///
+    /// to.channel_mut(0).copy_from(from.limit(2).channel(0));
+    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    /// ```
+    fn limit(self, limit: usize) -> Limit<Self>
+    where
+        Self: Sized,
+    {
+        Limit::new(self, limit)
+    }
+
+    /// Construct a range of frames corresponds to the chunk with `len` and
+    /// position `n`.
+    ///
+    /// Which is the range `n * len .. n * len + len`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf as _, BufMut as _};
+    ///
+    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
+    /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
+    ///
+    /// (&mut to).chunk(1, 2).channel_mut(0).copy_from(from.channel(0));
+    /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0]);
+    /// ```
+    fn chunk(self, n: usize, len: usize) -> Chunk<Self>
+    where
+        Self: Sized,
+    {
+        Chunk::new(self, n, len)
+    }
 }
 
 impl<B, T> Buf<T> for &B

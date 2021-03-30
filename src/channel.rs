@@ -98,7 +98,16 @@ where
         }
     }
 
-    /// Offset the buffer to process by `offset` number of frames.
+    /// Construct a new mutable channel that has a lifetime of the current
+    /// instance.
+    pub fn as_ref(&self) -> Channel<'_, T> {
+        Channel {
+            buf: self.buf,
+            kind: self.kind,
+        }
+    }
+
+    /// Construct a channel buffer where the first `n` frames are skipped.
     ///
     /// # Examples
     ///
@@ -111,25 +120,25 @@ where
     ///
     /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
     ///
-    /// to.channel_mut(0).copy_from(from.channel(0).offset(2));
+    /// to.channel_mut(0).copy_from(from.channel(0).skip(2));
     /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
     /// ```
-    pub fn offset(&self, offset: usize) -> Self {
+    pub fn skip(self, n: usize) -> Self {
         let Self { buf, kind } = self;
 
-        match *kind {
+        match kind {
             ChannelKind::Linear => Self {
-                buf: buf.get(offset..).unwrap_or_default(),
-                kind: *kind,
+                buf: buf.get(n..).unwrap_or_default(),
+                kind,
             },
             ChannelKind::Interleaved { channels, .. } => Self {
-                buf: buf.get(offset * channels..).unwrap_or_default(),
-                kind: *kind,
+                buf: buf.get(n * channels..).unwrap_or_default(),
+                kind,
             },
         }
     }
 
-    /// Limit the buffer to process by `limit` number of frames.
+    /// Limit the channel bufferto `limit` number of frames.
     ///
     /// # Examples
     ///
@@ -142,17 +151,17 @@ where
     /// to.channel_mut(0).copy_from(from.channel(0).limit(2));
     /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
     /// ```
-    pub fn limit(&self, limit: usize) -> Channel<'_, T> {
+    pub fn limit(self, limit: usize) -> Self {
         let Self { buf, kind } = self;
 
-        match *kind {
+        match kind {
             ChannelKind::Linear => Channel {
                 buf: buf.get(..limit).unwrap_or_default(),
-                kind: *kind,
+                kind,
             },
             ChannelKind::Interleaved { channels, .. } => Channel {
                 buf: buf.get(..limit * channels).unwrap_or_default(),
-                kind: *kind,
+                kind,
             },
         }
     }
@@ -161,13 +170,13 @@ where
     /// position `n`.
     ///
     /// Which is the range `n * len .. n * len + len`.
-    pub fn chunk(&self, n: usize, len: usize) -> Channel<'_, T> {
+    pub fn chunk(self, n: usize, len: usize) -> Self {
         let Self { buf, kind } = self;
 
         match kind {
             ChannelKind::Linear => Channel {
                 buf: buf.get(n..n + len).unwrap_or_default(),
-                kind: *kind,
+                kind,
             },
             ChannelKind::Interleaved { channels, .. } => {
                 let len = len * channels;
@@ -175,7 +184,7 @@ where
 
                 Channel {
                     buf: buf.get(n..n + len).unwrap_or_default(),
-                    kind: *kind,
+                    kind,
                 }
             }
         }
@@ -490,6 +499,15 @@ where
         }
     }
 
+    /// Construct a new mutable channel that has a lifetime of the current
+    /// instance.
+    pub fn as_mut(&mut self) -> ChannelMut<'_, T> {
+        ChannelMut {
+            buf: self.buf,
+            kind: self.kind,
+        }
+    }
+
     /// Construct an iterator over the channel.
     ///
     /// # Examples
@@ -552,7 +570,7 @@ where
         }
     }
 
-    /// Offset the buffer to process by `offset` number of frames.
+    /// Construct a channel buffer where the first `n` frames are skipped.
     ///
     /// # Examples
     ///
@@ -561,26 +579,26 @@ where
     ///
     /// let mut buffer = rotary::Interleaved::with_topology(2, 4);
     ///
-    /// buffer.channel_mut(0).offset(2).copy_from_slice(&[1.0, 1.0]);
+    /// buffer.channel_mut(0).skip(2).copy_from_slice(&[1.0, 1.0]);
     ///
     /// assert_eq!(buffer.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
     /// ```
-    pub fn offset(&mut self, offset: usize) -> ChannelMut<'_, T> {
+    pub fn skip(self, n: usize) -> Self {
         let Self { buf, kind } = self;
 
-        match *kind {
-            ChannelKind::Linear => ChannelMut {
-                buf: buf.get_mut(offset..).unwrap_or_default(),
-                kind: *kind,
+        match kind {
+            ChannelKind::Linear => Self {
+                buf: buf.get_mut(n..).unwrap_or_default(),
+                kind,
             },
-            ChannelKind::Interleaved { channels, .. } => ChannelMut {
-                buf: buf.get_mut(offset * channels..).unwrap_or_default(),
-                kind: *kind,
+            ChannelKind::Interleaved { channels, .. } => Self {
+                buf: buf.get_mut(n * channels..).unwrap_or_default(),
+                kind,
             },
         }
     }
 
-    /// Limit the buffer to process by `limit` number of frames.
+    /// Limit the channel bufferto `limit` number of frames.
     ///
     /// # Examples
     ///
@@ -593,17 +611,17 @@ where
     /// to.channel_mut(0).limit(2).copy_from(from.channel(0));
     /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
     /// ```
-    pub fn limit(&mut self, limit: usize) -> ChannelMut<'_, T> {
+    pub fn limit(self, limit: usize) -> Self {
         let Self { buf, kind } = self;
 
-        match *kind {
-            ChannelKind::Linear => ChannelMut {
+        match kind {
+            ChannelKind::Linear => Self {
                 buf: buf.get_mut(..limit).unwrap_or_default(),
-                kind: *kind,
+                kind,
             },
-            ChannelKind::Interleaved { channels, .. } => ChannelMut {
+            ChannelKind::Interleaved { channels, .. } => Self {
                 buf: buf.get_mut(..limit * channels).unwrap_or_default(),
-                kind: *kind,
+                kind,
             },
         }
     }
@@ -624,21 +642,21 @@ where
     /// to.channel_mut(0).chunk(1, 2).copy_from(from.channel(0));
     /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0]);
     /// ```
-    pub fn chunk(&mut self, n: usize, len: usize) -> ChannelMut<'_, T> {
+    pub fn chunk(self, n: usize, len: usize) -> Self {
         let Self { buf, kind } = self;
 
-        match *kind {
-            ChannelKind::Linear => ChannelMut {
+        match kind {
+            ChannelKind::Linear => Self {
                 buf: buf.get_mut(n..n + len).unwrap_or_default(),
-                kind: *kind,
+                kind,
             },
             ChannelKind::Interleaved { channels, .. } => {
                 let len = len * channels;
                 let n = n * len;
 
-                ChannelMut {
+                Self {
                     buf: buf.get_mut(n..n + len).unwrap_or_default(),
-                    kind: *kind,
+                    kind,
                 }
             }
         }
@@ -779,7 +797,7 @@ where
     /// use rotary::BufMut;
     ///
     /// fn test(buf: &mut dyn BufMut<f32>) {
-    ///     buf.channel_mut(0).offset(2).copy_from_iter(vec![1.0; 4]);
+    ///     buf.channel_mut(0).skip(2).copy_from_iter(vec![1.0; 4]);
     ///
     ///     let mut out = vec![0.0; 8];
     ///     buf.channel(0).copy_into_slice(&mut out);
@@ -796,7 +814,7 @@ where
     /// use rotary::BufMut;
     ///
     /// fn test(buf: &mut dyn BufMut<f32>) {
-    ///     buf.channel_mut(0).offset(2).chunk(0, 2).copy_from_iter(vec![1.0; 4]);
+    ///     buf.channel_mut(0).skip(2).chunk(0, 2).copy_from_iter(vec![1.0; 4]);
     ///
     ///     let mut out = vec![0.0; 8];
     ///     buf.channel(0).copy_into_slice(&mut out);
