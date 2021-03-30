@@ -1,6 +1,6 @@
 //! A dynamically sized, multi-channel interleaved audio buffer.
 
-use crate::buf::{Buf, BufMut};
+use crate::buf::{Buf, BufInfo, BufMut, ResizableBuf};
 use crate::sample::Sample;
 use crate::wrap;
 use std::cmp;
@@ -605,20 +605,39 @@ where
     }
 }
 
+impl<T> BufInfo for Interleaved<T>
+where
+    T: Sample,
+{
+    fn buf_info_frames(&self) -> usize {
+        self.frames
+    }
+
+    fn buf_info_channels(&self) -> usize {
+        self.channels
+    }
+}
+
 impl<T> Buf<T> for Interleaved<T>
 where
     T: Sample,
 {
-    fn frames(&self) -> usize {
-        self.frames
-    }
-
-    fn channels(&self) -> usize {
-        self.channels
-    }
-
     fn channel(&self, channel: usize) -> crate::Channel<'_, T> {
         crate::Channel::interleaved(&self.data, self.channels, channel)
+    }
+}
+
+impl<T> ResizableBuf for Interleaved<T>
+where
+    T: Sample,
+{
+    fn resize(&mut self, frames: usize) {
+        Self::resize(self, frames);
+    }
+
+    fn resize_topology(&mut self, channels: usize, frames: usize) {
+        Self::resize(self, frames);
+        Self::resize_channels(self, channels);
     }
 }
 
@@ -628,15 +647,6 @@ where
 {
     fn channel_mut(&mut self, channel: usize) -> crate::ChannelMut<'_, T> {
         crate::ChannelMut::interleaved(&mut self.data, self.channels, channel)
-    }
-
-    fn resize(&mut self, frames: usize) {
-        Self::resize(self, frames);
-    }
-
-    fn resize_topology(&mut self, channels: usize, frames: usize) {
-        Self::resize(self, frames);
-        Self::resize_channels(self, channels);
     }
 }
 

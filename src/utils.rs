@@ -13,7 +13,7 @@ where
     O: BufMut<T>,
     T: Sample,
 {
-    let end = usize::min(from.channels(), to.channels());
+    let end = usize::min(from.buf_info_channels(), to.buf_info_channels());
 
     for chan in 0..end {
         to.channel_mut(chan).copy_from(from.channel(chan));
@@ -31,7 +31,7 @@ where
     U: Sample,
     T: Translate<U>,
 {
-    let end = usize::min(from.channels(), to.channels());
+    let end = usize::min(from.buf_info_channels(), to.buf_info_channels());
 
     for chan in 0..end {
         to.channel_mut(chan).translate_from(from.channel(chan));

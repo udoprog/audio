@@ -10,5 +10,6 @@ edition = "2018"
 rotary = "0.24.0"
 cpal = "0.13.3"
 minimp3 = {git = "https://github.com/udoprog/minimp3-rs", branch = "reuse-pcm"}
-rubato = {git = "https://github.com/udoprog/rubato", branch = "next"}
+# rubato = {git = "https://github.com/udoprog/rubato", branch = "next"}
+rubato = {path = "../../rubato"}
 anyhow = "1.0.40"

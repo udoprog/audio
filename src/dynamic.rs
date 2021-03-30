@@ -1,6 +1,6 @@
 //! A dynamically sized, multi-channel audio buffer.
 
-use crate::buf::{Buf, BufMut};
+use crate::buf::{Buf, BufInfo, BufMut, ResizableBuf};
 use crate::channel::{Channel, ChannelMut};
 use crate::sample::Sample;
 use std::cmp;
@@ -679,20 +679,39 @@ where
     }
 }
 
+impl<T> BufInfo for Dynamic<T>
+where
+    T: Sample,
+{
+    fn buf_info_frames(&self) -> usize {
+        self.frames
+    }
+
+    fn buf_info_channels(&self) -> usize {
+        self.channels
+    }
+}
+
 impl<T> Buf<T> for Dynamic<T>
 where
     T: Sample,
 {
-    fn frames(&self) -> usize {
-        self.frames
-    }
-
-    fn channels(&self) -> usize {
-        self.channels
-    }
-
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         Channel::linear(&self[channel])
+    }
+}
+
+impl<T> ResizableBuf for Dynamic<T>
+where
+    T: Sample,
+{
+    fn resize(&mut self, frames: usize) {
+        Self::resize(self, frames);
+    }
+
+    fn resize_topology(&mut self, channels: usize, frames: usize) {
+        Self::resize(self, frames);
+        self.resize_channels(channels);
     }
 }
 
@@ -702,15 +721,6 @@ where
 {
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         ChannelMut::linear(&mut self[channel])
-    }
-
-    fn resize(&mut self, frames: usize) {
-        Self::resize(self, frames);
-    }
-
-    fn resize_topology(&mut self, channels: usize, frames: usize) {
-        Self::resize(self, frames);
-        self.resize_channels(channels);
     }
 }
 

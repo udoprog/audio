@@ -1,4 +1,4 @@
-use crate::buf::{Buf, BufMut, Channel, ChannelMut};
+use crate::buf::{Buf, BufInfo, BufMut, Channel, ChannelMut, ResizableBuf};
 use crate::sample::Sample;
 
 /// A chunk of another buffer.
@@ -17,28 +17,32 @@ impl<B> Chunk<B> {
     }
 }
 
+impl<B> BufInfo for Chunk<B>
+where
+    B: BufInfo,
+{
+    fn buf_info_frames(&self) -> usize {
+        self.buf.buf_info_frames().saturating_sub(self.n * self.len)
+    }
+
+    fn buf_info_channels(&self) -> usize {
+        self.buf.buf_info_channels()
+    }
+}
+
 impl<B, T> Buf<T> for Chunk<B>
 where
     B: Buf<T>,
     T: Sample,
 {
-    fn frames(&self) -> usize {
-        self.buf.frames().saturating_sub(self.n * self.len)
-    }
-
-    fn channels(&self) -> usize {
-        self.buf.channels()
-    }
-
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         self.buf.channel(channel).chunk(self.n, self.len)
     }
 }
 
-impl<B, T> BufMut<T> for Chunk<B>
+impl<B> ResizableBuf for Chunk<B>
 where
-    B: BufMut<T>,
-    T: Sample,
+    B: ResizableBuf,
 {
     fn resize(&mut self, frames: usize) {
         let frames = frames.saturating_add(self.n).saturating_mul(self.len);
@@ -49,7 +53,13 @@ where
         let frames = frames.saturating_add(self.n).saturating_mul(self.len);
         self.buf.resize_topology(channels, frames);
     }
+}
 
+impl<B, T> BufMut<T> for Chunk<B>
+where
+    B: BufMut<T>,
+    T: Sample,
+{
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         self.buf.channel_mut(channel).chunk(self.n, self.len)
     }

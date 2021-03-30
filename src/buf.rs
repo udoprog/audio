@@ -15,16 +15,44 @@ pub use self::chunk::Chunk;
 mod tail;
 pub use self::tail::Tail;
 
+mod read_write;
+pub use self::read_write::ReadWrite;
+
+mod write;
+pub use self::write::Write;
+
+/// Information on the current buffer.
+pub trait BufInfo {
+    /// The number of frames in a buffer.
+    fn buf_info_frames(&self) -> usize;
+
+    /// The number of channels in the buffer.
+    fn buf_info_channels(&self) -> usize;
+}
+
+/// The trait for a buffer that is resizable.
+pub trait ResizableBuf {
+    /// Resize the number of frames in the buffer.
+    fn resize(&mut self, frames: usize);
+
+    /// Resize the buffer to match the given topology.
+    fn resize_topology(&mut self, channels: usize, frames: usize);
+}
+
 /// A trait describing an immutable audio buffer.
-pub trait Buf<T>
+pub trait Buf<T>: BufInfo
 where
     T: Sample,
 {
     /// The number of frames in a buffer.
-    fn frames(&self) -> usize;
+    fn frames(&self) -> usize {
+        BufInfo::buf_info_frames(self)
+    }
 
     /// The number of channels in the buffer.
-    fn channels(&self) -> usize;
+    fn channels(&self) -> usize {
+        BufInfo::buf_info_channels(self)
+    }
 
     /// Return a handler to the buffer associated with the channel.
     ///
@@ -141,26 +169,31 @@ where
     }
 }
 
+impl<B> BufInfo for &B
+where
+    B: ?Sized + BufInfo,
+{
+    fn buf_info_frames(&self) -> usize {
+        (**self).buf_info_frames()
+    }
+
+    fn buf_info_channels(&self) -> usize {
+        (**self).buf_info_channels()
+    }
+}
+
 impl<B, T> Buf<T> for &B
 where
     B: Buf<T>,
     T: Sample,
 {
-    fn frames(&self) -> usize {
-        (**self).frames()
-    }
-
-    fn channels(&self) -> usize {
-        (**self).channels()
-    }
-
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         (**self).channel(channel)
     }
 }
 
 /// A trait describing a mutable audio buffer.
-pub trait BufMut<T>: Buf<T>
+pub trait BufMut<T>: ResizableBuf + Buf<T>
 where
     T: Sample,
 {
@@ -172,11 +205,36 @@ where
     /// [Buf::channels].
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T>;
 
-    /// Resize the number of frames in the buffer.
-    fn resize(&mut self, frames: usize);
+    /// Set up a writer for the current buffer that allows for keeping track of
+    /// how many bytes have been written.
+    fn writer(self) -> Write<Self>
+    where
+        Self: Sized,
+    {
+        Write::new(self)
+    }
 
-    /// Resize the buffer to match the given topology.
-    fn resize_topology(&mut self, channels: usize, frames: usize);
+    /// Set up a writer for the current buffer that allows for keeping track of
+    /// how many bytes have been written.
+    fn read_write(self) -> ReadWrite<Self>
+    where
+        Self: Sized,
+    {
+        ReadWrite::new(self)
+    }
+}
+
+impl<B> BufInfo for &mut B
+where
+    B: ?Sized + BufInfo,
+{
+    fn buf_info_frames(&self) -> usize {
+        (**self).buf_info_frames()
+    }
+
+    fn buf_info_channels(&self) -> usize {
+        (**self).buf_info_channels()
+    }
 }
 
 impl<B, T> Buf<T> for &mut B
@@ -184,16 +242,21 @@ where
     B: ?Sized + Buf<T>,
     T: Sample,
 {
-    fn frames(&self) -> usize {
-        (**self).frames()
-    }
-
-    fn channels(&self) -> usize {
-        (**self).channels()
-    }
-
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         (**self).channel(channel)
+    }
+}
+
+impl<B> ResizableBuf for &mut B
+where
+    B: ?Sized + ResizableBuf,
+{
+    fn resize(&mut self, frames: usize) {
+        (**self).resize(frames);
+    }
+
+    fn resize_topology(&mut self, channels: usize, frames: usize) {
+        (**self).resize_topology(channels, frames);
     }
 }
 
@@ -205,13 +268,15 @@ where
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         (**self).channel_mut(channel)
     }
+}
 
-    fn resize(&mut self, frames: usize) {
-        (**self).resize(frames);
+impl<T> BufInfo for Vec<Vec<T>> {
+    fn buf_info_frames(&self) -> usize {
+        self.iter().map(|vec| vec.len()).next().unwrap_or_default()
     }
 
-    fn resize_topology(&mut self, channels: usize, frames: usize) {
-        (**self).resize_topology(channels, frames);
+    fn buf_info_channels(&self) -> usize {
+        self.len()
     }
 }
 
@@ -219,27 +284,15 @@ impl<T> Buf<T> for Vec<Vec<T>>
 where
     T: Sample,
 {
-    fn frames(&self) -> usize {
-        self.iter().map(|vec| vec.len()).next().unwrap_or_default()
-    }
-
-    fn channels(&self) -> usize {
-        self.len()
-    }
-
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         Channel::linear(&self[channel])
     }
 }
 
-impl<T> BufMut<T> for Vec<Vec<T>>
+impl<T> ResizableBuf for Vec<Vec<T>>
 where
     T: Sample,
 {
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
-        ChannelMut::linear(&mut self[channel])
-    }
-
     fn resize(&mut self, frames: usize) {
         for buf in self.iter_mut() {
             buf.resize(frames, T::ZERO);
@@ -262,11 +315,20 @@ where
     }
 }
 
-impl<T> Buf<T> for [Vec<T>]
+impl<T> BufMut<T> for Vec<Vec<T>>
 where
     T: Sample,
 {
-    fn frames(&self) -> usize {
+    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
+        ChannelMut::linear(&mut self[channel])
+    }
+}
+
+impl<T> BufInfo for [Vec<T>]
+where
+    T: Sample,
+{
+    fn buf_info_frames(&self) -> usize {
         self.as_ref()
             .iter()
             .map(|c| c.len())
@@ -274,10 +336,15 @@ where
             .unwrap_or_default()
     }
 
-    fn channels(&self) -> usize {
+    fn buf_info_channels(&self) -> usize {
         self.as_ref().len()
     }
+}
 
+impl<T> Buf<T> for [Vec<T>]
+where
+    T: Sample,
+{
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         Channel::linear(&self.as_ref()[channel])
     }
@@ -295,4 +362,13 @@ pub(crate) enum ChannelKind {
         /// The channel that is being accessed.
         channel: usize,
     },
+}
+
+/// A buffer that can keep track of how much has been read from it.
+pub trait ReadBuf {
+    /// The number of frames remaining in the readable buffer.
+    fn remaining(&self) -> usize;
+
+    /// Advance the read number of frames by `n`.
+    fn advance(&mut self, n: usize);
 }

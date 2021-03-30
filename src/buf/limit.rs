@@ -1,4 +1,5 @@
-use crate::buf::{Buf, BufMut, Channel, ChannelMut};
+use crate::buf::{Buf, BufInfo, BufMut, ResizableBuf};
+use crate::channel::{Channel, ChannelMut};
 use crate::sample::Sample;
 
 /// A buffer that has been limited.
@@ -16,28 +17,32 @@ impl<B> Limit<B> {
     }
 }
 
+impl<B> BufInfo for Limit<B>
+where
+    B: BufInfo,
+{
+    fn buf_info_frames(&self) -> usize {
+        self.buf.buf_info_frames().saturating_sub(self.limit)
+    }
+
+    fn buf_info_channels(&self) -> usize {
+        self.buf.buf_info_channels()
+    }
+}
+
 impl<B, T> Buf<T> for Limit<B>
 where
     B: Buf<T>,
     T: Sample,
 {
-    fn frames(&self) -> usize {
-        self.buf.frames() - self.limit
-    }
-
-    fn channels(&self) -> usize {
-        self.buf.channels()
-    }
-
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         self.buf.channel(channel).limit(self.limit)
     }
 }
 
-impl<B, T> BufMut<T> for Limit<B>
+impl<B> ResizableBuf for Limit<B>
 where
-    B: BufMut<T>,
-    T: Sample,
+    B: ResizableBuf,
 {
     fn resize(&mut self, frames: usize) {
         self.buf.resize(frames.saturating_add(self.limit));
@@ -47,7 +52,13 @@ where
         self.buf
             .resize_topology(channels, frames.saturating_add(self.limit));
     }
+}
 
+impl<B, T> BufMut<T> for Limit<B>
+where
+    B: BufMut<T>,
+    T: Sample,
+{
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         self.buf.channel_mut(channel).limit(self.limit)
     }

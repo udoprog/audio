@@ -13,7 +13,7 @@
 //! Play an mp3 file with [minimp3-rs], [cpal], and [rubato] for resampling.
 //!
 //! ```bash
-//! cargo --manifest-path=examples/Cargo.toml --release --bin play-mp3 -- path/to/file.mp3
+//! cargo run --release --package rotary-examples --bin play-mp3 -- path/to/file.mp3
 //! ```
 //!
 //! # Examples
@@ -102,7 +102,7 @@ pub mod utils;
 pub mod wrap;
 
 pub use self::bit_set::BitSet;
-pub use self::buf::{Buf, BufMut};
+pub use self::buf::{Buf, BufInfo, BufMut, ResizableBuf};
 pub use self::channel::{Channel, ChannelMut};
 pub use self::dynamic::Dynamic;
 pub use self::interleaved::Interleaved;

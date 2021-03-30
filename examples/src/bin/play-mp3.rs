@@ -33,6 +33,8 @@ where
     T: 'static + Send + cpal::Sample + rotary::Sample + rotary::Translate<f32>,
     f32: rotary::Translate<i16>,
 {
+    use rotary::BufMut as _;
+
     let source = io::BufReader::new(fs::File::open(path)?);
     let decoder = minimp3::Decoder::new(source);
 
@@ -49,9 +51,8 @@ where
         decoder,
         pcm: minimp3::Pcm::new(),
         resampler: None,
-        output,
+        output: output.read_write(),
         resample,
-        output_avail: 0,
         device_sample_rate: config.sample_rate.0,
         device_channels: config.channels as usize,
         resample_avail: 0,
@@ -93,9 +94,7 @@ where
     // be resampled.
     resampler: Option<rubato::SincFixedIn<f32>>,
     // Output buffer to flush to device buffer.
-    output: rotary::Interleaved<f32>,
-    // Number of bytes written to output buffer.
-    output_avail: usize,
+    output: rotary::buf::ReadWrite<rotary::Interleaved<f32>>,
     // Resample buffer.
     resample: rotary::Sequential<f32>,
     /// Frames available in the resample buffer.
@@ -111,36 +110,23 @@ where
     R: io::Read,
 {
     // The decoder loop.
-    fn write_to<T>(&mut self, mut data: &mut [T]) -> anyhow::Result<()>
+    fn write_to<T>(&mut self, data: &mut [T]) -> anyhow::Result<()>
     where
         T: 'static + Send + rotary::Sample + rotary::Translate<f32>,
     {
         use rotary::{Buf as _, BufMut as _};
         use rubato::Resampler;
 
+        let mut data = rotary::wrap::interleaved(data, self.device_channels).writer();
+
         // Run the loop while there is buffer to fill.
-        while data.len() > 0 {
+        while data.has_remaining_mut() {
             // If there is output available, translate it to the data buffer
             // used by cpal.
             //
             // cpal's data buffer expects the output to be interleaved.
-            if self.output_avail > 0 {
-                let end = {
-                    let output = (&mut self.output).tail(self.output_avail);
-                    let mut data = rotary::wrap::interleaved(&mut data[..], self.device_channels);
-
-                    let end = usize::min(output.frames(), data.frames());
-                    rotary::utils::translate(&output, &mut data);
-
-                    for chan in output.channels()..data.channels() {
-                        data.channel_mut(chan).translate_from(output.channel(0));
-                    }
-
-                    end
-                };
-
-                data = &mut data[end * self.device_channels..];
-                self.output_avail -= end;
+            if self.output.has_remaining() {
+                data.translate(self.output.read());
                 continue;
             }
 
@@ -167,12 +153,13 @@ where
 
                 resampler.process_with_buffer(
                     &mut self.resample,
-                    &mut self.output,
+                    &mut self.output.as_mut(),
                     &rotary::mask::all(),
                 )?;
 
                 self.resample_avail = 0;
-                self.output_avail = self.output.frames();
+                let frames = self.output.as_ref().frames();
+                self.output.set_written(frames);
                 continue;
             }
 
@@ -204,9 +191,7 @@ where
             // output exactly, copy it directly to the output frame without
             // resampling.
             if frame.sample_rate as u32 == self.device_sample_rate {
-                self.output.resize(pcm.frames());
-                rotary::utils::translate(&pcm, &mut self.output);
-                self.output_avail = pcm.frames();
+                self.output.translate(pcm);
                 continue;
             }
 
