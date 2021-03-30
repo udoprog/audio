@@ -1,4 +1,5 @@
 use crate::buf::{Buf, BufInfo, BufMut, ResizableBuf};
+use crate::buf_io::ReadBuf;
 use crate::channel::{Channel, ChannelMut};
 use crate::sample::Sample;
 
@@ -61,5 +62,24 @@ where
 {
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         self.buf.channel_mut(channel).tail(self.n)
+    }
+}
+
+impl<B> ReadBuf for Tail<B>
+where
+    B: ReadBuf,
+{
+    fn remaining(&self) -> usize {
+        usize::min(self.buf.remaining(), self.n)
+    }
+
+    fn advance(&mut self, n: usize) {
+        let n = self
+            .buf
+            .remaining()
+            .saturating_sub(self.n)
+            .saturating_add(n);
+
+        self.buf.advance(n);
     }
 }

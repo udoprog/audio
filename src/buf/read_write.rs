@@ -1,4 +1,5 @@
-use crate::buf::{Buf, BufInfo, BufMut, ReadBuf};
+use crate::buf::{Buf, BufInfo, BufMut};
+use crate::buf_io::{ReadBuf, WriteBuf};
 use crate::sample::Sample;
 use crate::translate::Translate;
 
@@ -34,77 +35,22 @@ where
         &mut self.buf
     }
 
+    /// Explicitly clear the number of frames read and written to allow for
+    /// re-using the underlying buffer, assuming it's been fully consumed.
+    pub fn clear(&mut self) {
+        self.read_at = 0;
+        self.write_at = 0;
+    }
+
     /// Explicitly set the number of frames that has been written, it is assumed
     /// that we read from 0 when this is called.
     pub fn set_written(&mut self, written: usize) {
         self.read_at = 0;
         self.write_at = written;
     }
-
-    /// Test if buffer has remaining data.
-    pub fn has_remaining(&self) -> bool {
-        self.remaining() > 0
-    }
-
-    /// The remaining number of frames available.
-    pub fn remaining(&self) -> usize {
-        self.write_at.saturating_sub(self.read_at)
-    }
-
-    /// Test if buffer has remaining data.
-    pub fn has_remaining_mut(&self) -> bool {
-        self.remaining_mut() > 0
-    }
-
-    /// The remaining number of frames available.
-    pub fn remaining_mut(&self) -> usize {
-        self.buf.buf_info_frames().saturating_sub(self.write_at)
-    }
-
-    /// Access the underlying buffer.
-    pub fn read(&mut self) -> Read<'_, B> {
-        Read {
-            buf: &self.buf,
-            end: self.write_at,
-            read_at: &mut self.read_at,
-        }
-    }
-
-    /// Write to the underlying buffer.
-    pub fn copy<T, I>(&mut self, mut buf: I)
-    where
-        B: BufMut<T>,
-        T: Sample,
-        I: ReadBuf + Buf<T>,
-    {
-        let len = usize::min(self.remaining_mut(), buf.buf_info_frames());
-        crate::utils::copy(&buf, (&mut self.buf).skip(self.write_at));
-        self.write_at = self.write_at.saturating_add(len);
-        buf.advance(len);
-    }
-
-    /// Write translated samples to the underlying buffer.
-    pub fn translate<T, I, U>(&mut self, mut buf: I)
-    where
-        B: BufMut<T>,
-        T: Sample + Translate<U>,
-        I: ReadBuf + Buf<U>,
-        U: Sample,
-    {
-        let len = usize::min(self.remaining_mut(), buf.buf_info_frames());
-        crate::utils::translate(&buf, (&mut self.buf).skip(self.write_at));
-        self.write_at = self.write_at.saturating_add(len);
-        buf.advance(len);
-    }
 }
 
-pub struct Read<'a, B> {
-    buf: &'a B,
-    end: usize,
-    read_at: &'a mut usize,
-}
-
-impl<'a, B> BufInfo for Read<'a, B>
+impl<B> BufInfo for ReadWrite<B>
 where
     B: BufInfo,
 {
@@ -117,23 +63,55 @@ where
     }
 }
 
-impl<'a, B, T> Buf<T> for Read<'a, B>
+impl<B, T> Buf<T> for ReadWrite<B>
 where
     B: Buf<T>,
     T: Sample,
 {
     fn channel(&self, channel: usize) -> crate::Channel<'_, T> {
         let len = self.remaining();
-        self.buf.channel(channel).skip(*self.read_at).limit(len)
+        self.buf.channel(channel).skip(self.read_at).limit(len)
     }
 }
 
-impl<'a, B> ReadBuf for Read<'a, B> {
+impl<B> ReadBuf for ReadWrite<B> {
     fn remaining(&self) -> usize {
-        self.end.saturating_sub(*self.read_at)
+        self.write_at.saturating_sub(self.read_at)
     }
 
     fn advance(&mut self, n: usize) {
-        *self.read_at = self.read_at.saturating_add(n);
+        self.read_at = self.read_at.saturating_add(n);
+    }
+}
+
+impl<B, T> WriteBuf<T> for ReadWrite<B>
+where
+    B: BufMut<T>,
+    T: Sample,
+{
+    fn remaining_mut(&self) -> usize {
+        self.buf.buf_info_frames().saturating_sub(self.write_at)
+    }
+
+    fn copy<I>(&mut self, mut buf: I)
+    where
+        I: ReadBuf + Buf<T>,
+    {
+        let len = usize::min(self.remaining_mut(), buf.remaining());
+        crate::utils::copy(&buf, (&mut self.buf).skip(self.write_at));
+        self.write_at = self.write_at.saturating_add(len);
+        buf.advance(len);
+    }
+
+    fn translate<I, U>(&mut self, mut buf: I)
+    where
+        T: Translate<U>,
+        I: ReadBuf + Buf<U>,
+        U: Sample,
+    {
+        let len = usize::min(self.remaining_mut(), buf.remaining());
+        crate::utils::translate(&buf, (&mut self.buf).skip(self.write_at));
+        self.write_at = self.write_at.saturating_add(len);
+        buf.advance(len);
     }
 }

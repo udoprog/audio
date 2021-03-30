@@ -52,10 +52,9 @@ where
         pcm: minimp3::Pcm::new(),
         resampler: None,
         output: output.read_write(),
-        resample,
+        resample: resample.read_write(),
         device_sample_rate: config.sample_rate.0,
         device_channels: config.channels as usize,
-        resample_avail: 0,
         last_frame: None,
     };
 
@@ -96,9 +95,7 @@ where
     // Output buffer to flush to device buffer.
     output: rotary::buf::ReadWrite<rotary::Interleaved<f32>>,
     // Resample buffer.
-    resample: rotary::Sequential<f32>,
-    /// Frames available in the resample buffer.
-    resample_avail: usize,
+    resample: rotary::buf::ReadWrite<rotary::Sequential<f32>>,
     // Sample rate expected to be written to the device.
     device_sample_rate: u32,
     // Number of channels in the device.
@@ -114,10 +111,10 @@ where
     where
         T: 'static + Send + rotary::Sample + rotary::Translate<f32>,
     {
-        use rotary::{Buf as _, BufMut as _};
+        use rotary::{Buf as _, ReadBuf as _, WriteBuf as _};
         use rubato::Resampler;
 
-        let mut data = rotary::wrap::interleaved(data, self.device_channels).writer();
+        let mut data = rotary::wrap::interleaved(data, self.device_channels);
 
         // Run the loop while there is buffer to fill.
         while data.has_remaining_mut() {
@@ -126,14 +123,14 @@ where
             //
             // cpal's data buffer expects the output to be interleaved.
             if self.output.has_remaining() {
-                data.translate(self.output.read());
+                data.translate(&mut self.output);
                 continue;
             }
 
             // If we have collected exactly one CHUNK_SIZE of resample buffer,
             // process it through the resampler and translate its result to the
             // output buffer.
-            if self.resample_avail == CHUNK_SIZE {
+            if self.resample.remaining() == CHUNK_SIZE {
                 let device_sample_rate = self.device_sample_rate;
 
                 let (frame, _) = self.last_frame.as_ref().unwrap();
@@ -152,38 +149,32 @@ where
                 });
 
                 resampler.process_with_buffer(
-                    &mut self.resample,
+                    &self.resample,
                     &mut self.output.as_mut(),
                     &rotary::mask::all(),
                 )?;
 
-                self.resample_avail = 0;
                 let frames = self.output.as_ref().frames();
+                self.resample.clear();
                 self.output.set_written(frames);
                 continue;
             }
 
             // If we have information on a decoded frame, translate it into the
             // resample buffer until its filled up to its frames cap.
-            if let Some((frame, mut pcm_avail)) = self.last_frame.take().filter(|p| p.1 > 0) {
-                let pcm = rotary::wrap::interleaved(&self.pcm[..], frame.channels);
+            if let Some((frame, mut last_remaining)) = self.last_frame.take().filter(|p| p.1 > 0) {
+                let mut pcm =
+                    rotary::wrap::interleaved(&self.pcm[..], frame.channels).tail(last_remaining);
 
-                let from = pcm.tail(pcm_avail);
-                let to = (&mut self.resample).skip(self.resample_avail);
+                self.resample.translate(&mut pcm);
 
-                let copied = usize::min(from.frames(), to.frames());
-
-                rotary::utils::translate(from, to);
-
-                pcm_avail -= copied;
-                self.resample_avail += copied;
-
-                self.last_frame = Some((frame, pcm_avail));
+                last_remaining = pcm.remaining();
+                self.last_frame = Some((frame, last_remaining));
                 continue;
             }
 
             let frame = self.decoder.next_frame_with_pcm(&mut self.pcm)?;
-            self.resample.resize_channels(frame.channels);
+            self.resample.as_mut().resize_channels(frame.channels);
 
             let pcm = rotary::wrap::interleaved(&self.pcm[..], frame.channels);
 

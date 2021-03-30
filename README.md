@@ -15,7 +15,7 @@ is freed when using functions such as [Dynamic::resize].
 Play an mp3 file with [minimp3-rs], [cpal], and [rubato] for resampling.
 
 ```bash
-cargo --manifest-path=examples/Cargo.toml --release --bin play-mp3 -- path/to/file.mp3
+cargo run --release --package rotary-examples --bin play-mp3 -- path/to/file.mp3
 ```
 
 ## Examples

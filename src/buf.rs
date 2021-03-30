@@ -15,11 +15,14 @@ pub use self::chunk::Chunk;
 mod tail;
 pub use self::tail::Tail;
 
-mod read_write;
-pub use self::read_write::ReadWrite;
+mod read;
+pub use self::read::Read;
 
 mod write;
 pub use self::write::Write;
+
+mod read_write;
+pub use self::read_write::ReadWrite;
 
 /// Information on the current buffer.
 pub trait BufInfo {
@@ -30,7 +33,7 @@ pub trait BufInfo {
     fn buf_info_channels(&self) -> usize;
 }
 
-/// The trait for a buffer that is resizable.
+/// Trait implemented for buffers that can be resized.
 pub trait ResizableBuf {
     /// Resize the number of frames in the buffer.
     fn resize(&mut self, frames: usize);
@@ -167,6 +170,15 @@ where
     {
         Chunk::new(self, n, len)
     }
+
+    /// Make this buffer into a read adapter that implements
+    /// [ReadBuf][crate::ReadBuf].
+    fn read(self) -> Read<Self>
+    where
+        Self: Sized,
+    {
+        Read::new(self)
+    }
 }
 
 impl<B> BufInfo for &B
@@ -193,7 +205,7 @@ where
 }
 
 /// A trait describing a mutable audio buffer.
-pub trait BufMut<T>: ResizableBuf + Buf<T>
+pub trait BufMut<T>: Buf<T>
 where
     T: Sample,
 {
@@ -205,17 +217,17 @@ where
     /// [Buf::channels].
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T>;
 
-    /// Set up a writer for the current buffer that allows for keeping track of
-    /// how many bytes have been written.
-    fn writer(self) -> Write<Self>
+    /// Make this mutable buffer into a write adapter that implements
+    /// [WriteBuf][crate::WriteBuf].
+    fn write(self) -> Write<Self>
     where
         Self: Sized,
     {
         Write::new(self)
     }
 
-    /// Set up a writer for the current buffer that allows for keeping track of
-    /// how many bytes have been written.
+    /// Make this mutable buffer into a write adapter that implements
+    /// [ReadBuf][crate::ReadBuf] and [WriteBuf][crate::WriteBuf].
     fn read_write(self) -> ReadWrite<Self>
     where
         Self: Sized,
@@ -362,13 +374,4 @@ pub(crate) enum ChannelKind {
         /// The channel that is being accessed.
         channel: usize,
     },
-}
-
-/// A buffer that can keep track of how much has been read from it.
-pub trait ReadBuf {
-    /// The number of frames remaining in the readable buffer.
-    fn remaining(&self) -> usize;
-
-    /// Advance the read number of frames by `n`.
-    fn advance(&mut self, n: usize);
 }

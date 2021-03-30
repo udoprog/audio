@@ -1,30 +1,17 @@
 //! Wrap an external type to implement [Buf] and [BufMut].
 
-use crate::buf::{Buf, BufInfo, BufMut, ReadBuf, ResizableBuf};
+use crate::buf::{Buf, BufInfo, BufMut};
+use crate::buf_io::{ReadBuf, WriteBuf};
 use crate::channel::{Channel, ChannelMut};
 use crate::sample::Sample;
-
-/// Trait used for getting generic information on slices.
-pub trait Slice {
-    /// The length of the slice.
-    fn slice_len(&self) -> usize;
-}
-
-impl<T> Slice for &'_ [T] {
-    #[inline]
-    fn slice_len(&self) -> usize {
-        self.len()
-    }
-}
-
-impl<T> Slice for &'_ mut [T] {
-    #[inline]
-    fn slice_len(&self) -> usize {
-        self.len()
-    }
-}
+use crate::translate::Translate;
 
 /// Wrap a `value` as an interleaved buffer with the given number of channels.
+///
+/// An interleaved buffer is a bit special in that it can implement [ReadBuf]
+/// and [WriteBuf] directly if it wraps one of the following types:
+/// * `&[T]` - Will implement [ReadBuf].
+/// * `&mut [T]` - Will implement [WriteBuf].
 pub fn interleaved<T>(value: T, channels: usize) -> Interleaved<T> {
     Interleaved { value, channels }
 }
@@ -41,12 +28,9 @@ pub struct Interleaved<T> {
     channels: usize,
 }
 
-impl<T> BufInfo for Interleaved<T>
-where
-    T: Slice,
-{
+impl<T> BufInfo for Interleaved<&'_ [T]> {
     fn buf_info_frames(&self) -> usize {
-        self.value.slice_len() / self.channels
+        self.value.len() / self.channels
     }
 
     fn buf_info_channels(&self) -> usize {
@@ -54,13 +38,21 @@ where
     }
 }
 
-impl<T, S> Buf<S> for Interleaved<T>
+impl<T> BufInfo for Interleaved<&'_ mut [T]> {
+    fn buf_info_frames(&self) -> usize {
+        self.value.len() / self.channels
+    }
+
+    fn buf_info_channels(&self) -> usize {
+        self.channels
+    }
+}
+
+impl<T> Buf<T> for Interleaved<&'_ [T]>
 where
-    T: AsRef<[S]>,
-    T: Slice,
-    S: Sample,
+    T: Sample,
 {
-    fn channel(&self, channel: usize) -> Channel<'_, S> {
+    fn channel(&self, channel: usize) -> Channel<'_, T> {
         if self.channels == 1 && channel == 0 {
             Channel::linear(self.value.as_ref())
         } else {
@@ -69,29 +61,24 @@ where
     }
 }
 
-impl<T> ResizableBuf for Interleaved<T>
+impl<T> Buf<T> for Interleaved<&'_ mut [T]>
 where
-    T: Slice,
+    T: Sample,
 {
-    fn resize(&mut self, frames: usize) {
-        if self.value.slice_len() / self.channels != frames {
-            panic!("buffer cannot be resized")
-        }
-    }
-
-    fn resize_topology(&mut self, channels: usize, frames: usize) {
-        if self.channels != channels || self.value.slice_len() / self.channels != frames {
-            panic!("buffer cannot be resized")
+    fn channel(&self, channel: usize) -> Channel<'_, T> {
+        if self.channels == 1 && channel == 0 {
+            Channel::linear(self.value.as_ref())
+        } else {
+            Channel::interleaved(self.value.as_ref(), self.channels, channel)
         }
     }
 }
 
-impl<T, S> BufMut<S> for Interleaved<T>
+impl<T> BufMut<T> for Interleaved<&'_ mut [T]>
 where
-    T: Slice + AsRef<[S]> + AsMut<[S]>,
-    S: Sample,
+    T: Sample,
 {
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, S> {
+    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         if self.channels == 1 && channel == 0 {
             ChannelMut::linear(self.value.as_mut())
         } else {
@@ -106,8 +93,42 @@ impl<T> ReadBuf for Interleaved<&'_ [T]> {
     }
 
     fn advance(&mut self, n: usize) {
-        let end = usize::min(self.value.len(), n);
-        self.value = &self.value[end..];
+        self.value = &self.value[n * self.channels..];
+    }
+}
+
+impl<T> WriteBuf<T> for Interleaved<&'_ mut [T]>
+where
+    T: Sample,
+{
+    fn remaining_mut(&self) -> usize {
+        self.buf_info_frames()
+    }
+
+    fn copy<I>(&mut self, mut buf: I)
+    where
+        I: ReadBuf + Buf<T>,
+    {
+        let len = usize::min(self.remaining_mut(), buf.remaining());
+        crate::utils::copy(&buf, &mut *self);
+        let end = usize::min(self.value.len(), len * self.channels);
+        let value = std::mem::take(&mut self.value);
+        self.value = &mut value[end..];
+        buf.advance(len);
+    }
+
+    fn translate<I, U>(&mut self, mut buf: I)
+    where
+        T: Translate<U>,
+        I: ReadBuf + Buf<U>,
+        U: Sample,
+    {
+        let len = usize::min(self.remaining_mut(), buf.remaining());
+        crate::utils::translate(&buf, &mut *self);
+        let end = usize::min(self.value.len(), len * self.channels);
+        let value = std::mem::take(&mut self.value);
+        self.value = &mut value[end..];
+        buf.advance(len);
     }
 }
 
@@ -129,58 +150,56 @@ pub struct Sequential<T> {
     frames: usize,
 }
 
-impl<T> BufInfo for Sequential<T>
-where
-    T: Slice,
-{
+impl<T> BufInfo for Sequential<&'_ [T]> {
     fn buf_info_frames(&self) -> usize {
         self.frames
     }
 
     fn buf_info_channels(&self) -> usize {
-        self.value.slice_len() / self.frames
+        self.value.len() / self.frames
     }
 }
 
-impl<T, S> Buf<S> for Sequential<T>
+impl<T> BufInfo for Sequential<&'_ mut [T]> {
+    fn buf_info_frames(&self) -> usize {
+        self.frames
+    }
+
+    fn buf_info_channels(&self) -> usize {
+        self.value.len() / self.frames
+    }
+}
+
+impl<T> Buf<T> for Sequential<&'_ [T]>
 where
-    T: Slice + AsRef<[S]>,
-    S: Sample,
+    T: Sample,
 {
-    fn channel(&self, channel: usize) -> Channel<'_, S> {
-        let value = self.value.as_ref();
-        let value = &value[channel * self.frames..];
+    fn channel(&self, channel: usize) -> Channel<'_, T> {
+        let value = &self.value[channel * self.frames..];
         let value = &value[..self.frames];
 
         Channel::linear(value)
     }
 }
 
-impl<T> ResizableBuf for Sequential<T>
+impl<T> Buf<T> for Sequential<&'_ mut [T]>
 where
-    T: Slice,
+    T: Sample,
 {
-    fn resize(&mut self, frames: usize) {
-        if self.frames != frames {
-            panic!("buffer cannot be resized")
-        }
-    }
+    fn channel(&self, channel: usize) -> Channel<'_, T> {
+        let value = &self.value[channel * self.frames..];
+        let value = &value[..self.frames];
 
-    fn resize_topology(&mut self, channels: usize, frames: usize) {
-        if self.frames != frames || self.value.slice_len() / self.frames != channels {
-            panic!("buffer cannot be resized")
-        }
+        Channel::linear(value)
     }
 }
 
-impl<T, S> BufMut<S> for Sequential<T>
+impl<T> BufMut<T> for Sequential<&'_ mut [T]>
 where
-    T: Slice + AsRef<[S]> + AsMut<[S]>,
-    S: Sample,
+    T: Sample,
 {
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, S> {
-        let value = self.value.as_mut();
-        let value = &mut value[channel * self.frames..];
+    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
+        let value = &mut self.value[channel * self.frames..];
         let value = &mut value[..self.frames];
 
         ChannelMut::linear(value)

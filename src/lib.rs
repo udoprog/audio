@@ -89,6 +89,7 @@
 mod macros;
 pub mod bit_set;
 pub mod buf;
+pub mod buf_io;
 pub mod channel;
 pub mod dynamic;
 pub mod interleaved;
@@ -103,6 +104,7 @@ pub mod wrap;
 
 pub use self::bit_set::BitSet;
 pub use self::buf::{Buf, BufInfo, BufMut, ResizableBuf};
+pub use self::buf_io::{ReadBuf, WriteBuf};
 pub use self::channel::{Channel, ChannelMut};
 pub use self::dynamic::Dynamic;
 pub use self::interleaved::Interleaved;

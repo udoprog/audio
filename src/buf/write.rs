@@ -1,4 +1,5 @@
-use crate::buf::{Buf, BufInfo, BufMut, ReadBuf};
+use crate::buf::{Buf, BufInfo, BufMut};
+use crate::buf_io::{ReadBuf, WriteBuf};
 use crate::sample::Sample;
 use crate::translate::Translate;
 
@@ -30,22 +31,21 @@ where
     pub fn as_mut(&mut self) -> &mut B {
         &mut self.buf
     }
+}
 
-    /// Test if buffer has remaining data.
-    pub fn has_remaining_mut(&self) -> bool {
-        self.available > 0
-    }
-
+impl<B, T> WriteBuf<T> for Write<B>
+where
+    B: BufMut<T>,
+    T: Sample,
+{
     /// Remaining number of frames available.
-    pub fn remaining_mut(&self) -> usize {
+    fn remaining_mut(&self) -> usize {
         self.available
     }
 
     /// Write to the underlying buffer.
-    pub fn copy<T, I>(&mut self, mut buf: I)
+    fn copy<I>(&mut self, mut buf: I)
     where
-        B: BufMut<T>,
-        T: Sample,
         I: ReadBuf + Buf<T>,
     {
         let len = usize::min(self.available, buf.buf_info_frames());
@@ -55,10 +55,9 @@ where
     }
 
     /// Write translated samples to the underlying buffer.
-    pub fn translate<T, I, U>(&mut self, mut buf: I)
+    fn translate<I, U>(&mut self, mut buf: I)
     where
-        B: BufMut<T>,
-        T: Sample + Translate<U>,
+        T: Translate<U>,
         I: ReadBuf + Buf<U>,
         U: Sample,
     {
