@@ -3,7 +3,7 @@
 
 use crate::buf::ChannelKind;
 use crate::range::Range;
-use crate::sample::Translate;
+use crate::translate::Translate;
 
 mod iter;
 pub use self::iter::{Iter, IterMut};

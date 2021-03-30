@@ -1,7 +1,8 @@
 //! Utilities for manipulating audio buffers.
 
 use crate::buf::{Buf, BufMut};
-use crate::sample::{Sample, Translate};
+use crate::sample::Sample;
+use crate::translate::Translate;
 
 /// Copy from the buffer specified by `from` into the buffer specified by `to`.
 ///

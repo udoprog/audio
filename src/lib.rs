@@ -84,6 +84,7 @@ mod sample;
 pub mod sequential;
 #[cfg(test)]
 mod tests;
+mod translate;
 pub mod utils;
 pub mod wrap;
 
@@ -94,5 +95,6 @@ pub use self::dynamic::Dynamic;
 pub use self::interleaved::Interleaved;
 pub use self::mask::Mask;
 pub use self::range::Range;
-pub use self::sample::{Sample, Translate};
+pub use self::sample::Sample;
 pub use self::sequential::Sequential;
+pub use self::translate::Translate;
