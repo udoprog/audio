@@ -1,4 +1,4 @@
-use crate::buf::{Buf, BufMut, ChannelSlice, ChannelSliceKind, ChannelSliceMut};
+use crate::buf::{Buf, BufMut, Channel, ChannelKind, ChannelMut};
 use crate::sample::Sample;
 
 /// A buffer that has been offset from the start.
@@ -29,15 +29,15 @@ where
         self.buf.channels()
     }
 
-    fn channel(&self, channel: usize) -> ChannelSlice<'_, T> {
-        let ChannelSlice { buf, kind } = self.buf.channel(channel);
+    fn channel(&self, channel: usize) -> Channel<'_, T> {
+        let Channel { buf, kind } = self.buf.channel(channel);
 
         match kind {
-            ChannelSliceKind::Linear => ChannelSlice {
+            ChannelKind::Linear => Channel {
                 buf: &buf[self.offset..],
                 kind,
             },
-            ChannelSliceKind::Interleaved { channels, .. } => ChannelSlice {
+            ChannelKind::Interleaved { channels, .. } => Channel {
                 buf: &buf[self.offset * channels..],
                 kind,
             },
@@ -58,15 +58,15 @@ where
         self.buf.resize_topology(channels, frames + self.offset);
     }
 
-    fn channel_mut(&mut self, channel: usize) -> ChannelSliceMut<'_, T> {
-        let ChannelSliceMut { buf, kind } = self.buf.channel_mut(channel);
+    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
+        let ChannelMut { buf, kind } = self.buf.channel_mut(channel);
 
         match kind {
-            ChannelSliceKind::Linear => ChannelSliceMut {
+            ChannelKind::Linear => ChannelMut {
                 buf: &mut buf[self.offset..],
                 kind,
             },
-            ChannelSliceKind::Interleaved { channels, .. } => ChannelSliceMut {
+            ChannelKind::Interleaved { channels, .. } => ChannelMut {
                 buf: &mut buf[self.offset * channels..],
                 kind,
             },

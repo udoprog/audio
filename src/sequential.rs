@@ -1,14 +1,16 @@
 //! A dynamically sized, multi-channel sequential audio buffer.
 
 use crate::buf::{Buf, BufMut};
-use crate::channel_slice::{ChannelSlice, ChannelSliceMut};
+use crate::channel::{Channel, ChannelMut};
 use crate::sample::Sample;
 use std::cmp;
 use std::fmt;
 use std::hash;
 use std::ops;
 use std::ptr;
-use std::slice;
+
+mod iter;
+pub use self::iter::{Iter, IterMut};
 
 /// A dynamically sized, multi-channel sequential audio buffer.
 ///
@@ -209,9 +211,7 @@ where
     /// }
     /// ```
     pub fn iter(&self) -> Iter<'_, T> {
-        Iter {
-            iter: self.data.chunks_exact(self.frames),
-        }
+        Iter::new(&self.data, self.frames)
     }
 
     /// Construct a mutable iterator over all available channels.
@@ -229,9 +229,7 @@ where
     /// }
     /// ```
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
-        IterMut {
-            iter: self.data.chunks_exact_mut(self.frames),
-        }
+        IterMut::new(&mut self.data, self.frames)
     }
 
     /// Set the number of channels in use.
@@ -587,9 +585,9 @@ where
         self.channels
     }
 
-    fn channel(&self, channel: usize) -> ChannelSlice<'_, T> {
+    fn channel(&self, channel: usize) -> Channel<'_, T> {
         let data = &self.data[self.frames * channel..];
-        ChannelSlice::linear(&data[..self.frames])
+        Channel::linear(&data[..self.frames])
     }
 }
 
@@ -597,9 +595,9 @@ impl<T> BufMut<T> for Sequential<T>
 where
     T: Sample,
 {
-    fn channel_mut(&mut self, channel: usize) -> ChannelSliceMut<'_, T> {
+    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         let data = &mut self.data[self.frames * channel..];
-        ChannelSliceMut::linear(&mut data[..self.frames])
+        ChannelMut::linear(&mut data[..self.frames])
     }
 
     fn resize(&mut self, frames: usize) {
@@ -609,55 +607,5 @@ where
     fn resize_topology(&mut self, channels: usize, frames: usize) {
         Self::resize(self, frames);
         self.resize_channels(channels);
-    }
-}
-
-/// A mutable iterator over the channels in the buffer.
-///
-/// Created with [Sequential::iter_mut].
-pub struct Iter<'a, T>
-where
-    T: Sample,
-{
-    iter: slice::ChunksExact<'a, T>,
-}
-
-impl<'a, T> Iterator for Iter<'a, T>
-where
-    T: Sample,
-{
-    type Item = &'a [T];
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
-    }
-
-    fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        self.iter.nth(n)
-    }
-}
-
-/// A mutable iterator over the channels in the buffer.
-///
-/// Created with [Sequential::iter_mut].
-pub struct IterMut<'a, T>
-where
-    T: Sample,
-{
-    iter: slice::ChunksExactMut<'a, T>,
-}
-
-impl<'a, T> Iterator for IterMut<'a, T>
-where
-    T: Sample,
-{
-    type Item = &'a mut [T];
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
-    }
-
-    fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        self.iter.nth(n)
     }
 }

@@ -1,7 +1,7 @@
 //! Wrap an external type to implement [Buf] and [BufMut].
 
 use crate::buf::{Buf, BufMut};
-use crate::channel_slice::{ChannelSlice, ChannelSliceMut};
+use crate::channel::{Channel, ChannelMut};
 use crate::sample::Sample;
 
 /// Wrap a `value` as an interleaved buffer with the given number of channels.
@@ -34,11 +34,11 @@ where
         self.channels
     }
 
-    fn channel(&self, channel: usize) -> ChannelSlice<'_, S> {
+    fn channel(&self, channel: usize) -> Channel<'_, S> {
         if self.channels == 1 && channel == 0 {
-            ChannelSlice::linear(self.value.as_ref())
+            Channel::linear(self.value.as_ref())
         } else {
-            ChannelSlice::interleaved(self.value.as_ref(), self.channels, channel)
+            Channel::interleaved(self.value.as_ref(), self.channels, channel)
         }
     }
 }
@@ -48,11 +48,11 @@ where
     T: AsRef<[S]> + AsMut<[S]>,
     S: Sample,
 {
-    fn channel_mut(&mut self, channel: usize) -> ChannelSliceMut<'_, S> {
+    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, S> {
         if self.channels == 1 && channel == 0 {
-            ChannelSliceMut::linear(self.value.as_mut())
+            ChannelMut::linear(self.value.as_mut())
         } else {
-            ChannelSliceMut::interleaved(self.value.as_mut(), self.channels, channel)
+            ChannelMut::interleaved(self.value.as_mut(), self.channels, channel)
         }
     }
 
@@ -88,12 +88,12 @@ where
         self.value.as_ref().len() / self.frames
     }
 
-    fn channel(&self, channel: usize) -> ChannelSlice<'_, S> {
+    fn channel(&self, channel: usize) -> Channel<'_, S> {
         let value = self.value.as_ref();
         let value = &value[channel * self.frames..];
         let value = &value[..self.frames];
 
-        ChannelSlice::linear(value)
+        Channel::linear(value)
     }
 }
 
@@ -102,12 +102,12 @@ where
     T: AsRef<[S]> + AsMut<[S]>,
     S: Sample,
 {
-    fn channel_mut(&mut self, channel: usize) -> ChannelSliceMut<'_, S> {
+    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, S> {
         let value = self.value.as_mut();
         let value = &mut value[channel * self.frames..];
         let value = &mut value[..self.frames];
 
-        ChannelSliceMut::linear(value)
+        ChannelMut::linear(value)
     }
 
     fn resize(&mut self, frames: usize) {

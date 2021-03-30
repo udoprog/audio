@@ -4,7 +4,7 @@ use std::slice;
 
 /// A channel slice iterator.
 ///
-/// See [ChannelSlice::iter].
+/// See [Channel::iter][crate::Channel::iter].
 pub struct Iter<'a, T>
 where
     T: Sample,
@@ -138,7 +138,7 @@ where
 
 /// A channel slice iterator.
 ///
-/// See [ChannelSliceMut::iter_mut].
+/// See [ChannelMut::iter_mut][crate::ChannelMut::iter_mut].
 pub struct IterMut<'a, T>
 where
     T: Sample,

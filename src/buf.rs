@@ -1,6 +1,6 @@
 //! Trait for dealing with abstract channel buffers.
 
-use crate::channel_slice::{ChannelSlice, ChannelSliceMut};
+use crate::channel::{Channel, ChannelMut};
 use crate::sample::Sample;
 
 mod offset;
@@ -27,13 +27,13 @@ where
     /// might be different.
     ///
     /// We must instead make use of the various utility functions found on
-    /// [BufChannel] to copy data out of the channel.
+    /// [Channel] to copy data out of the channel.
     ///
     /// # Panics
     ///
     /// Panics if the specified channel is out of bound as reported by
     /// [Buf::channels].
-    fn channel(&self, channel: usize) -> ChannelSlice<'_, T>;
+    fn channel(&self, channel: usize) -> Channel<'_, T>;
 
     /// Offset the buffer to process by `offset` number of frames.
     ///
@@ -104,7 +104,7 @@ where
         (**self).channels()
     }
 
-    fn channel(&self, channel: usize) -> ChannelSlice<'_, T> {
+    fn channel(&self, channel: usize) -> Channel<'_, T> {
         (**self).channel(channel)
     }
 }
@@ -120,7 +120,7 @@ where
     ///
     /// Panics if the specified channel is out of bound as reported by
     /// [Buf::channels].
-    fn channel_mut(&mut self, channel: usize) -> ChannelSliceMut<'_, T>;
+    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T>;
 
     /// Resize the number of frames in the buffer.
     fn resize(&mut self, frames: usize);
@@ -142,7 +142,7 @@ where
         (**self).channels()
     }
 
-    fn channel(&self, channel: usize) -> ChannelSlice<'_, T> {
+    fn channel(&self, channel: usize) -> Channel<'_, T> {
         (**self).channel(channel)
     }
 }
@@ -152,7 +152,7 @@ where
     B: ?Sized + BufMut<T>,
     T: Sample,
 {
-    fn channel_mut(&mut self, channel: usize) -> ChannelSliceMut<'_, T> {
+    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         (**self).channel_mut(channel)
     }
 
@@ -177,8 +177,8 @@ where
         self.len()
     }
 
-    fn channel(&self, channel: usize) -> ChannelSlice<'_, T> {
-        ChannelSlice::linear(&self[channel])
+    fn channel(&self, channel: usize) -> Channel<'_, T> {
+        Channel::linear(&self[channel])
     }
 }
 
@@ -186,8 +186,8 @@ impl<T> BufMut<T> for Vec<Vec<T>>
 where
     T: Sample,
 {
-    fn channel_mut(&mut self, channel: usize) -> ChannelSliceMut<'_, T> {
-        ChannelSliceMut::linear(&mut self[channel])
+    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
+        ChannelMut::linear(&mut self[channel])
     }
 
     fn resize(&mut self, frames: usize) {
@@ -228,14 +228,14 @@ where
         self.as_ref().len()
     }
 
-    fn channel(&self, channel: usize) -> ChannelSlice<'_, T> {
-        ChannelSlice::linear(&self.as_ref()[channel])
+    fn channel(&self, channel: usize) -> Channel<'_, T> {
+        Channel::linear(&self.as_ref()[channel])
     }
 }
 
 /// Used to determine how a buffer is indexed.
 #[derive(Debug, Clone, Copy)]
-pub(crate) enum ChannelSliceKind {
+pub(crate) enum ChannelKind {
     /// Returned channel buffer is indexed in a linear manner.
     Linear,
     /// Returned channel buffer is indexed in an interleaved manner.

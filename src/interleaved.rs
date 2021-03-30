@@ -1,8 +1,6 @@
 //! A dynamically sized, multi-channel interleaved audio buffer.
 
 use crate::buf::{Buf, BufMut};
-use crate::channel::{Channel, ChannelMut, RawChannelMut, RawChannelRef};
-use crate::channel_slice::{ChannelSlice, ChannelSliceMut};
 use crate::sample::Sample;
 use crate::wrap;
 use std::cmp;
@@ -10,6 +8,13 @@ use std::fmt;
 use std::hash;
 use std::marker;
 use std::ptr;
+
+mod channel;
+pub use self::channel::{Channel, ChannelMut};
+use self::channel::{RawChannelMut, RawChannelRef};
+
+mod iter;
+pub use self::iter::{Iter, IterMut};
 
 /// A dynamically sized, multi-channel interleaved audio buffer.
 ///
@@ -612,8 +617,8 @@ where
         self.channels
     }
 
-    fn channel(&self, channel: usize) -> ChannelSlice<'_, T> {
-        ChannelSlice::interleaved(&self.data, self.channels, channel)
+    fn channel(&self, channel: usize) -> crate::Channel<'_, T> {
+        crate::Channel::interleaved(&self.data, self.channels, channel)
     }
 }
 
@@ -621,8 +626,8 @@ impl<T> BufMut<T> for Interleaved<T>
 where
     T: Sample,
 {
-    fn channel_mut(&mut self, channel: usize) -> ChannelSliceMut<'_, T> {
-        ChannelSliceMut::interleaved(&mut self.data, self.channels, channel)
+    fn channel_mut(&mut self, channel: usize) -> crate::ChannelMut<'_, T> {
+        crate::ChannelMut::interleaved(&mut self.data, self.channels, channel)
     }
 
     fn resize(&mut self, frames: usize) {
@@ -656,95 +661,5 @@ where
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter_mut()
-    }
-}
-
-/// An iterator over the channels in the buffer.
-///
-/// Created with [Interleaved::iter].
-pub struct Iter<'a, T>
-where
-    T: Sample,
-{
-    buffer: *const T,
-    channel: usize,
-    channels: usize,
-    frames: usize,
-    _marker: marker::PhantomData<&'a T>,
-}
-
-// Safety: the iterator is simply a container of T's, any Send/Sync properties
-// are inherited.
-unsafe impl<T> Send for Iter<'_, T> where T: Sample + Send {}
-unsafe impl<T> Sync for Iter<'_, T> where T: Sample + Sync {}
-
-impl<'a, T> Iterator for Iter<'a, T>
-where
-    T: Sample,
-{
-    type Item = Channel<'a, T>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.channel < self.channels {
-            let channel = self.channel;
-            self.channel += 1;
-
-            Some(Channel {
-                inner: RawChannelRef {
-                    buffer: self.buffer,
-                    channel,
-                    frames: self.frames,
-                    channels: self.channels,
-                },
-                _marker: marker::PhantomData,
-            })
-        } else {
-            None
-        }
-    }
-}
-
-/// A mutable iterator over the channels in the buffer.
-///
-/// Created with [Interleaved::iter_mut].
-pub struct IterMut<'a, T>
-where
-    T: Sample,
-{
-    buffer: *mut T,
-    channel: usize,
-    channels: usize,
-    frames: usize,
-    _marker: marker::PhantomData<&'a mut T>,
-}
-
-// Safety: the iterator is simply a container of T's, any Send/Sync properties
-// are inherited.
-unsafe impl<T> Send for IterMut<'_, T> where T: Sample + Send {}
-unsafe impl<T> Sync for IterMut<'_, T> where T: Sample + Sync {}
-
-impl<'a, T> Iterator for IterMut<'a, T>
-where
-    T: Sample,
-{
-    type Item = ChannelMut<'a, T>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.channel < self.channels {
-            let channel = self.channel;
-            self.channel += 1;
-
-            Some(ChannelMut {
-                inner: RawChannelMut {
-                    buffer: self.buffer,
-                    channel,
-                    frames: self.frames,
-                    channels: self.channels,
-                },
-                _marker: marker::PhantomData,
-            })
-        } else {
-            None
-        }
     }
 }

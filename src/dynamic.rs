@@ -1,7 +1,7 @@
 //! A dynamically sized, multi-channel audio buffer.
 
 use crate::buf::{Buf, BufMut};
-use crate::channel_slice::{ChannelSlice, ChannelSliceMut};
+use crate::channel::{Channel, ChannelMut};
 use crate::sample::Sample;
 use std::cmp;
 use std::fmt;
@@ -10,6 +10,9 @@ use std::mem;
 use std::ops;
 use std::ptr;
 use std::slice;
+
+mod iter;
+pub use self::iter::{Iter, IterMut};
 
 /// A dynamically sized, multi-channel audio buffer.
 ///
@@ -192,11 +195,8 @@ where
     /// }
     /// ```
     pub fn iter(&self) -> Iter<'_, T> {
-        Iter {
-            // Safety: we're using a trusted length to build the slice.
-            iter: unsafe { self.data.as_ref(self.channels).into_iter() },
-            len: self.frames,
-        }
+        // Safety: we're using a trusted length to build the slice.
+        unsafe { Iter::new(self.data.as_ref(self.channels), self.frames) }
     }
 
     /// Construct a mutable iterator over all available channels.
@@ -214,11 +214,8 @@ where
     /// }
     /// ```
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
-        IterMut {
-            // Safety: we're using a trusted length to build the slice.
-            iter: unsafe { self.data.as_mut(self.channels).into_iter() },
-            len: self.frames,
-        }
+        // Safety: we're using a trusted length to build the slice.
+        unsafe { IterMut::new(self.data.as_mut(self.channels), self.frames) }
     }
 
     /// Set the size of the buffer. The size is the size of each channel's
@@ -694,8 +691,8 @@ where
         self.channels
     }
 
-    fn channel(&self, channel: usize) -> ChannelSlice<'_, T> {
-        ChannelSlice::linear(&self[channel])
+    fn channel(&self, channel: usize) -> Channel<'_, T> {
+        Channel::linear(&self[channel])
     }
 }
 
@@ -703,8 +700,8 @@ impl<T> BufMut<T> for Dynamic<T>
 where
     T: Sample,
 {
-    fn channel_mut(&mut self, channel: usize) -> ChannelSliceMut<'_, T> {
-        ChannelSliceMut::linear(&mut self[channel])
+    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
+        ChannelMut::linear(&mut self[channel])
     }
 
     fn resize(&mut self, frames: usize) {
@@ -719,6 +716,7 @@ where
 
 /// A raw slice.
 #[repr(transparent)]
+#[derive(Clone, Copy)]
 struct RawSlice<T> {
     data: ptr::NonNull<T>,
 }
@@ -854,7 +852,8 @@ impl<T> RawSlice<T> {
     /// # Safety
     ///
     /// The incoming len must represent a valid slice of initialized data.
-    unsafe fn as_ref(&self, len: usize) -> &[T] {
+    /// The produced lifetime must be bounded to something valid!
+    unsafe fn as_ref<'a>(self, len: usize) -> &'a [T] {
         slice::from_raw_parts(self.data.as_ptr() as *const _, len)
     }
 
@@ -863,7 +862,8 @@ impl<T> RawSlice<T> {
     /// # Safety
     ///
     /// The incoming len must represent a valid slice of initialized data.
-    unsafe fn as_mut(&mut self, len: usize) -> &mut [T] {
+    /// The produced lifetime must be bounded to something valid!
+    unsafe fn as_mut<'a>(self, len: usize) -> &'a mut [T] {
         slice::from_raw_parts_mut(self.data.as_ptr(), len)
     }
 
@@ -890,61 +890,5 @@ impl<T> RawSlice<T> {
     /// operation.
     pub(crate) unsafe fn into_vec(self, len: usize, cap: usize) -> Vec<T> {
         Vec::from_raw_parts(self.data.as_ptr(), len, cap)
-    }
-}
-
-/// A mutable iterator over the channels in the buffer.
-///
-/// Created with [Dynamic::iter_mut].
-pub struct Iter<'a, T>
-where
-    T: Sample,
-{
-    iter: slice::Iter<'a, RawSlice<T>>,
-    len: usize,
-}
-
-impl<'a, T> Iterator for Iter<'a, T>
-where
-    T: Sample,
-{
-    type Item = &'a [T];
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let buf = self.iter.next()?;
-        Some(unsafe { buf.as_ref(self.len) })
-    }
-
-    fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        let buf = self.iter.nth(n)?;
-        Some(unsafe { buf.as_ref(self.len) })
-    }
-}
-
-/// A mutable iterator over the channels in the buffer.
-///
-/// Created with [Dynamic::iter_mut].
-pub struct IterMut<'a, T>
-where
-    T: Sample,
-{
-    iter: slice::IterMut<'a, RawSlice<T>>,
-    len: usize,
-}
-
-impl<'a, T> Iterator for IterMut<'a, T>
-where
-    T: Sample,
-{
-    type Item = &'a mut [T];
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let buf = self.iter.next()?;
-        Some(unsafe { buf.as_mut(self.len) })
-    }
-
-    fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        let buf = self.iter.nth(n)?;
-        Some(unsafe { buf.as_mut(self.len) })
     }
 }
