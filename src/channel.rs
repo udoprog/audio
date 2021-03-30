@@ -8,6 +8,8 @@ mod iter;
 pub use self::iter::{Iter, IterMut};
 use crate::sample::Sample;
 
+use std::ops;
+
 /// The buffer of a single channel.
 ///
 /// This doesn't provide direct access to the underlying buffer, but rather
@@ -88,7 +90,7 @@ where
     /// assert_eq!(&right[0], &[1.0, 1.0, 1.0, 1.0]);
     /// assert_eq!(&right[1], &[0.0, 0.0, 0.0, 0.0]);
     /// ```
-    pub fn iter(&self) -> Iter<'_, T> {
+    pub fn iter(self) -> Iter<'a, T> {
         match self.kind {
             ChannelKind::Linear => Iter::new(self.buf, 1),
             ChannelKind::Interleaved { channels, channel } => {
@@ -350,54 +352,6 @@ where
             }
         }
     }
-
-    /// Copy into the given slice, mapping the index by the given mapping
-    /// function.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rotary::Buf;
-    ///
-    /// fn test(buf: &dyn Buf<f32>) {
-    ///     let channel = buf.channel(0);
-    ///
-    ///     let mut buf = vec![0.0; channel.frames() * 2];
-    ///
-    ///     // Copy into every other position in `buf`.
-    ///     channel.map_into_slice(&mut buf[..], |n| n * 2);
-    ///
-    ///     for (n, f) in buf.into_iter().enumerate() {
-    ///         if n % 2 == 0 {
-    ///             assert_eq!(f, 1.0);
-    ///         } else {
-    ///             assert_eq!(f, 0.0);
-    ///         }
-    ///     }
-    /// }
-    ///
-    /// test(&rotary::dynamic![[1.0; 16]; 2]);
-    /// test(&rotary::sequential![[1.0; 16]; 2]);
-    /// test(&rotary::interleaved![[1.0; 16]; 2]);
-    /// ```
-    pub fn map_into_slice<M>(&self, out: &mut [T], m: M)
-    where
-        M: Fn(usize) -> usize,
-        T: Copy,
-    {
-        match self.kind {
-            ChannelKind::Linear => {
-                for (f, s) in self.buf.iter().enumerate() {
-                    out[m(f)] = *s;
-                }
-            }
-            ChannelKind::Interleaved { channels, channel } => {
-                for (f, s) in self.buf[channel..].iter().step_by(channels).enumerate() {
-                    out[m(f)] = *s;
-                }
-            }
-        }
-    }
 }
 
 impl<'a, T> IntoIterator for Channel<'a, T>
@@ -408,13 +362,7 @@ where
     type IntoIter = Iter<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
-        match self.kind {
-            ChannelKind::Linear => Iter::new(self.buf, 1),
-            ChannelKind::Interleaved { channels, channel } => {
-                let start = usize::min(channel, self.buf.len());
-                Iter::new(&self.buf[start..], channels)
-            }
-        }
+        self.iter()
     }
 }
 
@@ -426,7 +374,21 @@ where
     type IntoIter = Iter<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.iter()
+        self.as_ref().iter()
+    }
+}
+
+impl<T> ops::Index<usize> for Channel<'_, T>
+where
+    T: Sample,
+{
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match self.kind {
+            ChannelKind::Linear => &self.buf[index],
+            ChannelKind::Interleaved { channels, channel } => &self.buf[channel + channels * index],
+        }
     }
 }
 
@@ -472,6 +434,64 @@ where
         }
     }
 
+    /// The number of frames in the buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::BufMut;
+    ///
+    /// fn test(buf: &dyn BufMut<f32>) {
+    ///     let left = buf.channel(0);
+    ///     let right = buf.channel(1);
+    ///
+    ///     assert_eq!(left.frames(), 16);
+    ///     assert_eq!(right.frames(), 16);
+    /// }
+    ///
+    /// test(&rotary::dynamic![[0.0; 16]; 2]);
+    /// test(&rotary::sequential![[0.0; 16]; 2]);
+    /// test(&rotary::interleaved![[0.0; 16]; 2]);
+    /// ```
+    pub fn frames(&self) -> usize {
+        match self.kind {
+            ChannelKind::Linear => self.buf.len(),
+            ChannelKind::Interleaved { channels, .. } => self.buf.len() / channels,
+        }
+    }
+
+    /// The number of chunks that can fit with the given size.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::BufMut;
+    ///
+    /// fn test(buf: &dyn BufMut<f32>) {
+    ///     let left = buf.channel(0);
+    ///     let right = buf.channel(1);
+    ///
+    ///     assert_eq!(left.chunks(4), 4);
+    ///     assert_eq!(right.chunks(4), 4);
+    ///
+    ///     assert_eq!(left.chunks(6), 3);
+    ///     assert_eq!(right.chunks(6), 3);
+    /// }
+    ///
+    /// test(&rotary::dynamic![[0.0; 16]; 2]);
+    /// test(&rotary::sequential![[0.0; 16]; 2]);
+    /// test(&rotary::interleaved![[0.0; 16]; 2]);
+    /// ```
+    pub fn chunks(&self, chunk: usize) -> usize {
+        let len = self.frames();
+
+        if len % chunk == 0 {
+            len / chunk
+        } else {
+            len / chunk + 1
+        }
+    }
+
     /// Construct an iterator over the channel.
     ///
     /// # Examples
@@ -493,7 +513,7 @@ where
     /// assert_eq!(&right[0], &[1.0, 1.0, 1.0, 1.0]);
     /// assert_eq!(&right[1], &[0.0, 0.0, 0.0, 0.0]);
     /// ```
-    pub fn iter(&self) -> Iter<'_, T> {
+    pub fn iter(self) -> Iter<'a, T> {
         match self.kind {
             ChannelKind::Linear => Iter::new(self.buf, 1),
             ChannelKind::Interleaved { channels, channel } => {
@@ -524,7 +544,7 @@ where
     /// assert_eq!(&right[0], &[1.0, 1.0, 1.0, 1.0]);
     /// assert_eq!(&right[1], &[0.0, 0.0, 0.0, 0.0]);
     /// ```
-    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+    pub fn iter_mut(self) -> IterMut<'a, T> {
         match self.kind {
             ChannelKind::Linear => IterMut::new(self.buf, 1),
             ChannelKind::Interleaved { channels, channel } => {
@@ -681,96 +701,6 @@ where
         }
     }
 
-    /// The number of frames in the buffer.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rotary::BufMut;
-    ///
-    /// fn test(buf: &dyn BufMut<f32>) {
-    ///     let left = buf.channel(0);
-    ///     let right = buf.channel(1);
-    ///
-    ///     assert_eq!(left.frames(), 16);
-    ///     assert_eq!(right.frames(), 16);
-    /// }
-    ///
-    /// test(&rotary::dynamic![[0.0; 16]; 2]);
-    /// test(&rotary::sequential![[0.0; 16]; 2]);
-    /// test(&rotary::interleaved![[0.0; 16]; 2]);
-    /// ```
-    pub fn frames(&self) -> usize {
-        match self.kind {
-            ChannelKind::Linear => self.buf.len(),
-            ChannelKind::Interleaved { channels, .. } => self.buf.len() / channels,
-        }
-    }
-
-    /// The number of chunks that can fit with the given size.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rotary::BufMut;
-    ///
-    /// fn test(buf: &dyn BufMut<f32>) {
-    ///     let left = buf.channel(0);
-    ///     let right = buf.channel(1);
-    ///
-    ///     assert_eq!(left.chunks(4), 4);
-    ///     assert_eq!(right.chunks(4), 4);
-    ///
-    ///     assert_eq!(left.chunks(6), 3);
-    ///     assert_eq!(right.chunks(6), 3);
-    /// }
-    ///
-    /// test(&rotary::dynamic![[0.0; 16]; 2]);
-    /// test(&rotary::sequential![[0.0; 16]; 2]);
-    /// test(&rotary::interleaved![[0.0; 16]; 2]);
-    /// ```
-    pub fn chunks(&self, chunk: usize) -> usize {
-        let len = self.frames();
-
-        if len % chunk == 0 {
-            len / chunk
-        } else {
-            len / chunk + 1
-        }
-    }
-
-    /// Set the value at the given frame in the current channel.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rotary::BufMut;
-    ///
-    /// fn test(buf: &mut dyn BufMut<f32>) {
-    ///     buf.channel_mut(0).set(1, 1.0);
-    ///     buf.channel_mut(0).set(7, 1.0);
-    ///
-    ///     let mut out = vec![0.0; 8];
-    ///     buf.channel(0).copy_into_slice(&mut out);
-    ///
-    ///     assert_eq!(out, vec![0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]);
-    /// }
-    ///
-    /// test(&mut rotary::dynamic![[0.0; 8]; 2]);
-    /// test(&mut rotary::sequential![[0.0; 8]; 2]);
-    /// test(&mut rotary::interleaved![[0.0; 8]; 2]);
-    /// ```
-    pub fn set(&mut self, n: usize, value: T) {
-        match self.kind {
-            ChannelKind::Linear => {
-                self.buf[n] = value;
-            }
-            ChannelKind::Interleaved { channels, channel } => {
-                self.buf[channel + channels * n] = value;
-            }
-        }
-    }
-
     /// Copy from the given slice.
     ///
     /// # Examples
@@ -887,7 +817,7 @@ where
                 self.buf.copy_from_slice(&from.buf[..]);
             }
             _ => {
-                for (o, f) in self.iter_mut().zip(from) {
+                for (o, f) in self.as_mut().iter_mut().zip(from) {
                     *o = f;
                 }
             }
@@ -920,7 +850,7 @@ where
         U: Sample,
         T: Translate<U>,
     {
-        for (o, f) in self.iter_mut().zip(from) {
+        for (o, f) in self.as_mut().iter_mut().zip(from) {
             *o = T::translate(f);
         }
     }
@@ -934,13 +864,7 @@ where
     type IntoIter = IterMut<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
-        match self.kind {
-            ChannelKind::Linear => IterMut::new(self.buf, 1),
-            ChannelKind::Interleaved { channels, channel } => {
-                let start = usize::min(channel, self.buf.len());
-                IterMut::new(&mut self.buf[start..], channels)
-            }
-        }
+        self.iter_mut()
     }
 }
 
@@ -952,6 +876,61 @@ where
     type IntoIter = IterMut<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
-        (*self).iter_mut()
+        self.as_mut().iter_mut()
+    }
+}
+
+impl<T> ops::Index<usize> for ChannelMut<'_, T>
+where
+    T: Sample,
+{
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match self.kind {
+            ChannelKind::Linear => &self.buf[index],
+            ChannelKind::Interleaved { channels, channel } => &self.buf[channel + channels * index],
+        }
+    }
+}
+
+/// Get a mutable reference to the frame at the given index.
+///
+/// # Panics
+///
+/// Panics if the given frame is out of bounds for this channel.
+///
+/// See [frames][Self::frames].
+///
+/// # Examples
+///
+/// ```rust
+/// use rotary::BufMut;
+///
+/// fn test(buf: &mut dyn BufMut<f32>) {
+///     buf.channel_mut(0)[1] = 1.0;
+///     buf.channel_mut(0)[7] = 1.0;
+///
+///     let mut out = vec![0.0; 8];
+///     buf.channel(0).copy_into_slice(&mut out);
+///
+///     assert_eq!(out, vec![0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]);
+/// }
+///
+/// test(&mut rotary::dynamic![[0.0; 8]; 2]);
+/// test(&mut rotary::sequential![[0.0; 8]; 2]);
+/// test(&mut rotary::interleaved![[0.0; 8]; 2]);
+/// ```
+impl<T> ops::IndexMut<usize> for ChannelMut<'_, T>
+where
+    T: Sample,
+{
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match self.kind {
+            ChannelKind::Linear => &mut self.buf[index],
+            ChannelKind::Interleaved { channels, channel } => {
+                &mut self.buf[channel + channels * index]
+            }
+        }
     }
 }
