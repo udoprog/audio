@@ -18,7 +18,9 @@ where
     pub(crate) _marker: marker::PhantomData<&'a T>,
 }
 
-unsafe impl<T> Send for Channel<'_, T> where T: Sample + Send {}
+// Safety: the iterator is simply a container of references to T's, any
+// Send/Sync properties are inherited.
+unsafe impl<T> Send for Channel<'_, T> where T: Sample + Sync {}
 unsafe impl<T> Sync for Channel<'_, T> where T: Sample + Sync {}
 
 impl<'a, T> Channel<'a, T>
@@ -101,7 +103,9 @@ where
     _marker: marker::PhantomData<&'a T>,
 }
 
-unsafe impl<T> Send for ChannelIter<'_, T> where T: Sample + Send {}
+// Safety: the iterator is simply a container of references to T's, any
+// Send/Sync properties are inherited.
+unsafe impl<T> Send for ChannelIter<'_, T> where T: Sample + Sync {}
 unsafe impl<T> Sync for ChannelIter<'_, T> where T: Sample + Sync {}
 
 impl<'a, T> Iterator for ChannelIter<'a, T>

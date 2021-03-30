@@ -1,7 +1,7 @@
 //! Utilities for manipulating audio buffers.
 
 use crate::buf::{Buf, BufMut};
-use crate::sample::Translate;
+use crate::sample::{Sample, Translate};
 
 /// Copy from the buffer specified by `from` into the buffer specified by `to`.
 ///
@@ -10,7 +10,7 @@ pub fn copy<I, O, T>(from: I, mut to: O)
 where
     I: Buf<T>,
     O: BufMut<T>,
-    T: Copy,
+    T: Sample,
 {
     let end = usize::min(from.channels(), to.channels());
 
@@ -26,8 +26,8 @@ pub fn translate<I, O, U, T>(from: I, mut to: O)
 where
     I: Buf<U>,
     O: BufMut<T>,
-    T: Copy,
-    U: Copy,
+    T: Sample,
+    U: Sample,
     T: Translate<U>,
 {
     let end = usize::min(from.channels(), to.channels());

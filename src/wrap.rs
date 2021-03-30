@@ -1,6 +1,8 @@
 //! Wrap an external type to implement [Buf] and [BufMut].
 
-use crate::buf::{Buf, BufChannel, BufChannelMut, BufMut};
+use crate::buf::{Buf, BufMut};
+use crate::channel_slice::{ChannelSlice, ChannelSliceMut};
+use crate::sample::Sample;
 
 /// Wrap a `value` as an interleaved buffer with the given number of channels.
 pub fn interleaved<T>(value: T, channels: usize) -> Interleaved<T> {
@@ -22,6 +24,7 @@ pub struct Interleaved<T> {
 impl<T, S> Buf<S> for Interleaved<T>
 where
     T: AsRef<[S]>,
+    S: Sample,
 {
     fn frames(&self) -> usize {
         self.value.as_ref().len() / self.channels
@@ -31,11 +34,11 @@ where
         self.channels
     }
 
-    fn channel(&self, channel: usize) -> BufChannel<'_, S> {
+    fn channel(&self, channel: usize) -> ChannelSlice<'_, S> {
         if self.channels == 1 && channel == 0 {
-            BufChannel::linear(self.value.as_ref())
+            ChannelSlice::linear(self.value.as_ref())
         } else {
-            BufChannel::interleaved(self.value.as_ref(), self.channels, channel)
+            ChannelSlice::interleaved(self.value.as_ref(), self.channels, channel)
         }
     }
 }
@@ -43,12 +46,13 @@ where
 impl<T, S> BufMut<S> for Interleaved<T>
 where
     T: AsRef<[S]> + AsMut<[S]>,
+    S: Sample,
 {
-    fn channel_mut(&mut self, channel: usize) -> BufChannelMut<'_, S> {
+    fn channel_mut(&mut self, channel: usize) -> ChannelSliceMut<'_, S> {
         if self.channels == 1 && channel == 0 {
-            BufChannelMut::linear(self.value.as_mut())
+            ChannelSliceMut::linear(self.value.as_mut())
         } else {
-            BufChannelMut::interleaved(self.value.as_mut(), self.channels, channel)
+            ChannelSliceMut::interleaved(self.value.as_mut(), self.channels, channel)
         }
     }
 
@@ -74,6 +78,7 @@ pub struct Sequential<T> {
 impl<T, S> Buf<S> for Sequential<T>
 where
     T: AsRef<[S]>,
+    S: Sample,
 {
     fn frames(&self) -> usize {
         self.frames
@@ -83,25 +88,26 @@ where
         self.value.as_ref().len() / self.frames
     }
 
-    fn channel(&self, channel: usize) -> BufChannel<'_, S> {
+    fn channel(&self, channel: usize) -> ChannelSlice<'_, S> {
         let value = self.value.as_ref();
         let value = &value[channel * self.frames..];
         let value = &value[..self.frames];
 
-        BufChannel::linear(value)
+        ChannelSlice::linear(value)
     }
 }
 
 impl<T, S> BufMut<S> for Sequential<T>
 where
     T: AsRef<[S]> + AsMut<[S]>,
+    S: Sample,
 {
-    fn channel_mut(&mut self, channel: usize) -> BufChannelMut<'_, S> {
+    fn channel_mut(&mut self, channel: usize) -> ChannelSliceMut<'_, S> {
         let value = self.value.as_mut();
         let value = &mut value[channel * self.frames..];
         let value = &mut value[..self.frames];
 
-        BufChannelMut::linear(value)
+        ChannelSliceMut::linear(value)
     }
 
     fn resize(&mut self, frames: usize) {

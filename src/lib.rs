@@ -74,8 +74,9 @@
 #[macro_use]
 mod macros;
 pub mod bit_set;
-mod buf;
+pub mod buf;
 pub mod channel;
+pub mod channel_slice;
 pub mod dynamic;
 pub mod interleaved;
 pub mod mask;
@@ -88,7 +89,8 @@ pub mod utils;
 pub mod wrap;
 
 pub use self::bit_set::BitSet;
-pub use self::buf::{Buf, BufChannel, BufChannelMut, BufMut};
+pub use self::buf::{Buf, BufMut};
+pub use self::channel_slice::{ChannelSlice, ChannelSliceMut};
 pub use self::dynamic::Dynamic;
 pub use self::interleaved::Interleaved;
 pub use self::mask::Mask;

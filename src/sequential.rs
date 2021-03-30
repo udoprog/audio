@@ -1,6 +1,7 @@
 //! A dynamically sized, multi-channel sequential audio buffer.
 
-use crate::buf::{Buf, BufChannel, BufChannelMut, BufMut};
+use crate::buf::{Buf, BufMut};
+use crate::channel_slice::{ChannelSlice, ChannelSliceMut};
 use crate::sample::Sample;
 use std::cmp;
 use std::fmt;
@@ -586,9 +587,9 @@ where
         self.channels
     }
 
-    fn channel(&self, channel: usize) -> BufChannel<'_, T> {
+    fn channel(&self, channel: usize) -> ChannelSlice<'_, T> {
         let data = &self.data[self.frames * channel..];
-        BufChannel::linear(&data[..self.frames])
+        ChannelSlice::linear(&data[..self.frames])
     }
 }
 
@@ -596,9 +597,9 @@ impl<T> BufMut<T> for Sequential<T>
 where
     T: Sample,
 {
-    fn channel_mut(&mut self, channel: usize) -> BufChannelMut<'_, T> {
+    fn channel_mut(&mut self, channel: usize) -> ChannelSliceMut<'_, T> {
         let data = &mut self.data[self.frames * channel..];
-        BufChannelMut::linear(&mut data[..self.frames])
+        ChannelSliceMut::linear(&mut data[..self.frames])
     }
 
     fn resize(&mut self, frames: usize) {
