@@ -128,6 +128,42 @@ where
         }
     }
 
+    /// Allocate an interleaved audio buffer from a fixed-size array acting as a
+    /// template for all the channels.
+    ///
+    /// See [sequential!].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let mut buffer = rotary::Interleaved::from_frames([1.0, 2.0, 3.0, 4.0], 4);
+    ///
+    /// assert_eq!(buffer.frames(), 4);
+    /// assert_eq!(buffer.channels(), 4);
+    /// ```
+    pub fn from_frames<const N: usize>(frames: [T; N], channels: usize) -> Self {
+        return Self {
+            data: data_from_frames(frames, channels),
+            channels,
+            frames: N,
+        };
+
+        fn data_from_frames<T, const N: usize>(frames: [T; N], channels: usize) -> Vec<T>
+        where
+            T: Sample,
+        {
+            let mut data = Vec::with_capacity(N * channels);
+
+            for f in std::array::IntoIter::new(frames) {
+                for _ in 0..channels {
+                    data.push(f);
+                }
+            }
+
+            data
+        }
+    }
+
     /// Take ownership of the backing vector.
     ///
     /// # Examples

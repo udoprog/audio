@@ -1,8 +1,20 @@
-//! Module governing reading and writing linearly to and from buffers.
+//! Reading and writing sequentially from buffers.
+//!
+//! This is called buffered I/O, and allow buffers to support sequential reading
+//! and writing to and from buffer.
 
 use crate::buf::Buf;
 use crate::sample::Sample;
 use crate::translate::Translate;
+
+mod read;
+pub use self::read::Read;
+
+mod write;
+pub use self::write::Write;
+
+mod read_write;
+pub use self::read_write::ReadWrite;
 
 /// A buffer that can keep track of how much has been read from it.
 pub trait ReadBuf {
@@ -51,7 +63,7 @@ where
     /// Read frames from the given read buffer into this buffer.
     ///
     /// Advances the read from buffer by the number of frames read through
-    /// [ReadBuf::advance].
+    /// [Read::advance].
     fn copy<I>(&mut self, buf: I)
     where
         I: ReadBuf + Buf<T>;
@@ -59,7 +71,7 @@ where
     /// Read translated frames from the given read buffer into this buffer.
     ///
     /// Advances the read from buffer by the number of frames read through
-    /// [ReadBuf::advance].
+    /// [Read::advance].
     fn translate<I, U>(&mut self, buf: I)
     where
         T: Translate<U>,

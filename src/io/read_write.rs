@@ -1,9 +1,56 @@
 use crate::buf::{Buf, BufInfo, BufMut};
-use crate::buf_io::{ReadBuf, WriteBuf};
+use crate::io::{ReadBuf, WriteBuf};
 use crate::sample::Sample;
 use crate::translate::Translate;
 
-/// An abstraction intended for both reading and writing to buffer.
+/// Make any mutable buffer into a write adapter that implements
+/// [ReadBuf] and [WriteBuf].
+///
+/// # Examples
+///
+/// ```rust
+/// use rotary::io::{Read, ReadWrite, Write};
+/// use rotary::{Buf as _, ReadBuf as _, WriteBuf as _};
+///
+/// let from = rotary::interleaved![[1.0f32, 2.0f32, 3.0f32, 4.0f32]; 2];
+/// let to = rotary::interleaved![[0.0f32; 4]; 2];
+///
+/// // Make `to` into a ReadWrite adapter.
+/// let mut to = ReadWrite::new(to);
+///
+/// to.copy(Read::new((&from).skip(2).limit(1)));
+/// assert_eq!(to.remaining(), 1);
+///
+/// to.copy(Read::new((&from).limit(1)));
+/// assert_eq!(to.remaining(), 2);
+///
+/// assert_eq! {
+///     to.as_ref().as_slice(),
+///     &[3.0, 3.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+/// };
+///
+/// // Note: 4 channels, 2 frames each.
+/// let mut read_out = Write::new(rotary::Interleaved::with_topology(4, 2));
+///
+/// assert_eq!(read_out.remaining_mut(), 2);
+/// assert!(read_out.has_remaining_mut());
+///
+/// assert_eq!(to.remaining(), 2);
+/// assert!(to.has_remaining());
+///
+/// read_out.copy(&mut to);
+///
+/// assert_eq!(read_out.remaining_mut(), 0);
+/// assert!(!read_out.has_remaining_mut());
+///
+/// assert_eq!(to.remaining(), 0);
+/// assert!(!to.has_remaining());
+///
+/// assert_eq! {
+///     read_out.as_ref().as_slice(),
+///     &[3.0, 3.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0],
+/// }
+/// ```
 pub struct ReadWrite<B> {
     buf: B,
     // Number of bytes available for reading. Conversely, the number of bytes
@@ -13,11 +60,9 @@ pub struct ReadWrite<B> {
     write_at: usize,
 }
 
-impl<B> ReadWrite<B>
-where
-    B: BufInfo,
-{
-    pub(super) fn new(buf: B) -> Self {
+impl<B> ReadWrite<B> {
+    /// Construct a new read / write buffer around an audio buffer.
+    pub fn new(buf: B) -> Self {
         Self {
             buf,
             read_at: 0,

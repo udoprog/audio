@@ -33,8 +33,6 @@ where
     T: 'static + Send + cpal::Sample + rotary::Sample + rotary::Translate<f32>,
     f32: rotary::Translate<i16>,
 {
-    use rotary::BufMut as _;
-
     let source = io::BufReader::new(fs::File::open(path)?);
     let decoder = minimp3::Decoder::new(source);
 
@@ -51,8 +49,8 @@ where
         decoder,
         pcm: minimp3::Pcm::new(),
         resampler: None,
-        output: output.read_write(),
-        resample: resample.read_write(),
+        output: rotary::io::ReadWrite::new(output),
+        resample: rotary::io::ReadWrite::new(resample),
         device_sample_rate: config.sample_rate.0,
         device_channels: config.channels as usize,
         last_frame: None,
@@ -93,9 +91,9 @@ where
     // be resampled.
     resampler: Option<rubato::SincFixedIn<f32>>,
     // Output buffer to flush to device buffer.
-    output: rotary::buf::ReadWrite<rotary::Interleaved<f32>>,
+    output: rotary::io::ReadWrite<rotary::Interleaved<f32>>,
     // Resample buffer.
-    resample: rotary::buf::ReadWrite<rotary::Sequential<f32>>,
+    resample: rotary::io::ReadWrite<rotary::Sequential<f32>>,
     // Sample rate expected to be written to the device.
     device_sample_rate: u32,
     // Number of channels in the device.

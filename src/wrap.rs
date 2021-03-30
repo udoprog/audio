@@ -1,8 +1,8 @@
 //! Wrap an external type to implement [Buf] and [BufMut].
 
 use crate::buf::{Buf, BufInfo, BufMut};
-use crate::buf_io::{ReadBuf, WriteBuf};
 use crate::channel::{Channel, ChannelMut};
+use crate::io::{ReadBuf, WriteBuf};
 use crate::sample::Sample;
 use crate::translate::Translate;
 

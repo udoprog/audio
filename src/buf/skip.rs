@@ -1,5 +1,6 @@
 use crate::buf::{Buf, BufInfo, BufMut, ResizableBuf};
 use crate::channel::{Channel, ChannelMut};
+use crate::io::ReadBuf;
 use crate::sample::Sample;
 
 /// A buffer where a number of frames have been skipped over.
@@ -61,5 +62,18 @@ where
 {
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         self.buf.channel_mut(channel).skip(self.n)
+    }
+}
+
+impl<B> ReadBuf for Skip<B>
+where
+    B: ReadBuf,
+{
+    fn remaining(&self) -> usize {
+        self.buf.remaining().saturating_sub(self.n)
+    }
+
+    fn advance(&mut self, n: usize) {
+        self.buf.advance(self.n.saturating_add(n));
     }
 }

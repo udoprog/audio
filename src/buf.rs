@@ -15,15 +15,6 @@ pub use self::chunk::Chunk;
 mod tail;
 pub use self::tail::Tail;
 
-mod read;
-pub use self::read::Read;
-
-mod write;
-pub use self::write::Write;
-
-mod read_write;
-pub use self::read_write::ReadWrite;
-
 /// Information on the current buffer.
 pub trait BufInfo {
     /// The number of frames in a buffer.
@@ -170,15 +161,6 @@ where
     {
         Chunk::new(self, n, len)
     }
-
-    /// Make this buffer into a read adapter that implements
-    /// [ReadBuf][crate::ReadBuf].
-    fn read(self) -> Read<Self>
-    where
-        Self: Sized,
-    {
-        Read::new(self)
-    }
 }
 
 impl<B> BufInfo for &B
@@ -216,24 +198,6 @@ where
     /// Panics if the specified channel is out of bound as reported by
     /// [Buf::channels].
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T>;
-
-    /// Make this mutable buffer into a write adapter that implements
-    /// [WriteBuf][crate::WriteBuf].
-    fn write(self) -> Write<Self>
-    where
-        Self: Sized,
-    {
-        Write::new(self)
-    }
-
-    /// Make this mutable buffer into a write adapter that implements
-    /// [ReadBuf][crate::ReadBuf] and [WriteBuf][crate::WriteBuf].
-    fn read_write(self) -> ReadWrite<Self>
-    where
-        Self: Sized,
-    {
-        ReadWrite::new(self)
-    }
 }
 
 impl<B> BufInfo for &mut B

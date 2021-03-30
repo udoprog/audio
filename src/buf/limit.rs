@@ -1,5 +1,6 @@
 use crate::buf::{Buf, BufInfo, BufMut, ResizableBuf};
 use crate::channel::{Channel, ChannelMut};
+use crate::io::ReadBuf;
 use crate::sample::Sample;
 
 /// A buffer that has been limited.
@@ -22,7 +23,7 @@ where
     B: BufInfo,
 {
     fn buf_info_frames(&self) -> usize {
-        self.buf.buf_info_frames().saturating_sub(self.limit)
+        usize::min(self.buf.buf_info_frames(), self.limit)
     }
 
     fn buf_info_channels(&self) -> usize {
@@ -61,5 +62,18 @@ where
 {
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         self.buf.channel_mut(channel).limit(self.limit)
+    }
+}
+
+impl<B> ReadBuf for Limit<B>
+where
+    B: ReadBuf,
+{
+    fn remaining(&self) -> usize {
+        usize::min(self.buf.remaining(), self.limit)
+    }
+
+    fn advance(&mut self, n: usize) {
+        self.buf.advance(usize::min(n, self.limit));
     }
 }

@@ -1,10 +1,29 @@
 use crate::buf::{Buf, BufInfo};
-use crate::buf_io::ReadBuf;
 use crate::channel::Channel;
+use crate::io::ReadBuf;
 use crate::sample::Sample;
 
-/// A reader abstraction allowing a caller to keep track of how many frames are
-/// remaining to read.
+/// Make a buffer into a read adapter that implements [ReadBuf].
+///
+/// # Examples
+///
+/// ```rust
+/// use rotary::{Buf as _, BufMut as _, WriteBuf as _};
+/// use rotary::io::{Read, ReadWrite};
+///
+/// let from = rotary::interleaved![[1.0f32, 2.0f32, 3.0f32, 4.0f32]; 2];
+/// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
+///
+/// let mut to = ReadWrite::new(to);
+///
+/// to.copy(Read::new((&from).skip(2).limit(1)));
+/// to.copy(Read::new((&from).limit(1)));
+///
+/// assert_eq! {
+///     to.as_ref().as_slice(),
+///     &[3.0, 3.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+/// };
+/// ```
 pub struct Read<B> {
     buf: B,
     available: usize,
@@ -14,7 +33,8 @@ impl<B> Read<B>
 where
     B: BufInfo,
 {
-    pub(super) fn new(buf: B) -> Self {
+    /// Construct a new read adapter.
+    pub fn new(buf: B) -> Self {
         let available = buf.buf_info_frames();
         Self { buf, available }
     }

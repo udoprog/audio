@@ -1,6 +1,6 @@
 use crate::buf::{Buf, BufInfo, BufMut, ResizableBuf};
-use crate::buf_io::ReadBuf;
 use crate::channel::{Channel, ChannelMut};
+use crate::io::ReadBuf;
 use crate::sample::Sample;
 
 /// The tail of a buffer.

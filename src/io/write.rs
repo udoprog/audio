@@ -1,13 +1,31 @@
 use crate::buf::{Buf, BufInfo, BufMut};
-use crate::buf_io::{ReadBuf, WriteBuf};
+use crate::io::{ReadBuf, WriteBuf};
 use crate::sample::Sample;
 use crate::translate::Translate;
 
-/// A writer abstraction allowing a caller to keep track of how many frames are
-/// remaining to write.
+/// Make a mutable buffer into a write adapter that implements
+/// [WriteBuf].
 ///
-/// You can access the writable slice of the underlying buffer through
-/// [Write::write].
+/// # Examples
+///
+/// ```rust
+/// use rotary::{Buf as _, BufMut as _, ReadBuf as _, WriteBuf as _};
+/// use rotary::io::{Read, Write};
+///
+/// let from = rotary::interleaved![[1.0f32, 2.0f32, 3.0f32, 4.0f32]; 2];
+/// let to = rotary::interleaved![[0.0f32; 4]; 2];
+/// let mut to = Write::new(to);
+/// let mut from = Read::new(from.skip(2));
+///
+/// assert_eq!(to.remaining_mut(), 4);
+/// to.copy(from);
+/// assert_eq!(to.remaining_mut(), 2);
+///
+/// assert_eq! {
+///     to.as_ref().as_slice(),
+///     &[3.0, 3.0, 4.0, 4.0, 0.0, 0.0, 0.0, 0.0],
+/// };
+/// ```
 pub struct Write<B> {
     buf: B,
     available: usize,
@@ -17,7 +35,8 @@ impl<B> Write<B>
 where
     B: BufInfo,
 {
-    pub(super) fn new(buf: B) -> Self {
+    /// Construct a new write adapter.
+    pub fn new(buf: B) -> Self {
         let available = buf.buf_info_frames();
         Self { buf, available }
     }

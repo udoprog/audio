@@ -107,13 +107,11 @@ where
 
     /// Allocate an audio buffer from a fixed-size array.
     ///
-    /// See [dynamic!].
+    /// See [sequential!].
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::BitSet;
-    ///
     /// let mut buffer = rotary::sequential![[2.0; 256]; 4];
     ///
     /// assert_eq!(buffer.frames(), 256);
@@ -128,6 +126,42 @@ where
             data,
             channels,
             frames,
+        }
+    }
+
+    /// Allocate an audio buffer from a fixed-size array acting as a template
+    /// for all the channels.
+    ///
+    /// See [sequential!].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let mut buffer = rotary::Sequential::from_frames([1.0, 2.0, 3.0, 4.0], 2);
+    ///
+    /// assert_eq!(buffer.frames(), 4);
+    /// assert_eq!(buffer.channels(), 2);
+    ///
+    /// assert_eq!(buffer.as_slice(), &[1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0, 4.0]);
+    /// ```
+    pub fn from_frames<const N: usize>(frames: [T; N], channels: usize) -> Self {
+        return Self {
+            data: data_from_frames(frames, channels),
+            channels,
+            frames: N,
+        };
+
+        fn data_from_frames<T, const N: usize>(frames: [T; N], channels: usize) -> Vec<T>
+        where
+            T: Sample,
+        {
+            let mut data = Vec::with_capacity(N * channels);
+
+            for _ in 0..channels {
+                data.extend(std::array::IntoIter::new(frames));
+            }
+
+            data
         }
     }
 
@@ -154,6 +188,7 @@ where
     ///
     /// ```rust
     /// let mut buffer = rotary::Sequential::<f32>::with_topology(2, 4);
+    ///
     /// buffer[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
     /// buffer[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
     ///
