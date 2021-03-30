@@ -46,6 +46,8 @@ where
     let resample = rotary::Sequential::with_topology(config.channels as usize, CHUNK_SIZE);
 
     let mut writer = Writer {
+        frames: 0,
+        seconds: 0.0,
         decoder,
         pcm: minimp3::Pcm::new(),
         resampler: None,
@@ -81,6 +83,10 @@ struct Writer<R>
 where
     R: io::Read,
 {
+    // Frame counter.
+    frames: usize,
+    // Last second counter.
+    seconds: f32,
     // The open mp3 decoder.
     decoder: minimp3::Decoder<R>,
     // Buffer used for mp3 decoding.
@@ -113,6 +119,7 @@ where
         use rubato::Resampler;
 
         let mut data = rotary::wrap::interleaved(data, self.device_channels);
+        let frames = data.remaining_mut();
 
         // Run the loop while there is buffer to fill.
         while data.has_remaining_mut() {
@@ -152,10 +159,9 @@ where
                     &rotary::mask::all(),
                 )?;
 
-                let frames = self.output.as_ref().frames();
-
                 self.resample.clear();
-
+                let frames = self.output.as_ref().frames();
+                self.output.set_read(0);
                 self.output.set_written(frames);
                 continue;
             }
@@ -187,6 +193,18 @@ where
             }
 
             self.last_frame = Some((frame, pcm.frames()));
+        }
+
+        self.frames += frames - data.remaining_mut();
+
+        let seconds = self.frames as f32 / self.device_sample_rate as f32;
+
+        if seconds.floor() > self.seconds {
+            use std::io::Write as _;
+            let mut o = std::io::stdout();
+            write!(o, "\r{}", seconds.floor())?;
+            o.flush()?;
+            self.seconds = seconds;
         }
 
         Ok(())
