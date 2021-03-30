@@ -153,7 +153,9 @@ where
                 )?;
 
                 let frames = self.output.as_ref().frames();
+
                 self.resample.clear();
+
                 self.output.set_written(frames);
                 continue;
             }

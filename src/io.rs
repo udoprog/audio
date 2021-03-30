@@ -7,6 +7,9 @@ use crate::buf::Buf;
 use crate::sample::Sample;
 use crate::translate::Translate;
 
+#[cfg(test)]
+mod tests;
+
 mod read;
 pub use self::read::Read;
 

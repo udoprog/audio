@@ -244,16 +244,17 @@ where
     ///
     /// This is provided as a special operation for this buffer kind, because it
     /// can be done more efficiently than what is available through
-    /// [Buf::offset].
-    pub fn interleaved_offset(&self, offset: usize) -> wrap::Interleaved<&[T]> {
-        wrap::interleaved(&self.data[offset * self.channels..], self.channels)
+    /// [Buf::skip].
+    pub fn interleaved_skip(&self, skip: usize) -> wrap::Interleaved<&[T]> {
+        let data = self.data.get(skip * self.channels..).unwrap_or_default();
+        wrap::interleaved(data, self.channels)
     }
 
     /// Offset the interleaved buffer and return a mutable wrapped buffer.
     ///
     /// This is provided as a special operation for this buffer kind, because it
     /// can be done more efficiently than what is available through
-    /// [Buf::offset].
+    /// [Buf::skip].
     ///
     /// # Examples
     ///
@@ -262,12 +263,17 @@ where
     ///
     /// let mut buffer = rotary::Interleaved::with_topology(2, 4);
     ///
-    /// buffer.interleaved_offset_mut(2).channel_mut(0).copy_from_slice(&[1.0, 1.0]);
+    /// buffer.interleaved_skip_mut(2).channel_mut(0).copy_from_slice(&[1.0, 1.0]);
     ///
     /// assert_eq!(buffer.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
     /// ```
-    pub fn interleaved_offset_mut(&mut self, offset: usize) -> wrap::Interleaved<&mut [T]> {
-        wrap::interleaved(&mut self.data[offset * self.channels..], self.channels)
+    pub fn interleaved_skip_mut(&mut self, skip: usize) -> wrap::Interleaved<&mut [T]> {
+        let data = self
+            .data
+            .get_mut(skip * self.channels..)
+            .unwrap_or_default();
+
+        wrap::interleaved(data, self.channels)
     }
 
     /// Limit the interleaved buffer and return a wrapped buffer.

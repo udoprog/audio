@@ -110,9 +110,9 @@ macro_rules! forward {
     };
 }
 
-/// A mutable iterator over the channels in the buffer.
+/// An iterator over the channels in the buffer.
 ///
-/// Created with [Dynamic::iter_mut].
+/// Created with [Dynamic::iter][crate::Dynamic::iter].
 pub struct Iter<'a, T>
 where
     T: Sample,
@@ -176,7 +176,7 @@ where
 
 /// A mutable iterator over the channels in the buffer.
 ///
-/// Created with [Dynamic::iter_mut].
+/// Created with [Dynamic::iter_mut][crate::Dynamic::iter_mut].
 pub struct IterMut<'a, T>
 where
     T: Sample,

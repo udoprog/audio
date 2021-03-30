@@ -1,4 +1,5 @@
 use crate::buf::{Buf, BufInfo, BufMut};
+use crate::channel::{Channel, ChannelMut};
 use crate::io::{ReadBuf, WriteBuf};
 use crate::sample::Sample;
 use crate::translate::Translate;
@@ -41,14 +42,65 @@ where
         Self { buf, available }
     }
 
-    /// Access the underlying buffer immutably.
+    /// Access the underlying buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::io::Write;
+    /// use rotary::{Buf as _, WriteBuf as _};
+    ///
+    /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut buffer = Write::new(buffer);
+    ///
+    /// buffer.copy(rotary::wrap::interleaved(&[0i16; 16][..], 4));
+    ///
+    /// assert_eq!(buffer.as_ref().channels(), 4);
+    /// ```
     pub fn as_ref(&self) -> &B {
         &self.buf
     }
 
     /// Access the underlying buffer mutably.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::io::Write;
+    /// use rotary::{Buf as _, WriteBuf as _};
+    ///
+    /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut buffer = Write::new(buffer);
+    ///
+    /// buffer.copy(rotary::wrap::interleaved(&[0i16; 16][..], 4));
+    ///
+    /// buffer.as_mut().resize_channels(2);
+    ///
+    /// assert_eq!(buffer.channels(), 2);
+    /// ```
     pub fn as_mut(&mut self) -> &mut B {
         &mut self.buf
+    }
+
+    /// Convert into the underlying buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::io::Write;
+    /// use rotary::{Buf as _, WriteBuf as _};
+    ///
+    /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut buffer = Write::new(buffer);
+    ///
+    /// buffer.copy(rotary::wrap::interleaved(&[0i16; 16][..], 4));
+    ///
+    /// let buffer = buffer.into_inner();
+    ///
+    /// assert_eq!(buffer.channels(), 4);
+    /// ```
+    pub fn into_inner(self) -> B {
+        self.buf
     }
 }
 
@@ -84,5 +136,38 @@ where
         crate::utils::translate(&buf, (&mut self.buf).tail(self.available));
         self.available = self.available.saturating_sub(len);
         buf.advance(len);
+    }
+}
+
+impl<B> BufInfo for Write<B>
+where
+    B: BufInfo,
+{
+    fn buf_info_frames(&self) -> usize {
+        self.buf.buf_info_frames()
+    }
+
+    fn buf_info_channels(&self) -> usize {
+        self.buf.buf_info_channels()
+    }
+}
+
+impl<B, T> Buf<T> for Write<B>
+where
+    B: Buf<T>,
+    T: Sample,
+{
+    fn channel(&self, channel: usize) -> Channel<'_, T> {
+        self.buf.channel(channel)
+    }
+}
+
+impl<B, T> BufMut<T> for Write<B>
+where
+    B: BufMut<T>,
+    T: Sample,
+{
+    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
+        self.buf.channel_mut(channel).tail(self.available)
     }
 }

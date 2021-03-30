@@ -55,9 +55,9 @@ pub struct ReadWrite<B> {
     buf: B,
     // Number of bytes available for reading. Conversely, the number of bytes
     // available for writing is the length of the buffer subtracted by this.
-    read_at: usize,
+    read: usize,
     // The position in frames to write at.
-    write_at: usize,
+    written: usize,
 }
 
 impl<B> ReadWrite<B> {
@@ -65,33 +65,95 @@ impl<B> ReadWrite<B> {
     pub fn new(buf: B) -> Self {
         Self {
             buf,
-            read_at: 0,
-            write_at: 0,
+            read: 0,
+            written: 0,
         }
     }
 
     /// Access the underlying buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::io::ReadWrite;
+    /// use rotary::WriteBuf as _;
+    ///
+    /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut buffer = ReadWrite::new(buffer);
+    ///
+    /// let from = rotary::wrap::interleaved(&[1i16, 2i16, 3i16, 4i16][..], 2);
+    ///
+    /// buffer.translate(from);
+    ///
+    /// assert_eq!(buffer.as_ref().channels(), 4);
+    /// ```
     pub fn as_ref(&self) -> &B {
         &self.buf
     }
 
     /// Access the underlying buffer mutably.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::io::ReadWrite;
+    /// use rotary::{Buf as _, WriteBuf as _};
+    ///
+    /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut buffer = ReadWrite::new(buffer);
+    ///
+    /// let from = rotary::wrap::interleaved(&[1i16, 2i16, 3i16, 4i16][..], 2);
+    ///
+    /// buffer.translate(from);
+    ///
+    /// buffer.as_mut().resize_channels(2);
+    ///
+    /// assert_eq!(buffer.channels(), 2);
+    /// ```
     pub fn as_mut(&mut self) -> &mut B {
         &mut self.buf
     }
 
-    /// Explicitly clear the number of frames read and written to allow for
-    /// re-using the underlying buffer, assuming it's been fully consumed.
-    pub fn clear(&mut self) {
-        self.read_at = 0;
-        self.write_at = 0;
+    /// Convert into the underlying buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::io::ReadWrite;
+    /// use rotary::WriteBuf as _;
+    ///
+    /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut buffer = ReadWrite::new(buffer);
+    ///
+    /// let from = rotary::wrap::interleaved(&[1i16, 2i16, 3i16, 4i16][..], 2);
+    ///
+    /// buffer.translate(from);
+    ///
+    /// let buffer = buffer.into_inner();
+    ///
+    /// assert_eq!(buffer.channels(), 4);
+    /// ```
+    pub fn into_inner(self) -> B {
+        self.buf
     }
 
-    /// Explicitly set the number of frames that has been written, it is assumed
-    /// that we read from 0 when this is called.
+    /// Clear the state of the read / write adapter, setting both read and
+    /// written to zero.
+    pub fn clear(&mut self) {
+        self.read = 0;
+        self.written = 0;
+    }
+
+    /// Set the number of frames which have been read.
+    ///
+    /// This is clamped to always be < written.
+    pub fn set_read(&mut self, read: usize) {
+        self.read = usize::min(read, self.written);
+    }
+
+    /// Set the number of frames which have been written.
     pub fn set_written(&mut self, written: usize) {
-        self.read_at = 0;
-        self.write_at = written;
+        self.written = written;
     }
 }
 
@@ -115,17 +177,17 @@ where
 {
     fn channel(&self, channel: usize) -> crate::Channel<'_, T> {
         let len = self.remaining();
-        self.buf.channel(channel).skip(self.read_at).limit(len)
+        self.buf.channel(channel).skip(self.read).limit(len)
     }
 }
 
 impl<B> ReadBuf for ReadWrite<B> {
     fn remaining(&self) -> usize {
-        self.write_at.saturating_sub(self.read_at)
+        self.written.saturating_sub(self.read)
     }
 
     fn advance(&mut self, n: usize) {
-        self.read_at = self.read_at.saturating_add(n);
+        self.read = self.read.saturating_add(n);
     }
 }
 
@@ -135,7 +197,7 @@ where
     T: Sample,
 {
     fn remaining_mut(&self) -> usize {
-        self.buf.buf_info_frames().saturating_sub(self.write_at)
+        self.buf.buf_info_frames().saturating_sub(self.written)
     }
 
     fn copy<I>(&mut self, mut buf: I)
@@ -143,8 +205,8 @@ where
         I: ReadBuf + Buf<T>,
     {
         let len = usize::min(self.remaining_mut(), buf.remaining());
-        crate::utils::copy(&buf, (&mut self.buf).skip(self.write_at));
-        self.write_at = self.write_at.saturating_add(len);
+        crate::utils::copy(&buf, (&mut self.buf).skip(self.written));
+        self.written = self.written.saturating_add(len);
         buf.advance(len);
     }
 
@@ -155,8 +217,8 @@ where
         U: Sample,
     {
         let len = usize::min(self.remaining_mut(), buf.remaining());
-        crate::utils::translate(&buf, (&mut self.buf).skip(self.write_at));
-        self.write_at = self.write_at.saturating_add(len);
+        crate::utils::translate(&buf, (&mut self.buf).skip(self.written));
+        self.written = self.written.saturating_add(len);
         buf.advance(len);
     }
 }
