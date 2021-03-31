@@ -8,9 +8,8 @@ edition = "2018"
 
 [dependencies]
 rotary = {version = "0.27.0", path = "../rotary"}
-bittle = {version = "0.1.0", path = "../bittle"}
+bittle = "0.1.0"
 cpal = "0.13.3"
 minimp3 = {git = "https://github.com/udoprog/minimp3-rs", branch = "reuse-pcm"}
-# rubato = {git = "https://github.com/udoprog/rubato", branch = "next"}
-rubato = {path = "../../rubato"}
+rubato = {git = "https://github.com/udoprog/rubato", branch = "next"}
 anyhow = "1.0.40"
