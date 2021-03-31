@@ -1,24 +1,7 @@
-[package]
-name = "rotary"
-version = "0.26.0"
-authors = ["John-John Tedro <udoprog@tedro.se>"]
-edition = "2018"
-license = "MIT/Apache-2.0"
-keywords = ["buffer", "audio", "dsp"]
-categories = ["multimedia::audio"]
-repository = "https://github.com/udoprog/rotary"
-homepage = "https://github.com/udoprog/rotary"
-documentation = "https://docs.rs/rotary"
-description = "A library for working with audio buffers"
-readme = "README.md"
-
-[dev-dependencies]
-rand = "0.8.3"
-
 [workspace]
-members = [
-    "examples"
-]
+resolver = "2"
 
-[patch.crates-io]
-rotary = {path = "."}
+members = [
+    "rotary",
+    "rotary-core",
+]

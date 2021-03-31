@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rotary = "0.26.0"
+rotary = {version = "0.26.0", path = "../rotary"}
 cpal = "0.13.3"
 minimp3 = {git = "https://github.com/udoprog/minimp3-rs", branch = "reuse-pcm"}
 rubato = {git = "https://github.com/udoprog/rubato", branch = "next"}

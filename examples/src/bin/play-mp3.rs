@@ -5,7 +5,7 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-const CHUNK_SIZE: usize = 1024;
+const CHUNK_SIZE: usize = 4096;
 
 fn main() -> anyhow::Result<()> {
     let mut args = std::env::args_os();
