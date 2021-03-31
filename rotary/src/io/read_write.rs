@@ -1,6 +1,6 @@
-use crate::buf::{Buf, BufMut, ExactSizeBuf};
-use crate::io::{ReadBuf, WriteBuf};
-use crate::translate::Translate;
+use rotary_core::Translate;
+use rotary_core::{Buf, BufMut, ExactSizeBuf};
+use rotary_core::{ReadBuf, WriteBuf};
 
 /// Make any mutable buffer into a write adapter that implements
 /// [ReadBuf] and [WriteBuf].

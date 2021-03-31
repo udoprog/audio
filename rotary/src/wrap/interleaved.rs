@@ -121,7 +121,7 @@ impl<T> WriteBuf<T> for Interleaved<&'_ mut [T]> {
         T: Copy,
     {
         let len = usize::min(self.remaining_mut(), buf.remaining());
-        crate::utils::copy(&buf, &mut *self);
+        crate::io::copy(&buf, &mut *self);
         let end = usize::min(self.value.len(), len * self.channels);
         let value = std::mem::take(&mut self.value);
         self.value = &mut value[end..];
@@ -135,7 +135,7 @@ impl<T> WriteBuf<T> for Interleaved<&'_ mut [T]> {
         U: Copy,
     {
         let len = usize::min(self.remaining_mut(), buf.remaining());
-        crate::utils::translate(&buf, &mut *self);
+        crate::io::translate(&buf, &mut *self);
         let end = usize::min(self.value.len(), len * self.channels);
         let value = std::mem::take(&mut self.value);
         self.value = &mut value[end..];

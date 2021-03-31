@@ -26,8 +26,8 @@ pub fn translate<I, O, U, T>(from: I, mut to: O)
 where
     I: Buf<U>,
     O: BufMut<T>,
-    U: Copy,
     T: Translate<U>,
+    U: Copy,
 {
     let end = usize::min(from.channels(), to.channels());
 

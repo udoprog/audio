@@ -1,6 +1,6 @@
-use crate::buf::{Buf, ExactSizeBuf};
-use crate::channel::Channel;
-use crate::io::ReadBuf;
+use rotary_core::Channel;
+use rotary_core::ReadBuf;
+use rotary_core::{Buf, ExactSizeBuf};
 
 /// Make a buffer into a read adapter that implements [ReadBuf].
 ///

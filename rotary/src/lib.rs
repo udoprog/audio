@@ -107,10 +107,10 @@
 mod macros;
 pub mod dynamic;
 pub mod interleaved;
+pub mod io;
 pub mod sequential;
 #[cfg(test)]
 mod tests;
-pub mod utils;
 pub mod wrap;
 
 pub use self::dynamic::Dynamic;

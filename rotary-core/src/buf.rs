@@ -131,7 +131,7 @@ pub trait Buf<T> {
     /// let from = rotary::interleaved![[1.0f32; 4]; 2];
     /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
     ///
-    /// rotary::utils::copy(from, (&mut to).tail(2));
+    /// rotary::io::copy(from, (&mut to).tail(2));
     ///
     /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0]);
     /// ```
