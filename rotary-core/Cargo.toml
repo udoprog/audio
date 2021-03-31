@@ -10,7 +10,7 @@ repository = "https://github.com/udoprog/rotary"
 homepage = "https://github.com/udoprog/rotary"
 documentation = "https://docs.rs/rotary"
 description = "A library for working with audio buffers"
-readme = "../README.md"
+readme = "README.md"
 
 [dev-dependencies]
-rotary = {version = "0.26.0", path = "../rotary"}
+rotary = {version = "0.27.0", path = "../rotary"}

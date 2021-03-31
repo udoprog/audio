@@ -8,9 +8,41 @@
 //! vector has a fixed size. And the buffer makes no attempt to clear data which
 //! is freed when using functions such as [Dynamic::resize].
 //!
-//! # Example: Playing mp3 files
+//! # Formats and topologies
+//!
+//! The following are the three canonical audio formats which are supported by
+//! this library:
+//! * [dynamic][Dynamic] - where each channel is stored in its own
+//!   heap-allocated buffer.
+//! * [interleaved][Interleaved] - where each channel is interleaved, like
+//!   `0:0, 1:0, 1:0, 1:1`.
+//! * [sequential][Sequential] - where each channel is stored in a linear
+//!   buffer, one after another. Like `0:0, 0:1, 1:0, 1:0`.
+//!
+//! These all implement the [Buf] and [BufMut] traits, allowing library authors
+//! to abstract over any one specific format. The exact channel and frame count
+//! of a buffer is known as its *topology*.
+//!
+//! ```rust
+//! use rotary::BufMut as _;
+//!
+//! let dynamic = rotary::dynamic![[0i16; 4]; 2];
+//! let interleaved = rotary::interleaved![[0i16; 4]; 2];
+//! let sequential = rotary::sequential![[0i16; 4]; 2];
+//!
+//! dynamic.channel_mut(0).copy_from_iter(0i16..);
+//! interleaved.channel_mut(0).copy_from_iter(0i16..);
+//! sequential.channel_mut(0).copy_from_iter(0i16..);
+//! ```
+//!
+//! We also support [wrapping][wrap] external buffers so that they can
+//! interoperate like other rotary buffers.
+//!
+//! # Example: [play-mp3]
 //!
 //! Play an mp3 file with [minimp3-rs], [cpal], and [rubato] for resampling.
+//!
+//! This example can handle with any channel and sample rate configuration.
 //!
 //! ```bash
 //! cargo run --release --package rotary-examples --bin play-mp3 -- path/to/file.mp3
@@ -32,39 +64,11 @@
 //! rng.fill(&mut buffer[1]);
 //! ```
 //!
-//! You can use the included [Mask] trait to separately keep track of active and
-//! inactive channels in an audio buffer. This requires that you specify the
-//! type of the mask. A good option for this is a [BitSet<u128>], which supports
-//! up to 128 channels.
+//! For convenience we also provide several macros for constructing various
+//! forms of dynamic audio buffers. These should mostly be used for testing.
 //!
 //! ```rust
-//! use rotary::{BitSet, Mask as _};
-//!
-//! let mut buffer = rotary::Dynamic::<f32>::with_topology(4, 1024);
-//! let mask: rotary::BitSet<u128> = rotary::bit_set![0, 2, 3];
-//!
-//! for chan in mask.join(buffer.iter_mut()) {
-//!     for b in chan {
-//!         *b = 1.0;
-//!     }
-//! }
-//!
-//! let zeroed = vec![0.0f32; 1024];
-//! let expected = vec![1.0f32; 1024];
-//!
-//! assert_eq!(&buffer[0], &expected[..]);
-//! assert_eq!(&buffer[1], &zeroed[..]);
-//! assert_eq!(&buffer[2], &expected[..]);
-//! assert_eq!(&buffer[3], &expected[..]);
-//! ```
-//!
-//! For convenience we also provide the [dynamic!] macro when constructing
-//! audio buffers.
-//!
-//! ```rust
-//! use rotary::BitSet;
-//!
-//! let mut buf = rotary::Dynamic::<f32>::with_topology(4, 128);
+//! let mut buf = rotary::Dynamic::<f32>::with_topology(4, 8);
 //!
 //! for channel in &mut buf {
 //!     for f in channel {
@@ -72,7 +76,15 @@
 //!     }
 //! }
 //!
-//! assert_eq!(buf, rotary::dynamic![[2.0; 128]; 4])
+//! assert_eq! {
+//!     buf,
+//!     rotary::dynamic![[2.0; 8]; 4],
+//! };
+//!
+//! assert_eq! {
+//!     buf,
+//!     rotary::dynamic![[2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0]; 4],
+//! };
 //! ```
 //!
 //! [play-mp3]: https://github.com/udoprog/rotary/tree/main/examples/src/bin/play-mp3.rs
@@ -82,25 +94,27 @@
 //! [Dynamic::resize]: https://docs.rs/rotary/0/rotary/dynamic/struct.Dynamic.html#method.resize
 //! [BitSet<u128>]: https://docs.rs/rotary/0/rotary/bit_set/struct.BitSet.html
 //! [dynamic!]: https://docs.rs/rotary/0/rotary/macros/macro.dynamic.html
+//! [Dynamic]: https://docs.rs/rotary/0/rotary/dynamic/struct.Dynamic.html
+//! [Interleaved]: https://docs.rs/rotary/0/rotary/interleaved/struct.Interleaved.html
+//! [Sequential]: https://docs.rs/rotary/0/rotary/sequential/struct.Sequential.html
+//! [wrap]: https://docs.rs/rotary/0/rotary/wrap/index.html
+//! [Buf]: https://docs.rs/rotaryc-re/0/rotary/trait.Buf.html
+//! [BufMut]: https://docs.rs/rotaryc-re/0/rotary/trait.BufMut.html
 
 #![deny(missing_docs)]
 
 #[macro_use]
 mod macros;
-pub mod bit_set;
 pub mod dynamic;
 pub mod interleaved;
-pub mod mask;
 pub mod sequential;
 #[cfg(test)]
 mod tests;
 pub mod utils;
 pub mod wrap;
 
-pub use self::bit_set::BitSet;
 pub use self::dynamic::Dynamic;
 pub use self::interleaved::Interleaved;
-pub use self::mask::Mask;
 pub use self::sequential::Sequential;
 
 pub use rotary_core::*;

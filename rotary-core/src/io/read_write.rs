@@ -1,4 +1,4 @@
-use crate::buf::{Buf, BufInfo, BufMut};
+use crate::buf::{Buf, BufMut, ExactSizeBuf};
 use crate::io::{ReadBuf, WriteBuf};
 use crate::translate::Translate;
 
@@ -96,7 +96,7 @@ impl<B> ReadWrite<B> {
     ///
     /// ```rust
     /// use rotary::io::ReadWrite;
-    /// use rotary::{Buf as _, WriteBuf as _, BufInfo as _};
+    /// use rotary::{Buf as _, WriteBuf as _};
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
     /// let mut buffer = ReadWrite::new(buffer);
@@ -156,16 +156,12 @@ impl<B> ReadWrite<B> {
     }
 }
 
-impl<B> BufInfo for ReadWrite<B>
+impl<B> ExactSizeBuf for ReadWrite<B>
 where
-    B: BufInfo,
+    B: ExactSizeBuf,
 {
     fn frames(&self) -> usize {
         self.buf.frames()
-    }
-
-    fn channels(&self) -> usize {
-        self.buf.channels()
     }
 }
 
@@ -173,6 +169,14 @@ impl<B, T> Buf<T> for ReadWrite<B>
 where
     B: Buf<T>,
 {
+    fn frames_hint(&self) -> Option<usize> {
+        self.buf.frames_hint()
+    }
+
+    fn channels(&self) -> usize {
+        self.buf.channels()
+    }
+
     fn channel(&self, channel: usize) -> crate::Channel<'_, T> {
         let len = self.remaining();
         self.buf.channel(channel).skip(self.read).limit(len)
@@ -191,7 +195,7 @@ impl<B> ReadBuf for ReadWrite<B> {
 
 impl<B, T> WriteBuf<T> for ReadWrite<B>
 where
-    B: BufMut<T>,
+    B: ExactSizeBuf + BufMut<T>,
 {
     fn remaining_mut(&self) -> usize {
         self.buf.frames().saturating_sub(self.written)

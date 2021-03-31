@@ -115,7 +115,7 @@ where
     where
         T: 'static + Send + rotary::Sample + rotary::Translate<f32>,
     {
-        use rotary::{Buf as _, ReadBuf as _, WriteBuf as _};
+        use rotary::{Buf, ExactSizeBuf, ReadBuf, WriteBuf};
         use rubato::Resampler;
 
         let mut data = rotary::wrap::interleaved(data, self.device_channels);
@@ -156,7 +156,7 @@ where
                 resampler.process_with_buffer(
                     &self.resample,
                     &mut self.output.as_mut(),
-                    &rotary::mask::all(),
+                    &bittle::all(),
                 )?;
 
                 self.resample.clear();

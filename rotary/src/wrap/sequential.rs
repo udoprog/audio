@@ -1,4 +1,4 @@
-use rotary_core::{Buf, BufInfo, BufMut};
+use rotary_core::{Buf, BufMut, ExactSizeBuf};
 use rotary_core::{Channel, ChannelMut};
 
 /// A wrapper for a type that is interleaved.
@@ -13,49 +13,53 @@ impl<T> Sequential<T> {
     }
 }
 
-impl<T> BufInfo for Sequential<&'_ [T]> {
-    fn frames(&self) -> usize {
-        self.frames
-    }
+macro_rules! impl_buf {
+    ([$($p:tt)*] , $ty:ty $(, $len:ident)?) => {
+        impl<$($p)*> ExactSizeBuf for Sequential<$ty> {
+            fn frames(&self) -> usize {
+                self.frames
+            }
+        }
 
-    fn channels(&self) -> usize {
-        self.value.len() / self.frames
-    }
+        impl<$($p)*> Buf<T> for Sequential<$ty> {
+            fn frames_hint(&self) -> Option<usize> {
+                Some(self.frames)
+            }
+
+            fn channels(&self) -> usize {
+                impl_buf!(@frames self, $($len)*) / self.frames
+            }
+
+            fn channel(&self, channel: usize) -> Channel<'_, T> {
+                let value = &self.value[channel * self.frames..];
+                let value = &value[..self.frames];
+                Channel::linear(value)
+            }
+        }
+    };
+
+    (@frames $s:ident,) => { $s.value.len() };
+    (@frames $_:ident, $n:ident) => { $n };
 }
 
-impl<T> BufInfo for Sequential<&'_ mut [T]> {
-    fn frames(&self) -> usize {
-        self.frames
-    }
+impl_buf!([T], &'_ [T]);
+impl_buf!([T], &'_ mut [T]);
+impl_buf!([T, const N: usize], [T; N], N);
+impl_buf!([T, const N: usize], &'_ [T; N], N);
+impl_buf!([T, const N: usize], &'_ mut [T; N], N);
 
-    fn channels(&self) -> usize {
-        self.value.len() / self.frames
-    }
+macro_rules! impl_buf_mut {
+    ([$($p:tt)*], $ty:ty) => {
+        impl<$($p)*> BufMut<T> for Sequential<$ty> {
+            fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
+                let value = &mut self.value[channel * self.frames..];
+                let value = &mut value[..self.frames];
+
+                ChannelMut::linear(value)
+            }
+        }
+    };
 }
 
-impl<T> Buf<T> for Sequential<&'_ [T]> {
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
-        let value = &self.value[channel * self.frames..];
-        let value = &value[..self.frames];
-
-        Channel::linear(value)
-    }
-}
-
-impl<T> Buf<T> for Sequential<&'_ mut [T]> {
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
-        let value = &self.value[channel * self.frames..];
-        let value = &value[..self.frames];
-
-        Channel::linear(value)
-    }
-}
-
-impl<T> BufMut<T> for Sequential<&'_ mut [T]> {
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
-        let value = &mut self.value[channel * self.frames..];
-        let value = &mut value[..self.frames];
-
-        ChannelMut::linear(value)
-    }
-}
+impl_buf_mut!([T], &'_ mut [T]);
+impl_buf_mut!([T, const N: usize], &'_ mut [T; N]);

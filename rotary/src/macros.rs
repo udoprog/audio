@@ -12,6 +12,15 @@
 /// assert_eq!(&buf[0], &expected[..]);
 /// assert_eq!(&buf[1], &expected[..]);
 /// ```
+///
+/// Calling the macro with a template channel.
+///
+/// ```rust
+/// let buf = rotary::dynamic![[0.0, 1.0, 2.0, 3.0]; 2];
+///
+/// assert_eq!(buf[0].as_slice(), &[0.0, 1.0, 2.0, 3.0]);
+/// assert_eq!(buf[1].as_slice(), &[0.0, 1.0, 2.0, 3.0]);
+/// ```
 #[macro_export]
 macro_rules! dynamic {
     // Branch of the macro used when we can perform a literal instantiation of
@@ -40,6 +49,11 @@ macro_rules! dynamic {
 
         buffer
     }};
+
+    // Build a dynamic audio buffer with a template channel.
+    ([$($value:expr),* $(,)?]; $channels:expr) => {
+        $crate::Dynamic::from_frames([$($value),*], $channels)
+    };
 }
 
 /// Construct a sequential audio buffer.
@@ -117,24 +131,5 @@ macro_rules! interleaved {
     // Build an interleaved audio buffer with a template channel.
     ([$($value:expr),* $(,)?]; $channels:expr) => {
         $crate::Interleaved::from_frames([$($value),*], $channels)
-    };
-}
-
-/// Construct a bit set with specific values set.
-///
-/// # Examples
-///
-/// ```rust
-/// let mask: rotary::BitSet<u128> = rotary::bit_set![0, 1, 3];
-///
-/// assert!(mask.test(0));
-/// assert!(mask.test(1));
-/// assert!(!mask.test(2));
-/// assert!(mask.test(3));
-/// ```
-#[macro_export]
-macro_rules! bit_set {
-    ($($set:expr),* $(,)?) => {
-        $crate::bit_set::BitSet::from_array([$($set,)*])
     };
 }

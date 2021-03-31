@@ -1,5 +1,6 @@
 //! A fixed size bit set.
 
+use crate::mask::Mask;
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -9,7 +10,7 @@ use std::hash;
 /// # Examples
 ///
 /// ```rust
-/// let mut set = rotary::BitSet::<u128>::empty();
+/// let mut set = bittle::BitSet::<u128>::empty();
 ///
 /// assert!(!set.test(1));
 /// set.set(1);
@@ -21,7 +22,7 @@ use std::hash;
 /// The bit set can also use arrays as its backing storage.
 ///
 /// ```rust
-/// let mut set = rotary::BitSet::<[u64; 16]>::empty();
+/// let mut set = bittle::BitSet::<[u64; 16]>::empty();
 ///
 /// assert!(!set.test(172));
 /// set.set(172);
@@ -33,8 +34,8 @@ use std::hash;
 /// Two bit sets of different kinds can be compared to each other.
 ///
 /// ```rust
-/// let mut a = rotary::BitSet::<[u64; 2]>::empty();
-/// let mut b = rotary::BitSet::<u128>::empty();
+/// let mut a = bittle::BitSet::<[u64; 2]>::empty();
+/// let mut b = bittle::BitSet::<u128>::empty();
 ///
 /// assert_eq!(a, b);
 ///
@@ -73,7 +74,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let set = rotary::BitSet::<u128>::empty();
+    /// let set = bittle::BitSet::<u128>::empty();
     ///
     /// assert_eq!(set.iter().collect::<Vec<_>>(), vec![])
     /// ```
@@ -87,7 +88,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let set = rotary::BitSet::<u128>::full();
+    /// let set = bittle::BitSet::<u128>::full();
     ///
     /// assert_eq!(set.iter().collect::<Vec<_>>(), (0..128usize).collect::<Vec<_>>())
     /// ```
@@ -100,7 +101,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut set = rotary::BitSet::<u128>::full();
+    /// let mut set = bittle::BitSet::<u128>::full();
     ///
     /// assert!(set.test(0));
     /// assert!(set.test(1));
@@ -121,7 +122,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut set = rotary::BitSet::<u128>::full();
+    /// let mut set = bittle::BitSet::<u128>::full();
     ///
     /// assert!(set.test(0));
     /// assert!(set.test(1));
@@ -148,7 +149,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut set = rotary::BitSet::<u128>::full();
+    /// let mut set = bittle::BitSet::<u128>::full();
     ///
     /// assert!(set.test(0));
     /// assert!(set.test(1));
@@ -175,7 +176,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut set = rotary::BitSet::<u128>::empty();
+    /// let mut set = bittle::BitSet::<u128>::empty();
     ///
     /// set.set(3);
     /// set.set(7);
@@ -186,9 +187,9 @@ where
     /// A larger bit set:
     ///
     /// ```rust
-    /// use rotary::Mask as _;
+    /// use bittle::Mask as _;
     ///
-    /// let mut set = rotary::BitSet::<[u32; 4]>::empty();
+    /// let mut set = bittle::BitSet::<[u32; 4]>::empty();
     ///
     /// set.set(4);
     /// set.set(63);
@@ -450,5 +451,22 @@ where
 
     fn iter(self) -> Self::Iter {
         ArrayIter { bits: self, o: 0 }
+    }
+}
+
+impl<T> Mask for BitSet<T>
+where
+    T: Bits,
+{
+    type Iter = T::Iter;
+
+    #[inline]
+    fn test(&self, index: usize) -> bool {
+        <BitSet<T>>::test(self, index)
+    }
+
+    #[inline]
+    fn iter(&self) -> Self::Iter {
+        <BitSet<T>>::iter(self)
     }
 }

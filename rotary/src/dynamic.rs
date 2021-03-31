@@ -1,6 +1,6 @@
 //! A dynamically sized, multi-channel audio buffer.
 
-use rotary_core::{Buf, BufInfo, BufMut, Channel, ChannelMut, ResizableBuf, Sample};
+use rotary_core::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, ResizableBuf, Sample};
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -104,8 +104,6 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::BitSet;
-    ///
     /// let mut buffer = rotary::Dynamic::<f32>::from_array([[2.0; 256]; 4]);
     ///
     /// assert_eq!(buffer.frames(), 256);
@@ -146,6 +144,53 @@ impl<T> Dynamic<T> {
 
             RawSlice {
                 data: ptr::NonNull::new_unchecked(mem::ManuallyDrop::new(data).as_mut_ptr()),
+            }
+        }
+    }
+
+    /// Allocate a dynamic audio buffer from a fixed-size array acting as a
+    /// template for all the channels.
+    ///
+    /// See [dynamic!].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let mut buffer = rotary::Dynamic::from_frames([1.0, 2.0, 3.0, 4.0], 4);
+    ///
+    /// assert_eq!(buffer.frames(), 4);
+    /// assert_eq!(buffer.channels(), 4);
+    /// ```
+    pub fn from_frames<const N: usize>(frames: [T; N], channels: usize) -> Self
+    where
+        T: Copy,
+    {
+        return Self {
+            data: data_from_frames(frames, channels),
+            channels,
+            channels_cap: channels,
+            frames: N,
+            frames_cap: N,
+        };
+
+        fn data_from_frames<T, const N: usize>(
+            frames: [T; N],
+            channels: usize,
+        ) -> RawSlice<RawSlice<T>>
+        where
+            T: Copy,
+        {
+            // Safety: we control and can trust all of the allocated buffer sizes.
+            unsafe {
+                let mut data = RawSlice::uninit(channels);
+
+                for c in 0..channels {
+                    let slice = RawSlice::uninit(N);
+                    ptr::copy_nonoverlapping(frames.as_ptr(), slice.as_ptr(), N);
+                    data.write(c, slice);
+                }
+
+                data
             }
         }
     }
@@ -677,17 +722,21 @@ impl<T> Drop for Dynamic<T> {
     }
 }
 
-impl<T> BufInfo for Dynamic<T> {
+impl<T> ExactSizeBuf for Dynamic<T> {
     fn frames(&self) -> usize {
         self.frames
+    }
+}
+
+impl<T> Buf<T> for Dynamic<T> {
+    fn frames_hint(&self) -> Option<usize> {
+        Some(self.frames)
     }
 
     fn channels(&self) -> usize {
         self.channels
     }
-}
 
-impl<T> Buf<T> for Dynamic<T> {
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         Channel::linear(&self[channel])
     }
@@ -843,6 +892,11 @@ impl<T> RawSlice<T> {
     /// not out of bounds.
     unsafe fn write(&mut self, n: usize, value: T) {
         ptr::write(self.data.as_ptr().add(n), value)
+    }
+
+    /// Get the raw base pointer of the slice.
+    fn as_ptr(self) -> *mut T {
+        self.data.as_ptr()
     }
 
     /// Get the raw slice as a slice.

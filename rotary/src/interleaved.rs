@@ -2,7 +2,7 @@
 
 use crate::wrap;
 use rotary_core::Sample;
-use rotary_core::{Buf, BufInfo, BufMut, ResizableBuf};
+use rotary_core::{Buf, BufMut, ExactSizeBuf, ResizableBuf};
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -106,8 +106,6 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::BitSet;
-    ///
     /// let mut buffer = rotary::interleaved![[2.0; 256]; 4];
     ///
     /// assert_eq!(buffer.frames(), 256);
@@ -659,17 +657,21 @@ where
     }
 }
 
-impl<T> BufInfo for Interleaved<T> {
+impl<T> ExactSizeBuf for Interleaved<T> {
     fn frames(&self) -> usize {
         self.frames
+    }
+}
+
+impl<T> Buf<T> for Interleaved<T> {
+    fn frames_hint(&self) -> Option<usize> {
+        Some(self.frames)
     }
 
     fn channels(&self) -> usize {
         self.channels
     }
-}
 
-impl<T> Buf<T> for Interleaved<T> {
     fn channel(&self, channel: usize) -> rotary_core::Channel<'_, T> {
         rotary_core::Channel::interleaved(&self.data, self.channels, channel)
     }

@@ -1,6 +1,6 @@
 //! A dynamically sized, multi-channel sequential audio buffer.
 
-use rotary_core::{Buf, BufInfo, BufMut, Channel, ChannelMut, ResizableBuf, Sample};
+use rotary_core::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, ResizableBuf, Sample};
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -602,17 +602,21 @@ impl<T> ops::IndexMut<usize> for Sequential<T> {
     }
 }
 
-impl<T> BufInfo for Sequential<T> {
+impl<T> ExactSizeBuf for Sequential<T> {
     fn frames(&self) -> usize {
         self.frames
+    }
+}
+
+impl<T> Buf<T> for Sequential<T> {
+    fn frames_hint(&self) -> Option<usize> {
+        Some(self.frames)
     }
 
     fn channels(&self) -> usize {
         self.channels
     }
-}
 
-impl<T> Buf<T> for Sequential<T> {
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         let data = &self.data[self.frames * channel..];
         Channel::linear(&data[..self.frames])

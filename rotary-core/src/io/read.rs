@@ -1,4 +1,4 @@
-use crate::buf::{Buf, BufInfo};
+use crate::buf::{Buf, ExactSizeBuf};
 use crate::channel::Channel;
 use crate::io::ReadBuf;
 
@@ -30,7 +30,7 @@ pub struct Read<B> {
 
 impl<B> Read<B>
 where
-    B: BufInfo,
+    B: ExactSizeBuf,
 {
     /// Construct a new read adapter.
     pub fn new(buf: B) -> Self {
@@ -63,7 +63,7 @@ where
     ///
     /// ```rust
     /// use rotary::io::Read;
-    /// use rotary::{Buf as _, WriteBuf as _, BufInfo as _};
+    /// use rotary::{Buf as _, WriteBuf as _, ExactSizeBuf as _};
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
     /// let mut buffer = Read::new(buffer);
@@ -110,16 +110,12 @@ impl<B> ReadBuf for Read<B> {
     }
 }
 
-impl<B> BufInfo for Read<B>
+impl<B> ExactSizeBuf for Read<B>
 where
-    B: BufInfo,
+    B: ExactSizeBuf,
 {
     fn frames(&self) -> usize {
         self.buf.frames()
-    }
-
-    fn channels(&self) -> usize {
-        self.buf.channels()
     }
 }
 
@@ -127,6 +123,14 @@ impl<B, T> Buf<T> for Read<B>
 where
     B: Buf<T>,
 {
+    fn frames_hint(&self) -> Option<usize> {
+        self.buf.frames_hint()
+    }
+
+    fn channels(&self) -> usize {
+        self.buf.channels()
+    }
+
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         self.buf.channel(channel).tail(self.available)
     }

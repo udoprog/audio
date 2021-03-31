@@ -1,26 +1,8 @@
-//! Utilities used for masking indexes.
-//!
-//! Masks keep track of usize indexes which are set through
-//! [testing][Mask::test]. This allows for masking indexes in certain
-//! operations. Like if you want to mask which channels in an audio buffer is in
-//! use or not.
-
-mod all;
-mod none;
+pub(crate) mod all;
+pub(crate) mod none;
 
 pub use self::all::All;
 pub use self::none::None;
-use crate::bit_set::{BitSet, Bits};
-
-/// Construct the special mask where every index is set.
-pub fn all() -> All {
-    self::all::All::default()
-}
-
-/// Construct the special mask where no index is set.
-pub fn none() -> None {
-    self::none::None::default()
-}
 
 /// A trait used to check if an index is masked.
 pub trait Mask: Sized {
@@ -39,9 +21,9 @@ pub trait Mask: Sized {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Mask as _;
+    /// use bittle::Mask as _;
     ///
-    /// let mask: rotary::BitSet<u128> = rotary::bit_set![0, 1, 3];
+    /// let mask: bittle::BitSet<u128> = bittle::bit_set![0, 1, 3];
     /// let mut values = vec![false, false, false, false];
     ///
     /// for value in mask.join(values.iter_mut()) {
@@ -63,20 +45,18 @@ pub trait Mask: Sized {
     }
 }
 
-impl<T> Mask for BitSet<T>
+impl<M: ?Sized> Mask for &'_ M
 where
-    T: Bits,
+    M: Mask,
 {
-    type Iter = T::Iter;
+    type Iter = M::Iter;
 
-    #[inline]
     fn test(&self, index: usize) -> bool {
-        <BitSet<T>>::test(self, index)
+        (**self).test(index)
     }
 
-    #[inline]
     fn iter(&self) -> Self::Iter {
-        <BitSet<T>>::iter(self)
+        (**self).iter()
     }
 }
 

@@ -1,5 +1,5 @@
 use rotary_core::io::{ReadBuf, WriteBuf};
-use rotary_core::{Buf, BufInfo, BufMut, Channel, ChannelMut, Translate};
+use rotary_core::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, Translate};
 
 /// A wrapper for a type that is interleaved.
 pub struct Interleaved<T> {
@@ -13,55 +13,80 @@ impl<T> Interleaved<T> {
     }
 }
 
-impl<T> BufInfo for Interleaved<&'_ [T]> {
+impl<T, const N: usize> ExactSizeBuf for Interleaved<&'_ [T; N]> {
+    fn frames(&self) -> usize {
+        N / self.channels
+    }
+}
+
+impl<T, const N: usize> ExactSizeBuf for Interleaved<&'_ mut [T; N]> {
+    fn frames(&self) -> usize {
+        N / self.channels
+    }
+}
+
+impl<T, const N: usize> ExactSizeBuf for Interleaved<[T; N]> {
+    fn frames(&self) -> usize {
+        N / self.channels
+    }
+}
+
+impl<T> ExactSizeBuf for Interleaved<&'_ [T]> {
     fn frames(&self) -> usize {
         self.value.len() / self.channels
     }
-
-    fn channels(&self) -> usize {
-        self.channels
-    }
 }
 
-impl<T> BufInfo for Interleaved<&'_ mut [T]> {
+impl<T> ExactSizeBuf for Interleaved<&'_ mut [T]> {
     fn frames(&self) -> usize {
         self.value.len() / self.channels
     }
-
-    fn channels(&self) -> usize {
-        self.channels
-    }
 }
 
-impl<T> Buf<T> for Interleaved<&'_ [T]> {
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
-        if self.channels == 1 && channel == 0 {
-            Channel::linear(self.value.as_ref())
-        } else {
-            Channel::interleaved(self.value.as_ref(), self.channels, channel)
+macro_rules! impl_buf {
+    ([$($p:tt)*], $ty:ty) => {
+        impl<$($p)*> Buf<T> for Interleaved<$ty> {
+            fn frames_hint(&self) -> Option<usize> {
+                Some(self.frames())
+            }
+
+            fn channels(&self) -> usize {
+                self.channels
+            }
+
+            fn channel(&self, channel: usize) -> Channel<'_, T> {
+                if self.channels == 1 && channel == 0 {
+                    Channel::linear(self.value.as_ref())
+                } else {
+                    Channel::interleaved(self.value.as_ref(), self.channels, channel)
+                }
+            }
         }
-    }
+    };
 }
 
-impl<T> Buf<T> for Interleaved<&'_ mut [T]> {
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
-        if self.channels == 1 && channel == 0 {
-            Channel::linear(self.value.as_ref())
-        } else {
-            Channel::interleaved(self.value.as_ref(), self.channels, channel)
+impl_buf!([T], &'_ [T]);
+impl_buf!([T], &'_ mut [T]);
+impl_buf!([T, const N: usize], [T; N]);
+impl_buf!([T, const N: usize], &'_ [T; N]);
+impl_buf!([T, const N: usize], &'_ mut [T; N]);
+
+macro_rules! impl_buf_mut {
+    ([$($p:tt)*], $ty:ty) => {
+        impl<$($p)*> BufMut<T> for Interleaved<$ty> {
+            fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
+                if self.channels == 1 && channel == 0 {
+                    ChannelMut::linear(self.value.as_mut())
+                } else {
+                    ChannelMut::interleaved(self.value.as_mut(), self.channels, channel)
+                }
+            }
         }
-    }
+    };
 }
 
-impl<T> BufMut<T> for Interleaved<&'_ mut [T]> {
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
-        if self.channels == 1 && channel == 0 {
-            ChannelMut::linear(self.value.as_mut())
-        } else {
-            ChannelMut::interleaved(self.value.as_mut(), self.channels, channel)
-        }
-    }
-}
+impl_buf_mut!([T], &'_ mut [T]);
+impl_buf_mut!([T, const N: usize], &'_ mut [T; N]);
 
 impl<T> ReadBuf for Interleaved<&'_ [T]> {
     fn remaining(&self) -> usize {
@@ -70,6 +95,18 @@ impl<T> ReadBuf for Interleaved<&'_ [T]> {
 
     fn advance(&mut self, n: usize) {
         self.value = &self.value[n * self.channels..];
+    }
+}
+
+impl<T> ReadBuf for Interleaved<&'_ mut [T]> {
+    fn remaining(&self) -> usize {
+        self.frames()
+    }
+
+    fn advance(&mut self, n: usize) {
+        let value = std::mem::take(&mut self.value);
+        let end = usize::min(value.len(), n);
+        self.value = &mut value[end..];
     }
 }
 
@@ -103,17 +140,5 @@ impl<T> WriteBuf<T> for Interleaved<&'_ mut [T]> {
         let value = std::mem::take(&mut self.value);
         self.value = &mut value[end..];
         buf.advance(len);
-    }
-}
-
-impl<T> ReadBuf for Interleaved<&'_ mut [T]> {
-    fn remaining(&self) -> usize {
-        self.frames()
-    }
-
-    fn advance(&mut self, n: usize) {
-        let value = std::mem::take(&mut self.value);
-        let end = usize::min(value.len(), n);
-        self.value = &mut value[end..];
     }
 }

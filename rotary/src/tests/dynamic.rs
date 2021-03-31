@@ -122,10 +122,10 @@ fn test_into_vecs() {
 
 #[test]
 fn test_enabled_mut() {
-    use crate::Mask as _;
+    use bittle::Mask as _;
 
     let mut buffer = crate::Dynamic::<f32>::with_topology(4, 1024);
-    let mask: crate::BitSet<u128> = crate::bit_set![0, 2, 3];
+    let mask: bittle::BitSet<u128> = bittle::bit_set![0, 2, 3];
 
     for chan in mask.join(buffer.iter_mut()) {
         for b in chan {
@@ -200,4 +200,14 @@ fn test_resize_topology() {
 
     buffer.resize(20480);
     buffer.resize_channels(1);
+}
+
+// Miri: this is interesting, because it uses the [Dynamic::from_frames] fn,
+// which performs an unsafe in-place allocation.
+#[test]
+fn test_from_frames() {
+    let buf = crate::dynamic![[0.0, 1.0, 2.0, 3.0]; 2];
+
+    assert_eq!(&buf[0], &[0.0, 1.0, 2.0, 3.0]);
+    assert_eq!(&buf[1], &[0.0, 1.0, 2.0, 3.0]);
 }

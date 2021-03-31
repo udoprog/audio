@@ -15,13 +15,43 @@ pub use self::chunk::Chunk;
 mod tail;
 pub use self::tail::Tail;
 
-/// Trait used to describe the topology of a buffer.
-pub trait BufInfo {
+/// Trait used to describe a buffer that knows exactly how many frames it has
+/// regardless of if it's sized or not.
+///
+/// # Examples
+///
+/// ```rust
+/// use rotary::ExactSizeBuf;
+///
+/// fn test<T>(buf: T) where T: ExactSizeBuf {
+///     assert_eq!(buf.frames(), 4);
+/// }
+///
+/// test(rotary::interleaved![[0i16; 4]; 4]);
+/// test(rotary::sequential![[0i16; 4]; 4]);
+/// test(rotary::dynamic![[0i16; 4]; 4]);
+/// test(rotary::wrap::interleaved([0i16; 16], 4));
+/// test(rotary::wrap::sequential([0i16; 16], 4));
+/// ```
+pub trait ExactSizeBuf {
     /// The number of frames in a buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::ExactSizeBuf;
+    ///
+    /// fn test<T>(buf: T) where T: ExactSizeBuf {
+    ///     assert_eq!(buf.frames(), 4);
+    /// }
+    ///
+    /// test(rotary::interleaved![[0i16; 4]; 4]);
+    /// test(rotary::sequential![[0i16; 4]; 4]);
+    /// test(rotary::dynamic![[0i16; 4]; 4]);
+    /// test(rotary::wrap::interleaved([0i16; 16], 4));
+    /// test(rotary::wrap::sequential([0i16; 16], 4));
+    /// ```
     fn frames(&self) -> usize;
-
-    /// The number of channels in the buffer.
-    fn channels(&self) -> usize;
 }
 
 /// Trait implemented for buffers that can be resized.
@@ -34,7 +64,13 @@ pub trait ResizableBuf {
 }
 
 /// A trait describing an immutable audio buffer.
-pub trait Buf<T>: BufInfo {
+pub trait Buf<T> {
+    /// A typical number of frames in the buffer, if known.
+    fn frames_hint(&self) -> Option<usize>;
+
+    /// The number of channels in the buffer.
+    fn channels(&self) -> usize;
+
     /// Return a handler to the buffer associated with the channel.
     ///
     /// Note that we don't access the buffer for the underlying channel directly
@@ -150,16 +186,12 @@ pub trait Buf<T>: BufInfo {
     }
 }
 
-impl<B> BufInfo for &B
+impl<B> ExactSizeBuf for &B
 where
-    B: ?Sized + BufInfo,
+    B: ?Sized + ExactSizeBuf,
 {
     fn frames(&self) -> usize {
         (**self).frames()
-    }
-
-    fn channels(&self) -> usize {
-        (**self).channels()
     }
 }
 
@@ -167,6 +199,14 @@ impl<B, T> Buf<T> for &B
 where
     B: Buf<T>,
 {
+    fn frames_hint(&self) -> Option<usize> {
+        (**self).frames_hint()
+    }
+
+    fn channels(&self) -> usize {
+        (**self).channels()
+    }
+
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         (**self).channel(channel)
     }
@@ -183,16 +223,12 @@ pub trait BufMut<T>: Buf<T> {
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T>;
 }
 
-impl<B> BufInfo for &mut B
+impl<B> ExactSizeBuf for &mut B
 where
-    B: ?Sized + BufInfo,
+    B: ?Sized + ExactSizeBuf,
 {
     fn frames(&self) -> usize {
         (**self).frames()
-    }
-
-    fn channels(&self) -> usize {
-        (**self).channels()
     }
 }
 
@@ -200,6 +236,14 @@ impl<B, T> Buf<T> for &mut B
 where
     B: ?Sized + Buf<T>,
 {
+    fn frames_hint(&self) -> Option<usize> {
+        (**self).frames_hint()
+    }
+
+    fn channels(&self) -> usize {
+        (**self).channels()
+    }
+
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         (**self).channel(channel)
     }
@@ -227,17 +271,15 @@ where
     }
 }
 
-impl<T> BufInfo for Vec<Vec<T>> {
-    fn frames(&self) -> usize {
-        self.iter().map(|vec| vec.len()).next().unwrap_or_default()
+impl<T> Buf<T> for Vec<Vec<T>> {
+    fn frames_hint(&self) -> Option<usize> {
+        Some(self.get(0)?.len())
     }
 
     fn channels(&self) -> usize {
         self.len()
     }
-}
 
-impl<T> Buf<T> for Vec<Vec<T>> {
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         Channel::linear(&self[channel])
     }
@@ -270,17 +312,15 @@ impl<T> BufMut<T> for Vec<Vec<T>> {
     }
 }
 
-impl<T> BufInfo for [Vec<T>] {
-    fn frames(&self) -> usize {
-        self.as_ref().first().map(|c| c.len()).unwrap_or_default()
+impl<T> Buf<T> for [Vec<T>] {
+    fn frames_hint(&self) -> Option<usize> {
+        Some(self.get(0)?.len())
     }
 
     fn channels(&self) -> usize {
         self.as_ref().len()
     }
-}
 
-impl<T> Buf<T> for [Vec<T>] {
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         Channel::linear(&self.as_ref()[channel])
     }

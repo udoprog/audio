@@ -1,6 +1,6 @@
 [package]
 name = "rotary"
-version = "0.26.0"
+version = "0.27.0"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
@@ -10,10 +10,11 @@ repository = "https://github.com/udoprog/rotary"
 homepage = "https://github.com/udoprog/rotary"
 documentation = "https://docs.rs/rotary"
 description = "A library for working with audio buffers"
-readme = "../README.md"
+readme = "README.md"
 
 [dependencies]
 rotary-core = {version = "0.1.0", path = "../rotary-core"}
 
 [dev-dependencies]
 rand = "0.8.3"
+bittle = {version = "0.1.0", path = "../bittle"}

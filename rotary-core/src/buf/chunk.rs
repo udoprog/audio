@@ -1,4 +1,4 @@
-use crate::buf::{Buf, BufInfo, BufMut, Channel, ChannelMut, ResizableBuf};
+use crate::buf::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, ResizableBuf};
 
 /// A chunk of another buffer.
 ///
@@ -16,16 +16,12 @@ impl<B> Chunk<B> {
     }
 }
 
-impl<B> BufInfo for Chunk<B>
+impl<B> ExactSizeBuf for Chunk<B>
 where
-    B: BufInfo,
+    B: ExactSizeBuf,
 {
     fn frames(&self) -> usize {
         self.buf.frames().saturating_sub(self.n * self.len)
-    }
-
-    fn channels(&self) -> usize {
-        self.buf.channels()
     }
 }
 
@@ -33,6 +29,15 @@ impl<B, T> Buf<T> for Chunk<B>
 where
     B: Buf<T>,
 {
+    fn frames_hint(&self) -> Option<usize> {
+        let frames = self.buf.frames_hint()?;
+        Some(frames.saturating_sub(self.n * self.len))
+    }
+
+    fn channels(&self) -> usize {
+        self.buf.channels()
+    }
+
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         self.buf.channel(channel).chunk(self.n, self.len)
     }

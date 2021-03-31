@@ -1,4 +1,4 @@
-use crate::buf::{Buf, BufInfo, BufMut, ResizableBuf};
+use crate::buf::{Buf, BufMut, ExactSizeBuf, ResizableBuf};
 use crate::channel::{Channel, ChannelMut};
 use crate::io::ReadBuf;
 
@@ -17,16 +17,12 @@ impl<B> Skip<B> {
     }
 }
 
-impl<B> BufInfo for Skip<B>
+impl<B> ExactSizeBuf for Skip<B>
 where
-    B: BufInfo,
+    B: ExactSizeBuf,
 {
     fn frames(&self) -> usize {
         self.buf.frames().saturating_sub(self.n)
-    }
-
-    fn channels(&self) -> usize {
-        self.buf.channels()
     }
 }
 
@@ -34,6 +30,15 @@ impl<B, T> Buf<T> for Skip<B>
 where
     B: Buf<T>,
 {
+    fn frames_hint(&self) -> Option<usize> {
+        let frames = self.buf.frames_hint()?;
+        Some(frames.saturating_sub(self.n))
+    }
+
+    fn channels(&self) -> usize {
+        self.buf.channels()
+    }
+
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         self.buf.channel(channel).skip(self.n)
     }

@@ -1,4 +1,4 @@
-use crate::buf::{Buf, BufInfo, BufMut};
+use crate::buf::{Buf, BufMut, ExactSizeBuf};
 use crate::channel::{Channel, ChannelMut};
 use crate::io::{ReadBuf, WriteBuf};
 use crate::translate::Translate;
@@ -33,7 +33,7 @@ pub struct Write<B> {
 
 impl<B> Write<B>
 where
-    B: BufInfo,
+    B: ExactSizeBuf,
 {
     /// Construct a new write adapter.
     pub fn new(buf: B) -> Self {
@@ -66,7 +66,7 @@ where
     ///
     /// ```rust
     /// use rotary::io::Write;
-    /// use rotary::{Buf as _, WriteBuf as _, BufInfo as _};
+    /// use rotary::{Buf as _, WriteBuf as _};
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
     /// let mut buffer = Write::new(buffer);
@@ -105,7 +105,7 @@ where
 
 impl<B, T> WriteBuf<T> for Write<B>
 where
-    B: BufMut<T>,
+    B: ExactSizeBuf + BufMut<T>,
 {
     /// Remaining number of frames available.
     fn remaining_mut(&self) -> usize {
@@ -118,7 +118,7 @@ where
         I: ReadBuf + Buf<T>,
         T: Copy,
     {
-        let len = usize::min(self.available, buf.frames());
+        let len = usize::min(self.available, buf.remaining());
         crate::io::utils::copy(&buf, (&mut self.buf).tail(self.available));
         self.available = self.available.saturating_sub(len);
         buf.advance(len);
@@ -138,16 +138,12 @@ where
     }
 }
 
-impl<B> BufInfo for Write<B>
+impl<B> ExactSizeBuf for Write<B>
 where
-    B: BufInfo,
+    B: ExactSizeBuf,
 {
     fn frames(&self) -> usize {
         self.buf.frames()
-    }
-
-    fn channels(&self) -> usize {
-        self.buf.channels()
     }
 }
 
@@ -155,6 +151,14 @@ impl<B, T> Buf<T> for Write<B>
 where
     B: Buf<T>,
 {
+    fn frames_hint(&self) -> Option<usize> {
+        self.buf.frames_hint()
+    }
+
+    fn channels(&self) -> usize {
+        self.buf.channels()
+    }
+
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         self.buf.channel(channel)
     }
