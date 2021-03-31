@@ -18,8 +18,8 @@
 /// ```rust
 /// let buf = rotary::dynamic![[0.0, 1.0, 2.0, 3.0]; 2];
 ///
-/// assert_eq!(buf[0].as_slice(), &[0.0, 1.0, 2.0, 3.0]);
-/// assert_eq!(buf[1].as_slice(), &[0.0, 1.0, 2.0, 3.0]);
+/// assert_eq!(&buf[0], &[0.0, 1.0, 2.0, 3.0]);
+/// assert_eq!(&buf[1], &[0.0, 1.0, 2.0, 3.0]);
 /// ```
 #[macro_export]
 macro_rules! dynamic {

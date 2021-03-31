@@ -26,9 +26,9 @@
 //! ```rust
 //! use rotary::BufMut as _;
 //!
-//! let dynamic = rotary::dynamic![[0i16; 4]; 2];
-//! let interleaved = rotary::interleaved![[0i16; 4]; 2];
-//! let sequential = rotary::sequential![[0i16; 4]; 2];
+//! let mut dynamic = rotary::dynamic![[0i16; 4]; 2];
+//! let mut interleaved = rotary::interleaved![[0i16; 4]; 2];
+//! let mut sequential = rotary::sequential![[0i16; 4]; 2];
 //!
 //! dynamic.channel_mut(0).copy_from_iter(0i16..);
 //! interleaved.channel_mut(0).copy_from_iter(0i16..);
