@@ -18,5 +18,5 @@ pub use self::translate::Translate;
 mod sample;
 pub use self::sample::Sample;
 
-pub mod io;
+mod io;
 pub use self::io::{ReadBuf, WriteBuf};

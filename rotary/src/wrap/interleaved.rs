@@ -1,5 +1,4 @@
-use rotary_core::io::{ReadBuf, WriteBuf};
-use rotary_core::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf};
+use rotary_core::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, ReadBuf, WriteBuf};
 
 /// A wrapper for an interleaved audio buffer.
 ///
