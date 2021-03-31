@@ -100,7 +100,7 @@ assert_eq! {
 [Interleaved]: https://docs.rs/rotary/0/rotary/interleaved/struct.Interleaved.html
 [Sequential]: https://docs.rs/rotary/0/rotary/sequential/struct.Sequential.html
 [wrap]: https://docs.rs/rotary/0/rotary/wrap/index.html
-[Buf]: https://docs.rs/rotaryc-re/0/rotary/trait.Buf.html
-[BufMut]: https://docs.rs/rotaryc-re/0/rotary/trait.BufMut.html
+[Buf]: https://docs.rs/rotary-core/0/rotary_core/trait.Buf.html
+[BufMut]: https://docs.rs/rotary-core/0/rotary_core/trait.BufMut.html
 
 License: MIT/Apache-2.0
