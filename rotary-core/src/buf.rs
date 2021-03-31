@@ -326,17 +326,3 @@ impl<T> Buf<T> for [Vec<T>] {
         Channel::linear(&self.as_ref()[channel])
     }
 }
-
-/// Used to determine how a buffer is indexed.
-#[derive(Debug, Clone, Copy)]
-pub(crate) enum ChannelKind {
-    /// Returned channel buffer is indexed in a linear manner.
-    Linear,
-    /// Returned channel buffer is indexed in an interleaved manner.
-    Interleaved {
-        /// The number of channels in the interleaved buffer.
-        channels: usize,
-        /// The channel that is being accessed.
-        channel: usize,
-    },
-}

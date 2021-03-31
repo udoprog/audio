@@ -10,7 +10,7 @@ mod buf;
 pub use self::buf::{Buf, BufMut, ExactSizeBuf, ResizableBuf};
 
 mod channel;
-pub use self::channel::{Channel, ChannelMut};
+pub use self::channel::{AsChannel, Channel, ChannelMut};
 
 mod translate;
 pub use self::translate::Translate;

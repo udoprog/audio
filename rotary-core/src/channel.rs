@@ -1,12 +1,25 @@
 //! A channel buffer as created through [Buf::channel][crate::Buf::channel] or
 //! [BufMut::channel_mut][crate::BufMut::channel_mut].
 
-use crate::buf::ChannelKind;
 use crate::translate::Translate;
 use std::ops;
 
 mod iter;
 pub use self::iter::{Iter, IterMut};
+
+/// Used to determine how a buffer is indexed.
+#[derive(Debug, Clone, Copy)]
+enum Kind {
+    /// Returned channel buffer is indexed in a linear manner.
+    Linear,
+    /// Returned channel buffer is indexed in an interleaved manner.
+    Interleaved {
+        /// The number of channels in the interleaved buffer.
+        channels: usize,
+        /// The channel that is being accessed.
+        channel: usize,
+    },
+}
 
 /// The buffer of a single channel.
 ///
@@ -14,24 +27,58 @@ pub use self::iter::{Iter, IterMut};
 /// allows us to copy data usinga  number of utility functions.
 #[derive(Debug, Clone, Copy)]
 pub struct Channel<'a, T> {
-    pub(crate) buf: &'a [T],
-    pub(crate) kind: ChannelKind,
+    buf: &'a [T],
+    kind: Kind,
 }
 
 impl<'a, T> Channel<'a, T> {
-    /// Construct a linear buffer.
+    /// Construct a linear channel buffer.
+    ///
+    /// The buffer provided as-is constitutes the frames of the channel.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::Channel;
+    ///
+    /// let buf = &mut [1, 3, 5, 7];
+    /// let channel = Channel::linear(buf);
+    ///
+    /// assert_eq!(channel[1], 3);
+    /// assert_eq!(channel[2], 5);
+    /// ```
     pub fn linear(buf: &'a [T]) -> Self {
         Self {
             buf,
-            kind: ChannelKind::Linear,
+            kind: Kind::Linear,
         }
     }
 
-    /// Construct an interleaved buffer.
+    /// Construct an interleaved channel buffer.
+    ///
+    /// The provided buffer must be the complete buffer, which includes *all*
+    /// other channels. The provided `channels` argument is the total number of
+    /// channels in this buffer, and `channel` indicates which specific channel
+    /// this buffer belongs to.
+    ///
+    /// Note that this is typically not used directly, but instead through an
+    /// abstraction which makes sure to provide the correct parameters.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::Channel;
+    ///
+    /// let buf = &[1, 2, 3, 4, 5, 6, 7, 8];
+    /// let channel = Channel::interleaved(buf, 2, 1);
+    ///
+    /// assert_eq!(channel[1], 4);
+    /// assert_eq!(channel[2], 6);
+    /// ```
     pub fn interleaved(buf: &'a [T], channels: usize, channel: usize) -> Self {
         Self {
             buf,
-            kind: ChannelKind::Interleaved { channels, channel },
+            kind: Kind::Interleaved { channels, channel },
         }
     }
 
@@ -56,8 +103,8 @@ impl<'a, T> Channel<'a, T> {
     /// ```
     pub fn frames(&self) -> usize {
         match self.kind {
-            ChannelKind::Linear => self.buf.len(),
-            ChannelKind::Interleaved { channels, .. } => self.buf.len() / channels,
+            Kind::Linear => self.buf.len(),
+            Kind::Interleaved { channels, .. } => self.buf.len() / channels,
         }
     }
 
@@ -84,16 +131,41 @@ impl<'a, T> Channel<'a, T> {
     /// ```
     pub fn iter(self) -> Iter<'a, T> {
         match self.kind {
-            ChannelKind::Linear => Iter::new(self.buf, 1),
-            ChannelKind::Interleaved { channels, channel } => {
+            Kind::Linear => Iter::new(self.buf, 1),
+            Kind::Interleaved { channels, channel } => {
                 let start = usize::min(channel, self.buf.len());
                 Iter::new(&self.buf[start..], channels)
             }
         }
     }
 
-    /// Construct a new mutable channel that has a lifetime of the current
-    /// instance.
+    /// Construct a new [Channel] reference with a lifetime associated with the
+    /// current channel instance instead of the underlying buffer.
+    ///
+    /// Most of the time it is not necessary to use this, since [Channel]
+    /// implements [Copy] and its lifetime would coerce to any compatible
+    /// lifetime. This method is currently just here for completeness sake.
+    ///
+    /// Both of these work equally well:
+    ///
+    /// ```rust
+    /// use rotary::Channel;
+    ///
+    /// struct Foo<'a> {
+    ///     channel: Channel<'a, i16>,
+    /// }
+    ///
+    /// impl<'a> Foo<'a> {
+    ///     fn channel(&self) -> Channel<'_, i16> {
+    ///         self.channel.as_ref()
+    ///     }
+    ///
+    ///     fn coerced_channel(&self) -> Channel<'_, i16> {
+    ///         self.channel
+    ///     }
+    /// }
+    /// ```
+    #[inline]
     pub fn as_ref(&self) -> Channel<'_, T> {
         Channel {
             buf: self.buf,
@@ -121,11 +193,11 @@ impl<'a, T> Channel<'a, T> {
         let Self { buf, kind } = self;
 
         match kind {
-            ChannelKind::Linear => Self {
+            Kind::Linear => Self {
                 buf: buf.get(n..).unwrap_or_default(),
                 kind,
             },
-            ChannelKind::Interleaved { channels, .. } => Self {
+            Kind::Interleaved { channels, .. } => Self {
                 buf: buf.get(n * channels..).unwrap_or_default(),
                 kind,
             },
@@ -149,7 +221,7 @@ impl<'a, T> Channel<'a, T> {
         let Self { buf, kind } = self;
 
         match kind {
-            ChannelKind::Linear => {
+            Kind::Linear => {
                 let start = buf.len().saturating_sub(n);
 
                 Self {
@@ -157,7 +229,7 @@ impl<'a, T> Channel<'a, T> {
                     kind,
                 }
             }
-            ChannelKind::Interleaved { channels, .. } => {
+            Kind::Interleaved { channels, .. } => {
                 let start = buf.len().saturating_sub(n * channels);
 
                 Self {
@@ -185,11 +257,11 @@ impl<'a, T> Channel<'a, T> {
         let Self { buf, kind } = self;
 
         match kind {
-            ChannelKind::Linear => Channel {
+            Kind::Linear => Channel {
                 buf: buf.get(..limit).unwrap_or_default(),
                 kind,
             },
-            ChannelKind::Interleaved { channels, .. } => Channel {
+            Kind::Interleaved { channels, .. } => Channel {
                 buf: buf.get(..limit * channels).unwrap_or_default(),
                 kind,
             },
@@ -204,11 +276,11 @@ impl<'a, T> Channel<'a, T> {
         let Self { buf, kind } = self;
 
         match kind {
-            ChannelKind::Linear => Channel {
+            Kind::Linear => Channel {
                 buf: buf.get(n..n + len).unwrap_or_default(),
                 kind,
             },
-            ChannelKind::Interleaved { channels, .. } => {
+            Kind::Interleaved { channels, .. } => {
                 let len = len * channels;
                 let n = n * len;
 
@@ -280,11 +352,11 @@ impl<'a, T> Channel<'a, T> {
         T: Copy,
     {
         match self.kind {
-            ChannelKind::Linear => {
+            Kind::Linear => {
                 let end = usize::min(out.len(), self.buf.len());
                 out[..end].copy_from_slice(&self.buf[..end]);
             }
-            ChannelKind::Interleaved { channels, channel } => {
+            Kind::Interleaved { channels, channel } => {
                 for (o, f) in out
                     .iter_mut()
                     .zip(self.buf[channel..].iter().step_by(channels))
@@ -329,12 +401,12 @@ impl<'a, T> Channel<'a, T> {
         T: 'out + Copy,
     {
         match self.kind {
-            ChannelKind::Linear => {
+            Kind::Linear => {
                 for (o, f) in iter.into_iter().zip(self.buf) {
                     *o = *f;
                 }
             }
-            ChannelKind::Interleaved { channels, channel } => {
+            Kind::Interleaved { channels, channel } => {
                 for (o, f) in iter
                     .into_iter()
                     .zip(self.buf[channel..].iter().step_by(channels))
@@ -375,8 +447,8 @@ impl<T> ops::Index<usize> for Channel<'_, T> {
 
     fn index(&self, index: usize) -> &Self::Output {
         match self.kind {
-            ChannelKind::Linear => &self.buf[index],
-            ChannelKind::Interleaved { channels, channel } => &self.buf[channel + channels * index],
+            Kind::Linear => &self.buf[index],
+            Kind::Interleaved { channels, channel } => &self.buf[channel + channels * index],
         }
     }
 }
@@ -387,29 +459,206 @@ impl<T> ops::Index<usize> for Channel<'_, T> {
 /// allows us to copy data usinga  number of utility functions.
 #[derive(Debug)]
 pub struct ChannelMut<'a, T> {
-    pub(crate) buf: &'a mut [T],
-    pub(crate) kind: ChannelKind,
+    buf: &'a mut [T],
+    kind: Kind,
 }
 
 impl<'a, T> ChannelMut<'a, T> {
-    /// Construct a linear buffer.
+    /// Construct a mutable linear channel buffer.
+    ///
+    /// The buffer provided as-is constitutes the frames of the channel.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::ChannelMut;
+    ///
+    /// let buf = &mut [1, 3, 5, 7];
+    /// let mut channel = ChannelMut::linear(buf);
+    ///
+    /// assert_eq!(channel[1], 3);
+    /// assert_eq!(channel[2], 5);
+    ///
+    /// channel[1] *= 4;
+    ///
+    /// assert_eq!(buf, &[1, 12, 5, 7]);
+    /// ```
     pub fn linear(buf: &'a mut [T]) -> Self {
         Self {
             buf,
-            kind: ChannelKind::Linear,
+            kind: Kind::Linear,
         }
     }
 
-    /// Construct an interleaved buffer.
+    /// Construct a mutable interleaved channel buffer.
+    ///
+    /// The provided buffer must be the complete buffer, which includes *all*
+    /// other channels. The provided `channels` argument is the total number of
+    /// channels in this buffer, and `channel` indicates which specific channel
+    /// this buffer belongs to.
+    ///
+    /// Note that this is typically not used directly, but instead through an
+    /// abstraction which makes sure to provide the correct parameters.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::ChannelMut;
+    ///
+    /// let buf = &mut [1, 2, 3, 4, 5, 6, 7, 8];
+    /// let mut channel = ChannelMut::interleaved(buf, 2, 1);
+    ///
+    /// assert_eq!(channel[1], 4);
+    /// assert_eq!(channel[2], 6);
+    ///
+    /// channel[1] *= 4;
+    ///
+    /// assert_eq!(buf, &[1, 2, 3, 16, 5, 6, 7, 8]);
+    /// ```
     pub fn interleaved(buf: &'a mut [T], channels: usize, channel: usize) -> Self {
         Self {
             buf,
-            kind: ChannelKind::Interleaved { channels, channel },
+            kind: Kind::Interleaved { channels, channel },
         }
     }
 
-    /// Construct a new mutable channel that has a lifetime of the current
-    /// instance.
+    /// Convert the current mutable channel into a [Channel] with the lifetime
+    /// matching the underlying buffer.
+    ///
+    /// This is required in order to fully convert a [ChannelMut] into a
+    /// [Channel] with the lifetime associated with the buffer, because if we
+    /// only use [as_ref][ChannelMut::as_ref] we'll actually be creating a
+    /// reference to the mutable buffer instead.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Channel, ChannelMut};
+    ///
+    /// struct Foo<'a> {
+    ///     channel: ChannelMut<'a, i16>,
+    /// }
+    ///
+    /// impl<'a> Foo<'a> {
+    ///     fn into_channel(self) -> Channel<'a, i16> {
+    ///         self.channel.into_ref()
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// In contrast, this doesn't compile:
+    ///
+    /// ```rust,compile_fail
+    /// use rotary::{Channel, ChannelMut};
+    ///
+    /// struct Foo<'a> {
+    ///     channel: ChannelMut<'a, i16>,
+    /// }
+    ///
+    /// impl<'a> Foo<'a> {
+    ///     fn into_channel(self) -> Channel<'a, i16> {
+    ///         self.channel.as_ref()
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// With the following error:
+    ///
+    /// ```text
+    ///    error[E0515]: cannot return value referencing local data `self.channel`
+    ///    --> test.rs:11:9
+    ///     |
+    ///  11 |         self.channel.as_ref()
+    ///     |         ------------^^^^^^^^^
+    ///     |         |
+    ///     |         returns a value referencing data owned by the current function
+    ///     |         `self.channel` is borrowed here
+    ///```
+    #[inline]
+    pub fn into_ref(self) -> Channel<'a, T> {
+        Channel {
+            buf: self.buf,
+            kind: self.kind,
+        }
+    }
+
+    /// Construct a new [Channel] reference with a lifetime associated with the
+    /// current channel instance instead of the underlying buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Channel, ChannelMut};
+    ///
+    /// let buf = &mut [1, 2, 3, 4];
+    /// let channel = ChannelMut::linear(buf);
+    ///
+    /// let channel1 = channel.as_ref();
+    /// let channel2 = channel1; // Channel is Copy.
+    ///
+    /// assert_eq!(channel1[0], channel2[0]);
+    /// ```
+    #[inline]
+    pub fn as_ref(&self) -> Channel<'_, T> {
+        Channel {
+            buf: self.buf,
+            kind: self.kind,
+        }
+    }
+
+    /// Construct a new mutable channel reference with a lifetime associated
+    /// with the current channel instance instead of the underlying buffer.
+    ///
+    /// Reborrowing might be necessary if you want to perform slicing operations
+    /// *without* moving the original channel:
+    ///
+    /// ```rust
+    /// use rotary::{Channel, ChannelMut};
+    ///
+    /// let buf = &mut [1, 2, 3, 4];
+    /// let mut channel = ChannelMut::linear(buf);
+    ///
+    /// let mut channel1 = channel.as_mut().skip(2);
+    /// channel1[0] *= 4;
+    ///
+    /// // Using `channel` again.
+    /// assert_eq!(channel[2], 12);
+    /// assert_eq!(buf, &[1, 2, 12, 4]);
+    /// ```
+    ///
+    /// In contrast, this would fail to compile, because [skip][Self::skip]
+    /// moves `channel`:
+    ///
+    /// ```rust,compile_fail
+    /// use rotary::{Channel, ChannelMut};
+    ///
+    /// let buf = &mut [1, 2, 3, 4];
+    /// let mut channel = ChannelMut::linear(buf);
+    ///
+    /// let mut channel1 = channel.skip(2);
+    /// channel1[0] *= 4;
+    ///
+    /// // Using `channel` again.
+    /// assert_eq!(channel[2], 12);
+    /// assert_eq!(buf, &[1, 2, 12, 4]);
+    /// ```
+    ///
+    /// ```text
+    ///    error[E0382]: borrow of moved value: `channel`
+    ///    --> test.rs:6:12
+    ///     |
+    /// 6   | let mut channel = ChannelMut::linear(buf);
+    ///     |     ----------- move occurs because `channel` has type `ChannelMut<'_, i32>`,
+    ///     |                 which does not implement the `Copy` trait
+    /// 7   |
+    /// 8   | let mut channel1 = channel.skip(2);
+    ///     |                            ------- `channel` moved due to this method call
+    /// ...
+    /// 12  | assert_eq!(channel[2], 12);
+    ///     |            ^^^^^^^ value borrowed here after move
+    ///     |
+    /// ```
+    #[inline]
     pub fn as_mut(&mut self) -> ChannelMut<'_, T> {
         ChannelMut {
             buf: self.buf,
@@ -438,8 +687,8 @@ impl<'a, T> ChannelMut<'a, T> {
     /// ```
     pub fn frames(&self) -> usize {
         match self.kind {
-            ChannelKind::Linear => self.buf.len(),
-            ChannelKind::Interleaved { channels, .. } => self.buf.len() / channels,
+            Kind::Linear => self.buf.len(),
+            Kind::Interleaved { channels, .. } => self.buf.len() / channels,
         }
     }
 
@@ -497,13 +746,7 @@ impl<'a, T> ChannelMut<'a, T> {
     /// assert_eq!(&right[1], &[0.0, 0.0, 0.0, 0.0]);
     /// ```
     pub fn iter(self) -> Iter<'a, T> {
-        match self.kind {
-            ChannelKind::Linear => Iter::new(self.buf, 1),
-            ChannelKind::Interleaved { channels, channel } => {
-                let start = usize::min(channel, self.buf.len());
-                Iter::new(&self.buf[start..], channels)
-            }
-        }
+        self.into_ref().iter()
     }
 
     /// Construct a mutable iterator over the channel.
@@ -529,8 +772,8 @@ impl<'a, T> ChannelMut<'a, T> {
     /// ```
     pub fn iter_mut(self) -> IterMut<'a, T> {
         match self.kind {
-            ChannelKind::Linear => IterMut::new(self.buf, 1),
-            ChannelKind::Interleaved { channels, channel } => {
+            Kind::Linear => IterMut::new(self.buf, 1),
+            Kind::Interleaved { channels, channel } => {
                 let start = usize::min(channel, self.buf.len());
                 IterMut::new(&mut self.buf[start..], channels)
             }
@@ -554,11 +797,11 @@ impl<'a, T> ChannelMut<'a, T> {
         let Self { buf, kind } = self;
 
         match kind {
-            ChannelKind::Linear => Self {
+            Kind::Linear => Self {
                 buf: buf.get_mut(n..).unwrap_or_default(),
                 kind,
             },
-            ChannelKind::Interleaved { channels, .. } => Self {
+            Kind::Interleaved { channels, .. } => Self {
                 buf: buf.get_mut(n * channels..).unwrap_or_default(),
                 kind,
             },
@@ -582,7 +825,7 @@ impl<'a, T> ChannelMut<'a, T> {
         let Self { buf, kind } = self;
 
         match kind {
-            ChannelKind::Linear => {
+            Kind::Linear => {
                 let start = buf.len().saturating_sub(n);
 
                 Self {
@@ -590,7 +833,7 @@ impl<'a, T> ChannelMut<'a, T> {
                     kind,
                 }
             }
-            ChannelKind::Interleaved { channels, .. } => {
+            Kind::Interleaved { channels, .. } => {
                 let start = buf.len().saturating_sub(n * channels);
 
                 Self {
@@ -618,11 +861,11 @@ impl<'a, T> ChannelMut<'a, T> {
         let Self { buf, kind } = self;
 
         match kind {
-            ChannelKind::Linear => Self {
+            Kind::Linear => Self {
                 buf: buf.get_mut(..limit).unwrap_or_default(),
                 kind,
             },
-            ChannelKind::Interleaved { channels, .. } => Self {
+            Kind::Interleaved { channels, .. } => Self {
                 buf: buf.get_mut(..limit * channels).unwrap_or_default(),
                 kind,
             },
@@ -668,11 +911,11 @@ impl<'a, T> ChannelMut<'a, T> {
         let Self { buf, kind } = self;
 
         match kind {
-            ChannelKind::Linear => Self {
+            Kind::Linear => Self {
                 buf: buf.get_mut(n..n + len).unwrap_or_default(),
                 kind,
             },
-            ChannelKind::Interleaved { channels, .. } => {
+            Kind::Interleaved { channels, .. } => {
                 let len = len * channels;
                 let n = n * len;
 
@@ -709,11 +952,11 @@ impl<'a, T> ChannelMut<'a, T> {
         T: Copy,
     {
         match self.kind {
-            ChannelKind::Linear => {
+            Kind::Linear => {
                 let len = usize::min(self.buf.len(), buf.len());
                 self.buf[..len].copy_from_slice(&buf[..len]);
             }
-            ChannelKind::Interleaved { channels, channel } => {
+            Kind::Interleaved { channels, channel } => {
                 for (o, f) in self.buf[channel..].iter_mut().step_by(channels).zip(buf) {
                     *o = *f;
                 }
@@ -763,12 +1006,12 @@ impl<'a, T> ChannelMut<'a, T> {
         I: IntoIterator<Item = T>,
     {
         match self.kind {
-            ChannelKind::Linear => {
+            Kind::Linear => {
                 for (o, f) in self.buf.iter_mut().zip(iter) {
                     *o = f;
                 }
             }
-            ChannelKind::Interleaved { channels, channel } => {
+            Kind::Interleaved { channels, channel } => {
                 let buf = self.buf[channel..].iter_mut().step_by(channels);
 
                 for (o, f) in buf.zip(iter) {
@@ -791,12 +1034,14 @@ impl<'a, T> ChannelMut<'a, T> {
     /// to.channel_mut(0).copy_from(from.channel(1));
     /// assert_eq!(to.as_slice(), &[1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]);
     /// ```
-    pub fn copy_from(&mut self, from: Channel<'_, T>)
+    pub fn copy_from(&mut self, from: impl AsChannel<T>)
     where
         T: Copy,
     {
+        let from = from.as_channel();
+
         match (self.kind, from.kind) {
-            (ChannelKind::Linear, ChannelKind::Linear) => {
+            (Kind::Linear, Kind::Linear) => {
                 self.buf.copy_from_slice(&from.buf[..]);
             }
             _ => {
@@ -860,8 +1105,8 @@ impl<T> ops::Index<usize> for ChannelMut<'_, T> {
 
     fn index(&self, index: usize) -> &Self::Output {
         match self.kind {
-            ChannelKind::Linear => &self.buf[index],
-            ChannelKind::Interleaved { channels, channel } => &self.buf[channel + channels * index],
+            Kind::Linear => &self.buf[index],
+            Kind::Interleaved { channels, channel } => &self.buf[channel + channels * index],
         }
     }
 }
@@ -896,10 +1141,49 @@ impl<T> ops::Index<usize> for ChannelMut<'_, T> {
 impl<T> ops::IndexMut<usize> for ChannelMut<'_, T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         match self.kind {
-            ChannelKind::Linear => &mut self.buf[index],
-            ChannelKind::Interleaved { channels, channel } => {
-                &mut self.buf[channel + channels * index]
-            }
+            Kind::Linear => &mut self.buf[index],
+            Kind::Interleaved { channels, channel } => &mut self.buf[channel + channels * index],
         }
+    }
+}
+
+/// Trait for types that can be cheaply converted into a channel.
+///
+/// This trait is provided so that a function which received both [Channel] and
+/// [ChannelMut] can be written.
+pub trait AsChannel<T> {
+    /// Convert `self` into a channel reference.
+    ///
+    /// This is a very cheap operation.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Channel, AsChannel, Buf, BufMut};
+    ///
+    /// fn test(channel: impl AsChannel<i16>) {
+    ///     let channel: Channel<i16> = channel.as_channel();
+    ///     assert_eq!(channel.frames(), 2);
+    /// }
+    ///
+    /// let mut buffer = rotary::interleaved![[0, 1]; 2];
+    ///
+    /// test(buffer.channel(0));
+    /// test(buffer.channel_mut(0));
+    /// ```
+    fn as_channel(&self) -> Channel<'_, T>;
+}
+
+impl<T> AsChannel<T> for Channel<'_, T> {
+    #[inline]
+    fn as_channel(&self) -> Channel<'_, T> {
+        self.as_ref()
+    }
+}
+
+impl<T> AsChannel<T> for ChannelMut<'_, T> {
+    #[inline]
+    fn as_channel(&self) -> Channel<'_, T> {
+        self.as_ref()
     }
 }
