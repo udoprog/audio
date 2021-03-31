@@ -3,20 +3,52 @@
 //! This is called buffered I/O, and allow buffers to support sequential reading
 //! and writing to and from buffer.
 
-use crate::buf::Buf;
-use crate::translate::Translate;
-
 /// A buffer that can keep track of how much has been read from it.
 pub trait ReadBuf {
-    /// Test if this buffer has remaining frames.
+    /// Test if there are any remaining frames to read.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::ReadBuf as _;
+    ///
+    /// let mut buffer = rotary::wrap::interleaved(&[0, 1, 2, 3, 4, 5, 6, 7][..], 2);
+    ///
+    /// assert!(buffer.has_remaining());
+    /// assert_eq!(buffer.remaining(), 4);
+    /// buffer.advance(4);
+    /// assert_eq!(buffer.remaining(), 0);
+    /// ```
     fn has_remaining(&self) -> bool {
         self.remaining() > 0
     }
 
-    /// The number of frames remaining in the readable buffer.
+    /// Get the number of frames remaining that can be read from the buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::ReadBuf as _;
+    ///
+    /// let buffer = rotary::wrap::interleaved(&[0, 1, 2, 3, 4, 5, 6, 7][..], 2);
+    ///
+    /// assert_eq!(buffer.remaining(), 4);
+    /// ```
     fn remaining(&self) -> usize;
 
     /// Advance the read number of frames by `n`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::ReadBuf as _;
+    ///
+    /// let mut buffer = rotary::wrap::interleaved(&[0, 1, 2, 3, 4, 5, 6, 7][..], 2);
+    ///
+    /// assert_eq!(buffer.remaining(), 4);
+    /// buffer.advance(2);
+    /// assert_eq!(buffer.remaining(), 2);
+    /// ```
     fn advance(&mut self, n: usize);
 }
 
@@ -38,7 +70,7 @@ where
 }
 
 /// A buffer that can be written to.
-pub trait WriteBuf<T> {
+pub trait WriteBuf {
     /// Test if this buffer has remaining mutable frames.
     fn has_remaining_mut(&self) -> bool {
         self.remaining_mut() > 0
@@ -47,22 +79,23 @@ pub trait WriteBuf<T> {
     /// Remaining number of frames that can be written.
     fn remaining_mut(&self) -> usize;
 
-    /// Read frames from the given read buffer into this buffer.
-    ///
-    /// Advances the read from buffer by the number of frames read through
-    /// [Read::advance].
-    fn copy<I>(&mut self, buf: I)
-    where
-        I: ReadBuf + Buf<T>,
-        T: Copy;
+    /// Advance the number of frames that has been written.
+    fn advance_mut(&mut self, n: usize);
+}
 
-    /// Read translated frames from the given read buffer into this buffer.
-    ///
-    /// Advances the read from buffer by the number of frames read through
-    /// [Read::advance].
-    fn translate<I, U>(&mut self, buf: I)
-    where
-        T: Translate<U>,
-        I: ReadBuf + Buf<U>,
-        U: Copy;
+impl<B> WriteBuf for &'_ mut B
+where
+    B: WriteBuf,
+{
+    fn has_remaining_mut(&self) -> bool {
+        (**self).has_remaining_mut()
+    }
+
+    fn remaining_mut(&self) -> usize {
+        (**self).remaining_mut()
+    }
+
+    fn advance_mut(&mut self, n: usize) {
+        (**self).advance_mut(n);
+    }
 }

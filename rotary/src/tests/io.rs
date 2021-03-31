@@ -9,10 +9,10 @@ fn test_read_write() {
     // Make `to` into a ReadWrite adapter.
     let mut to = ReadWrite::new(to);
 
-    to.copy(Read::new((&from).skip(2).limit(1)));
+    crate::io::copy_remaining(Read::new((&from).skip(2).limit(1)), &mut to);
     assert_eq!(to.remaining(), 1);
 
-    to.copy(Read::new((&from).limit(1)));
+    crate::io::copy_remaining(Read::new((&from).limit(1)), &mut to);
     assert_eq!(to.remaining(), 2);
 
     assert_eq! {
@@ -29,7 +29,7 @@ fn test_read_write() {
     assert_eq!(to.remaining(), 2);
     assert!(to.has_remaining());
 
-    read_out.copy(&mut to);
+    crate::io::copy_remaining(&mut to, &mut read_out);
 
     assert_eq!(read_out.remaining_mut(), 0);
     assert!(!read_out.has_remaining_mut());
@@ -46,14 +46,13 @@ fn test_read_write() {
 #[test]
 fn test_simple_io() {
     use crate::io::ReadWrite;
-    use crate::WriteBuf as _;
 
     let buffer: crate::Interleaved<i16> = crate::interleaved![[1, 2, 3, 4]; 4];
     let mut buffer = ReadWrite::new(buffer);
 
     let from = crate::wrap::interleaved(&[1i16, 2i16, 3i16, 4i16][..], 2);
 
-    buffer.translate(from);
+    crate::io::translate_remaining(from, &mut buffer);
 
     let buffer = buffer.into_inner();
 

@@ -1,7 +1,4 @@
-use rotary_core::Translate;
-use rotary_core::{Buf, BufMut, ExactSizeBuf};
-use rotary_core::{Channel, ChannelMut};
-use rotary_core::{ReadBuf, WriteBuf};
+use rotary_core::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, WriteBuf};
 
 /// Make a mutable buffer into a write adapter that implements
 /// [WriteBuf].
@@ -10,7 +7,7 @@ use rotary_core::{ReadBuf, WriteBuf};
 ///
 /// ```rust
 /// use rotary::{Buf as _, BufMut as _, ReadBuf as _, WriteBuf as _};
-/// use rotary::io::{Read, Write};
+/// use rotary::io::{Read, Write, copy_remaining};
 ///
 /// let from = rotary::interleaved![[1.0f32, 2.0f32, 3.0f32, 4.0f32]; 2];
 /// let to = rotary::interleaved![[0.0f32; 4]; 2];
@@ -18,7 +15,7 @@ use rotary_core::{ReadBuf, WriteBuf};
 /// let mut from = Read::new(from.skip(2));
 ///
 /// assert_eq!(to.remaining_mut(), 4);
-/// to.copy(from);
+/// copy_remaining(from, &mut to);
 /// assert_eq!(to.remaining_mut(), 2);
 ///
 /// assert_eq! {
@@ -46,13 +43,13 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::io::Write;
-    /// use rotary::{Buf as _, WriteBuf as _};
+    /// use rotary::Buf as _;
+    /// use rotary::io;
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = Write::new(buffer);
+    /// let mut buffer = io::Write::new(buffer);
     ///
-    /// buffer.copy(rotary::wrap::interleaved(&[0i16; 16][..], 4));
+    /// io::copy_remaining(rotary::wrap::interleaved(&[0i16; 16][..], 4), &mut buffer);
     ///
     /// assert_eq!(buffer.as_ref().channels(), 4);
     /// ```
@@ -65,13 +62,13 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::io::Write;
-    /// use rotary::{Buf as _, WriteBuf as _};
+    /// use rotary::Buf as _;
+    /// use rotary::io;
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = Write::new(buffer);
+    /// let mut buffer = io::Write::new(buffer);
     ///
-    /// buffer.copy(rotary::wrap::interleaved(&[0i16; 16][..], 4));
+    /// io::copy_remaining(rotary::wrap::interleaved(&[0i16; 16][..], 4), &mut buffer);
     ///
     /// buffer.as_mut().resize_channels(2);
     ///
@@ -86,13 +83,13 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::io::Write;
-    /// use rotary::{Buf as _, WriteBuf as _};
+    /// use rotary::Buf as _;
+    /// use rotary::io;
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = Write::new(buffer);
+    /// let mut buffer = io::Write::new(buffer);
     ///
-    /// buffer.copy(rotary::wrap::interleaved(&[0i16; 16][..], 4));
+    /// io::copy_remaining(rotary::wrap::interleaved(&[0i16; 16][..], 4), &mut buffer);
     ///
     /// let buffer = buffer.into_inner();
     ///
@@ -103,38 +100,16 @@ where
     }
 }
 
-impl<B, T> WriteBuf<T> for Write<B>
-where
-    B: ExactSizeBuf + BufMut<T>,
-{
+impl<B> WriteBuf for Write<B> {
     /// Remaining number of frames available.
+    #[inline]
     fn remaining_mut(&self) -> usize {
         self.available
     }
 
-    /// Write to the underlying buffer.
-    fn copy<I>(&mut self, mut buf: I)
-    where
-        I: ReadBuf + Buf<T>,
-        T: Copy,
-    {
-        let len = usize::min(self.available, buf.remaining());
-        crate::io::utils::copy(&buf, (&mut self.buf).tail(self.available));
-        self.available = self.available.saturating_sub(len);
-        buf.advance(len);
-    }
-
-    /// Write translated samples to the underlying buffer.
-    fn translate<I, U>(&mut self, mut buf: I)
-    where
-        T: Translate<U>,
-        I: ReadBuf + Buf<U>,
-        U: Copy,
-    {
-        let len = usize::min(self.available, buf.remaining());
-        crate::io::utils::translate(&buf, (&mut self.buf).tail(self.available));
-        self.available = self.available.saturating_sub(len);
-        buf.advance(len);
+    #[inline]
+    fn advance_mut(&mut self, n: usize) {
+        self.available = self.available.saturating_sub(n);
     }
 }
 

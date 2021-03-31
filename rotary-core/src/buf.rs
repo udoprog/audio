@@ -126,12 +126,13 @@ pub trait Buf<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::Buf as _;
+    /// use rotary::buf;
     ///
     /// let from = rotary::interleaved![[1.0f32; 4]; 2];
     /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
     ///
-    /// rotary::io::copy(from, (&mut to).tail(2));
+    /// buf::copy(from, (&mut to).tail(2));
     ///
     /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0]);
     /// ```

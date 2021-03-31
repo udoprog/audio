@@ -1,7 +1,9 @@
 use rotary_core::io::{ReadBuf, WriteBuf};
-use rotary_core::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, Translate};
+use rotary_core::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf};
 
-/// A wrapper for a type that is interleaved.
+/// A wrapper for an interleaved audio buffer.
+///
+/// See [wrap::interleaved][super::interleaved()].
 pub struct Interleaved<T> {
     value: T,
     channels: usize,
@@ -94,7 +96,10 @@ impl<T> ReadBuf for Interleaved<&'_ [T]> {
     }
 
     fn advance(&mut self, n: usize) {
-        self.value = &self.value[n * self.channels..];
+        self.value = self
+            .value
+            .get(n.saturating_mul(self.channels)..)
+            .unwrap_or_default();
     }
 }
 
@@ -105,40 +110,21 @@ impl<T> ReadBuf for Interleaved<&'_ mut [T]> {
 
     fn advance(&mut self, n: usize) {
         let value = std::mem::take(&mut self.value);
-        let end = usize::min(value.len(), n);
-        self.value = &mut value[end..];
+        self.value = value
+            .get_mut(n.saturating_mul(self.channels)..)
+            .unwrap_or_default();
     }
 }
 
-impl<T> WriteBuf<T> for Interleaved<&'_ mut [T]> {
+impl<T> WriteBuf for Interleaved<&'_ mut [T]> {
     fn remaining_mut(&self) -> usize {
         self.frames()
     }
 
-    fn copy<I>(&mut self, mut buf: I)
-    where
-        I: ReadBuf + Buf<T>,
-        T: Copy,
-    {
-        let len = usize::min(self.remaining_mut(), buf.remaining());
-        crate::io::copy(&buf, &mut *self);
-        let end = usize::min(self.value.len(), len * self.channels);
+    fn advance_mut(&mut self, n: usize) {
         let value = std::mem::take(&mut self.value);
-        self.value = &mut value[end..];
-        buf.advance(len);
-    }
-
-    fn translate<I, U>(&mut self, mut buf: I)
-    where
-        T: Translate<U>,
-        I: ReadBuf + Buf<U>,
-        U: Copy,
-    {
-        let len = usize::min(self.remaining_mut(), buf.remaining());
-        crate::io::translate(&buf, &mut *self);
-        let end = usize::min(self.value.len(), len * self.channels);
-        let value = std::mem::take(&mut self.value);
-        self.value = &mut value[end..];
-        buf.advance(len);
+        self.value = value
+            .get_mut(n.saturating_mul(self.channels)..)
+            .unwrap_or_default();
     }
 }

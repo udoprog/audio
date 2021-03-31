@@ -5,7 +5,7 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-const CHUNK_SIZE: usize = 4096;
+const CHUNK_SIZE: usize = 1024;
 
 fn main() -> anyhow::Result<()> {
     let mut args = std::env::args_os();
@@ -115,10 +115,11 @@ where
     where
         T: 'static + Send + rotary::Sample + rotary::Translate<f32>,
     {
-        use rotary::{Buf, ExactSizeBuf, ReadBuf, WriteBuf};
+        use rotary::{io, wrap};
+        use rotary::{Buf as _, ExactSizeBuf as _, ReadBuf as _, WriteBuf as _};
         use rubato::Resampler;
 
-        let mut data = rotary::wrap::interleaved(data, self.device_channels);
+        let mut data = wrap::interleaved(data, self.device_channels);
         let frames = data.remaining_mut();
 
         // Run the loop while there is buffer to fill.
@@ -128,7 +129,7 @@ where
             //
             // cpal's data buffer expects the output to be interleaved.
             if self.output.has_remaining() {
-                data.translate(&mut self.output);
+                io::translate_remaining(&mut self.output, &mut data);
                 continue;
             }
 
@@ -154,13 +155,14 @@ where
                 });
 
                 resampler.process_with_buffer(
-                    &self.resample,
-                    &mut self.output.as_mut(),
+                    self.resample.as_ref(),
+                    self.output.as_mut(),
                     &bittle::all(),
                 )?;
 
                 self.resample.clear();
                 let frames = self.output.as_ref().frames();
+
                 self.output.set_read(0);
                 self.output.set_written(frames);
                 continue;
@@ -169,10 +171,9 @@ where
             // If we have information on a decoded frame, translate it into the
             // resample buffer until its filled up to its frames cap.
             if let Some((frame, mut last_remaining)) = self.last_frame.take().filter(|p| p.1 > 0) {
-                let mut pcm =
-                    rotary::wrap::interleaved(&self.pcm[..], frame.channels).tail(last_remaining);
+                let mut pcm = wrap::interleaved(&self.pcm[..], frame.channels).tail(last_remaining);
 
-                self.resample.translate(&mut pcm);
+                io::translate_remaining(&mut pcm, &mut self.resample);
 
                 last_remaining = pcm.remaining();
                 self.last_frame = Some((frame, last_remaining));
@@ -182,13 +183,13 @@ where
             let frame = self.decoder.next_frame_with_pcm(&mut self.pcm)?;
             self.resample.as_mut().resize_channels(frame.channels);
 
-            let pcm = rotary::wrap::interleaved(&self.pcm[..], frame.channels);
+            let pcm = wrap::interleaved(&self.pcm[..], frame.channels);
 
             // If the sample rate of the decoded frames matches the expected
             // output exactly, copy it directly to the output frame without
             // resampling.
             if frame.sample_rate as u32 == self.device_sample_rate {
-                self.output.translate(pcm);
+                io::translate_remaining(pcm, &mut self.output);
                 continue;
             }
 

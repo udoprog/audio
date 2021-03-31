@@ -13,4 +13,4 @@ description = "A library for working with audio buffers"
 readme = "README.md"
 
 [dev-dependencies]
-rotary = {version = "0.27.0", path = "../rotary"}
+rotary = "0.27.0"

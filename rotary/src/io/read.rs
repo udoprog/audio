@@ -8,15 +8,15 @@ use rotary_core::{Buf, ExactSizeBuf};
 ///
 /// ```rust
 /// use rotary::{Buf as _, BufMut as _, WriteBuf as _};
-/// use rotary::io::{Read, ReadWrite};
+/// use rotary::io;
 ///
 /// let from = rotary::interleaved![[1.0f32, 2.0f32, 3.0f32, 4.0f32]; 2];
 /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
 ///
-/// let mut to = ReadWrite::new(to);
+/// let mut to = io::ReadWrite::new(to);
 ///
-/// to.copy(Read::new((&from).skip(2).limit(1)));
-/// to.copy(Read::new((&from).limit(1)));
+/// io::copy_remaining(io::Read::new((&from).skip(2).limit(1)), &mut to);
+/// io::copy_remaining(io::Read::new((&from).limit(1)), &mut to);
 ///
 /// assert_eq! {
 ///     to.as_ref().as_slice(),
@@ -43,13 +43,13 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::io::Read;
     /// use rotary::{Buf as _, WriteBuf as _};
+    /// use rotary::{io, wrap};
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = Read::new(buffer);
+    /// let mut buffer = io::Read::new(buffer);
     ///
-    /// rotary::wrap::interleaved(&mut [0i16; 16][..], 4).copy(&mut buffer);
+    /// io::copy_remaining(&mut buffer, wrap::interleaved(&mut [0i16; 16][..], 4));
     ///
     /// assert_eq!(buffer.as_ref().channels(), 4);
     /// ```
@@ -62,13 +62,13 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::io::Read;
     /// use rotary::{Buf as _, WriteBuf as _, ExactSizeBuf as _};
+    /// use rotary::{io, wrap};
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = Read::new(buffer);
+    /// let mut buffer = io::Read::new(buffer);
     ///
-    /// rotary::wrap::interleaved(&mut [0i16; 16][..], 4).copy(&mut buffer);
+    /// io::copy_remaining(&mut buffer, wrap::interleaved(&mut [0i16; 16][..], 4));
     ///
     /// buffer.as_mut().resize_channels(2);
     ///
@@ -83,13 +83,13 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::io::Read;
     /// use rotary::{Buf as _, WriteBuf as _};
+    /// use rotary::{io, wrap};
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = Read::new(buffer);
+    /// let mut buffer = io::Read::new(buffer);
     ///
-    /// rotary::wrap::interleaved(&mut [0i16; 16][..], 4).copy(&mut buffer);
+    /// io::copy_remaining(&mut buffer, wrap::interleaved(&mut [0i16; 16][..], 4));
     ///
     /// let buffer = buffer.into_inner();
     ///

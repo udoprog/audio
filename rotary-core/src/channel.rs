@@ -778,10 +778,7 @@ impl<'a, T> ChannelMut<'a, T> {
         }
     }
 
-    /// Copy one channel from another.
-    ///
-    /// See [utils::copy][crate::utils::copy] if you want to copy an entire
-    /// buffer into another.
+    /// Copy this channel from another.
     ///
     /// # Examples
     ///
@@ -810,15 +807,13 @@ impl<'a, T> ChannelMut<'a, T> {
         }
     }
 
-    /// Translate one channel from another.
+    /// Translate this channel from another.
     ///
-    /// This will copy the channel while translating each sample according to
-    /// its [Translate] implementation.
+    /// This will translate each sample in the channel through the appropriate
+    /// [Translate] implementation.
     ///
-    /// This is used for converting one type of sample to another.
-    ///
-    /// See [utils::translate][crate::utils::translate] if you want to translate
-    /// an entire buffer.
+    /// This is used for converting a buffer containing one type of sample into
+    /// another.
     ///
     /// # Examples
     ///

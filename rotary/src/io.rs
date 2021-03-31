@@ -8,7 +8,7 @@
 pub use rotary_core::{ReadBuf, WriteBuf};
 
 mod utils;
-pub use self::utils::{copy, translate};
+pub use self::utils::{copy_remaining, translate_remaining};
 
 mod read;
 pub use self::read::Read;

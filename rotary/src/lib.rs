@@ -105,6 +105,7 @@
 
 #[macro_use]
 mod macros;
+pub mod buf;
 pub mod dynamic;
 pub mod interleaved;
 pub mod io;

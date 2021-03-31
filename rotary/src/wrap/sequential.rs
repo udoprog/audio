@@ -1,7 +1,9 @@
 use rotary_core::{Buf, BufMut, ExactSizeBuf};
 use rotary_core::{Channel, ChannelMut};
 
-/// A wrapper for a type that is interleaved.
+/// A wrapper for a sequential audio buffer.
+///
+/// See [wrap::sequential][super::sequential()].
 pub struct Sequential<T> {
     value: T,
     frames: usize,
