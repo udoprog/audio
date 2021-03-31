@@ -609,54 +609,57 @@ impl<'a, T> ChannelMut<'a, T> {
     /// Construct a new mutable channel reference with a lifetime associated
     /// with the current channel instance instead of the underlying buffer.
     ///
-    /// Reborrowing might be necessary if you want to perform slicing operations
-    /// *without* moving the original channel:
+    /// Reborrowing like this is sometimes necessary, like if you want to pass
+    /// an instance of [ChannelMut] directly into another function instead of
+    /// borrowing it:
     ///
     /// ```rust
-    /// use rotary::{Channel, ChannelMut};
+    /// use rotary::{BufMut, ChannelMut};
     ///
-    /// let buf = &mut [1, 2, 3, 4];
-    /// let mut channel = ChannelMut::linear(buf);
+    /// fn takes_channel_mut(mut channel: ChannelMut<'_, i16>) {
+    ///     channel[1] = 42;
+    /// }
     ///
-    /// let mut channel1 = channel.as_mut().skip(2);
-    /// channel1[0] *= 4;
+    /// let mut buffer = rotary::interleaved![[0; 4]; 2];
+    /// let mut channel = buffer.channel_mut(1);
     ///
-    /// // Using `channel` again.
-    /// assert_eq!(channel[2], 12);
-    /// assert_eq!(buf, &[1, 2, 12, 4]);
+    /// takes_channel_mut(channel.as_mut());
+    ///
+    /// assert_eq!(channel[1], 42);
     /// ```
     ///
-    /// In contrast, this would fail to compile, because [skip][Self::skip]
-    /// moves `channel`:
+    /// Without the reborrow, we would end up moving the channel:
     ///
     /// ```rust,compile_fail
-    /// use rotary::{Channel, ChannelMut};
+    /// use rotary::{BufMut, ChannelMut};
     ///
-    /// let buf = &mut [1, 2, 3, 4];
-    /// let mut channel = ChannelMut::linear(buf);
+    /// fn takes_channel_mut(mut channel: ChannelMut<'_, i16>) {
+    ///     channel[1] = 42;
+    /// }
     ///
-    /// let mut channel1 = channel.skip(2);
-    /// channel1[0] *= 4;
+    /// let mut buffer = rotary::interleaved![[0; 4]; 2];
+    /// let mut channel = buffer.channel_mut(1);
     ///
-    /// // Using `channel` again.
-    /// assert_eq!(channel[2], 12);
-    /// assert_eq!(buf, &[1, 2, 12, 4]);
+    /// takes_channel_mut(channel);
+    ///
+    /// assert_eq!(channel[1], 42);
     /// ```
+    ///
+    /// Causing the following error:
     ///
     /// ```text
     ///    error[E0382]: borrow of moved value: `channel`
-    ///    --> test.rs:6:12
+    ///    --> test.rs:10:12
     ///     |
-    /// 6   | let mut channel = ChannelMut::linear(buf);
-    ///     |     ----------- move occurs because `channel` has type `ChannelMut<'_, i32>`,
+    ///  10 | let mut channel = buffer.channel_mut(1);
+    ///     |     ----------- move occurs because `channel` has type `ChannelMut<'_, i16>`,
     ///     |                 which does not implement the `Copy` trait
-    /// 7   |
-    /// 8   | let mut channel1 = channel.skip(2);
-    ///     |                            ------- `channel` moved due to this method call
-    /// ...
-    /// 12  | assert_eq!(channel[2], 12);
+    ///  11 |
+    ///  12 | takes_channel_mut(channel);
+    ///     |                   ------- value moved here
+    ///  13 |
+    ///  14 | assert_eq!(channel[1], 42);
     ///     |            ^^^^^^^ value borrowed here after move
-    ///     |
     /// ```
     #[inline]
     pub fn as_mut(&mut self) -> ChannelMut<'_, T> {
@@ -1034,12 +1037,10 @@ impl<'a, T> ChannelMut<'a, T> {
     /// to.channel_mut(0).copy_from(from.channel(1));
     /// assert_eq!(to.as_slice(), &[1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]);
     /// ```
-    pub fn copy_from(&mut self, from: impl AsChannel<T>)
+    pub fn copy_from(&mut self, from: Channel<'_, T>)
     where
         T: Copy,
     {
-        let from = from.as_channel();
-
         match (self.kind, from.kind) {
             (Kind::Linear, Kind::Linear) => {
                 self.buf.copy_from_slice(&from.buf[..]);
@@ -1144,46 +1145,5 @@ impl<T> ops::IndexMut<usize> for ChannelMut<'_, T> {
             Kind::Linear => &mut self.buf[index],
             Kind::Interleaved { channels, channel } => &mut self.buf[channel + channels * index],
         }
-    }
-}
-
-/// Trait for types that can be cheaply converted into a channel.
-///
-/// This trait is provided so that a function which received both [Channel] and
-/// [ChannelMut] can be written.
-pub trait AsChannel<T> {
-    /// Convert `self` into a channel reference.
-    ///
-    /// This is a very cheap operation.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rotary::{Channel, AsChannel, Buf, BufMut};
-    ///
-    /// fn test(channel: impl AsChannel<i16>) {
-    ///     let channel: Channel<i16> = channel.as_channel();
-    ///     assert_eq!(channel.frames(), 2);
-    /// }
-    ///
-    /// let mut buffer = rotary::interleaved![[0, 1]; 2];
-    ///
-    /// test(buffer.channel(0));
-    /// test(buffer.channel_mut(0));
-    /// ```
-    fn as_channel(&self) -> Channel<'_, T>;
-}
-
-impl<T> AsChannel<T> for Channel<'_, T> {
-    #[inline]
-    fn as_channel(&self) -> Channel<'_, T> {
-        self.as_ref()
-    }
-}
-
-impl<T> AsChannel<T> for ChannelMut<'_, T> {
-    #[inline]
-    fn as_channel(&self) -> Channel<'_, T> {
-        self.as_ref()
     }
 }
