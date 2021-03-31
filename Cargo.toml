@@ -7,3 +7,9 @@ members = [
     "rotary-core",
     "bittle",
 ]
+
+default-members = [
+    "rotary",
+    "rotary-core",
+    "bittle",
+]
