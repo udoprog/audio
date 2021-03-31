@@ -603,11 +603,11 @@ impl<T> ops::IndexMut<usize> for Sequential<T> {
 }
 
 impl<T> BufInfo for Sequential<T> {
-    fn buf_info_frames(&self) -> usize {
+    fn frames(&self) -> usize {
         self.frames
     }
 
-    fn buf_info_channels(&self) -> usize {
+    fn channels(&self) -> usize {
         self.channels
     }
 }

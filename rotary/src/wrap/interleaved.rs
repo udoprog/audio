@@ -14,21 +14,21 @@ impl<T> Interleaved<T> {
 }
 
 impl<T> BufInfo for Interleaved<&'_ [T]> {
-    fn buf_info_frames(&self) -> usize {
+    fn frames(&self) -> usize {
         self.value.len() / self.channels
     }
 
-    fn buf_info_channels(&self) -> usize {
+    fn channels(&self) -> usize {
         self.channels
     }
 }
 
 impl<T> BufInfo for Interleaved<&'_ mut [T]> {
-    fn buf_info_frames(&self) -> usize {
+    fn frames(&self) -> usize {
         self.value.len() / self.channels
     }
 
-    fn buf_info_channels(&self) -> usize {
+    fn channels(&self) -> usize {
         self.channels
     }
 }
@@ -65,7 +65,7 @@ impl<T> BufMut<T> for Interleaved<&'_ mut [T]> {
 
 impl<T> ReadBuf for Interleaved<&'_ [T]> {
     fn remaining(&self) -> usize {
-        self.buf_info_frames()
+        self.frames()
     }
 
     fn advance(&mut self, n: usize) {
@@ -75,7 +75,7 @@ impl<T> ReadBuf for Interleaved<&'_ [T]> {
 
 impl<T> WriteBuf<T> for Interleaved<&'_ mut [T]> {
     fn remaining_mut(&self) -> usize {
-        self.buf_info_frames()
+        self.frames()
     }
 
     fn copy<I>(&mut self, mut buf: I)
@@ -108,7 +108,7 @@ impl<T> WriteBuf<T> for Interleaved<&'_ mut [T]> {
 
 impl<T> ReadBuf for Interleaved<&'_ mut [T]> {
     fn remaining(&self) -> usize {
-        self.buf_info_frames()
+        self.frames()
     }
 
     fn advance(&mut self, n: usize) {

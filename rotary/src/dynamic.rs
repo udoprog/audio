@@ -678,11 +678,11 @@ impl<T> Drop for Dynamic<T> {
 }
 
 impl<T> BufInfo for Dynamic<T> {
-    fn buf_info_frames(&self) -> usize {
+    fn frames(&self) -> usize {
         self.frames
     }
 
-    fn buf_info_channels(&self) -> usize {
+    fn channels(&self) -> usize {
         self.channels
     }
 }

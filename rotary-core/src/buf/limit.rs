@@ -21,12 +21,12 @@ impl<B> BufInfo for Limit<B>
 where
     B: BufInfo,
 {
-    fn buf_info_frames(&self) -> usize {
-        usize::min(self.buf.buf_info_frames(), self.limit)
+    fn frames(&self) -> usize {
+        usize::min(self.buf.frames(), self.limit)
     }
 
-    fn buf_info_channels(&self) -> usize {
-        self.buf.buf_info_channels()
+    fn channels(&self) -> usize {
+        self.buf.channels()
     }
 }
 

@@ -34,7 +34,7 @@ where
 {
     /// Construct a new read adapter.
     pub fn new(buf: B) -> Self {
-        let available = buf.buf_info_frames();
+        let available = buf.frames();
         Self { buf, available }
     }
 
@@ -63,7 +63,7 @@ where
     ///
     /// ```rust
     /// use rotary::io::Read;
-    /// use rotary::{Buf as _, WriteBuf as _};
+    /// use rotary::{Buf as _, WriteBuf as _, BufInfo as _};
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
     /// let mut buffer = Read::new(buffer);
@@ -114,12 +114,12 @@ impl<B> BufInfo for Read<B>
 where
     B: BufInfo,
 {
-    fn buf_info_frames(&self) -> usize {
-        self.buf.buf_info_frames()
+    fn frames(&self) -> usize {
+        self.buf.frames()
     }
 
-    fn buf_info_channels(&self) -> usize {
-        self.buf.buf_info_channels()
+    fn channels(&self) -> usize {
+        self.buf.channels()
     }
 }
 

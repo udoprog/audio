@@ -20,12 +20,12 @@ impl<B> BufInfo for Chunk<B>
 where
     B: BufInfo,
 {
-    fn buf_info_frames(&self) -> usize {
-        self.buf.buf_info_frames().saturating_sub(self.n * self.len)
+    fn frames(&self) -> usize {
+        self.buf.frames().saturating_sub(self.n * self.len)
     }
 
-    fn buf_info_channels(&self) -> usize {
-        self.buf.buf_info_channels()
+    fn channels(&self) -> usize {
+        self.buf.channels()
     }
 }
 

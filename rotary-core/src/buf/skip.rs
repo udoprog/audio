@@ -21,12 +21,12 @@ impl<B> BufInfo for Skip<B>
 where
     B: BufInfo,
 {
-    fn buf_info_frames(&self) -> usize {
-        self.buf.buf_info_frames().saturating_sub(self.n)
+    fn frames(&self) -> usize {
+        self.buf.frames().saturating_sub(self.n)
     }
 
-    fn buf_info_channels(&self) -> usize {
-        self.buf.buf_info_channels()
+    fn channels(&self) -> usize {
+        self.buf.channels()
     }
 }
 

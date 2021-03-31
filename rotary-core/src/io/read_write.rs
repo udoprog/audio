@@ -96,7 +96,7 @@ impl<B> ReadWrite<B> {
     ///
     /// ```rust
     /// use rotary::io::ReadWrite;
-    /// use rotary::{Buf as _, WriteBuf as _};
+    /// use rotary::{Buf as _, WriteBuf as _, BufInfo as _};
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
     /// let mut buffer = ReadWrite::new(buffer);
@@ -160,12 +160,12 @@ impl<B> BufInfo for ReadWrite<B>
 where
     B: BufInfo,
 {
-    fn buf_info_frames(&self) -> usize {
-        self.buf.buf_info_frames()
+    fn frames(&self) -> usize {
+        self.buf.frames()
     }
 
-    fn buf_info_channels(&self) -> usize {
-        self.buf.buf_info_channels()
+    fn channels(&self) -> usize {
+        self.buf.channels()
     }
 }
 
@@ -194,7 +194,7 @@ where
     B: BufMut<T>,
 {
     fn remaining_mut(&self) -> usize {
-        self.buf.buf_info_frames().saturating_sub(self.written)
+        self.buf.frames().saturating_sub(self.written)
     }
 
     fn copy<I>(&mut self, mut buf: I)

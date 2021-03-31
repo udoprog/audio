@@ -225,7 +225,7 @@ impl<T> Interleaved<T> {
         self.frames
     }
 
-    /// Check how many channels there are in the buffer.
+    /// Get the number of channels in the buffer.
     ///
     /// # Examples
     ///
@@ -660,11 +660,11 @@ where
 }
 
 impl<T> BufInfo for Interleaved<T> {
-    fn buf_info_frames(&self) -> usize {
+    fn frames(&self) -> usize {
         self.frames
     }
 
-    fn buf_info_channels(&self) -> usize {
+    fn channels(&self) -> usize {
         self.channels
     }
 }

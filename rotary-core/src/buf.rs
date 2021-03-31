@@ -15,13 +15,13 @@ pub use self::chunk::Chunk;
 mod tail;
 pub use self::tail::Tail;
 
-/// Information on the current buffer.
+/// Trait used to describe the topology of a buffer.
 pub trait BufInfo {
     /// The number of frames in a buffer.
-    fn buf_info_frames(&self) -> usize;
+    fn frames(&self) -> usize;
 
     /// The number of channels in the buffer.
-    fn buf_info_channels(&self) -> usize;
+    fn channels(&self) -> usize;
 }
 
 /// Trait implemented for buffers that can be resized.
@@ -35,16 +35,6 @@ pub trait ResizableBuf {
 
 /// A trait describing an immutable audio buffer.
 pub trait Buf<T>: BufInfo {
-    /// The number of frames in a buffer.
-    fn frames(&self) -> usize {
-        BufInfo::buf_info_frames(self)
-    }
-
-    /// The number of channels in the buffer.
-    fn channels(&self) -> usize {
-        BufInfo::buf_info_channels(self)
-    }
-
     /// Return a handler to the buffer associated with the channel.
     ///
     /// Note that we don't access the buffer for the underlying channel directly
@@ -164,12 +154,12 @@ impl<B> BufInfo for &B
 where
     B: ?Sized + BufInfo,
 {
-    fn buf_info_frames(&self) -> usize {
-        (**self).buf_info_frames()
+    fn frames(&self) -> usize {
+        (**self).frames()
     }
 
-    fn buf_info_channels(&self) -> usize {
-        (**self).buf_info_channels()
+    fn channels(&self) -> usize {
+        (**self).channels()
     }
 }
 
@@ -197,12 +187,12 @@ impl<B> BufInfo for &mut B
 where
     B: ?Sized + BufInfo,
 {
-    fn buf_info_frames(&self) -> usize {
-        (**self).buf_info_frames()
+    fn frames(&self) -> usize {
+        (**self).frames()
     }
 
-    fn buf_info_channels(&self) -> usize {
-        (**self).buf_info_channels()
+    fn channels(&self) -> usize {
+        (**self).channels()
     }
 }
 
@@ -238,11 +228,11 @@ where
 }
 
 impl<T> BufInfo for Vec<Vec<T>> {
-    fn buf_info_frames(&self) -> usize {
+    fn frames(&self) -> usize {
         self.iter().map(|vec| vec.len()).next().unwrap_or_default()
     }
 
-    fn buf_info_channels(&self) -> usize {
+    fn channels(&self) -> usize {
         self.len()
     }
 }
@@ -281,11 +271,11 @@ impl<T> BufMut<T> for Vec<Vec<T>> {
 }
 
 impl<T> BufInfo for [Vec<T>] {
-    fn buf_info_frames(&self) -> usize {
+    fn frames(&self) -> usize {
         self.as_ref().first().map(|c| c.len()).unwrap_or_default()
     }
 
-    fn buf_info_channels(&self) -> usize {
+    fn channels(&self) -> usize {
         self.as_ref().len()
     }
 }
