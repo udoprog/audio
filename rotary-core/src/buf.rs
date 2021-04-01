@@ -255,16 +255,42 @@ pub trait ChannelsMut<T>: Channels<T> {
     /// Panics if the specified channel is out of bound as reported by
     /// [Buf::channels].
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T>;
+
+    /// Copy one channel into another.
+    ///
+    /// If the channels have different sizes, the minimul difference between
+    /// them will be copied.
+    ///
+    /// # Panics
+    ///
+    /// Panics if one of the channels being tried to copy from or to is out of
+    /// bounds as reported by [Buf::channels].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Channels, ChannelsMut};
+    ///
+    /// let mut buffer: rotary::Dynamic<i16> = rotary::dynamic![[1, 2, 3, 4], [0, 0, 0, 0]];
+    /// buffer.copy_channels(0, 1);
+    ///
+    /// assert_eq!(buffer.channel(1), buffer.channel(0));
+    /// ```
+    fn copy_channels(&mut self, from: usize, to: usize)
+    where
+        T: Copy;
 }
 
 impl<B> Buf for &B
 where
     B: ?Sized + Buf,
 {
+    #[inline]
     fn frames_hint(&self) -> Option<usize> {
         (**self).frames_hint()
     }
 
+    #[inline]
     fn channels(&self) -> usize {
         (**self).channels()
     }
@@ -274,6 +300,7 @@ impl<B, T> Channels<T> for &B
 where
     B: Channels<T>,
 {
+    #[inline]
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         (**self).channel(channel)
     }
@@ -283,10 +310,12 @@ impl<B> Buf for &mut B
 where
     B: ?Sized + Buf,
 {
+    #[inline]
     fn frames_hint(&self) -> Option<usize> {
         (**self).frames_hint()
     }
 
+    #[inline]
     fn channels(&self) -> usize {
         (**self).channels()
     }
@@ -296,6 +325,7 @@ impl<B, T> Channels<T> for &mut B
 where
     B: ?Sized + Channels<T>,
 {
+    #[inline]
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         (**self).channel(channel)
     }
@@ -305,8 +335,17 @@ impl<B, T> ChannelsMut<T> for &mut B
 where
     B: ?Sized + ChannelsMut<T>,
 {
+    #[inline]
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         (**self).channel_mut(channel)
+    }
+
+    #[inline]
+    fn copy_channels(&mut self, from: usize, to: usize)
+    where
+        T: Copy,
+    {
+        (**self).copy_channels(from, to);
     }
 }
 
@@ -326,9 +365,39 @@ impl<T> Channels<T> for Vec<Vec<T>> {
     }
 }
 
-impl<T> ChannelsMut<T> for Vec<Vec<T>> {
+impl<T> ChannelsMut<T> for Vec<Vec<T>>
+where
+    T: Copy,
+{
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         ChannelMut::linear(&mut self[channel])
+    }
+
+    fn copy_channels(&mut self, from: usize, to: usize) {
+        assert! {
+            from < self.len(),
+            "copy from channel {} is out of bounds 0-{}",
+            from,
+            self.len()
+        };
+        assert! {
+            to < self.len(),
+            "copy to channel {} which is out of bounds 0-{}",
+            to,
+            self.len()
+        };
+
+        if from != to {
+            // Safety: We're making sure not to access any mutable buffers which are
+            // not initialized.
+            unsafe {
+                let ptr = self.as_mut_ptr();
+                let from = &*ptr.add(from);
+                let to = &mut *ptr.add(to);
+                let end = usize::min(from.len(), to.len());
+                to[..end].copy_from_slice(&from[..end]);
+            }
+        }
     }
 }
 

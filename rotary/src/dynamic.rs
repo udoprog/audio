@@ -760,9 +760,37 @@ where
     }
 }
 
-impl<T> ChannelsMut<T> for Dynamic<T> {
+impl<T> ChannelsMut<T> for Dynamic<T>
+where
+    T: Copy,
+{
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         ChannelMut::linear(&mut self[channel])
+    }
+
+    fn copy_channels(&mut self, from: usize, to: usize) {
+        assert! {
+            from < self.channels,
+            "copy from channel {} is out of bounds 0-{}",
+            from,
+            self.channels
+        };
+        assert! {
+            to < self.channels,
+            "copy to channel {} which is out of bounds 0-{}",
+            to,
+            self.channels
+        };
+
+        if from != to {
+            // Safety: We're making sure not to access any mutable buffers which are
+            // not initialized.
+            unsafe {
+                let from = self.data.get_unchecked(from).as_ref(self.frames);
+                let to = self.data.get_unchecked_mut(to).as_mut(self.frames);
+                to.copy_from_slice(from);
+            }
+        }
     }
 }
 

@@ -5,12 +5,12 @@ use rotary_core::{Buf, Channel, ChannelMut, Channels, ChannelsMut, ExactSizeBuf}
 /// See [wrap::sequential][super::sequential()].
 pub struct Sequential<T> {
     value: T,
-    frames: usize,
+    channels: usize,
 }
 
 impl<T> Sequential<T> {
-    pub(super) fn new(value: T, frames: usize) -> Self {
-        Self { value, frames }
+    pub(super) fn new(value: T, channels: usize) -> Self {
+        Self { value, channels }
     }
 
     /// Convert back into the wrapped value.
@@ -30,24 +30,25 @@ macro_rules! impl_buf {
     ([$($p:tt)*] , $ty:ty $(, $len:ident)?) => {
         impl<$($p)*> Buf for Sequential<$ty> {
             fn frames_hint(&self) -> Option<usize> {
-                Some(self.frames)
+                Some(self.frames())
             }
 
             fn channels(&self) -> usize {
-                impl_buf!(@frames self, $($len)*) / self.frames
+                self.channels
             }
         }
 
         impl<$($p)*> ExactSizeBuf for Sequential<$ty> {
             fn frames(&self) -> usize {
-                self.frames
+                impl_buf!(@frames self, $($len)*) / self.channels
             }
         }
 
         impl<$($p)*> Channels<T> for Sequential<$ty> {
             fn channel(&self, channel: usize) -> Channel<'_, T> {
-                let value = &self.value[channel * self.frames..];
-                let value = &value[..self.frames];
+                let frames = self.frames();
+                let value = self.value.get(channel * frames..).unwrap_or_default();
+                let value = value.get(..frames).unwrap_or_default();
                 Channel::linear(value)
             }
         }
@@ -65,12 +66,31 @@ impl_buf!([T, const N: usize], &'_ mut [T; N], N);
 
 macro_rules! impl_buf_mut {
     ([$($p:tt)*], $ty:ty) => {
-        impl<$($p)*> ChannelsMut<T> for Sequential<$ty> {
+        impl<$($p)*> ChannelsMut<T> for Sequential<$ty> where T: Copy {
             fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
-                let value = &mut self.value[channel * self.frames..];
-                let value = &mut value[..self.frames];
-
+                let frames = self.frames();
+                let value = self.value.get_mut(channel * frames..).unwrap_or_default();
+                let value = value.get_mut(..frames).unwrap_or_default();
                 ChannelMut::linear(value)
+            }
+
+            fn copy_channels(&mut self, from: usize, to: usize) {
+                let frames = self.frames();
+
+                // Safety: We're calling the copy function with internal
+                // parameters which are guaranteed to be correct. `channels` is
+                // guaranteed to reflect a valid subset of the buffer based on
+                // frames, because it uses the trusted length of the provided
+                // slice.
+                unsafe {
+                    crate::utils::copy_channels_sequential(
+                        self.value.as_mut_ptr(),
+                        self.channels,
+                        frames,
+                        from,
+                        to,
+                    );
+                }
             }
         }
     };

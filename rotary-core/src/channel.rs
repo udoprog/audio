@@ -1,6 +1,10 @@
 //! A channel buffer as created through [Channels::channel][crate::Channels::channel] or
 //! [ChannelsMut::channel_mut][crate::ChannelsMut::channel_mut].
 
+use std::cmp;
+use std::fmt;
+use std::hash;
+
 use crate::translate::Translate;
 use std::ops;
 
@@ -25,7 +29,6 @@ enum Kind {
 ///
 /// This doesn't provide direct access to the underlying buffer, but rather
 /// allows us to copy data usinga  number of utility functions.
-#[derive(Debug, Clone, Copy)]
 pub struct Channel<'a, T> {
     buf: &'a [T],
     kind: Kind,
@@ -418,6 +421,66 @@ impl<'a, T> Channel<'a, T> {
     }
 }
 
+impl<T> Clone for Channel<'_, T> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<T> Copy for Channel<'_, T> {}
+
+impl<T> fmt::Debug for Channel<'_, T>
+where
+    T: Copy + fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
+
+impl<T> cmp::PartialEq for Channel<'_, T>
+where
+    T: Copy + cmp::PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.iter().eq(other.iter())
+    }
+}
+
+impl<T> cmp::Eq for Channel<'_, T> where T: Copy + cmp::Eq {}
+
+impl<T> cmp::PartialOrd for Channel<'_, T>
+where
+    T: Copy + cmp::PartialOrd,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        self.iter().partial_cmp(other.iter())
+    }
+}
+
+impl<T> cmp::Ord for Channel<'_, T>
+where
+    T: Copy + cmp::Ord,
+{
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.iter().cmp(other.iter())
+    }
+}
+
+impl<T> hash::Hash for Channel<'_, T>
+where
+    T: Copy + hash::Hash,
+{
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: hash::Hasher,
+    {
+        for f in self.iter() {
+            f.hash(state);
+        }
+    }
+}
+
 impl<'a, T> IntoIterator for Channel<'a, T>
 where
     T: Copy,
@@ -457,7 +520,6 @@ impl<T> ops::Index<usize> for Channel<'_, T> {
 ///
 /// This doesn't provide direct access to the underlying buffer, but rather
 /// allows us to copy data usinga  number of utility functions.
-#[derive(Debug)]
 pub struct ChannelMut<'a, T> {
     buf: &'a mut [T],
     kind: Kind,
@@ -1079,6 +1141,58 @@ impl<'a, T> ChannelMut<'a, T> {
     {
         for (o, f) in self.as_mut().iter_mut().zip(from) {
             *o = T::translate(f);
+        }
+    }
+}
+
+impl<T> fmt::Debug for ChannelMut<'_, T>
+where
+    T: Copy + fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.as_ref().iter()).finish()
+    }
+}
+
+impl<T> cmp::PartialEq for ChannelMut<'_, T>
+where
+    T: Copy + cmp::PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.as_ref().iter().eq(other.as_ref().iter())
+    }
+}
+
+impl<T> cmp::Eq for ChannelMut<'_, T> where T: Copy + cmp::Eq {}
+
+impl<T> cmp::PartialOrd for ChannelMut<'_, T>
+where
+    T: Copy + cmp::PartialOrd,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        self.as_ref().iter().partial_cmp(other.as_ref().iter())
+    }
+}
+
+impl<T> cmp::Ord for ChannelMut<'_, T>
+where
+    T: Copy + cmp::Ord,
+{
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.as_ref().iter().cmp(other.as_ref().iter())
+    }
+}
+
+impl<T> hash::Hash for ChannelMut<'_, T>
+where
+    T: Copy + hash::Hash,
+{
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: hash::Hasher,
+    {
+        for f in self.as_ref().iter() {
+            f.hash(state);
         }
     }
 }

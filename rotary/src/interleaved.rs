@@ -805,9 +805,26 @@ where
     }
 }
 
-impl<T> ChannelsMut<T> for Interleaved<T> {
+impl<T> ChannelsMut<T> for Interleaved<T>
+where
+    T: Copy,
+{
     fn channel_mut(&mut self, channel: usize) -> rotary_core::ChannelMut<'_, T> {
         rotary_core::ChannelMut::interleaved(&mut self.data, self.channels, channel)
+    }
+
+    fn copy_channels(&mut self, from: usize, to: usize) {
+        // Safety: We're making sure not to access any mutable buffers which
+        // are not initialized.
+        unsafe {
+            crate::utils::copy_channels_interleaved(
+                self.data.as_mut_ptr(),
+                self.channels,
+                self.frames,
+                from,
+                to,
+            )
+        }
     }
 }
 

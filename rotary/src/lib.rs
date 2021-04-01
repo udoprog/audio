@@ -110,9 +110,11 @@ pub mod dynamic;
 pub mod interleaved;
 pub mod io;
 pub mod sequential;
+mod utils;
+pub mod wrap;
+
 #[cfg(test)]
 mod tests;
-pub mod wrap;
 
 pub use self::dynamic::Dynamic;
 pub use self::interleaved::Interleaved;

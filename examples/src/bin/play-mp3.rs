@@ -1,5 +1,6 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use rotary::ChannelsMut;
 use rubato::{InterpolationParameters, InterpolationType, SincFixedIn, WindowFunction};
 use std::fs;
 use std::io;
@@ -112,15 +113,15 @@ where
     R: io::Read,
 {
     // The decoder loop.
-    fn write_to<T>(&mut self, data: &mut [T]) -> anyhow::Result<()>
+    fn write_to<T>(&mut self, out: &mut [T]) -> anyhow::Result<()>
     where
         T: 'static + Send + rotary::Sample + rotary::Translate<f32>,
     {
         use rotary::{io, wrap};
-        use rotary::{ReadBuf as _, WriteBuf as _};
+        use rotary::{Buf, ReadBuf, WriteBuf};
         use rubato::Resampler;
 
-        let mut data = wrap::interleaved(data, self.device_channels);
+        let mut data = io::Write::new(wrap::interleaved(out, self.device_channels));
         let frames = data.remaining_mut();
 
         // Run the loop while there is buffer to fill.
@@ -194,6 +195,18 @@ where
             }
 
             self.last_frame = Some(frame);
+        }
+
+        // If the last decoded frame contains fewer channels than we have data
+        // channels, copy channel 0 to the first two presumed stereo channels.
+        if let Some(frame) = &self.last_frame {
+            if frame.channels == 0 {
+                bail!("tried to play stream with zero channels")
+            }
+
+            for to in frame.channels..usize::min(data.channels(), 2) {
+                data.copy_channels(0, to);
+            }
         }
 
         self.frames += frames - data.remaining_mut();

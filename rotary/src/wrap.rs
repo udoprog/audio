@@ -68,6 +68,6 @@ pub fn interleaved<T>(value: T, channels: usize) -> Interleaved<T> {
 ///
 /// You can instead use the [Read][crate::io::Read] or [Write][crate::io::Write]
 /// adapters available to accomplish this.
-pub fn sequential<T>(value: T, frames: usize) -> Sequential<T> {
-    Sequential::new(value, frames)
+pub fn sequential<T>(value: T, channels: usize) -> Sequential<T> {
+    Sequential::new(value, channels)
 }

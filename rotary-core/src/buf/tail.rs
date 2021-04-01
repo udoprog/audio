@@ -118,6 +118,13 @@ where
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         self.buf.channel_mut(channel).tail(self.n)
     }
+
+    fn copy_channels(&mut self, from: usize, to: usize)
+    where
+        T: Copy,
+    {
+        self.buf.copy_channels(from, to);
+    }
 }
 
 impl<B> ReadBuf for Tail<B>

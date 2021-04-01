@@ -696,9 +696,26 @@ where
     }
 }
 
-impl<T> ChannelsMut<T> for Sequential<T> {
+impl<T> ChannelsMut<T> for Sequential<T>
+where
+    T: Copy,
+{
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         let data = &mut self.data[self.frames * channel..];
         ChannelMut::linear(&mut data[..self.frames])
+    }
+
+    fn copy_channels(&mut self, from: usize, to: usize) {
+        // Safety: We're calling the copy function with internal parameters
+        // which are guaranteed to be correct.
+        unsafe {
+            crate::utils::copy_channels_sequential(
+                self.data.as_mut_ptr(),
+                self.channels,
+                self.frames,
+                from,
+                to,
+            )
+        }
     }
 }

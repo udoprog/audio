@@ -29,38 +29,8 @@ impl<T> Interleaved<T> {
     }
 }
 
-impl<T, const N: usize> ExactSizeBuf for Interleaved<&'_ [T; N]> {
-    fn frames(&self) -> usize {
-        N / self.channels
-    }
-}
-
-impl<T, const N: usize> ExactSizeBuf for Interleaved<&'_ mut [T; N]> {
-    fn frames(&self) -> usize {
-        N / self.channels
-    }
-}
-
-impl<T, const N: usize> ExactSizeBuf for Interleaved<[T; N]> {
-    fn frames(&self) -> usize {
-        N / self.channels
-    }
-}
-
-impl<T> ExactSizeBuf for Interleaved<&'_ [T]> {
-    fn frames(&self) -> usize {
-        self.value.len() / self.channels
-    }
-}
-
-impl<T> ExactSizeBuf for Interleaved<&'_ mut [T]> {
-    fn frames(&self) -> usize {
-        self.value.len() / self.channels
-    }
-}
-
 macro_rules! impl_buf {
-    ([$($p:tt)*], $ty:ty) => {
+    ([$($p:tt)*], $ty:ty $(, $len:ident)?) => {
         impl<$($p)*> Buf for Interleaved<$ty> {
             fn frames_hint(&self) -> Option<usize> {
                 Some(self.frames())
@@ -68,6 +38,12 @@ macro_rules! impl_buf {
 
             fn channels(&self) -> usize {
                 self.channels
+            }
+        }
+
+        impl<$($p)*> ExactSizeBuf for Interleaved<$ty> {
+            fn frames(&self) -> usize {
+                impl_buf!(@frames self, $($len)*) / self.channels
             }
         }
 
@@ -87,22 +63,44 @@ macro_rules! impl_buf {
             }
         }
     };
+
+    (@frames $s:ident,) => { $s.value.len() };
+    (@frames $_:ident, $n:ident) => { $n };
 }
 
 impl_buf!([T], &'_ [T]);
 impl_buf!([T], &'_ mut [T]);
-impl_buf!([T, const N: usize], [T; N]);
-impl_buf!([T, const N: usize], &'_ [T; N]);
-impl_buf!([T, const N: usize], &'_ mut [T; N]);
+impl_buf!([T, const N: usize], [T; N], N);
+impl_buf!([T, const N: usize], &'_ [T; N], N);
+impl_buf!([T, const N: usize], &'_ mut [T; N], N);
 
 macro_rules! impl_buf_mut {
     ([$($p:tt)*], $ty:ty) => {
-        impl<$($p)*> ChannelsMut<T> for Interleaved<$ty> {
+        impl<$($p)*> ChannelsMut<T> for Interleaved<$ty> where T: Copy {
             fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
                 if self.channels == 1 && channel == 0 {
                     ChannelMut::linear(self.value.as_mut())
                 } else {
                     ChannelMut::interleaved(self.value.as_mut(), self.channels, channel)
+                }
+            }
+
+            fn copy_channels(&mut self, from: usize, to: usize) {
+                let frames = self.frames();
+
+                // Safety: We're calling the copy function with internal
+                // parameters which are guaranteed to be correct. `frames` is
+                // guaranteed to reflect a valid subset of the buffer based on
+                // frames, because it uses the trusted length of the provided
+                // slice.
+                unsafe {
+                    crate::utils::copy_channels_interleaved(
+                        self.value.as_mut_ptr(),
+                        self.channels,
+                        frames,
+                        from,
+                        to,
+                    );
                 }
             }
         }
