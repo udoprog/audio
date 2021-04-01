@@ -54,7 +54,6 @@ impl<T> Dynamic<T> {
     /// ```
     pub fn new() -> Self {
         Self {
-            // Safety: we know that a newly created vector is non-null.
             data: RawSlice::empty(),
             channels: 0,
             channels_cap: 0,
@@ -600,6 +599,12 @@ impl<T> Dynamic<T> {
     }
 }
 
+impl<T> Default for Dynamic<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // Safety: dynamic is simply a container of T's, any Send/Sync properties are
 // inherited.
 unsafe impl<T> Send for Dynamic<T> where T: Send {}
@@ -812,8 +817,7 @@ impl<T> RawSlice<T> {
     /// Calculate the next capacity.
     fn next_cap(from: usize, to: usize) -> usize {
         let to = usize::max(from * 2, to);
-        let to = usize::max(Self::MIN_NON_ZERO_CAP, to);
-        to
+        usize::max(Self::MIN_NON_ZERO_CAP, to)
     }
 
     /// Construct an empty raw slice.

@@ -135,3 +135,45 @@ fn test_resize() {
     buffer.resize(64);
     assert_eq!(buffer.frame(1, 127), None);
 }
+
+// Miri: Grabbing a mutable pointer out of a slice has many potential issues.
+// This tests basic soundness of the process.
+
+#[test]
+fn test_as_interleaved_mut_ptr() {
+    use crate::{AsInterleavedMut, Channels, InterleavedBuf};
+
+    unsafe fn fill_with_ones(buf: *mut i16, len: usize) -> (usize, usize) {
+        let buf = std::slice::from_raw_parts_mut(buf, len);
+
+        for (o, b) in buf.iter_mut().zip(std::iter::repeat(1)) {
+            *o = b;
+        }
+
+        (2, len / 2)
+    }
+
+    fn test<B>(mut buffer: B)
+    where
+        B: InterleavedBuf + AsInterleavedMut<i16>,
+    {
+        buffer.reserve_frames(16);
+        // Note: call fills the buffer with ones.
+        // Safety: We've initialized exactly 16 frames before calling this
+        // function.
+        let (channels, frames) = unsafe { fill_with_ones(buffer.as_interleaved_mut_ptr(), 16) };
+        buffer.set_topology(channels, frames);
+    }
+
+    let mut buf = crate::Interleaved::new();
+    test(&mut buf);
+
+    assert_eq! {
+        buf.channel(0).iter().collect::<Vec<_>>(),
+        &[1, 1, 1, 1, 1, 1, 1, 1],
+    };
+    assert_eq! {
+        buf.channel(1).iter().collect::<Vec<_>>(),
+        &[1, 1, 1, 1, 1, 1, 1, 1],
+    };
+}

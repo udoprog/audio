@@ -54,6 +54,7 @@ pub use self::iter::{Iter, IterMut};
 ///
 /// assert_eq!(buffer.as_slice(), &[1.0, 5.0, 2.0, 6.0, 3.0, 7.0, 4.0, 8.0]);
 /// ```
+#[derive(Default)]
 pub struct Interleaved<T> {
     data: Vec<T>,
     channels: usize,
@@ -216,8 +217,8 @@ impl<T> Interleaved<T> {
                 .collect();
 
             for _ in 0..F {
-                for c in 0..C {
-                    data.extend(vecs[c].next());
+                for v in vecs.iter_mut() {
+                    data.extend(v.next());
                 }
             }
 

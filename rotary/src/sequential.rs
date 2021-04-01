@@ -55,6 +55,7 @@ pub use self::iter::{Iter, IterMut};
 ///
 /// assert_eq!(buffer.as_slice(), &[1.0, 2.0, 3.0, 2.0, 3.0, 4.0]);
 /// ```
+#[derive(Default)]
 pub struct Sequential<T> {
     data: Vec<T>,
     channels: usize,
@@ -471,7 +472,7 @@ impl<T> Sequential<T> {
     /// assert_eq!(None, buffer.get(4));
     /// ```
     pub fn get(&self, channel: usize) -> Option<&[T]> {
-        if !(channel < self.channels) {
+        if channel >= self.channels {
             return None;
         }
 
@@ -501,7 +502,7 @@ impl<T> Sequential<T> {
     /// }
     /// ```
     pub fn get_mut(&mut self, channel: usize) -> Option<&mut [T]> {
-        if !(channel < self.channels) {
+        if channel >= self.channels {
             return None;
         }
 

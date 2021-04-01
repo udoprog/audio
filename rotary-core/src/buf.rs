@@ -413,6 +413,6 @@ impl<T> Buf for [Vec<T>] {
 
 impl<T> Channels<T> for [Vec<T>] {
     fn channel(&self, channel: usize) -> Channel<'_, T> {
-        Channel::linear(&self.as_ref()[channel])
+        Channel::linear(&self[channel])
     }
 }

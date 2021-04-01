@@ -6,6 +6,9 @@
 //!
 //! [rotary]: https://github.com/udoprog/rotary
 
+#![deny(missing_docs, broken_intra_doc_links)]
+#![allow(clippy::should_implement_trait)]
+
 mod buf;
 pub use self::buf::{
     AsInterleaved, AsInterleavedMut, Buf, Channels, ChannelsMut, ExactSizeBuf, InterleavedBuf,

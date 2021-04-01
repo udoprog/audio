@@ -101,7 +101,8 @@
 //! [Channels]: https://docs.rs/rotary-core/0/rotary_core/trait.Channels.html
 //! [ChannelsMut]: https://docs.rs/rotary-core/0/rotary_core/trait.ChannelsMut.html
 
-#![deny(missing_docs)]
+#![deny(missing_docs, broken_intra_doc_links)]
+#![allow(clippy::should_implement_trait)]
 
 #[macro_use]
 mod macros;

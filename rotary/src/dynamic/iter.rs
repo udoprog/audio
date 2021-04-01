@@ -126,7 +126,7 @@ impl<'a, T> Iter<'a, T> {
     #[inline]
     pub(super) unsafe fn new(data: &'a [RawSlice<T>], len: usize) -> Self {
         Self {
-            iter: data.into_iter(),
+            iter: data.iter(),
             len,
         }
     }
@@ -175,7 +175,7 @@ impl<'a, T> IterMut<'a, T> {
     #[inline]
     pub(super) unsafe fn new(data: &'a mut [RawSlice<T>], len: usize) -> Self {
         Self {
-            iter: data.into_iter(),
+            iter: data.iter_mut(),
             len,
         }
     }

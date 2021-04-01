@@ -157,7 +157,7 @@ impl<T> WriteBuf for Interleaved<&'_ mut [T]> {
 
 impl<T> InterleavedBuf for Interleaved<&'_ mut [T]> {
     fn reserve_frames(&mut self, frames: usize) {
-        if !(frames <= self.value.len()) {
+        if frames > self.value.len() {
             panic!(
                 "required number of frames {new_len} is larger than the wrapped buffer {len}",
                 new_len = frames,

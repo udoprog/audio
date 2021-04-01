@@ -29,6 +29,8 @@ enum Kind {
 ///
 /// This doesn't provide direct access to the underlying buffer, but rather
 /// allows us to copy data usinga  number of utility functions.
+///
+/// See [Channels::channel][crate::Channels::channel].
 pub struct Channel<'a, T> {
     buf: &'a [T],
     kind: Kind,
@@ -520,6 +522,8 @@ impl<T> ops::Index<usize> for Channel<'_, T> {
 ///
 /// This doesn't provide direct access to the underlying buffer, but rather
 /// allows us to copy data usinga  number of utility functions.
+///
+/// See [ChannelsMut::channel_mut][crate::ChannelsMut::channel_mut].
 pub struct ChannelMut<'a, T> {
     buf: &'a mut [T],
     kind: Kind,
@@ -1105,7 +1109,8 @@ impl<'a, T> ChannelMut<'a, T> {
     {
         match (self.kind, from.kind) {
             (Kind::Linear, Kind::Linear) => {
-                self.buf.copy_from_slice(&from.buf[..]);
+                let end = usize::min(self.buf.len(), from.buf.len());
+                self.buf[..end].copy_from_slice(&from.buf[..end]);
             }
             _ => {
                 for (o, f) in self.as_mut().iter_mut().zip(from) {
