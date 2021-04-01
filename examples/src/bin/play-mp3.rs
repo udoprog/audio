@@ -118,11 +118,10 @@ where
         T: 'static + Send + rotary::Sample + rotary::Translate<f32>,
     {
         use rotary::{io, wrap};
-        use rotary::{Buf, ReadBuf, WriteBuf};
+        use rotary::{Buf, ExactSizeBuf, ReadBuf, WriteBuf};
         use rubato::Resampler;
 
         let mut data = io::Write::new(wrap::interleaved(out, self.device_channels));
-        let frames = data.remaining_mut();
 
         // Run the loop while there is buffer to fill.
         while data.has_remaining_mut() {
@@ -209,7 +208,7 @@ where
             }
         }
 
-        self.frames += frames - data.remaining_mut();
+        self.frames = self.frames.saturating_add(data.as_ref().frames());
 
         let seconds = self.frames as f32 / self.device_sample_rate as f32;
 
