@@ -1,4 +1,6 @@
-use crate::buf::{Buf, BufMut, ExactSizeBuf, ResizableBuf};
+use crate::buf::{
+    AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, ResizableBuf,
+};
 use crate::channel::{Channel, ChannelMut};
 use crate::io::ReadBuf;
 
@@ -14,6 +16,18 @@ impl<B> Limit<B> {
     /// Construct a new limited buffer.
     pub(crate) fn new(buf: B, limit: usize) -> Self {
         Self { buf, limit }
+    }
+
+    #[inline]
+    fn calculate_frames(&self, frames: usize) -> usize
+    where
+        B: ExactSizeBuf,
+    {
+        self.buf
+            .frames()
+            .saturating_sub(self.limit)
+            .saturating_add(self.limit)
+            .saturating_add(frames)
     }
 }
 
@@ -46,15 +60,55 @@ where
 
 impl<B> ResizableBuf for Limit<B>
 where
-    B: ResizableBuf,
+    B: ExactSizeBuf + ResizableBuf,
 {
     fn resize(&mut self, frames: usize) {
-        self.buf.resize(frames.saturating_add(self.limit));
+        let frames = self.calculate_frames(frames);
+        self.buf.resize(frames);
     }
 
     fn resize_topology(&mut self, channels: usize, frames: usize) {
-        self.buf
-            .resize_topology(channels, frames.saturating_add(self.limit));
+        let frames = self.calculate_frames(frames);
+        self.buf.resize_topology(channels, frames);
+    }
+}
+
+impl<B> InterleavedBuf for Limit<B>
+where
+    B: ExactSizeBuf + InterleavedBuf,
+{
+    fn reserve_frames(&mut self, frames: usize) {
+        let frames = self.calculate_frames(frames);
+        self.buf.reserve_frames(frames);
+    }
+
+    fn set_topology(&mut self, channels: usize, frames: usize) {
+        let frames = self.calculate_frames(frames);
+        self.buf.set_topology(channels, frames);
+    }
+}
+
+impl<B, T> AsInterleaved<T> for Limit<B>
+where
+    B: AsInterleaved<T> + Buf<T>,
+{
+    fn as_interleaved(&self) -> &[T] {
+        let channels = self.buf.channels();
+        let buf = self.buf.as_interleaved();
+        let end = usize::min(buf.len(), self.limit.saturating_mul(channels));
+        buf.get(..end).unwrap_or_default()
+    }
+}
+
+impl<B, T> AsInterleavedMut<T> for Limit<B>
+where
+    B: AsInterleavedMut<T> + Buf<T>,
+{
+    fn as_interleaved_mut(&mut self) -> &mut [T] {
+        let channels = self.buf.channels();
+        let buf = self.buf.as_interleaved_mut();
+        let end = usize::min(buf.len(), self.limit.saturating_mul(channels));
+        buf.get_mut(..end).unwrap_or_default()
     }
 }
 

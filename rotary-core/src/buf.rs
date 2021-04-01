@@ -1,7 +1,6 @@
 //! Trait for dealing with abstract channel buffers.
 
 use crate::channel::{Channel, ChannelMut};
-use crate::sample::Sample;
 
 mod skip;
 pub use self::skip::Skip;
@@ -15,60 +14,87 @@ pub use self::chunk::Chunk;
 mod tail;
 pub use self::tail::Tail;
 
-/// Trait used to describe a buffer that knows exactly how many frames it has
-/// regardless of if it's sized or not.
-///
-/// # Examples
-///
-/// ```rust
-/// use rotary::ExactSizeBuf;
-///
-/// fn test<T>(buf: T) where T: ExactSizeBuf {
-///     assert_eq!(buf.frames(), 4);
-/// }
-///
-/// test(rotary::interleaved![[0i16; 4]; 4]);
-/// test(rotary::sequential![[0i16; 4]; 4]);
-/// test(rotary::dynamic![[0i16; 4]; 4]);
-/// test(rotary::wrap::interleaved([0i16; 16], 4));
-/// test(rotary::wrap::sequential([0i16; 16], 4));
-/// ```
-pub trait ExactSizeBuf {
-    /// The number of frames in a buffer.
+mod exact_size_buf;
+pub use self::exact_size_buf::ExactSizeBuf;
+
+mod resizable_buf;
+pub use self::resizable_buf::ResizableBuf;
+
+mod interleaved_buf;
+pub use self::interleaved_buf::InterleavedBuf;
+
+mod as_interleaved;
+pub use self::as_interleaved::AsInterleaved;
+
+mod as_interleaved_mut;
+pub use self::as_interleaved_mut::AsInterleavedMut;
+
+/// A trait describing an immutable audio buffer.
+pub trait Buf<T> {
+    /// A typical number of frames for each channel in the buffer, if known.
+    ///
+    /// If you only want to support buffers which have exact sizes use
+    /// [ExactSizeBuf].
+    ///
+    /// This is only a best effort hint. We can't require any [Buf] to know the
+    /// exact number of frames, because we want to be able to implement it for
+    /// types which does not keep track of the exact number of frames it expects
+    /// each channel to have such as `Vec<Vec<i16>>`.
+    ///
+    /// ```rust
+    /// use rotary::Buf;
+    ///
+    /// fn test(buf: impl Buf<i16>) {
+    ///     assert_eq!(buf.channels(), 2);
+    ///     assert_eq!(buf.frames_hint(), Some(4));
+    /// }
+    ///
+    /// test(vec![vec![1, 2, 3, 4], vec![5, 6, 7, 8]]);
+    /// ```
+    ///
+    /// But it should be clear that such a buffer supports a variable number of
+    /// frames in each channel.
+    ///
+    /// ```rust
+    /// use rotary::Buf;
+    ///
+    /// fn test(buf: impl Buf<i16>) {
+    ///     assert_eq!(buf.channels(), 2);
+    ///     assert_eq!(buf.frames_hint(), Some(4));
+    ///
+    ///     assert_eq!(buf.channel(0).frames(), 4);
+    ///     assert_eq!(buf.channel(1).frames(), 2);
+    /// }
+    ///
+    /// test(vec![vec![1, 2, 3, 4], vec![5, 6]]);
+    /// ```
+    fn frames_hint(&self) -> Option<usize>;
+
+    /// The number of channels in the buffer.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::ExactSizeBuf;
+    /// use rotary::Buf;
     ///
-    /// fn test<T>(buf: T) where T: ExactSizeBuf {
-    ///     assert_eq!(buf.frames(), 4);
+    /// fn test(buf: impl Buf<i16>) {
+    ///     assert_eq!(buf.channels(), 2);
+    ///
+    ///     assert_eq! {
+    ///         buf.channel(0).iter().collect::<Vec<_>>(),
+    ///         &[1, 2, 3, 4],
+    ///     }
+    ///
+    ///     assert_eq! {
+    ///         buf.channel(1).iter().collect::<Vec<_>>(),
+    ///         &[5, 6, 7, 8],
+    ///     }
     /// }
     ///
-    /// test(rotary::interleaved![[0i16; 4]; 4]);
-    /// test(rotary::sequential![[0i16; 4]; 4]);
-    /// test(rotary::dynamic![[0i16; 4]; 4]);
-    /// test(rotary::wrap::interleaved([0i16; 16], 4));
-    /// test(rotary::wrap::sequential([0i16; 16], 4));
+    /// test(rotary::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// test(rotary::wrap::interleaved(&[1, 5, 2, 6, 3, 7, 4, 8], 2));
+    /// test(vec![vec![1, 2, 3, 4], vec![5, 6, 7, 8]]);
     /// ```
-    fn frames(&self) -> usize;
-}
-
-/// Trait implemented for buffers that can be resized.
-pub trait ResizableBuf {
-    /// Resize the number of frames in the buffer.
-    fn resize(&mut self, frames: usize);
-
-    /// Resize the buffer to match the given topology.
-    fn resize_topology(&mut self, channels: usize, frames: usize);
-}
-
-/// A trait describing an immutable audio buffer.
-pub trait Buf<T> {
-    /// A typical number of frames in the buffer, if known.
-    fn frames_hint(&self) -> Option<usize>;
-
-    /// The number of channels in the buffer.
     fn channels(&self) -> usize;
 
     /// Return a handler to the buffer associated with the channel.
@@ -187,13 +213,15 @@ pub trait Buf<T> {
     }
 }
 
-impl<B> ExactSizeBuf for &B
-where
-    B: ?Sized + ExactSizeBuf,
-{
-    fn frames(&self) -> usize {
-        (**self).frames()
-    }
+/// A trait describing a mutable audio buffer.
+pub trait BufMut<T>: Buf<T> {
+    /// Return a mutable handler to the buffer associated with the channel.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the specified channel is out of bound as reported by
+    /// [Buf::channels].
+    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T>;
 }
 
 impl<B, T> Buf<T> for &B
@@ -213,26 +241,6 @@ where
     }
 }
 
-/// A trait describing a mutable audio buffer.
-pub trait BufMut<T>: Buf<T> {
-    /// Return a mutable handler to the buffer associated with the channel.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the specified channel is out of bound as reported by
-    /// [Buf::channels].
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T>;
-}
-
-impl<B> ExactSizeBuf for &mut B
-where
-    B: ?Sized + ExactSizeBuf,
-{
-    fn frames(&self) -> usize {
-        (**self).frames()
-    }
-}
-
 impl<B, T> Buf<T> for &mut B
 where
     B: ?Sized + Buf<T>,
@@ -247,19 +255,6 @@ where
 
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         (**self).channel(channel)
-    }
-}
-
-impl<B> ResizableBuf for &mut B
-where
-    B: ?Sized + ResizableBuf,
-{
-    fn resize(&mut self, frames: usize) {
-        (**self).resize(frames);
-    }
-
-    fn resize_topology(&mut self, channels: usize, frames: usize) {
-        (**self).resize_topology(channels, frames);
     }
 }
 
@@ -283,27 +278,6 @@ impl<T> Buf<T> for Vec<Vec<T>> {
 
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         Channel::linear(&self[channel])
-    }
-}
-
-impl<T> ResizableBuf for Vec<Vec<T>>
-where
-    T: Sample,
-{
-    fn resize(&mut self, frames: usize) {
-        for buf in self.iter_mut() {
-            buf.resize(frames, T::ZERO);
-        }
-    }
-
-    fn resize_topology(&mut self, channels: usize, frames: usize) {
-        for buf in self.iter_mut() {
-            buf.resize(frames, T::ZERO);
-        }
-
-        for _ in self.len()..channels {
-            self.push(vec![T::ZERO; frames]);
-        }
     }
 }
 

@@ -163,6 +163,61 @@ impl<T> Sequential<T> {
         }
     }
 
+    /// Allocate a sequential audio buffer from a fixed-size array.
+    ///
+    /// See [sequential!].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let mut buffer = rotary::Sequential::from_array([[1; 4]; 2]);
+    ///
+    /// assert_eq!(buffer.frames(), 4);
+    /// assert_eq!(buffer.channels(), 2);
+    ///
+    /// assert_eq! {
+    ///     buffer.as_slice(),
+    ///     &[1, 1, 1, 1, 1, 1, 1, 1],
+    /// }
+    /// ```
+    ///
+    /// Using a specific array topology.
+    ///
+    /// ```rust
+    /// let mut buffer = rotary::Sequential::from_array([[1, 2, 3, 4], [5, 6, 7, 8]]);
+    ///
+    /// assert_eq!(buffer.frames(), 4);
+    /// assert_eq!(buffer.channels(), 2);
+    ///
+    /// assert_eq! {
+    ///     buffer.as_slice(),
+    ///     &[1, 2, 3, 4, 5, 6, 7, 8],
+    /// }
+    /// ```
+    pub fn from_array<const F: usize, const C: usize>(channels: [[T; F]; C]) -> Self
+    where
+        T: Copy,
+    {
+        return Self {
+            data: data_from_array(channels),
+            channels: C,
+            frames: F,
+        };
+
+        #[inline]
+        fn data_from_array<T, const F: usize, const C: usize>(channels: [[T; F]; C]) -> Vec<T> {
+            let mut data = Vec::with_capacity(C * F);
+
+            for frames in std::array::IntoIter::new(channels) {
+                for f in std::array::IntoIter::new(frames) {
+                    data.push(f);
+                }
+            }
+
+            data
+        }
+    }
+
     /// Take ownership of the backing vector.
     ///
     /// # Examples
@@ -633,7 +688,7 @@ where
 
     fn resize_topology(&mut self, channels: usize, frames: usize) {
         Self::resize(self, frames);
-        self.resize_channels(channels);
+        Self::resize_channels(self, channels);
     }
 }
 

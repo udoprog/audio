@@ -1,8 +1,10 @@
 //! A dynamically sized, multi-channel interleaved audio buffer.
 
 use crate::wrap;
-use rotary_core::Sample;
-use rotary_core::{Buf, BufMut, ExactSizeBuf, ResizableBuf};
+use rotary_core::{
+    AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, ResizableBuf,
+    Sample,
+};
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -162,6 +164,67 @@ impl<T> Interleaved<T> {
         }
     }
 
+    /// Allocate an interleaved audio buffer from a fixed-size array.
+    ///
+    /// See [interleaved!].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let mut buffer = rotary::Interleaved::from_array([[1; 4]; 2]);
+    ///
+    /// assert_eq!(buffer.frames(), 4);
+    /// assert_eq!(buffer.channels(), 2);
+    ///
+    /// assert_eq! {
+    ///     buffer.as_slice(),
+    ///     &[1, 1, 1, 1, 1, 1, 1, 1],
+    /// }
+    /// ```
+    ///
+    /// Using a specific array topology.
+    ///
+    /// ```rust
+    /// let mut buffer = rotary::Interleaved::from_array([[1, 2, 3, 4], [5, 6, 7, 8]]);
+    ///
+    /// assert_eq!(buffer.frames(), 4);
+    /// assert_eq!(buffer.channels(), 2);
+    ///
+    /// assert_eq! {
+    ///     buffer.as_slice(),
+    ///     &[1, 5, 2, 6, 3, 7, 4, 8],
+    /// }
+    /// ```
+    pub fn from_array<const F: usize, const C: usize>(channels: [[T; F]; C]) -> Self
+    where
+        T: Copy,
+    {
+        return Self {
+            data: data_from_array(channels),
+            channels: C,
+            frames: F,
+        };
+
+        #[inline]
+        fn data_from_array<T, const F: usize, const C: usize>(channels: [[T; F]; C]) -> Vec<T> {
+            let mut data = Vec::with_capacity(C * F);
+
+            // TODO: It would be nice to avoid this heap allocation! Could be
+            // done w/ ArrayVec, but we don't want to pull that dependency.
+            let mut vecs: Vec<std::array::IntoIter<T, F>> = std::array::IntoIter::new(channels)
+                .map(std::array::IntoIter::new)
+                .collect();
+
+            for _ in 0..F {
+                for c in 0..C {
+                    data.extend(vecs[c].next());
+                }
+            }
+
+            data
+        }
+    }
+
     /// Take ownership of the backing vector.
     ///
     /// # Examples
@@ -190,22 +253,37 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = rotary::Interleaved::<f32>::with_topology(2, 4);
-    ///
-    /// for (c, s) in buffer.get_mut(0).unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
-    ///     *c = *s;
-    /// }
-    ///
-    /// for (c, s) in buffer.get_mut(1).unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
-    ///     *c = *s;
-    /// }
-    ///
-    /// buffer.resize(3);
-    ///
-    /// assert_eq!(buffer.as_slice(), &[1.0, 1.0, 2.0, 2.0, 3.0, 3.0])
+    /// let mut buffer = rotary::Interleaved::<i16>::with_topology(2, 4);
+    /// assert_eq!(buffer.as_slice(), &[0, 0, 0, 0, 0, 0, 0, 0]);
     /// ```
     pub fn as_slice(&self) -> &[T] {
         &self.data
+    }
+
+    /// Access the underlying vector as a mutable slice.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::Buf as _;
+    ///
+    /// let mut buffer = rotary::Interleaved::<i16>::with_topology(2, 4);
+    /// buffer.as_slice_mut().copy_from_slice(&[1, 1, 2, 2, 3, 3, 4, 4]);
+    ///
+    /// assert_eq! {
+    ///     buffer.channel(0).iter().collect::<Vec<_>>(),
+    ///     &[1, 2, 3, 4],
+    /// };
+    ///
+    /// assert_eq! {
+    ///     buffer.channel(1).iter().collect::<Vec<_>>(),
+    ///     &[1, 2, 3, 4],
+    /// };
+    ///
+    /// assert_eq!(buffer.as_slice(), &[1, 1, 2, 2, 3, 3, 4, 4]);
+    /// ```
+    pub fn as_slice_mut(&mut self) -> &mut [T] {
+        &mut self.data
     }
 
     /// Get the number of frames in the channels of an audio buffer.
@@ -543,6 +621,7 @@ impl<T> Interleaved<T> {
     }
 
     /// The internal resize function for interleaved channel buffers.
+    /// Note: this is safe only because of the `T: Sample` bound. DO NOT REMOVE.
     fn inner_resize(&mut self, channels: usize, frames: usize)
     where
         T: Sample,
@@ -551,18 +630,7 @@ impl<T> Interleaved<T> {
             return;
         }
 
-        let old_cap = self.data.capacity();
-        let new_cap = frames * channels;
-
-        if new_cap > old_cap {
-            self.data.reserve(new_cap - old_cap);
-            let new_cap = self.data.capacity();
-
-            // Safety: capacity is governed by the underlying vector.
-            unsafe {
-                ptr::write_bytes(self.data.as_mut_ptr().add(old_cap), 0, new_cap - old_cap);
-            }
-        }
+        self.inner_reserve_cap(frames.saturating_mul(channels));
 
         if self.channels != channels {
             let len = usize::min(self.channels, channels);
@@ -577,14 +645,32 @@ impl<T> Interleaved<T> {
             }
         }
 
+        self.channels = channels;
+        self.frames = frames;
+    }
+
+    /// Note: this is safe only because of the `T: Sample` bound. DO NOT REMOVE.
+    fn inner_reserve_cap(&mut self, new_cap: usize)
+    where
+        T: Sample,
+    {
+        let old_cap = self.data.capacity();
+
+        if new_cap > old_cap {
+            self.data.reserve(new_cap - old_cap);
+            let new_cap = self.data.capacity();
+
+            // Safety: capacity is governed by the underlying vector.
+            unsafe {
+                ptr::write_bytes(self.data.as_mut_ptr().add(old_cap), 0, new_cap - old_cap);
+            }
+        }
+
         // Safety: since we're decreasing the number of frames we're sure
         // that the data for them is already allocated.
         unsafe {
-            self.data.set_len(frames * channels);
+            self.data.set_len(new_cap);
         }
-
-        self.channels = channels;
-        self.frames = frames;
     }
 
     /// Internal function to re-shuffle channels.
@@ -691,6 +777,34 @@ where
     }
 }
 
+impl<T> InterleavedBuf for Interleaved<T>
+where
+    T: Sample,
+{
+    fn reserve_frames(&mut self, frames: usize) {
+        self.inner_reserve_cap(frames);
+    }
+
+    fn set_topology(&mut self, channels: usize, frames: usize) {
+        let new_len = channels.saturating_mul(frames);
+
+        assert! {
+            new_len <= self.data.capacity(),
+            "current buffer with capacity {} doesn't fit the requested topology {}:{}",
+            self.data.capacity(), channels, frames
+        };
+
+        // Safety: all entrypoints to Interleaved assure that `data` is
+        // initialized up until `cap`, so updating the length is safe.
+        unsafe {
+            self.data.set_len(new_len);
+        }
+
+        self.channels = channels;
+        self.frames = frames;
+    }
+}
+
 impl<T> BufMut<T> for Interleaved<T> {
     fn channel_mut(&mut self, channel: usize) -> rotary_core::ChannelMut<'_, T> {
         rotary_core::ChannelMut::interleaved(&mut self.data, self.channels, channel)
@@ -712,5 +826,17 @@ impl<'a, T> IntoIterator for &'a mut Interleaved<T> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter_mut()
+    }
+}
+
+impl<T> AsInterleaved<T> for Interleaved<T> {
+    fn as_interleaved(&self) -> &[T] {
+        self.as_slice()
+    }
+}
+
+impl<T> AsInterleavedMut<T> for Interleaved<T> {
+    fn as_interleaved_mut(&mut self) -> &mut [T] {
+        self.as_slice_mut()
     }
 }

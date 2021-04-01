@@ -1,4 +1,7 @@
-use crate::buf::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, ResizableBuf};
+use crate::buf::{
+    AsInterleaved, AsInterleavedMut, Buf, BufMut, Channel, ChannelMut, ExactSizeBuf,
+    InterleavedBuf, ResizableBuf,
+};
 
 /// A chunk of another buffer.
 ///
@@ -13,6 +16,11 @@ impl<B> Chunk<B> {
     /// Construct a new limited buffer.
     pub(crate) fn new(buf: B, n: usize, len: usize) -> Self {
         Self { buf, n, len }
+    }
+
+    #[inline]
+    fn calculate_frames(&self, frames: usize) -> usize {
+        frames.saturating_add(self.n).saturating_mul(self.len)
     }
 }
 
@@ -48,13 +56,56 @@ where
     B: ResizableBuf,
 {
     fn resize(&mut self, frames: usize) {
-        let frames = frames.saturating_add(self.n).saturating_mul(self.len);
+        let frames = self.calculate_frames(frames);
         self.buf.resize(frames);
     }
 
     fn resize_topology(&mut self, channels: usize, frames: usize) {
-        let frames = frames.saturating_add(self.n).saturating_mul(self.len);
+        let frames = self.calculate_frames(frames);
         self.buf.resize_topology(channels, frames);
+    }
+}
+
+impl<B> InterleavedBuf for Chunk<B>
+where
+    B: InterleavedBuf,
+{
+    fn reserve_frames(&mut self, frames: usize) {
+        let frames = self.calculate_frames(frames);
+        self.buf.reserve_frames(frames);
+    }
+
+    fn set_topology(&mut self, channels: usize, frames: usize) {
+        let frames = self.calculate_frames(frames);
+        self.buf.set_topology(channels, frames);
+    }
+}
+
+impl<B, T> AsInterleaved<T> for Chunk<B>
+where
+    B: AsInterleaved<T> + Buf<T>,
+{
+    fn as_interleaved(&self) -> &[T] {
+        let channels = self.buf.channels();
+        let len = self.len.saturating_mul(channels);
+        let buf = self.buf.as_interleaved();
+        let start = usize::min(self.n.saturating_mul(len), buf.len());
+        let end = usize::min(start.saturating_add(len), buf.len());
+        buf.get(start..end).unwrap_or_default()
+    }
+}
+
+impl<B, T> AsInterleavedMut<T> for Chunk<B>
+where
+    B: AsInterleavedMut<T> + Buf<T>,
+{
+    fn as_interleaved_mut(&mut self) -> &mut [T] {
+        let channels = self.buf.channels();
+        let len = self.len.saturating_mul(channels);
+        let buf = self.buf.as_interleaved_mut();
+        let start = usize::min(self.n.saturating_mul(len), buf.len());
+        let end = usize::min(start.saturating_add(len), buf.len());
+        buf.get_mut(start..end).unwrap_or_default()
     }
 }
 

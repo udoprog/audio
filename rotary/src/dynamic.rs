@@ -752,7 +752,7 @@ where
 
     fn resize_topology(&mut self, channels: usize, frames: usize) {
         Self::resize(self, frames);
-        self.resize_channels(channels);
+        Self::resize_channels(self, channels);
     }
 }
 

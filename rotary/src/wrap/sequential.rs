@@ -13,6 +13,18 @@ impl<T> Sequential<T> {
     pub(super) fn new(value: T, frames: usize) -> Self {
         Self { value, frames }
     }
+
+    /// Convert back into the wrapped value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let buffer = rotary::wrap::sequential(&[1, 2, 3, 4], 2);
+    /// assert_eq!(buffer.into_inner(), &[1, 2, 3, 4]);
+    /// ```
+    pub fn into_inner(self) -> T {
+        self.value
+    }
 }
 
 macro_rules! impl_buf {

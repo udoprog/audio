@@ -7,7 +7,9 @@
 //! [rotary]: https://github.com/udoprog/rotary
 
 mod buf;
-pub use self::buf::{Buf, BufMut, ExactSizeBuf, ResizableBuf};
+pub use self::buf::{
+    AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, ResizableBuf,
+};
 
 mod channel;
 pub use self::channel::{Channel, ChannelMut};

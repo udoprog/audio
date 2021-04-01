@@ -5,9 +5,9 @@
 /// # Examples
 ///
 /// ```rust
-/// let buf = rotary::dynamic![[0.0; 64]; 2];
+/// let buf = rotary::dynamic![[0; 64]; 2];
 ///
-/// let mut expected = vec![0.0; 64];
+/// let mut expected = vec![0; 64];
 ///
 /// assert_eq!(&buf[0], &expected[..]);
 /// assert_eq!(&buf[1], &expected[..]);
@@ -16,10 +16,19 @@
 /// Calling the macro with a template channel.
 ///
 /// ```rust
-/// let buf = rotary::dynamic![[0.0, 1.0, 2.0, 3.0]; 2];
+/// let buf = rotary::dynamic![[0, 1, 2, 3]; 2];
 ///
-/// assert_eq!(&buf[0], &[0.0, 1.0, 2.0, 3.0]);
-/// assert_eq!(&buf[1], &[0.0, 1.0, 2.0, 3.0]);
+/// assert_eq!(&buf[0], &[0, 1, 2, 3]);
+/// assert_eq!(&buf[1], &[0, 1, 2, 3]);
+/// ```
+///
+/// Using an exact topology of channels.
+///
+/// ```rust
+/// let buf = rotary::dynamic![[0, 1, 2, 3], [4, 5, 6, 7]];
+///
+/// assert_eq!(&buf[0], &[0, 1, 2, 3]);
+/// assert_eq!(&buf[1], &[4, 5, 6, 7]);
 /// ```
 #[macro_export]
 macro_rules! dynamic {
@@ -54,6 +63,11 @@ macro_rules! dynamic {
     ([$($value:expr),* $(,)?]; $channels:expr) => {
         $crate::Dynamic::from_frames([$($value),*], $channels)
     };
+
+    // Build a dynamic audio buffer from a specific topology of channels.
+    ($($channel:expr),* $(,)?) => {
+        $crate::Dynamic::from_array([$($channel),*])
+    };
 }
 
 /// Construct a sequential audio buffer.
@@ -63,9 +77,9 @@ macro_rules! dynamic {
 /// # Examples
 ///
 /// ```rust
-/// let buf = rotary::sequential![[0.0; 64]; 2];
+/// let buf = rotary::sequential![[0; 64]; 2];
 ///
-/// let mut expected = vec![0.0; 64];
+/// let mut expected = vec![0; 64];
 ///
 /// assert_eq!(&buf[0], &expected[..]);
 /// assert_eq!(&buf[1], &expected[..]);
@@ -74,9 +88,17 @@ macro_rules! dynamic {
 /// Calling the macro with a template channel.
 ///
 /// ```rust
-/// let buf = rotary::sequential![[0.0, 1.0, 2.0, 3.0]; 2];
+/// let buf = rotary::sequential![[0, 1, 2, 3]; 2];
 ///
-/// assert_eq!(buf.as_slice(), &[0.0, 1.0, 2.0, 3.0, 0.0, 1.0, 2.0, 3.0])
+/// assert_eq!(buf.as_slice(), &[0, 1, 2, 3, 0, 1, 2, 3])
+/// ```
+///
+/// Using an exact topology of channels.
+///
+/// ```rust
+/// let buf = rotary::sequential![[0, 1, 2, 3], [4, 5, 6, 7]];
+///
+/// assert_eq!(buf.as_slice(), &[0, 1, 2, 3, 4, 5, 6, 7])
 /// ```
 #[macro_export]
 macro_rules! sequential {
@@ -93,6 +115,11 @@ macro_rules! sequential {
     ([$($value:expr),* $(,)?]; $channels:expr) => {
         $crate::Sequential::from_frames([$($value),*], $channels)
     };
+
+    // Build a sequential audio buffer from a specific topology of channels.
+    ($($channel:expr),* $(,)?) => {
+        $crate::Sequential::from_array([$($channel),*])
+    };
 }
 
 /// Construct an interleaved audio buffer.
@@ -102,9 +129,9 @@ macro_rules! sequential {
 /// # Examples
 ///
 /// ```rust
-/// let buf = rotary::interleaved![[0.0; 64]; 2];
+/// let buf = rotary::interleaved![[0; 64]; 2];
 ///
-/// let mut expected = vec![0.0; 64];
+/// let mut expected = vec![0; 64];
 ///
 /// assert!(buf.get(0).unwrap().iter().eq(&expected[..]));
 /// assert!(buf.get(1).unwrap().iter().eq(&expected[..]));
@@ -113,9 +140,17 @@ macro_rules! sequential {
 /// Calling the macro with a template channel.
 ///
 /// ```rust
-/// let buf = rotary::interleaved![[0.0, 1.0, 2.0, 3.0]; 2];
+/// let buf = rotary::interleaved![[0, 1, 2, 3]; 2];
 ///
-/// assert_eq!(buf.as_slice(), &[0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0])
+/// assert_eq!(buf.as_slice(), &[0, 0, 1, 1, 2, 2, 3, 3])
+/// ```
+///
+/// Using an exact topology of channels.
+///
+/// ```rust
+/// let buf = rotary::interleaved![[0, 1, 2, 3], [4, 5, 6, 7]];
+///
+/// assert_eq!(buf.as_slice(), &[0, 4, 1, 5, 2, 6, 3, 7])
 /// ```
 #[macro_export]
 macro_rules! interleaved {
@@ -131,5 +166,10 @@ macro_rules! interleaved {
     // Build an interleaved audio buffer with a template channel.
     ([$($value:expr),* $(,)?]; $channels:expr) => {
         $crate::Interleaved::from_frames([$($value),*], $channels)
+    };
+
+    // Build an interleaved audio buffer from a specific topology of channels.
+    ($($channel:expr),* $(,)?) => {
+        $crate::Interleaved::from_array([$($channel),*])
     };
 }

@@ -1,4 +1,7 @@
-use rotary_core::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, ReadBuf, WriteBuf};
+use rotary_core::{
+    AsInterleaved, AsInterleavedMut, Buf, BufMut, Channel, ChannelMut, ExactSizeBuf,
+    InterleavedBuf, ReadBuf, WriteBuf,
+};
 
 /// A wrapper for an interleaved audio buffer.
 ///
@@ -11,6 +14,18 @@ pub struct Interleaved<T> {
 impl<T> Interleaved<T> {
     pub(super) fn new(value: T, channels: usize) -> Self {
         Self { value, channels }
+    }
+
+    /// Convert back into the wrapped value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let buffer = rotary::wrap::interleaved(&[1, 2, 3, 4], 2);
+    /// assert_eq!(buffer.into_inner(), &[1, 2, 3, 4]);
+    /// ```
+    pub fn into_inner(self) -> T {
+        self.value
     }
 }
 
@@ -63,6 +78,12 @@ macro_rules! impl_buf {
                 }
             }
         }
+
+        impl<$($p)*> AsInterleaved<T> for Interleaved<$ty> {
+            fn as_interleaved(&self) -> &[T] {
+                self.value.as_ref()
+            }
+        }
     };
 }
 
@@ -81,6 +102,12 @@ macro_rules! impl_buf_mut {
                 } else {
                     ChannelMut::interleaved(self.value.as_mut(), self.channels, channel)
                 }
+            }
+        }
+
+        impl<$($p)*> AsInterleavedMut<T> for Interleaved<$ty> {
+            fn as_interleaved_mut(&mut self) -> &mut [T] {
+                self.value
             }
         }
     };
@@ -125,5 +152,40 @@ impl<T> WriteBuf for Interleaved<&'_ mut [T]> {
         self.value = value
             .get_mut(n.saturating_mul(self.channels)..)
             .unwrap_or_default();
+    }
+}
+
+impl<T> InterleavedBuf for Interleaved<&'_ mut [T]> {
+    fn reserve_frames(&mut self, frames: usize) {
+        if !(frames <= self.value.len()) {
+            panic!(
+                "required number of frames {new_len} is larger than the wrapped buffer {len}",
+                new_len = frames,
+                len = self.value.len()
+            );
+        }
+    }
+
+    fn set_topology(&mut self, channels: usize, frames: usize) {
+        let new_len = channels * frames;
+        let len = self.value.len();
+
+        let value = std::mem::take(&mut self.value);
+
+        let value = match value.get_mut(..new_len) {
+            Some(value) => value,
+            None => {
+                panic!(
+                    "the topology {channels}:{frames} requires {new_len}, which is larger than the wrapped buffer {len}",
+                    channels = channels,
+                    frames = frames,
+                    new_len = new_len,
+                    len = len,
+                );
+            }
+        };
+
+        self.value = value;
+        self.channels = channels;
     }
 }
