@@ -1,11 +1,11 @@
 use crate::buf::{
-    AsInterleaved, AsInterleavedMut, Buf, BufMut, Channel, ChannelMut, ExactSizeBuf,
+    AsInterleaved, AsInterleavedMut, Buf, Channel, ChannelMut, Channels, ChannelsMut, ExactSizeBuf,
     InterleavedBuf, ResizableBuf,
 };
 
 /// A chunk of another buffer.
 ///
-/// Created with [Buf::chunk].
+/// See [Buf::chunk].
 pub struct Chunk<B> {
     buf: B,
     n: usize,
@@ -33,9 +33,9 @@ where
     }
 }
 
-impl<B, T> Buf<T> for Chunk<B>
+impl<B> Buf for Chunk<B>
 where
-    B: Buf<T>,
+    B: Buf,
 {
     fn frames_hint(&self) -> Option<usize> {
         let frames = self.buf.frames_hint()?;
@@ -45,7 +45,12 @@ where
     fn channels(&self) -> usize {
         self.buf.channels()
     }
+}
 
+impl<B, T> Channels<T> for Chunk<B>
+where
+    B: Channels<T>,
+{
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         self.buf.channel(channel).chunk(self.n, self.len)
     }
@@ -83,7 +88,7 @@ where
 
 impl<B, T> AsInterleaved<T> for Chunk<B>
 where
-    B: AsInterleaved<T> + Buf<T>,
+    B: Buf + AsInterleaved<T>,
 {
     fn as_interleaved(&self) -> &[T] {
         let channels = self.buf.channels();
@@ -97,7 +102,7 @@ where
 
 impl<B, T> AsInterleavedMut<T> for Chunk<B>
 where
-    B: AsInterleavedMut<T> + Buf<T>,
+    B: Buf + AsInterleavedMut<T>,
 {
     fn as_interleaved_mut(&mut self) -> &mut [T] {
         let channels = self.buf.channels();
@@ -109,9 +114,9 @@ where
     }
 }
 
-impl<B, T> BufMut<T> for Chunk<B>
+impl<B, T> ChannelsMut<T> for Chunk<B>
 where
-    B: BufMut<T>,
+    B: ChannelsMut<T>,
 {
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         self.buf.channel_mut(channel).chunk(self.n, self.len)

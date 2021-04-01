@@ -1,12 +1,13 @@
 use crate::buf::{
-    AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, ResizableBuf,
+    AsInterleaved, AsInterleavedMut, Buf, Channels, ChannelsMut, ExactSizeBuf, InterleavedBuf,
+    ResizableBuf,
 };
 use crate::channel::{Channel, ChannelMut};
 use crate::io::ReadBuf;
 
 /// A buffer where a number of frames have been skipped over.
 ///
-/// Created with [Buf::skip].
+/// See [Buf::skip].
 pub struct Skip<B> {
     buf: B,
     n: usize,
@@ -33,9 +34,9 @@ where
     }
 }
 
-impl<B, T> Buf<T> for Skip<B>
+impl<B> Buf for Skip<B>
 where
-    B: Buf<T>,
+    B: Buf,
 {
     fn frames_hint(&self) -> Option<usize> {
         let frames = self.buf.frames_hint()?;
@@ -45,7 +46,12 @@ where
     fn channels(&self) -> usize {
         self.buf.channels()
     }
+}
 
+impl<B, T> Channels<T> for Skip<B>
+where
+    B: Channels<T>,
+{
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         self.buf.channel(channel).skip(self.n)
     }
@@ -83,7 +89,7 @@ where
 
 impl<B, T> AsInterleaved<T> for Skip<B>
 where
-    B: AsInterleaved<T> + Buf<T>,
+    B: Buf + AsInterleaved<T>,
 {
     fn as_interleaved(&self) -> &[T] {
         let channels = self.buf.channels();
@@ -95,7 +101,7 @@ where
 
 impl<B, T> AsInterleavedMut<T> for Skip<B>
 where
-    B: AsInterleavedMut<T> + Buf<T>,
+    B: Buf + AsInterleavedMut<T>,
 {
     fn as_interleaved_mut(&mut self) -> &mut [T] {
         let channels = self.buf.channels();
@@ -105,9 +111,9 @@ where
     }
 }
 
-impl<B, T> BufMut<T> for Skip<B>
+impl<B, T> ChannelsMut<T> for Skip<B>
 where
-    B: BufMut<T>,
+    B: ChannelsMut<T>,
 {
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         self.buf.channel_mut(channel).skip(self.n)

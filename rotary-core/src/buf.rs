@@ -29,22 +29,47 @@ pub use self::as_interleaved::AsInterleaved;
 mod as_interleaved_mut;
 pub use self::as_interleaved_mut::AsInterleavedMut;
 
-/// A trait describing an immutable audio buffer.
-pub trait Buf<T> {
+/// The base trait available to all audio buffers.
+///
+/// This provides information which is available to all buffers, such as the
+/// number of channels.
+///
+/// ```rust
+/// use rotary::Buf as _;
+///
+/// let buffer = rotary::interleaved![[0; 4]; 2];
+///
+/// assert_eq!(buffer.channels(), 2);
+/// ```
+///
+/// It also carries a number of slicing combinators, wuch as [skip][Buf::skip]
+/// and [limit][Buf::limit] which allows an audio buffer to be sliced as needed.
+///
+///
+/// ```rust
+/// use rotary::{Buf as _, ExactSizeBuf as _};
+///
+/// let buffer = rotary::interleaved![[0; 4]; 2];
+///
+/// assert_eq!(buffer.channels(), 2);
+/// assert_eq!(buffer.frames(), 4);
+/// assert_eq!(buffer.limit(2).frames(), 2);
+/// ```
+pub trait Buf {
     /// A typical number of frames for each channel in the buffer, if known.
     ///
     /// If you only want to support buffers which have exact sizes use
     /// [ExactSizeBuf].
     ///
-    /// This is only a best effort hint. We can't require any [Buf] to know the
-    /// exact number of frames, because we want to be able to implement it for
-    /// types which does not keep track of the exact number of frames it expects
-    /// each channel to have such as `Vec<Vec<i16>>`.
+    /// This is only a best effort hint. We can't require any [Channels] to know
+    /// the exact number of frames, because we want to be able to implement it
+    /// for types which does not keep track of the exact number of frames it
+    /// expects each channel to have such as `Vec<Vec<i16>>`.
     ///
     /// ```rust
     /// use rotary::Buf;
     ///
-    /// fn test(buf: impl Buf<i16>) {
+    /// fn test(buf: impl Buf) {
     ///     assert_eq!(buf.channels(), 2);
     ///     assert_eq!(buf.frames_hint(), Some(4));
     /// }
@@ -56,9 +81,9 @@ pub trait Buf<T> {
     /// frames in each channel.
     ///
     /// ```rust
-    /// use rotary::Buf;
+    /// use rotary::Channels;
     ///
-    /// fn test(buf: impl Buf<i16>) {
+    /// fn test(buf: impl Channels<i16>) {
     ///     assert_eq!(buf.channels(), 2);
     ///     assert_eq!(buf.frames_hint(), Some(4));
     ///
@@ -75,9 +100,9 @@ pub trait Buf<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf;
+    /// use rotary::Channels;
     ///
-    /// fn test(buf: impl Buf<i16>) {
+    /// fn test(buf: impl Channels<i16>) {
     ///     assert_eq!(buf.channels(), 2);
     ///
     ///     assert_eq! {
@@ -97,48 +122,34 @@ pub trait Buf<T> {
     /// ```
     fn channels(&self) -> usize;
 
-    /// Return a handler to the buffer associated with the channel.
-    ///
-    /// Note that we don't access the buffer for the underlying channel directly
-    /// as a linear buffer like `&[T]`, because the underlying representation
-    /// might be different.
-    ///
-    /// We must instead make use of the various utility functions found on
-    /// [Channel] to copy data out of the channel.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the specified channel is out of bound as reported by
-    /// [Buf::channels].
-    fn channel(&self, channel: usize) -> Channel<'_, T>;
-
     /// Construct a new buffer where `n` frames are skipped.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::Buf as _;
+    /// use rotary::buf;
     ///
-    /// let mut from = rotary::interleaved![[0.0f32; 4]; 2];
-    /// *from.frame_mut(0, 2).unwrap() = 1.0;
-    /// *from.frame_mut(0, 3).unwrap() = 1.0;
+    /// let from = rotary::interleaved![[0, 0, 1, 1], [0; 4]];
+    /// let mut to = rotary::Interleaved::with_topology(2, 4);
     ///
-    /// let mut to = rotary::Interleaved::<f32>::with_topology(2, 4);
+    /// buf::copy(from.skip(2), &mut to);
     ///
-    /// to.channel_mut(0).copy_from((&from).skip(2).channel(0));
-    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    /// assert_eq!(to.as_slice(), &[1, 0, 1, 0, 0, 0, 0, 0]);
     /// ```
     ///
-    /// Test with a mutable buffer.
+    /// With a mutable buffer.
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Buf as _, ChannelsMut as _};
+    /// use rotary::{buf, wrap};
     ///
-    /// let mut buffer = rotary::Interleaved::with_topology(2, 4);
+    /// let from = wrap::interleaved(&[1, 1, 1, 1, 1, 1, 1, 1], 2);
+    /// let mut to = rotary::Interleaved::with_topology(2, 4);
     ///
-    /// (&mut buffer).skip(2).channel_mut(0).copy_from_slice(&[1.0, 1.0]);
+    /// buf::copy(from, (&mut to).skip(2));
     ///
-    /// assert_eq!(buffer.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
+    /// assert_eq!(to.as_slice(), &[0, 0, 0, 0, 1, 1, 1, 1])
     /// ```
     fn skip(self, n: usize) -> Skip<Self>
     where
@@ -155,12 +166,12 @@ pub trait Buf<T> {
     /// use rotary::Buf as _;
     /// use rotary::buf;
     ///
-    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
-    /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
+    /// let from = rotary::interleaved![[1; 4]; 2];
+    /// let mut to = rotary::interleaved![[0; 4]; 2];
     ///
     /// buf::copy(from, (&mut to).tail(2));
     ///
-    /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0]);
+    /// assert_eq!(to.as_slice(), &[0, 0, 0, 0, 1, 1, 1, 1]);
     /// ```
     fn tail(self, n: usize) -> Tail<Self>
     where
@@ -174,13 +185,15 @@ pub trait Buf<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::Buf as _;
+    /// use rotary::buf;
     ///
-    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
-    /// let mut to = rotary::Interleaved::<f32>::with_topology(2, 4);
+    /// let from = rotary::interleaved![[1; 4]; 2];
+    /// let mut to = rotary::Interleaved::with_topology(2, 4);
     ///
-    /// to.channel_mut(0).copy_from(from.limit(2).channel(0));
-    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    /// buf::copy(from, (&mut to).limit(2));
+    ///
+    /// assert_eq!(to.as_slice(), &[1, 1, 1, 1, 0, 0, 0, 0]);
     /// ```
     fn limit(self, limit: usize) -> Limit<Self>
     where
@@ -197,13 +210,15 @@ pub trait Buf<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::Buf as _;
+    /// use rotary::buf;
     ///
-    /// let from = rotary::interleaved![[1.0f32; 4]; 2];
-    /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
+    /// let from = rotary::interleaved![[1; 4]; 2];
+    /// let mut to = rotary::interleaved![[0; 4]; 2];
     ///
-    /// (&mut to).chunk(1, 2).channel_mut(0).copy_from(from.channel(0));
-    /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0]);
+    /// buf::copy(from, (&mut to).chunk(1, 2));
+    ///
+    /// assert_eq!(to.as_slice(), &[0, 0, 0, 0, 1, 1, 1, 1]);
     /// ```
     fn chunk(self, n: usize, len: usize) -> Chunk<Self>
     where
@@ -213,8 +228,26 @@ pub trait Buf<T> {
     }
 }
 
+/// A trait describing something that has channels.
+pub trait Channels<T>: Buf {
+    /// Return a handler to the buffer associated with the channel.
+    ///
+    /// Note that we don't access the buffer for the underlying channel directly
+    /// as a linear buffer like `&[T]`, because the underlying representation
+    /// might be different.
+    ///
+    /// We must instead make use of the various utility functions found on
+    /// [Channel] to copy data out of the channel.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the specified channel is out of bound as reported by
+    /// [Buf::channels].
+    fn channel(&self, channel: usize) -> Channel<'_, T>;
+}
+
 /// A trait describing a mutable audio buffer.
-pub trait BufMut<T>: Buf<T> {
+pub trait ChannelsMut<T>: Channels<T> {
     /// Return a mutable handler to the buffer associated with the channel.
     ///
     /// # Panics
@@ -224,9 +257,9 @@ pub trait BufMut<T>: Buf<T> {
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T>;
 }
 
-impl<B, T> Buf<T> for &B
+impl<B> Buf for &B
 where
-    B: Buf<T>,
+    B: ?Sized + Buf,
 {
     fn frames_hint(&self) -> Option<usize> {
         (**self).frames_hint()
@@ -235,15 +268,20 @@ where
     fn channels(&self) -> usize {
         (**self).channels()
     }
+}
 
+impl<B, T> Channels<T> for &B
+where
+    B: Channels<T>,
+{
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         (**self).channel(channel)
     }
 }
 
-impl<B, T> Buf<T> for &mut B
+impl<B> Buf for &mut B
 where
-    B: ?Sized + Buf<T>,
+    B: ?Sized + Buf,
 {
     fn frames_hint(&self) -> Option<usize> {
         (**self).frames_hint()
@@ -252,22 +290,27 @@ where
     fn channels(&self) -> usize {
         (**self).channels()
     }
+}
 
+impl<B, T> Channels<T> for &mut B
+where
+    B: ?Sized + Channels<T>,
+{
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         (**self).channel(channel)
     }
 }
 
-impl<B, T> BufMut<T> for &mut B
+impl<B, T> ChannelsMut<T> for &mut B
 where
-    B: ?Sized + BufMut<T>,
+    B: ?Sized + ChannelsMut<T>,
 {
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         (**self).channel_mut(channel)
     }
 }
 
-impl<T> Buf<T> for Vec<Vec<T>> {
+impl<T> Buf for Vec<Vec<T>> {
     fn frames_hint(&self) -> Option<usize> {
         Some(self.get(0)?.len())
     }
@@ -275,19 +318,21 @@ impl<T> Buf<T> for Vec<Vec<T>> {
     fn channels(&self) -> usize {
         self.len()
     }
+}
 
+impl<T> Channels<T> for Vec<Vec<T>> {
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         Channel::linear(&self[channel])
     }
 }
 
-impl<T> BufMut<T> for Vec<Vec<T>> {
+impl<T> ChannelsMut<T> for Vec<Vec<T>> {
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         ChannelMut::linear(&mut self[channel])
     }
 }
 
-impl<T> Buf<T> for [Vec<T>] {
+impl<T> Buf for [Vec<T>] {
     fn frames_hint(&self) -> Option<usize> {
         Some(self.get(0)?.len())
     }
@@ -295,7 +340,9 @@ impl<T> Buf<T> for [Vec<T>] {
     fn channels(&self) -> usize {
         self.as_ref().len()
     }
+}
 
+impl<T> Channels<T> for [Vec<T>] {
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         Channel::linear(&self.as_ref()[channel])
     }

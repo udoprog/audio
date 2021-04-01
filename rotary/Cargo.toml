@@ -13,7 +13,7 @@ description = "A library for working with audio buffers"
 readme = "README.md"
 
 [dependencies]
-rotary-core = {version = "0.1.5-alpha.1", path = "../rotary-core"}
+rotary-core = {version = "0.2.0-alpha.1", path = "../rotary-core"}
 
 [dev-dependencies]
 rand = "0.8.3"

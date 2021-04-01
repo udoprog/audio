@@ -8,7 +8,8 @@
 
 mod buf;
 pub use self::buf::{
-    AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, ResizableBuf,
+    AsInterleaved, AsInterleavedMut, Buf, Channels, ChannelsMut, ExactSizeBuf, InterleavedBuf,
+    ResizableBuf,
 };
 
 mod channel;

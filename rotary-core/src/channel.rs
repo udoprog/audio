@@ -1,5 +1,5 @@
-//! A channel buffer as created through [Buf::channel][crate::Buf::channel] or
-//! [BufMut::channel_mut][crate::BufMut::channel_mut].
+//! A channel buffer as created through [Channels::channel][crate::Channels::channel] or
+//! [ChannelsMut::channel_mut][crate::ChannelsMut::channel_mut].
 
 use crate::translate::Translate;
 use std::ops;
@@ -87,9 +87,9 @@ impl<'a, T> Channel<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf;
+    /// use rotary::Channels;
     ///
-    /// fn test(buf: &dyn Buf<f32>) {
+    /// fn test(buf: &dyn Channels<f32>) {
     ///     let left = buf.channel(0);
     ///     let right = buf.channel(1);
     ///
@@ -113,7 +113,7 @@ impl<'a, T> Channel<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let mut left = rotary::interleaved![[0.0f32; 4]; 2];
     /// let mut right = rotary::dynamic![[0.0f32; 4]; 2];
@@ -178,7 +178,7 @@ impl<'a, T> Channel<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let mut from = rotary::interleaved![[0.0f32; 4]; 2];
     /// *from.frame_mut(0, 2).unwrap() = 1.0;
@@ -209,7 +209,7 @@ impl<'a, T> Channel<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let from = rotary::interleaved![[1.0f32; 4]; 2];
     /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
@@ -245,7 +245,7 @@ impl<'a, T> Channel<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let from = rotary::interleaved![[1.0f32; 4]; 2];
     /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
@@ -300,9 +300,9 @@ impl<'a, T> Channel<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf;
+    /// use rotary::Channels;
     ///
-    /// fn test(buf: &dyn Buf<f32>) {
+    /// fn test(buf: &dyn Channels<f32>) {
     ///     let left = buf.channel(0);
     ///     let right = buf.channel(1);
     ///
@@ -332,9 +332,9 @@ impl<'a, T> Channel<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf;
+    /// use rotary::Channels;
     ///
-    /// fn test(buf: &dyn Buf<f32>) {
+    /// fn test(buf: &dyn Channels<f32>) {
     ///     let channel = buf.channel(0);
     ///
     ///     let mut buf = vec![0.0; 16];
@@ -372,9 +372,9 @@ impl<'a, T> Channel<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf;
+    /// use rotary::Channels;
     ///
-    /// fn test(buf: &dyn Buf<f32>) {
+    /// fn test(buf: &dyn Channels<f32>) {
     ///     let channel = buf.channel(0);
     ///
     ///     let mut buf = vec![0.0; 16];
@@ -614,7 +614,7 @@ impl<'a, T> ChannelMut<'a, T> {
     /// borrowing it:
     ///
     /// ```rust
-    /// use rotary::{BufMut, ChannelMut};
+    /// use rotary::{ChannelsMut, ChannelMut};
     ///
     /// fn takes_channel_mut(mut channel: ChannelMut<'_, i16>) {
     ///     channel[1] = 42;
@@ -631,7 +631,7 @@ impl<'a, T> ChannelMut<'a, T> {
     /// Without the reborrow, we would end up moving the channel:
     ///
     /// ```rust,compile_fail
-    /// use rotary::{BufMut, ChannelMut};
+    /// use rotary::{ChannelsMut, ChannelMut};
     ///
     /// fn takes_channel_mut(mut channel: ChannelMut<'_, i16>) {
     ///     channel[1] = 42;
@@ -674,9 +674,9 @@ impl<'a, T> ChannelMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::BufMut;
+    /// use rotary::ChannelsMut;
     ///
-    /// fn test(buf: &dyn BufMut<f32>) {
+    /// fn test(buf: &dyn ChannelsMut<f32>) {
     ///     let left = buf.channel(0);
     ///     let right = buf.channel(1);
     ///
@@ -700,9 +700,9 @@ impl<'a, T> ChannelMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::BufMut;
+    /// use rotary::ChannelsMut;
     ///
-    /// fn test(buf: &dyn BufMut<f32>) {
+    /// fn test(buf: &dyn ChannelsMut<f32>) {
     ///     let left = buf.channel(0);
     ///     let right = buf.channel(1);
     ///
@@ -732,7 +732,7 @@ impl<'a, T> ChannelMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let mut left = rotary::interleaved![[0.0f32; 4]; 2];
     /// let mut right = rotary::dynamic![[0.0f32; 4]; 2];
@@ -757,7 +757,7 @@ impl<'a, T> ChannelMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let mut left = rotary::interleaved![[0.0f32; 4]; 2];
     /// let mut right = rotary::dynamic![[0.0f32; 4]; 2];
@@ -788,7 +788,7 @@ impl<'a, T> ChannelMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let mut buffer = rotary::Interleaved::with_topology(2, 4);
     ///
@@ -816,7 +816,7 @@ impl<'a, T> ChannelMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let from = rotary::interleaved![[1.0f32; 4]; 2];
     /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
@@ -852,7 +852,7 @@ impl<'a, T> ChannelMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let from = rotary::interleaved![[1.0f32; 4]; 2];
     /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
@@ -883,7 +883,7 @@ impl<'a, T> ChannelMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let from = rotary::interleaved![[1.0f32; 4]; 2];
     /// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
@@ -895,9 +895,9 @@ impl<'a, T> ChannelMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf;
+    /// use rotary::Channels;
     ///
-    /// fn test(buf: &dyn Buf<f32>) {
+    /// fn test(buf: &dyn Channels<f32>) {
     ///     let channel = buf.channel(0);
     ///
     ///     let mut buf = vec![0.0; 4];
@@ -935,9 +935,9 @@ impl<'a, T> ChannelMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::BufMut;
+    /// use rotary::ChannelsMut;
     ///
-    /// fn test(buf: &mut dyn BufMut<f32>) {
+    /// fn test(buf: &mut dyn ChannelsMut<f32>) {
     ///     buf.channel_mut(0).copy_from_slice(&[1.0; 4][..]);
     ///
     ///     let mut out = vec![0.0; 8];
@@ -972,9 +972,9 @@ impl<'a, T> ChannelMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::BufMut;
+    /// use rotary::ChannelsMut;
     ///
-    /// fn test(buf: &mut dyn BufMut<f32>) {
+    /// fn test(buf: &mut dyn ChannelsMut<f32>) {
     ///     buf.channel_mut(0).skip(2).copy_from_iter(vec![1.0; 4]);
     ///
     ///     let mut out = vec![0.0; 8];
@@ -989,9 +989,9 @@ impl<'a, T> ChannelMut<'a, T> {
     /// ```
     ///
     /// ```rust
-    /// use rotary::BufMut;
+    /// use rotary::ChannelsMut;
     ///
-    /// fn test(buf: &mut dyn BufMut<f32>) {
+    /// fn test(buf: &mut dyn ChannelsMut<f32>) {
     ///     buf.channel_mut(0).skip(2).chunk(0, 2).copy_from_iter(vec![1.0; 4]);
     ///
     ///     let mut out = vec![0.0; 8];
@@ -1029,7 +1029,7 @@ impl<'a, T> ChannelMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let from = rotary::dynamic![[1.0f32; 4]; 2];
     /// let mut to = rotary::interleaved![[0.0f32; 4]; 3];
@@ -1064,7 +1064,7 @@ impl<'a, T> ChannelMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let from = rotary::dynamic![[u16::MAX; 4]; 2];
     /// let mut to = rotary::interleaved![[0.0f32; 4]; 3];
@@ -1123,9 +1123,9 @@ impl<T> ops::Index<usize> for ChannelMut<'_, T> {
 /// # Examples
 ///
 /// ```rust
-/// use rotary::BufMut;
+/// use rotary::ChannelsMut;
 ///
-/// fn test(buf: &mut dyn BufMut<f32>) {
+/// fn test(buf: &mut dyn ChannelsMut<f32>) {
 ///     buf.channel_mut(0)[1] = 1.0;
 ///     buf.channel_mut(0)[7] = 1.0;
 ///

@@ -7,9 +7,9 @@ pub trait AsInterleavedMut<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf, AsInterleaved, AsInterleavedMut};
+    /// use rotary::{Channels, AsInterleaved, AsInterleavedMut};
     ///
-    /// fn test<B>(mut buffer: B) where B: Buf<i16> + AsInterleaved<i16> + AsInterleavedMut<i16> {
+    /// fn test<B>(mut buffer: B) where B: Channels<i16> + AsInterleaved<i16> + AsInterleavedMut<i16> {
     ///     buffer.as_interleaved_mut().copy_from_slice(&[1, 1, 2, 2, 3, 3, 4, 4]);
     ///
     ///     assert_eq! {

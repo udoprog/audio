@@ -1,6 +1,8 @@
 //! A dynamically sized, multi-channel audio buffer.
 
-use rotary_core::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, ResizableBuf, Sample};
+use rotary_core::{
+    Buf, Channel, ChannelMut, Channels, ChannelsMut, ExactSizeBuf, ResizableBuf, Sample,
+};
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -728,7 +730,7 @@ impl<T> ExactSizeBuf for Dynamic<T> {
     }
 }
 
-impl<T> Buf<T> for Dynamic<T> {
+impl<T> Buf for Dynamic<T> {
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
     }
@@ -736,7 +738,9 @@ impl<T> Buf<T> for Dynamic<T> {
     fn channels(&self) -> usize {
         self.channels
     }
+}
 
+impl<T> Channels<T> for Dynamic<T> {
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         Channel::linear(&self[channel])
     }
@@ -756,7 +760,7 @@ where
     }
 }
 
-impl<T> BufMut<T> for Dynamic<T> {
+impl<T> ChannelsMut<T> for Dynamic<T> {
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         ChannelMut::linear(&mut self[channel])
     }

@@ -1,7 +1,7 @@
 //! Utilities for manipulating audio buffers.
 
 use rotary_core::Translate;
-use rotary_core::{Buf, BufMut, ReadBuf, WriteBuf};
+use rotary_core::{Channels, ChannelsMut, ReadBuf, WriteBuf};
 
 /// Copy the shared remaining frames from `from` into `to`.
 ///
@@ -10,8 +10,8 @@ use rotary_core::{Buf, BufMut, ReadBuf, WriteBuf};
 /// using [ReadBuf::advance] and [WriteBuf::advance_mut].
 pub fn copy_remaining<I, O, T>(mut from: I, mut to: O)
 where
-    I: ReadBuf + Buf<T>,
-    O: WriteBuf + BufMut<T>,
+    I: ReadBuf + Channels<T>,
+    O: WriteBuf + ChannelsMut<T>,
     T: Copy,
 {
     let len = usize::min(from.remaining(), to.remaining_mut());
@@ -30,8 +30,8 @@ where
 pub fn translate_remaining<I, O, T, U>(mut from: I, mut to: O)
 where
     U: Translate<T>,
-    I: ReadBuf + Buf<T>,
-    O: WriteBuf + BufMut<U>,
+    I: ReadBuf + Channels<T>,
+    O: WriteBuf + ChannelsMut<U>,
     T: Copy,
 {
     let len = usize::min(from.remaining(), to.remaining_mut());

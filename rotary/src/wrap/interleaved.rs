@@ -1,5 +1,5 @@
 use rotary_core::{
-    AsInterleaved, AsInterleavedMut, Buf, BufMut, Channel, ChannelMut, ExactSizeBuf,
+    AsInterleaved, AsInterleavedMut, Buf, Channel, ChannelMut, Channels, ChannelsMut, ExactSizeBuf,
     InterleavedBuf, ReadBuf, WriteBuf,
 };
 
@@ -61,7 +61,7 @@ impl<T> ExactSizeBuf for Interleaved<&'_ mut [T]> {
 
 macro_rules! impl_buf {
     ([$($p:tt)*], $ty:ty) => {
-        impl<$($p)*> Buf<T> for Interleaved<$ty> {
+        impl<$($p)*> Buf for Interleaved<$ty> {
             fn frames_hint(&self) -> Option<usize> {
                 Some(self.frames())
             }
@@ -69,7 +69,9 @@ macro_rules! impl_buf {
             fn channels(&self) -> usize {
                 self.channels
             }
+        }
 
+        impl<$($p)*> Channels<T> for Interleaved<$ty> {
             fn channel(&self, channel: usize) -> Channel<'_, T> {
                 if self.channels == 1 && channel == 0 {
                     Channel::linear(self.value.as_ref())
@@ -95,7 +97,7 @@ impl_buf!([T, const N: usize], &'_ mut [T; N]);
 
 macro_rules! impl_buf_mut {
     ([$($p:tt)*], $ty:ty) => {
-        impl<$($p)*> BufMut<T> for Interleaved<$ty> {
+        impl<$($p)*> ChannelsMut<T> for Interleaved<$ty> {
             fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
                 if self.channels == 1 && channel == 0 {
                     ChannelMut::linear(self.value.as_mut())

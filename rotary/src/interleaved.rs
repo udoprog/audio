@@ -2,8 +2,8 @@
 
 use crate::wrap;
 use rotary_core::{
-    AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, ResizableBuf,
-    Sample,
+    AsInterleaved, AsInterleavedMut, Buf, Channels, ChannelsMut, ExactSizeBuf, InterleavedBuf,
+    ResizableBuf, Sample,
 };
 use std::cmp;
 use std::fmt;
@@ -265,7 +265,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf as _;
+    /// use rotary::Channels as _;
     ///
     /// let mut buffer = rotary::Interleaved::<i16>::with_topology(2, 4);
     /// buffer.as_slice_mut().copy_from_slice(&[1, 1, 2, 2, 3, 3, 4, 4]);
@@ -319,8 +319,7 @@ impl<T> Interleaved<T> {
     /// Offset the interleaved buffer and return a wrapped buffer.
     ///
     /// This is provided as a special operation for this buffer kind, because it
-    /// can be done more efficiently than what is available through
-    /// [Buf::skip].
+    /// can be done more efficiently than what is available through [Buf::skip].
     pub fn interleaved_skip(&self, skip: usize) -> wrap::Interleaved<&[T]> {
         let data = self.data.get(skip * self.channels..).unwrap_or_default();
         wrap::interleaved(data, self.channels)
@@ -329,13 +328,12 @@ impl<T> Interleaved<T> {
     /// Offset the interleaved buffer and return a mutable wrapped buffer.
     ///
     /// This is provided as a special operation for this buffer kind, because it
-    /// can be done more efficiently than what is available through
-    /// [Buf::skip].
+    /// can be done more efficiently than what is available through [Buf::skip].
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let mut buffer = rotary::Interleaved::with_topology(2, 4);
     ///
@@ -361,7 +359,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, BufMut as _};
+    /// use rotary::{Channels as _, ChannelsMut as _};
     ///
     /// let from = rotary::interleaved![[1.0f32; 4]; 2];
     /// let mut to = rotary::Interleaved::<f32>::with_topology(2, 4);
@@ -749,7 +747,7 @@ impl<T> ExactSizeBuf for Interleaved<T> {
     }
 }
 
-impl<T> Buf<T> for Interleaved<T> {
+impl<T> Buf for Interleaved<T> {
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
     }
@@ -757,7 +755,9 @@ impl<T> Buf<T> for Interleaved<T> {
     fn channels(&self) -> usize {
         self.channels
     }
+}
 
+impl<T> Channels<T> for Interleaved<T> {
     fn channel(&self, channel: usize) -> rotary_core::Channel<'_, T> {
         rotary_core::Channel::interleaved(&self.data, self.channels, channel)
     }
@@ -805,7 +805,7 @@ where
     }
 }
 
-impl<T> BufMut<T> for Interleaved<T> {
+impl<T> ChannelsMut<T> for Interleaved<T> {
     fn channel_mut(&mut self, channel: usize) -> rotary_core::ChannelMut<'_, T> {
         rotary_core::ChannelMut::interleaved(&mut self.data, self.channels, channel)
     }

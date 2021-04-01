@@ -1,12 +1,11 @@
-use rotary_core::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, WriteBuf};
+use rotary_core::{Buf, Channel, ChannelMut, Channels, ChannelsMut, ExactSizeBuf, WriteBuf};
 
-/// Make a mutable buffer into a write adapter that implements
-/// [ReadBuf] and [WriteBuf].
+/// Make a mutable buffer into a write adapter that implements [WriteBuf].
 ///
 /// # Examples
 ///
 /// ```rust
-/// use rotary::{Buf as _, BufMut as _, ReadBuf as _, WriteBuf as _};
+/// use rotary::{Buf as _, ReadBuf as _, WriteBuf as _};
 /// use rotary::io;
 ///
 /// let from = rotary::interleaved![[1.0f32, 2.0f32, 3.0f32, 4.0f32]; 2];
@@ -62,8 +61,8 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf as _;
     /// use rotary::{io, wrap};
+    /// use rotary::Buf as _;
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
     /// let mut buffer = io::Write::new(buffer);
@@ -122,9 +121,9 @@ where
     }
 }
 
-impl<B, T> Buf<T> for Write<B>
+impl<B> Buf for Write<B>
 where
-    B: Buf<T>,
+    B: Buf,
 {
     fn frames_hint(&self) -> Option<usize> {
         self.buf.frames_hint()
@@ -133,15 +132,20 @@ where
     fn channels(&self) -> usize {
         self.buf.channels()
     }
+}
 
+impl<B, T> Channels<T> for Write<B>
+where
+    B: Channels<T>,
+{
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         self.buf.channel(channel).tail(self.available)
     }
 }
 
-impl<B, T> BufMut<T> for Write<B>
+impl<B, T> ChannelsMut<T> for Write<B>
 where
-    B: BufMut<T>,
+    B: ChannelsMut<T>,
 {
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         self.buf.channel_mut(channel).tail(self.available)

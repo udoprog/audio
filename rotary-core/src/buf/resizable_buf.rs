@@ -1,13 +1,14 @@
+use crate::buf::Buf;
 use crate::sample::Sample;
 
 /// Trait implemented for buffers that can be resized.
-pub trait ResizableBuf {
+pub trait ResizableBuf: Buf {
     /// Resize the number of per-channel frames in the buffer.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{ResizableBuf, ExactSizeBuf as _, Buf as _};
+    /// use rotary::{ResizableBuf, ExactSizeBuf as _, Channels as _};
     ///
     /// fn test<B>(mut buffer: B) where B: ResizableBuf {
     ///     buffer.resize(4);
@@ -30,7 +31,7 @@ pub trait ResizableBuf {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{ResizableBuf, ExactSizeBuf as _, Buf as _};
+    /// use rotary::{ResizableBuf, ExactSizeBuf as _, Channels as _};
     ///
     /// fn test<B>(mut buffer: B) where B: ResizableBuf {
     ///     buffer.resize_topology(2, 4);

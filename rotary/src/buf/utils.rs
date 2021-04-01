@@ -1,15 +1,15 @@
 //! Utilities for manipulating audio buffers.
 
 use rotary_core::Translate;
-use rotary_core::{Buf, BufMut};
+use rotary_core::{Channels, ChannelsMut};
 
 /// Copy from the buffer specified by `from` into the buffer specified by `to`.
 ///
 /// Only the common count of channels will be copied.
 pub fn copy<I, O, T>(from: I, mut to: O)
 where
-    I: Buf<T>,
-    O: BufMut<T>,
+    I: Channels<T>,
+    O: ChannelsMut<T>,
     T: Copy,
 {
     let end = usize::min(from.channels(), to.channels());
@@ -24,8 +24,8 @@ where
 /// Only the common count of channels will be copied.
 pub fn translate<I, O, U, T>(from: I, mut to: O)
 where
-    I: Buf<U>,
-    O: BufMut<T>,
+    I: Channels<U>,
+    O: ChannelsMut<T>,
     T: Translate<U>,
     U: Copy,
 {

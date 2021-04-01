@@ -1,27 +1,22 @@
-use rotary_core::Channel;
-use rotary_core::ReadBuf;
-use rotary_core::{Buf, ExactSizeBuf};
+use rotary_core::{Buf, Channel, Channels, ExactSizeBuf, ReadBuf};
 
 /// Make a buffer into a read adapter that implements [ReadBuf].
 ///
 /// # Examples
 ///
 /// ```rust
-/// use rotary::{Buf as _, BufMut as _, WriteBuf as _};
+/// use rotary::Buf as _;
 /// use rotary::io;
 ///
-/// let from = rotary::interleaved![[1.0f32, 2.0f32, 3.0f32, 4.0f32]; 2];
-/// let mut to = rotary::interleaved![[0.0f32; 4]; 2];
+/// let from = rotary::interleaved![[1, 2, 3, 4]; 2];
+/// let mut to = rotary::interleaved![[0; 4]; 2];
 ///
 /// let mut to = io::ReadWrite::new(to);
 ///
 /// io::copy_remaining(io::Read::new((&from).skip(2).limit(1)), &mut to);
 /// io::copy_remaining(io::Read::new((&from).limit(1)), &mut to);
 ///
-/// assert_eq! {
-///     to.as_ref().as_slice(),
-///     &[3.0, 3.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-/// };
+/// assert_eq!(to.as_ref().as_slice(), &[3, 3, 1, 1, 0, 0, 0, 0]);
 /// ```
 pub struct Read<B> {
     buf: B,
@@ -46,12 +41,12 @@ where
     /// use rotary::Buf as _;
     /// use rotary::{io, wrap};
     ///
-    /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = io::Read::new(buffer);
+    /// let from: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut from = io::Read::new(from);
     ///
-    /// io::copy_remaining(&mut buffer, wrap::interleaved(&mut [0i16; 16][..], 4));
+    /// io::copy_remaining(&mut from, wrap::interleaved(&mut [0i16; 16][..], 4));
     ///
-    /// assert_eq!(buffer.as_ref().channels(), 4);
+    /// assert_eq!(from.as_ref().channels(), 4);
     /// ```
     pub fn as_ref(&self) -> &B {
         &self.buf
@@ -65,14 +60,14 @@ where
     /// use rotary::Buf as _;
     /// use rotary::{io, wrap};
     ///
-    /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = io::Read::new(buffer);
+    /// let from: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut from = io::Read::new(from);
     ///
-    /// io::copy_remaining(&mut buffer, wrap::interleaved(&mut [0i16; 16][..], 4));
+    /// io::copy_remaining(&mut from, wrap::interleaved(&mut [0i16; 16][..], 4));
     ///
-    /// buffer.as_mut().resize_channels(2);
+    /// from.as_mut().resize_channels(2);
     ///
-    /// assert_eq!(buffer.channels(), 2);
+    /// assert_eq!(from.channels(), 2);
     /// ```
     pub fn as_mut(&mut self) -> &mut B {
         &mut self.buf
@@ -86,14 +81,14 @@ where
     /// use rotary::Buf as _;
     /// use rotary::{io, wrap};
     ///
-    /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = io::Read::new(buffer);
+    /// let from: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut from = io::Read::new(from);
     ///
-    /// io::copy_remaining(&mut buffer, wrap::interleaved(&mut [0i16; 16][..], 4));
+    /// io::copy_remaining(&mut from, wrap::interleaved(&mut [0i16; 16][..], 4));
     ///
-    /// let buffer = buffer.into_inner();
+    /// let from = from.into_inner();
     ///
-    /// assert_eq!(buffer.channels(), 4);
+    /// assert_eq!(from.channels(), 4);
     /// ```
     pub fn into_inner(self) -> B {
         self.buf
@@ -124,9 +119,9 @@ where
     }
 }
 
-impl<B, T> Buf<T> for Read<B>
+impl<B> Buf for Read<B>
 where
-    B: Buf<T>,
+    B: Buf,
 {
     fn frames_hint(&self) -> Option<usize> {
         self.buf.frames_hint()
@@ -135,7 +130,12 @@ where
     fn channels(&self) -> usize {
         self.buf.channels()
     }
+}
 
+impl<B, T> Channels<T> for Read<B>
+where
+    B: Channels<T>,
+{
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         self.buf.channel(channel).tail(self.available)
     }

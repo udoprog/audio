@@ -21,12 +21,12 @@ this library:
 * [sequential][Sequential] - where each channel is stored in a linear
   buffer, one after another. Like `0:0, 0:1, 1:0, 1:0`.
 
-These all implement the [Buf] and [BufMut] traits, allowing library authors
+These all implement the [Channels] and [ChannelsMut] traits, allowing library authors
 to abstract over any one specific format. The exact channel and frame count
 of a buffer is known as its *topology*.
 
 ```rust
-use rotary::BufMut as _;
+use rotary::ChannelsMut as _;
 
 let mut dynamic = rotary::dynamic![[0i16; 4]; 2];
 let mut interleaved = rotary::interleaved![[0i16; 4]; 2];
@@ -100,7 +100,7 @@ assert_eq! {
 [Interleaved]: https://docs.rs/rotary/0/rotary/interleaved/struct.Interleaved.html
 [Sequential]: https://docs.rs/rotary/0/rotary/sequential/struct.Sequential.html
 [wrap]: https://docs.rs/rotary/0/rotary/wrap/index.html
-[Buf]: https://docs.rs/rotary-core/0/rotary_core/trait.Buf.html
-[BufMut]: https://docs.rs/rotary-core/0/rotary_core/trait.BufMut.html
+[Channels]: https://docs.rs/rotary-core/0/rotary_core/trait.Channels.html
+[ChannelsMut]: https://docs.rs/rotary-core/0/rotary_core/trait.ChannelsMut.html
 
 License: MIT/Apache-2.0

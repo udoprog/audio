@@ -1,3 +1,5 @@
+use crate::buf::Buf;
+
 /// Trait used to describe a buffer that knows exactly how many frames it has
 /// regardless of if it's sized or not.
 ///
@@ -16,7 +18,7 @@
 /// test(rotary::wrap::interleaved([0i16; 16], 4));
 /// test(rotary::wrap::sequential([0i16; 16], 4));
 /// ```
-pub trait ExactSizeBuf {
+pub trait ExactSizeBuf: Buf {
     /// The number of frames in a buffer.
     ///
     /// # Examples

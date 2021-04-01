@@ -1,5 +1,4 @@
-use rotary_core::{Buf, BufMut, ExactSizeBuf};
-use rotary_core::{Channel, ChannelMut};
+use rotary_core::{Buf, Channel, ChannelMut, Channels, ChannelsMut, ExactSizeBuf};
 
 /// A wrapper for a sequential audio buffer.
 ///
@@ -29,13 +28,7 @@ impl<T> Sequential<T> {
 
 macro_rules! impl_buf {
     ([$($p:tt)*] , $ty:ty $(, $len:ident)?) => {
-        impl<$($p)*> ExactSizeBuf for Sequential<$ty> {
-            fn frames(&self) -> usize {
-                self.frames
-            }
-        }
-
-        impl<$($p)*> Buf<T> for Sequential<$ty> {
+        impl<$($p)*> Buf for Sequential<$ty> {
             fn frames_hint(&self) -> Option<usize> {
                 Some(self.frames)
             }
@@ -43,7 +36,15 @@ macro_rules! impl_buf {
             fn channels(&self) -> usize {
                 impl_buf!(@frames self, $($len)*) / self.frames
             }
+        }
 
+        impl<$($p)*> ExactSizeBuf for Sequential<$ty> {
+            fn frames(&self) -> usize {
+                self.frames
+            }
+        }
+
+        impl<$($p)*> Channels<T> for Sequential<$ty> {
             fn channel(&self, channel: usize) -> Channel<'_, T> {
                 let value = &self.value[channel * self.frames..];
                 let value = &value[..self.frames];
@@ -64,7 +65,7 @@ impl_buf!([T, const N: usize], &'_ mut [T; N], N);
 
 macro_rules! impl_buf_mut {
     ([$($p:tt)*], $ty:ty) => {
-        impl<$($p)*> BufMut<T> for Sequential<$ty> {
+        impl<$($p)*> ChannelsMut<T> for Sequential<$ty> {
             fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
                 let value = &mut self.value[channel * self.frames..];
                 let value = &mut value[..self.frames];

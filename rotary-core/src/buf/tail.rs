@@ -1,13 +1,13 @@
+use crate::buf::{
+    AsInterleaved, AsInterleavedMut, Buf, Channels, ChannelsMut, ExactSizeBuf, InterleavedBuf,
+    ResizableBuf,
+};
 use crate::channel::{Channel, ChannelMut};
 use crate::io::ReadBuf;
-use crate::{
-    buf::{AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, ResizableBuf},
-    AsInterleaved,
-};
 
 /// The tail of a buffer.
 ///
-/// Created with [Buf::tail].
+/// See [Buf::tail].
 pub struct Tail<B> {
     buf: B,
     n: usize,
@@ -34,9 +34,9 @@ where
     }
 }
 
-impl<B, T> Buf<T> for Tail<B>
+impl<B> Buf for Tail<B>
 where
-    B: Buf<T>,
+    B: Buf,
 {
     fn frames_hint(&self) -> Option<usize> {
         let frames = self.buf.frames_hint()?;
@@ -46,7 +46,12 @@ where
     fn channels(&self) -> usize {
         self.buf.channels()
     }
+}
 
+impl<B, T> Channels<T> for Tail<B>
+where
+    B: Channels<T>,
+{
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         self.buf.channel(channel).tail(self.n)
     }
@@ -84,7 +89,7 @@ where
 
 impl<B, T> AsInterleaved<T> for Tail<B>
 where
-    B: AsInterleaved<T> + Buf<T>,
+    B: Buf + AsInterleaved<T>,
 {
     fn as_interleaved(&self) -> &[T] {
         let channels = self.buf.channels();
@@ -96,7 +101,7 @@ where
 
 impl<B, T> AsInterleavedMut<T> for Tail<B>
 where
-    B: AsInterleavedMut<T> + Buf<T>,
+    B: Buf + AsInterleavedMut<T>,
 {
     fn as_interleaved_mut(&mut self) -> &mut [T] {
         let channels = self.buf.channels();
@@ -106,9 +111,9 @@ where
     }
 }
 
-impl<B, T> BufMut<T> for Tail<B>
+impl<B, T> ChannelsMut<T> for Tail<B>
 where
-    B: BufMut<T>,
+    B: ChannelsMut<T>,
 {
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
         self.buf.channel_mut(channel).tail(self.n)

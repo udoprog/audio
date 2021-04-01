@@ -5,8 +5,8 @@
 /// available in the buffer, and it allows us to access the underlying buffer.
 ///
 /// This is usually used in combination with other traits, such as
-/// [AsInterleaved] to allow for generically accessing a fixed linear buffer
-/// with a specific topology.
+/// [AsInterleaved][crate::AsInterleaved] to allow for generically accessing a
+/// fixed linear buffer with a specific topology.
 pub trait InterleavedBuf {
     /// Make sure that the buffer has reserved exactly the given number of
     /// frames.
@@ -19,7 +19,7 @@ pub trait InterleavedBuf {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{ExactSizeBuf as _, Buf as _, InterleavedBuf};
+    /// use rotary::{Buf, ExactSizeBuf, InterleavedBuf};
     ///
     /// fn test<B>(mut buffer: B) where B: InterleavedBuf {
     ///     buffer.reserve_frames(4);
@@ -50,15 +50,16 @@ pub trait InterleavedBuf {
     ///
     /// # Panics
     ///
-    /// Calling [set_topology] will fail if the underlying buffer doesn't
-    /// support the specified topology. Like if it's too small.
+    /// Calling [set_topology][InterleavedBuf::set_topology] will fail if the
+    /// underlying buffer doesn't support the specified topology. Like if it's
+    /// too small.
     ///
     /// If you want to use a growable buffer use
     /// [ResizableBuf::resize_topology][crate::ResizableBuf::resize_topology]
     /// instead.
     ///
     /// ```rust,should_panic
-    /// use rotary::{ExactSizeBuf as _, Buf as _, InterleavedBuf};
+    /// use rotary::{Channels, ExactSizeBuf, InterleavedBuf};
     ///
     /// fn test<B>(mut buffer: B) where B: InterleavedBuf {
     ///     buffer.set_topology(2, 4); // panics because buffer is zero-sized.
@@ -70,7 +71,7 @@ pub trait InterleavedBuf {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{ExactSizeBuf as _, Buf as _, InterleavedBuf};
+    /// use rotary::{Channels, ExactSizeBuf, InterleavedBuf};
     ///
     /// fn test<B>(mut buffer: B) where B: InterleavedBuf {
     ///     buffer.set_topology(2, 4);

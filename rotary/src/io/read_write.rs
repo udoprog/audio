@@ -1,4 +1,6 @@
-use rotary_core::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, ReadBuf, WriteBuf};
+use rotary_core::{
+    Buf, Channel, ChannelMut, Channels, ChannelsMut, ExactSizeBuf, ReadBuf, WriteBuf,
+};
 
 /// Make any mutable buffer into a write adapter that implements
 /// [ReadBuf] and [WriteBuf].
@@ -72,7 +74,7 @@ impl<B> ReadWrite<B> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf as _;
+    /// use rotary::Channels as _;
     /// use rotary::io;
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
@@ -97,16 +99,16 @@ impl<B> ReadWrite<B> {
     /// use rotary::Buf as _;
     /// use rotary::io;
     ///
-    /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = io::ReadWrite::new(buffer);
+    /// let to: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut to = io::ReadWrite::new(to);
     ///
     /// let from = rotary::wrap::interleaved(&[1i16, 2i16, 3i16, 4i16][..], 2);
     ///
-    /// io::translate_remaining(from, &mut buffer);
+    /// io::translate_remaining(from, &mut to);
     ///
-    /// buffer.as_mut().resize_channels(2);
+    /// to.as_mut().resize_channels(2);
     ///
-    /// assert_eq!(buffer.channels(), 2);
+    /// assert_eq!(to.channels(), 2);
     /// ```
     #[inline]
     pub fn as_mut(&mut self) -> &mut B {
@@ -118,7 +120,7 @@ impl<B> ReadWrite<B> {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf as _;
+    /// use rotary::Channels as _;
     /// use rotary::io;
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
@@ -169,9 +171,9 @@ where
     }
 }
 
-impl<B, T> Buf<T> for ReadWrite<B>
+impl<B> Buf for ReadWrite<B>
 where
-    B: Buf<T>,
+    B: Buf,
 {
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
@@ -182,7 +184,12 @@ where
     fn channels(&self) -> usize {
         self.buf.channels()
     }
+}
 
+impl<B, T> Channels<T> for ReadWrite<B>
+where
+    B: Channels<T>,
+{
     #[inline]
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         let len = self.remaining();
@@ -190,9 +197,9 @@ where
     }
 }
 
-impl<B, T> BufMut<T> for ReadWrite<B>
+impl<B, T> ChannelsMut<T> for ReadWrite<B>
 where
-    B: ExactSizeBuf + BufMut<T>,
+    B: ExactSizeBuf + ChannelsMut<T>,
 {
     #[inline]
     fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
