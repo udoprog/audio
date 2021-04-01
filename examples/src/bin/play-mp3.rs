@@ -42,6 +42,7 @@ where
         buffer_size: cpal::BufferSize::Default,
     };
 
+    let pcm = rotary::Interleaved::new();
     let output = rotary::Interleaved::with_topology(config.channels as usize, 1024);
     let resample = rotary::Sequential::with_topology(config.channels as usize, CHUNK_SIZE);
 
@@ -49,7 +50,7 @@ where
         frames: 0,
         seconds: 0.0,
         decoder,
-        pcm: minimp3::Pcm::new(),
+        pcm: rotary::io::Read::new(pcm),
         resampler: None,
         output: rotary::io::ReadWrite::new(output),
         resample: rotary::io::ReadWrite::new(resample),
@@ -90,9 +91,9 @@ where
     // The open mp3 decoder.
     decoder: minimp3::Decoder<R>,
     // Buffer used for mp3 decoding.
-    pcm: minimp3::Pcm,
+    pcm: rotary::io::Read<rotary::Interleaved<i16>>,
     // The last mp3 frame decoded.
-    last_frame: Option<(minimp3::FrameInfo, usize)>,
+    last_frame: Option<minimp3::FrameInfo>,
     // Sampler that is used in case the sample rate of a decoded frame needs to
     // be resampled.
     resampler: Option<rubato::SincFixedIn<f32>>,
@@ -116,7 +117,7 @@ where
         T: 'static + Send + rotary::Sample + rotary::Translate<f32>,
     {
         use rotary::{io, wrap};
-        use rotary::{Buf as _, ExactSizeBuf as _, ReadBuf as _, WriteBuf as _};
+        use rotary::{ReadBuf as _, WriteBuf as _};
         use rubato::Resampler;
 
         let mut data = wrap::interleaved(data, self.device_channels);
@@ -136,64 +137,63 @@ where
             // If we have collected exactly one CHUNK_SIZE of resample buffer,
             // process it through the resampler and translate its result to the
             // output buffer.
-            if self.resample.remaining() == CHUNK_SIZE {
-                let device_sample_rate = self.device_sample_rate;
+            if let Some(frame) = &self.last_frame {
+                if self.resample.remaining() == CHUNK_SIZE {
+                    let device_sample_rate = self.device_sample_rate;
 
-                let (frame, _) = self.last_frame.as_ref().unwrap();
+                    let resampler = self.resampler.get_or_insert_with(|| {
+                        let params = InterpolationParameters {
+                            sinc_len: 256,
+                            f_cutoff: 0.95,
+                            interpolation: InterpolationType::Linear,
+                            oversampling_factor: 256,
+                            window: WindowFunction::BlackmanHarris2,
+                        };
 
-                let resampler = self.resampler.get_or_insert_with(|| {
-                    let params = InterpolationParameters {
-                        sinc_len: 256,
-                        f_cutoff: 0.95,
-                        interpolation: InterpolationType::Linear,
-                        oversampling_factor: 256,
-                        window: WindowFunction::BlackmanHarris2,
-                    };
+                        let f_ratio = device_sample_rate as f64 / frame.sample_rate as f64;
+                        SincFixedIn::<f32>::new(
+                            f_ratio,
+                            params,
+                            CHUNK_SIZE,
+                            frame.channels as usize,
+                        )
+                    });
 
-                    let f_ratio = device_sample_rate as f64 / frame.sample_rate as f64;
-                    SincFixedIn::<f32>::new(f_ratio, params, CHUNK_SIZE, frame.channels as usize)
-                });
+                    resampler.process_with_buffer(
+                        self.resample.as_ref(),
+                        self.output.as_mut(),
+                        &bittle::all(),
+                    )?;
 
-                resampler.process_with_buffer(
-                    self.resample.as_ref(),
-                    self.output.as_mut(),
-                    &bittle::all(),
-                )?;
+                    self.resample.clear();
+                    let frames = self.output.as_ref().frames();
 
-                self.resample.clear();
-                let frames = self.output.as_ref().frames();
-
-                self.output.set_read(0);
-                self.output.set_written(frames);
-                continue;
+                    self.output.set_read(0);
+                    self.output.set_written(frames);
+                    continue;
+                }
             }
 
             // If we have information on a decoded frame, translate it into the
             // resample buffer until its filled up to its frames cap.
-            if let Some((frame, mut last_remaining)) = self.last_frame.take().filter(|p| p.1 > 0) {
-                let mut pcm = wrap::interleaved(&self.pcm[..], frame.channels).tail(last_remaining);
-
-                io::translate_remaining(&mut pcm, &mut self.resample);
-
-                last_remaining = pcm.remaining();
-                self.last_frame = Some((frame, last_remaining));
+            if self.pcm.has_remaining() {
+                io::translate_remaining(&mut self.pcm, &mut self.resample);
                 continue;
             }
 
-            let frame = self.decoder.next_frame_with_pcm(&mut self.pcm)?;
+            let frame = self.decoder.next_frame_with_pcm(self.pcm.as_mut())?;
             self.resample.as_mut().resize_channels(frame.channels);
-
-            let pcm = wrap::interleaved(&self.pcm[..], frame.channels);
+            self.pcm.set_read(0);
 
             // If the sample rate of the decoded frames matches the expected
             // output exactly, copy it directly to the output frame without
             // resampling.
             if frame.sample_rate as u32 == self.device_sample_rate {
-                io::translate_remaining(pcm, &mut self.output);
+                io::translate_remaining(&mut self.pcm, &mut self.output);
                 continue;
             }
 
-            self.last_frame = Some((frame, pcm.frames()));
+            self.last_frame = Some(frame);
         }
 
         self.frames += frames - data.remaining_mut();

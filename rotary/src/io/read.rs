@@ -98,6 +98,11 @@ where
     pub fn into_inner(self) -> B {
         self.buf
     }
+
+    /// Set the number of frames read.
+    pub fn set_read(&mut self, read: usize) {
+        self.available = self.buf.frames().saturating_sub(read);
+    }
 }
 
 impl<B> ReadBuf for Read<B> {
