@@ -1,21 +1,22 @@
 use rotary_core::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, WriteBuf};
 
 /// Make a mutable buffer into a write adapter that implements
-/// [WriteBuf].
+/// [ReadBuf] and [WriteBuf].
 ///
 /// # Examples
 ///
 /// ```rust
 /// use rotary::{Buf as _, BufMut as _, ReadBuf as _, WriteBuf as _};
-/// use rotary::io::{Read, Write, copy_remaining};
+/// use rotary::io;
 ///
 /// let from = rotary::interleaved![[1.0f32, 2.0f32, 3.0f32, 4.0f32]; 2];
+/// let mut from = io::Read::new(from.skip(2));
+///
 /// let to = rotary::interleaved![[0.0f32; 4]; 2];
-/// let mut to = Write::new(to);
-/// let mut from = Read::new(from.skip(2));
+/// let mut to = io::Write::new(to);
 ///
 /// assert_eq!(to.remaining_mut(), 4);
-/// copy_remaining(from, &mut to);
+/// io::copy_remaining(from, &mut to);
 /// assert_eq!(to.remaining_mut(), 2);
 ///
 /// assert_eq! {
@@ -43,13 +44,12 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf as _;
-    /// use rotary::io;
+    /// use rotary::{io, wrap};
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
     /// let mut buffer = io::Write::new(buffer);
     ///
-    /// io::copy_remaining(rotary::wrap::interleaved(&[0i16; 16][..], 4), &mut buffer);
+    /// io::copy_remaining(wrap::interleaved(&[0i16; 16][..], 4), &mut buffer);
     ///
     /// assert_eq!(buffer.as_ref().channels(), 4);
     /// ```
@@ -63,12 +63,12 @@ where
     ///
     /// ```rust
     /// use rotary::Buf as _;
-    /// use rotary::io;
+    /// use rotary::{io, wrap};
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
     /// let mut buffer = io::Write::new(buffer);
     ///
-    /// io::copy_remaining(rotary::wrap::interleaved(&[0i16; 16][..], 4), &mut buffer);
+    /// io::copy_remaining(wrap::interleaved(&[0i16; 16][..], 4), &mut buffer);
     ///
     /// buffer.as_mut().resize_channels(2);
     ///
@@ -135,7 +135,7 @@ where
     }
 
     fn channel(&self, channel: usize) -> Channel<'_, T> {
-        self.buf.channel(channel)
+        self.buf.channel(channel).tail(self.available)
     }
 }
 

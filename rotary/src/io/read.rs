@@ -43,7 +43,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, WriteBuf as _};
+    /// use rotary::Buf as _;
     /// use rotary::{io, wrap};
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
@@ -62,7 +62,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, WriteBuf as _, ExactSizeBuf as _};
+    /// use rotary::Buf as _;
     /// use rotary::{io, wrap};
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
@@ -83,7 +83,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::{Buf as _, WriteBuf as _};
+    /// use rotary::Buf as _;
     /// use rotary::{io, wrap};
     ///
     /// let buffer: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
@@ -120,7 +120,7 @@ where
     B: ExactSizeBuf,
 {
     fn frames(&self) -> usize {
-        self.buf.frames()
+        self.buf.frames().saturating_sub(self.available)
     }
 }
 
