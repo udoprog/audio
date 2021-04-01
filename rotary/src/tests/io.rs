@@ -7,7 +7,7 @@ fn test_read_write() {
     let to = crate::interleaved![[0.0f32; 4]; 2];
 
     // Make `to` into a ReadWrite adapter.
-    let mut to = ReadWrite::new(to);
+    let mut to = ReadWrite::empty(to);
 
     crate::io::copy_remaining(Read::new((&from).skip(2).limit(1)), &mut to);
     assert_eq!(to.remaining(), 1);

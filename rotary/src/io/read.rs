@@ -5,13 +5,13 @@ use rotary_core::{Buf, Channel, Channels, ExactSizeBuf, ReadBuf};
 /// # Examples
 ///
 /// ```rust
-/// use rotary::Buf as _;
+/// use rotary::Buf;
 /// use rotary::io;
 ///
 /// let from = rotary::interleaved![[1, 2, 3, 4]; 2];
 /// let mut to = rotary::interleaved![[0; 4]; 2];
 ///
-/// let mut to = io::ReadWrite::new(to);
+/// let mut to = io::ReadWrite::empty(to);
 ///
 /// io::copy_remaining(io::Read::new((&from).skip(2).limit(1)), &mut to);
 /// io::copy_remaining(io::Read::new((&from).limit(1)), &mut to);
@@ -23,14 +23,57 @@ pub struct Read<B> {
     available: usize,
 }
 
-impl<B> Read<B>
-where
-    B: ExactSizeBuf,
-{
-    /// Construct a new read adapter.
-    pub fn new(buf: B) -> Self {
+impl<B> Read<B> {
+    /// Construct a new reading adapter.
+    ///
+    /// The constructed reader will be initialized so that the number of bytes
+    /// available for reading are equal to what's reported by
+    /// [ExactSizeBuf::frames].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{ReadBuf, ExactSizeBuf};
+    /// use rotary::io;
+    ///
+    /// let buffer = rotary::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
+    /// assert_eq!(buffer.frames(), 4);
+    ///
+    /// let buffer = io::Read::new(buffer);
+    ///
+    /// assert!(buffer.has_remaining());
+    /// assert_eq!(buffer.remaining(), 4);
+    /// ```
+    #[inline]
+    pub fn new(buf: B) -> Self
+    where
+        B: ExactSizeBuf,
+    {
         let available = buf.frames();
         Self { buf, available }
+    }
+
+    /// Construct a new reading adapter.
+    ///
+    /// The constructed reader will be initialized so that there are no frames
+    /// available for reading.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{ReadBuf, ExactSizeBuf};
+    /// use rotary::io;
+    ///
+    /// let buffer = rotary::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
+    /// assert_eq!(buffer.frames(), 4);
+    ///
+    /// let buffer = io::Read::empty(buffer);
+    ///
+    /// assert!(!buffer.has_remaining());
+    /// assert_eq!(buffer.remaining(), 0);
+    /// ```
+    pub fn empty(buf: B) -> Self {
+        Self { buf, available: 0 }
     }
 
     /// Access the underlying buffer.
@@ -38,7 +81,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf as _;
+    /// use rotary::Buf;
     /// use rotary::{io, wrap};
     ///
     /// let from: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
@@ -48,6 +91,7 @@ where
     ///
     /// assert_eq!(from.as_ref().channels(), 4);
     /// ```
+    #[inline]
     pub fn as_ref(&self) -> &B {
         &self.buf
     }
@@ -57,7 +101,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf as _;
+    /// use rotary::Buf;
     /// use rotary::{io, wrap};
     ///
     /// let from: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
@@ -69,6 +113,7 @@ where
     ///
     /// assert_eq!(from.channels(), 2);
     /// ```
+    #[inline]
     pub fn as_mut(&mut self) -> &mut B {
         &mut self.buf
     }
@@ -78,7 +123,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use rotary::Buf as _;
+    /// use rotary::Buf;
     /// use rotary::{io, wrap};
     ///
     /// let from: rotary::Interleaved<i16> = rotary::interleaved![[1, 2, 3, 4]; 4];
@@ -90,12 +135,42 @@ where
     ///
     /// assert_eq!(from.channels(), 4);
     /// ```
+    #[inline]
     pub fn into_inner(self) -> B {
         self.buf
     }
 
     /// Set the number of frames read.
-    pub fn set_read(&mut self, read: usize) {
+    ///
+    /// This can be used to rewind the internal cursor to a previously written
+    /// frame if needed. Or, if the underlying buffer has changed for some
+    /// reason, like if it was written to through a call to [Read::as_mut].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf, Channels, ReadBuf};
+    /// use rotary::io;
+    ///
+    /// fn read_from_buf(mut read: impl Buf + Channels<i16> + ReadBuf) {
+    ///     let mut out = rotary::interleaved![[0; 4]; 2];
+    ///     io::copy_remaining(read, io::Write::new(&mut out));
+    /// }
+    ///
+    /// let mut buffer = io::Read::new(rotary::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// read_from_buf(&mut buffer);
+    ///
+    /// assert!(!buffer.has_remaining());
+    ///
+    /// buffer.set_read(0);
+    ///
+    /// assert!(buffer.has_remaining());
+    /// ```
+    #[inline]
+    pub fn set_read(&mut self, read: usize)
+    where
+        B: ExactSizeBuf,
+    {
         self.available = self.buf.frames().saturating_sub(read);
     }
 }

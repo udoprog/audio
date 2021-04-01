@@ -13,3 +13,7 @@ default-members = [
     "rotary-core",
     "bittle",
 ]
+
+[patch.crates-io]
+rotary = {path = "rotary"}
+rotary-core = {path = "rotary-core"}

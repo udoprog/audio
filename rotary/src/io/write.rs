@@ -28,14 +28,56 @@ pub struct Write<B> {
     available: usize,
 }
 
-impl<B> Write<B>
-where
-    B: ExactSizeBuf,
-{
-    /// Construct a new write adapter.
-    pub fn new(buf: B) -> Self {
+impl<B> Write<B> {
+    /// Construct a new writing adapter.
+    ///
+    /// The constructed writer will be initialized so that the number of bytes
+    /// available for writing are equal to what's reported by
+    /// [ExactSizeBuf::frames].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{WriteBuf, ExactSizeBuf};
+    /// use rotary::io;
+    ///
+    /// let buffer = rotary::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
+    /// assert_eq!(buffer.frames(), 4);
+    ///
+    /// let buffer = io::Write::new(buffer);
+    ///
+    /// assert!(buffer.has_remaining_mut());
+    /// assert_eq!(buffer.remaining_mut(), 4);
+    /// ```
+    pub fn new(buf: B) -> Self
+    where
+        B: ExactSizeBuf,
+    {
         let available = buf.frames();
         Self { buf, available }
+    }
+
+    /// Construct a new writing adapter.
+    ///
+    /// The constructed reader will be initialized so that there are no frames
+    /// available to be written.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{WriteBuf, ExactSizeBuf};
+    /// use rotary::io;
+    ///
+    /// let buffer = rotary::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
+    /// assert_eq!(buffer.frames(), 4);
+    ///
+    /// let buffer = io::Write::empty(buffer);
+    ///
+    /// assert!(!buffer.has_remaining_mut());
+    /// assert_eq!(buffer.remaining_mut(), 0);
+    /// ```
+    pub fn empty(buf: B) -> Self {
+        Self { buf, available: 0 }
     }
 
     /// Access the underlying buffer.
@@ -96,6 +138,40 @@ where
     /// ```
     pub fn into_inner(self) -> B {
         self.buf
+    }
+
+    /// Set the number of frames written.
+    ///
+    /// This can be used to rewind the internal cursor to a previously written
+    /// frame if needed. Or, if the underlying buffer has changed for some
+    /// reason, like if it was read into through a call to [Write::as_mut].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rotary::{Buf, ChannelsMut, WriteBuf};
+    /// use rotary::io;
+    ///
+    /// fn write_to_buf(mut write: impl Buf + ChannelsMut<i16> + WriteBuf) {
+    ///     let mut from = rotary::interleaved![[0; 4]; 2];
+    ///     io::copy_remaining(io::Read::new(&mut from), write);
+    /// }
+    ///
+    /// let mut buffer = io::Write::new(rotary::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// write_to_buf(&mut buffer);
+    ///
+    /// assert!(!buffer.has_remaining_mut());
+    ///
+    /// buffer.set_written(0);
+    ///
+    /// assert!(buffer.has_remaining_mut());
+    /// ```
+    #[inline]
+    pub fn set_written(&mut self, written: usize)
+    where
+        B: ExactSizeBuf,
+    {
+        self.available = self.buf.frames().saturating_sub(written);
     }
 }
 

@@ -53,8 +53,8 @@ where
         decoder,
         pcm: rotary::io::Read::new(pcm),
         resampler: None,
-        output: rotary::io::ReadWrite::new(output),
-        resample: rotary::io::ReadWrite::new(resample),
+        output: rotary::io::ReadWrite::empty(output),
+        resample: rotary::io::ReadWrite::empty(resample),
         device_sample_rate: config.sample_rate.0,
         device_channels: config.channels as usize,
         last_frame: None,
@@ -182,8 +182,8 @@ where
             }
 
             let frame = self.decoder.next_frame_with_pcm(self.pcm.as_mut())?;
-            self.resample.as_mut().resize_channels(frame.channels);
             self.pcm.set_read(0);
+            self.resample.as_mut().resize_channels(frame.channels);
 
             // If the sample rate of the decoded frames matches the expected
             // output exactly, copy it directly to the output frame without
@@ -211,11 +211,17 @@ where
         self.frames = self.frames.saturating_add(data.as_ref().frames());
 
         let seconds = self.frames as f32 / self.device_sample_rate as f32;
+        let s = seconds.floor();
 
-        if seconds.floor() > self.seconds {
+        if s > self.seconds {
             use std::io::Write as _;
             let mut o = std::io::stdout();
-            write!(o, "\r{}", seconds.floor())?;
+            write!(
+                o,
+                "\rTime: {:02}:{:02}",
+                (s / 60.0) as u32,
+                (s % 60.0) as u32
+            )?;
             o.flush()?;
             self.seconds = seconds;
         }
