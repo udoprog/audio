@@ -1,7 +1,4 @@
-use crate::buf::{
-    AsInterleaved, AsInterleavedMut, Buf, Channels, ChannelsMut, ExactSizeBuf, InterleavedBuf,
-    ResizableBuf,
-};
+use crate::buf::{Buf, Channels, ChannelsMut, ExactSizeBuf};
 use crate::channel::{Channel, ChannelMut};
 use crate::io::ReadBuf;
 
@@ -18,22 +15,24 @@ impl<B> Tail<B> {
     pub(crate) fn new(buf: B, n: usize) -> Self {
         Self { buf, n }
     }
-
-    #[inline]
-    fn calculate_frames(&self, frames: usize) -> usize {
-        frames.saturating_add(self.n)
-    }
 }
 
-impl<B> ExactSizeBuf for Tail<B>
-where
-    B: ExactSizeBuf,
-{
-    fn frames(&self) -> usize {
-        usize::min(self.buf.frames(), self.n)
-    }
-}
-
+/// [Tail] adjusts the implementation of [Buf].
+///
+/// ```rust
+/// use rotary::{Buf, ExactSizeBuf};
+///
+/// let buf = rotary::interleaved![[0; 4]; 2];
+///
+/// assert_eq!((&buf).tail(0).channels(), 2);
+/// assert_eq!((&buf).tail(0).frames_hint(), Some(0));
+///
+/// assert_eq!((&buf).tail(1).channels(), 2);
+/// assert_eq!((&buf).tail(1).frames_hint(), Some(1));
+///
+/// assert_eq!((&buf).tail(5).channels(), 2);
+/// assert_eq!((&buf).tail(5).frames_hint(), Some(4));
+/// ```
 impl<B> Buf for Tail<B>
 where
     B: Buf,
@@ -48,66 +47,32 @@ where
     }
 }
 
+/// [Tail] adjusts the implementation of [ExactSizeBuf].
+///
+/// ```rust
+/// use rotary::{Buf, ExactSizeBuf};
+///
+/// let buf = rotary::interleaved![[0; 4]; 2];
+///
+/// assert_eq!((&buf).tail(0).frames(), 0);
+/// assert_eq!((&buf).tail(1).frames(), 1);
+/// assert_eq!((&buf).tail(5).frames(), 4);
+/// ```
+impl<B> ExactSizeBuf for Tail<B>
+where
+    B: ExactSizeBuf,
+{
+    fn frames(&self) -> usize {
+        usize::min(self.buf.frames(), self.n)
+    }
+}
+
 impl<B, T> Channels<T> for Tail<B>
 where
     B: Channels<T>,
 {
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         self.buf.channel(channel).tail(self.n)
-    }
-}
-
-impl<B> ResizableBuf for Tail<B>
-where
-    B: ResizableBuf,
-{
-    fn resize(&mut self, frames: usize) {
-        let frames = self.calculate_frames(frames);
-        self.buf.resize(frames);
-    }
-
-    fn resize_topology(&mut self, channels: usize, frames: usize) {
-        let frames = self.calculate_frames(frames);
-        self.buf.resize_topology(channels, frames);
-    }
-}
-
-impl<B> InterleavedBuf for Tail<B>
-where
-    B: InterleavedBuf,
-{
-    fn reserve_frames(&mut self, frames: usize) {
-        let frames = self.calculate_frames(frames);
-        self.buf.reserve_frames(frames);
-    }
-
-    fn set_topology(&mut self, channels: usize, frames: usize) {
-        let frames = self.calculate_frames(frames);
-        self.buf.set_topology(channels, frames);
-    }
-}
-
-impl<B, T> AsInterleaved<T> for Tail<B>
-where
-    B: Buf + AsInterleaved<T>,
-{
-    fn as_interleaved(&self) -> &[T] {
-        let channels = self.buf.channels();
-        let buf = self.buf.as_interleaved();
-        let tail = buf.len().saturating_sub(self.n.saturating_mul(channels));
-        buf.get(tail..).unwrap_or_default()
-    }
-}
-
-impl<B, T> AsInterleavedMut<T> for Tail<B>
-where
-    B: Buf + AsInterleavedMut<T>,
-{
-    fn as_interleaved_mut(&mut self) -> &mut [T] {
-        let channels = self.buf.channels();
-        let buf = self.buf.as_interleaved_mut();
-        let tail = buf.len().saturating_sub(self.n.saturating_mul(channels));
-        buf.get_mut(tail..).unwrap_or_default()
     }
 }
 

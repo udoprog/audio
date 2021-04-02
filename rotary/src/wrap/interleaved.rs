@@ -109,6 +109,10 @@ macro_rules! impl_buf_mut {
             fn as_interleaved_mut(&mut self) -> &mut [T] {
                 self.value
             }
+
+            fn as_interleaved_mut_ptr(&mut self) -> *mut T {
+                self.value.as_mut_ptr()
+            }
         }
     };
 }

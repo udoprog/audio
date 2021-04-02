@@ -76,9 +76,7 @@ pub trait AsInterleavedMut<T> {
     ///     &[1, 1, 1, 1, 1, 1, 1, 1],
     /// };
     /// ```
-    fn as_interleaved_mut_ptr(&mut self) -> *mut T {
-        self.as_interleaved_mut().as_mut_ptr()
-    }
+    fn as_interleaved_mut_ptr(&mut self) -> *mut T;
 }
 
 impl<B, T> AsInterleavedMut<T> for &mut B

@@ -1,7 +1,4 @@
-use crate::buf::{
-    AsInterleaved, AsInterleavedMut, Buf, Channels, ChannelsMut, ExactSizeBuf, InterleavedBuf,
-    ResizableBuf,
-};
+use crate::buf::{Buf, Channels, ChannelsMut, ExactSizeBuf};
 use crate::channel::{Channel, ChannelMut};
 use crate::io::ReadBuf;
 
@@ -18,29 +15,25 @@ impl<B> Limit<B> {
     pub(crate) fn new(buf: B, limit: usize) -> Self {
         Self { buf, limit }
     }
-
-    #[inline]
-    fn calculate_frames(&self, frames: usize) -> usize
-    where
-        B: ExactSizeBuf,
-    {
-        self.buf
-            .frames()
-            .saturating_sub(self.limit)
-            .saturating_add(self.limit)
-            .saturating_add(frames)
-    }
 }
 
-impl<B> ExactSizeBuf for Limit<B>
-where
-    B: ExactSizeBuf,
-{
-    fn frames(&self) -> usize {
-        usize::min(self.buf.frames(), self.limit)
-    }
-}
-
+/// [Limit] adjusts various implementations to report sensible values, such
+/// as [Buf].
+///
+/// ```rust
+/// use rotary::Buf;
+///
+/// let buf = rotary::interleaved![[0; 4]; 2];
+///
+/// assert_eq!((&buf).limit(0).channels(), 2);
+/// assert_eq!((&buf).limit(0).frames_hint(), Some(0));
+///
+/// assert_eq!((&buf).limit(1).channels(), 2);
+/// assert_eq!((&buf).limit(1).frames_hint(), Some(1));
+///
+/// assert_eq!((&buf).limit(5).channels(), 2);
+/// assert_eq!((&buf).limit(5).frames_hint(), Some(4));
+/// ```
 impl<B> Buf for Limit<B>
 where
     B: Buf,
@@ -55,66 +48,33 @@ where
     }
 }
 
+/// [Limit] adjusts the implementation of [ExactSizeBuf] to take the frame
+/// limiting into account.
+///
+/// ```rust
+/// use rotary::{Buf, ExactSizeBuf};
+///
+/// let buf = rotary::interleaved![[0; 4]; 2];
+///
+/// assert_eq!((&buf).limit(0).frames(), 0);
+/// assert_eq!((&buf).limit(1).frames(), 1);
+/// assert_eq!((&buf).limit(5).frames(), 4);
+/// ```
+impl<B> ExactSizeBuf for Limit<B>
+where
+    B: ExactSizeBuf,
+{
+    fn frames(&self) -> usize {
+        usize::min(self.buf.frames(), self.limit)
+    }
+}
+
 impl<B, T> Channels<T> for Limit<B>
 where
     B: Channels<T>,
 {
     fn channel(&self, channel: usize) -> Channel<'_, T> {
         self.buf.channel(channel).limit(self.limit)
-    }
-}
-
-impl<B> ResizableBuf for Limit<B>
-where
-    B: ExactSizeBuf + ResizableBuf,
-{
-    fn resize(&mut self, frames: usize) {
-        let frames = self.calculate_frames(frames);
-        self.buf.resize(frames);
-    }
-
-    fn resize_topology(&mut self, channels: usize, frames: usize) {
-        let frames = self.calculate_frames(frames);
-        self.buf.resize_topology(channels, frames);
-    }
-}
-
-impl<B> InterleavedBuf for Limit<B>
-where
-    B: ExactSizeBuf + InterleavedBuf,
-{
-    fn reserve_frames(&mut self, frames: usize) {
-        let frames = self.calculate_frames(frames);
-        self.buf.reserve_frames(frames);
-    }
-
-    fn set_topology(&mut self, channels: usize, frames: usize) {
-        let frames = self.calculate_frames(frames);
-        self.buf.set_topology(channels, frames);
-    }
-}
-
-impl<B, T> AsInterleaved<T> for Limit<B>
-where
-    B: Buf + AsInterleaved<T>,
-{
-    fn as_interleaved(&self) -> &[T] {
-        let channels = self.buf.channels();
-        let buf = self.buf.as_interleaved();
-        let end = usize::min(buf.len(), self.limit.saturating_mul(channels));
-        buf.get(..end).unwrap_or_default()
-    }
-}
-
-impl<B, T> AsInterleavedMut<T> for Limit<B>
-where
-    B: Buf + AsInterleavedMut<T>,
-{
-    fn as_interleaved_mut(&mut self) -> &mut [T] {
-        let channels = self.buf.channels();
-        let buf = self.buf.as_interleaved_mut();
-        let end = usize::min(buf.len(), self.limit.saturating_mul(channels));
-        buf.get_mut(..end).unwrap_or_default()
     }
 }
 

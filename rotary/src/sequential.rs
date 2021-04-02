@@ -453,6 +453,38 @@ impl<T> Sequential<T> {
         self.resize_inner(self.channels, self.frames, self.channels, frames);
     }
 
+    /// Get the capacity of the interleaved buffer in number of frames.
+    ///
+    /// The underlying buffer over-allocates a bit, so this will report the
+    /// exact capacity available in the interleaved buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let mut buffer = rotary::Sequential::<f32>::new();
+    ///
+    /// assert_eq!(buffer.capacity(), 0);
+    ///
+    /// buffer.resize(11);
+    /// assert_eq!(buffer.capacity(), 0);
+    ///
+    /// buffer.resize_channels(2);
+    /// assert_eq!(buffer.capacity(), 11);
+    ///
+    /// buffer.resize(12);
+    /// assert_eq!(buffer.capacity(), 22);
+    ///
+    /// buffer.resize(22);
+    /// assert_eq!(buffer.capacity(), 22);
+    /// ```
+    pub fn capacity(&self) -> usize {
+        if self.channels == 0 {
+            0
+        } else {
+            self.data.capacity() / self.channels
+        }
+    }
+
     /// Get a reference to the buffer of the given channel.
     ///
     /// # Examples
