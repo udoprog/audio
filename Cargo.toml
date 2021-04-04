@@ -5,12 +5,18 @@ members = [
     "examples",
     "rotary",
     "rotary-core",
+    "rotary-device",
+    "rotary-generator",
+    "rotary-device-bindings",
     "bittle",
 ]
 
 default-members = [
     "rotary",
     "rotary-core",
+    "rotary-device",
+    "rotary-generator",
+    "rotary-device-bindings",
     "bittle",
 ]
 

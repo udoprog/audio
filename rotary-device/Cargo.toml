@@ -1,0 +1,18 @@
+[package]
+name = "rotary-device"
+version = "0.1.0"
+authors = ["John-John Tedro <udoprog@tedro.se>"]
+edition = "2018"
+
+[dependencies]
+thiserror = "1.0.24"
+rand = "0.8.3"
+lazy_static = "1.4.0"
+
+[dev-dependencies]
+rotary-core = {path = "../rotary-core"}
+rotary-generator = {path = "../rotary-generator"}
+anyhow = "1.0"
+
+[target.'cfg(windows)'.dependencies]
+windows = {git = "https://github.com/microsoft/windows-rs", default-features = false}
