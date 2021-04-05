@@ -23,13 +23,6 @@ pub struct Device {
     buffer: IDirectSoundBuffer,
 }
 
-impl Device {
-    /// Construct a raw device.
-    fn from_raw(device: IDirectSound, buffer: IDirectSoundBuffer) -> Self {
-        Self { device, buffer }
-    }
-}
-
 /// Open the default input device for WASAPI.
 pub fn default_output_device() -> Result<Option<Device>, Error> {
     unsafe {
@@ -100,6 +93,6 @@ pub fn default_output_device() -> Result<Option<Device>, Error> {
         dbg!(format.wBitsPerSample);
         dbg!(format.wFormatTag);
 
-        Ok(Some(Device::from_raw(device, buffer)))
+        Ok(Some(Device {device, buffer }))
     }
 }

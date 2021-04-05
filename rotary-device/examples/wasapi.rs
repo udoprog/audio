@@ -47,19 +47,26 @@ pub fn main() -> Result<()> {
     let mut line = String::new();
     std::io::stdin().read_line(&mut line)?;
 
-    let output = wasapi::default_output_device()?;
-    let output = output.ok_or_else(|| anyhow!("no default device found"))?;
+    let audio_thread = rotary_device::AudioThread::new()?;
 
-    let config = output.default_client_config()?;
+    audio_thread.submit(|| {
+        let output = wasapi::default_output_device()?;
+        let output = output.ok_or_else(|| anyhow!("no default device found"))?;
 
-    match config.sample_format {
-        wasapi::SampleFormat::I16 => {
-            run_output::<i16>(output, config)?;
+        let config = output.default_client_config()?;
+
+        match config.sample_format {
+            wasapi::SampleFormat::I16 => {
+                run_output::<i16>(output, config)?;
+            }
+            wasapi::SampleFormat::F32 => {
+                run_output::<f32>(output, config)?;
+            }
         }
-        wasapi::SampleFormat::F32 => {
-            run_output::<f32>(output, config)?;
-        }
-    }
 
+        Ok::<(), anyhow::Error>(())
+    })??;
+
+    audio_thread.join()?;
     Ok(())
 }
