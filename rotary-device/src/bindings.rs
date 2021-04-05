@@ -45481,6 +45481,7 @@ pub mod Windows {
                     lpname.into_param().abi(),
                 )
             }
+            pub const INVALID_HANDLE_VALUE: HANDLE = HANDLE(-1i32 as _);
             pub unsafe fn ResetEvent<'a, T0__: ::windows::IntoParam<'a, HANDLE>>(
                 hevent: T0__,
             ) -> BOOL {
@@ -45489,6 +45490,15 @@ pub mod Windows {
                     pub fn ResetEvent(hevent: HANDLE) -> BOOL;
                 }
                 ResetEvent(hevent.into_param().abi())
+            }
+            pub unsafe fn SetEvent<'a, T0__: ::windows::IntoParam<'a, HANDLE>>(
+                hevent: T0__,
+            ) -> BOOL {
+                #[link(name = "KERNEL32")]
+                extern "system" {
+                    pub fn SetEvent(hevent: HANDLE) -> BOOL;
+                }
+                SetEvent(hevent.into_param().abi())
             }
             #[derive(
                 :: std :: cmp :: PartialEq,
@@ -45554,6 +45564,8 @@ pub mod Windows {
                     ::std::mem::transmute(dwmilliseconds),
                 )
             }
+            pub const FALSE: BOOL = BOOL(0i32 as _);
+            pub const TRUE: BOOL = BOOL(1i32 as _);
         }
         #[allow(
             unused_variables,
@@ -45710,6 +45722,20 @@ pub mod Windows {
                 type Abi = Self;
             }
             pub const INFINITE: u32 = 4294967295u32;
+            pub unsafe fn CloseHandle<
+                'a,
+                T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
+            >(
+                hobject: T0__,
+            ) -> super::SystemServices::BOOL {
+                #[link(name = "KERNEL32")]
+                extern "system" {
+                    pub fn CloseHandle(
+                        hobject: super::SystemServices::HANDLE,
+                    ) -> super::SystemServices::BOOL;
+                }
+                CloseHandle(hobject.into_param().abi())
+            }
         }
         #[allow(
             unused_variables,

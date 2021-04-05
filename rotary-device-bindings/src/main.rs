@@ -17,8 +17,18 @@ fn main() -> io::Result<()> {
         Windows::Win32::StructuredStorage::PROPVARIANT,
         Windows::Win32::Com::{CoTaskMemAlloc, CoTaskMemFree, CLSIDFromProgID, CoInitializeEx, CoCreateInstance, CLSCTX},
         Windows::Win32::WindowsAndMessaging::GetForegroundWindow,
-        Windows::Win32::SystemServices::{CreateEventA, ResetEvent, WaitForSingleObject, WAIT_RETURN_CAUSE, HANDLE},
-        Windows::Win32::WindowsProgramming::INFINITE,
+        Windows::Win32::SystemServices::{
+            CreateEventA,
+            HANDLE,
+            INVALID_HANDLE_VALUE,
+            ResetEvent,
+            SetEvent,
+            WAIT_RETURN_CAUSE,
+            WaitForSingleObject,
+            FALSE,
+            TRUE,
+        },
+        Windows::Win32::WindowsProgramming::{INFINITE, CloseHandle},
     );
 
     let path = windows_gen::workspace_dir()

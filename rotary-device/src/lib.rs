@@ -10,4 +10,7 @@
 pub mod wasapi;
 
 #[cfg(windows)]
-mod bindings;
+pub mod bindings;
+
+#[cfg(windows)]
+mod windows;

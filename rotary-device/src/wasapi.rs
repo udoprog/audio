@@ -3,11 +3,13 @@ use crate::bindings::Windows::Win32::CoreAudio as core;
 use crate::bindings::Windows::Win32::Multimedia as mm;
 use crate::bindings::Windows::Win32::SystemServices as ss;
 use crate::bindings::Windows::Win32::WindowsProgramming as wp;
+use crate::windows::Event;
 use std::marker;
 use std::mem;
 use std::ops;
 use std::ptr;
 use std::slice;
+use std::sync::Arc;
 use thiserror::Error;
 use windows::Interface;
 
@@ -110,7 +112,7 @@ pub struct RenderClient<T> {
     render_client: core::IAudioRenderClient,
     buffer_size: u32,
     channels: usize,
-    event: ss::HANDLE,
+    event: Arc<Event>,
     _marker: marker::PhantomData<T>,
 }
 
@@ -120,7 +122,7 @@ impl<T> RenderClient<T> {
     /// This will block until it is appropriate to submit a buffer.
     pub fn buffer_mut(&mut self) -> Result<BufferMut<'_, T>, Error> {
         unsafe {
-            match ss::WaitForSingleObject(self.event, wp::INFINITE) {
+            match ss::WaitForSingleObject(self.event.handle(), wp::INFINITE) {
                 ss::WAIT_RETURN_CAUSE::WAIT_OBJECT_0 => (),
                 _ => {
                     return Err(Error::EventFailed);
@@ -166,7 +168,7 @@ pub struct InitializedClient<T> {
     audio_client: core::IAudioClient,
     config: ClientConfig,
     buffer_size: u32,
-    event: ss::HANDLE,
+    event: Arc<Event>,
     _marker: marker::PhantomData<T>,
 }
 
@@ -197,7 +199,7 @@ where
             render_client,
             buffer_size: self.buffer_size,
             channels: self.config.channels as usize,
-            event: self.event,
+            event: self.event.clone(),
             _marker: marker::PhantomData,
         })
     }
@@ -304,9 +306,9 @@ impl Client {
                 )
                 .ok()?;
 
-            let event = ss::CreateEventA(ptr::null_mut(), false, false, ss::PSTR::default());
+            let event = Arc::new(Event::create_event(false, false)?);
 
-            self.audio_client.SetEventHandle(event).ok()?;
+            self.audio_client.SetEventHandle(event.handle()).ok()?;
 
             let mut buffer_size = mem::MaybeUninit::<u32>::uninit();
             self.audio_client
