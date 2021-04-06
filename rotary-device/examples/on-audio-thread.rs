@@ -30,7 +30,6 @@ fn main() -> Result<()> {
 
     println!("Main thread: {:?}", std::thread::current().id());
     assert!(value.is_err());
-
     assert!(audio_thread.join().is_err());
     Ok(())
 }

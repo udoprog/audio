@@ -6,13 +6,14 @@ edition = "2018"
 
 [features]
 xaudio2 = []
-coreaudio = []
+wasapi = []
 
 [dependencies]
 thiserror = "1.0.24"
 rand = "0.8.3"
 lazy_static = "1.4.0"
 parking_lot = "0.11.1"
+parking_lot_core = "0.8.3"
 
 [dev-dependencies]
 rotary-core = {path = "../rotary-core"}
