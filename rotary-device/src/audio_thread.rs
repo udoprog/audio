@@ -2,6 +2,7 @@ use parking_lot::{Condvar, Mutex};
 use parking_lot_core::{DEFAULT_PARK_TOKEN, DEFAULT_UNPARK_TOKEN};
 use std::io;
 use std::mem;
+use std::ptr;
 use std::sync::Arc;
 use std::thread;
 use thiserror::Error;
@@ -10,16 +11,7 @@ use thiserror::Error;
 #[error("audio thread panicked")]
 pub struct Panicked(());
 
-struct Submit {
-    /// Where the result of the operation is written back out into. The value
-    /// is null as long as the thread has not completed.
-    storage: *mut (),
-    /// The boxed function which performs the operation.
-    task: Box<dyn FnMut(*mut ()) + Send + 'static>,
-}
-
-unsafe impl Send for Submit {}
-
+/// The state of the executor.
 enum State {
     /// Something is being submitted to the scheduler.
     Submit(Submit),
@@ -31,22 +23,14 @@ enum State {
     Join,
 }
 
-impl State {
-    /// Drop the state in place in case it is an atomic pointer.
-    ///
-    /// This prevents the pointer from leaking.
-    ///
-    /// # Safety
-    ///
-    /// Caller must ensure that the pointer hasn't already been freed, or is in use.
-    ///
-    /// Caller also must ensure that the appropriate type is being dropped.
-    unsafe fn drop_in_place(&self, drop: unsafe fn(*mut ())) {
-        if let State::Submit(submit) = self {
-            drop(submit.storage);
-        }
-    }
-}
+/// A task submitted to the executor.
+#[derive(Debug, Clone, Copy)]
+#[repr(transparent)]
+struct Submit(ptr::NonNull<dyn FnMut() + Send + 'static>);
+
+// The implementation of [Submit] is safe because it's privately constructed
+// inside of this module.
+unsafe impl Send for Submit {}
 
 struct Shared {
     state: Mutex<State>,
@@ -119,7 +103,7 @@ impl AudioThread {
     }
 
     /// Update the state to the given value.
-    fn set_state(&self, state: State, drop: unsafe fn(*mut ())) -> Result<(), Panicked> {
+    fn set_state(&self, state: State) -> Result<(), Panicked> {
         let mut guard = loop {
             let mut guard = self.shared.state.lock();
 
@@ -129,12 +113,6 @@ impl AudioThread {
                     continue;
                 }
                 State::Panicked => {
-                    // We haven't successfully submitted the state yet, so we
-                    // still own the storage pointer.
-                    unsafe {
-                        state.drop_in_place(drop);
-                    }
-
                     return Err(Panicked(()));
                 }
                 State::Empty => break guard,
@@ -143,6 +121,7 @@ impl AudioThread {
         };
 
         *guard = state;
+        self.handle.thread().unpark();
         Ok(())
     }
 
@@ -152,98 +131,75 @@ impl AudioThread {
         F: 'static + Send + FnOnce() -> T,
         T: 'static + Send,
     {
-        let storage = Box::into_raw(Box::new(None));
+        let mut storage = None;
+        let mut task = into_task(task, Storage(&mut storage));
 
-        let drop = |ptr: *mut ()| unsafe {
-            let _: Box<Option<T>> = Box::from_raw(ptr.cast());
-        };
+        // Safety: We're constructing a pointer to a local stack location. It
+        // will never be null.
+        let task = unsafe { ptr::NonNull::new_unchecked(&mut task as *mut _) };
+        self.set_state(State::Submit(Submit(task)))?;
 
-        self.set_state(
-            State::Submit(Submit {
-                storage: storage.cast(),
-                task: Box::new(into_task(task)),
-            }),
-            drop,
-        )?;
+        // Safety: we're the only ones controlling these, so we know that
+        // they are correctly allocated and who owns what with
+        // synchronization.
+        unsafe {
+            parking_lot_core::park(
+                &mut storage as *mut _ as usize,
+                || true,
+                || {},
+                |_, _| {},
+                DEFAULT_PARK_TOKEN,
+                None,
+            );
 
-        self.handle.thread().unpark();
-
-        // Park until a result is available.
-        loop {
-            // Try and load storage, if not set yet we continue spinning
-            // (spurious wake).
-            //
-            // Safety: we're the only ones controlling these, so we know that
-            // they are correctly allocated and who owns what with
-            // synchronization.
-            unsafe {
-                parking_lot_core::park(
-                    storage as usize,
-                    || true,
-                    || {},
-                    |_, _| {},
-                    DEFAULT_PARK_TOKEN,
-                    None,
-                );
-
-                return match *Box::from_raw(storage) {
-                    Some(result) => Ok(result),
-                    None => Err(Panicked(())),
-                };
-            }
+            return match storage {
+                Some(result) => Ok(result),
+                None => Err(Panicked(())),
+            };
         }
 
-        fn into_task<F, T>(task: F) -> impl FnMut(*mut ()) + 'static + Send
+        fn into_task<F, T>(task: F, storage: Storage<T>) -> impl FnMut() + 'static + Send
         where
-            F: FnOnce() -> T + 'static + Send,
+            F: 'static + FnOnce() -> T + Send,
+            T: 'static + Send,
         {
             let mut task = Some(task);
 
-            return move |storage| {
-                // Safety: we know exactly what the underlying type is here.
-                let guard: SubmitGuard<T> = SubmitGuard {
-                    storage: storage.cast(),
-                };
+            move || {
+                let Storage(storage) = storage;
 
-                let task = task.take().expect("task has already been consumed");
-                let output = task();
-                let mut guard = mem::ManuallyDrop::new(guard);
+                let _guard = UnparkGuard(storage as usize);
 
-                // Safety: we're the only one with synchronized access to this
-                // pointer, and we know it hasn't been de-allocated yet.
-                unsafe {
-                    *guard.storage = Some(output);
-                }
+                if let Some(task) = task.take() {
+                    let output = task();
 
-                guard.unpark();
-            };
-
-            struct SubmitGuard<T> {
-                storage: *mut Option<T>,
-            }
-
-            impl<T> SubmitGuard<T> {
-                fn unpark(&self) {
-                    loop {
-                        // SafetY: the storage address is shared by the entity submitting the task.
-                        let result = unsafe {
-                            parking_lot_core::unpark_one(self.storage as usize, |_| {
-                                DEFAULT_UNPARK_TOKEN
-                            })
-                        };
-
-                        if result.unparked_threads == 1 {
-                            break;
-                        }
-
-                        thread::yield_now();
+                    // Safety: we're the only one with access to this pointer,
+                    // and we know it hasn't been de-allocated yet.
+                    unsafe {
+                        *storage = Some(output);
                     }
                 }
             }
+        }
 
-            impl<T> Drop for SubmitGuard<T> {
-                fn drop(&mut self) {
-                    self.unpark();
+        struct Storage<T>(*mut Option<T>);
+        unsafe impl<T> Send for Storage<T> where T: Send {}
+
+        /// Guard that guarantees that the given key will be unparked.
+        struct UnparkGuard(usize);
+
+        impl Drop for UnparkGuard {
+            fn drop(&mut self) {
+                loop {
+                    // SafetY: the storage address is shared by the entity submitting the task.
+                    let result =
+                        unsafe { parking_lot_core::unpark_one(self.0, |_| DEFAULT_UNPARK_TOKEN) };
+
+                    if result.unparked_threads == 1 {
+                        break;
+                    }
+
+                    thread::yield_now();
                 }
             }
         }
@@ -251,10 +207,7 @@ impl AudioThread {
 
     /// Join the audio background thread.
     pub fn join(self) -> Result<(), Panicked> {
-        self.set_state(State::Join, |_| {
-            // Woops, pointer leaked. Not much to do about that unfortunately?
-        })?;
-        self.handle.thread().unpark();
+        self.set_state(State::Join)?;
         self.handle.join().map_err(|_| Panicked(()))
     }
 
@@ -265,30 +218,28 @@ impl AudioThread {
             panic!("windows: failed to initialize windows mta: {}", e);
         }
 
-        let shared = PoisonGuard(&shared);
+        let poison_guard = PoisonGuard(&shared);
 
-        loop {
-            let state = loop {
-                thread::park();
-                let mut state = shared.0.state.lock();
+        'outer: loop {
+            let Submit(mut task) = loop {
+                if !poison_guard.0.cond.notify_one() {
+                    thread::park();
+                }
+
+                let mut state = poison_guard.0.state.lock();
 
                 match mem::replace(&mut *state, State::Empty) {
                     State::Empty => continue,
-                    state => break state,
+                    State::Submit(submit) => break submit,
+                    _ => break 'outer,
                 }
             };
 
-            match state {
-                State::Submit(mut submit) => {
-                    (submit.task)(submit.storage);
-                    shared.0.cond.notify_one();
-                    continue;
-                }
-                _ => break,
-            }
+            unsafe { task.as_mut()() };
         }
 
-        mem::forget(shared);
+        // Forget the guard to disarm the panic.
+        mem::forget(poison_guard);
 
         /// Guard used to mark the state of the executed as "panicked". This is
         /// accomplished by asserting that the only reason this destructor would
@@ -297,11 +248,10 @@ impl AudioThread {
 
         impl Drop for PoisonGuard<'_> {
             fn drop(&mut self) {
-                let mut guard = self.0.state.lock();
-                let old = std::mem::replace(&mut *guard, State::Panicked);
+                let old = mem::replace(&mut *self.0.state.lock(), State::Panicked);
                 // It's not possible for the state to be anything but empty
-                // here, because the worker thread takes the state as one of the
-                // first actions it performs.
+                // here, because the worker thread takes the state before
+                // executing user code which might panic.
                 debug_assert!(matches!(old, State::Empty));
                 self.0.cond.notify_all();
             }
