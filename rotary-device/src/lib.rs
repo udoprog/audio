@@ -6,7 +6,7 @@
 //! cargo run --bin rotary-device-bindings
 //! ```
 
-#[cfg(windows)]
+#[cfg(all(windows, feature = "wasapi"))]
 pub mod wasapi;
 
 #[cfg(all(windows, feature = "xaudio2"))]

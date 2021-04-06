@@ -1,9 +1,10 @@
+use parking_lot::{Condvar, Mutex};
 use std::io;
 use std::marker;
 use std::mem;
 use std::ptr;
 use std::sync::atomic::{AtomicPtr, Ordering};
-use std::sync::mpsc;
+use std::sync::Arc;
 use std::thread;
 use thiserror::Error;
 
@@ -21,19 +22,74 @@ struct Submit {
     task: Box<dyn FnMut(thread::Thread, *mut AtomicPtr<()>) + Send + 'static>,
 }
 
-enum Task {
+unsafe impl Send for Submit {}
+
+enum State {
+    /// Something is being submitted to the scheduler.
     Submit(Submit),
+    /// Scheduler is empty.
+    Empty,
+    /// Scheduler has panicked.
+    Panicked,
+    /// Scheduler is being joined.
     Join,
 }
 
-unsafe impl Send for Task {}
+impl State {
+    fn is_empty(&self) -> bool {
+        matches!(self, Self::Empty)
+    }
+}
+
+struct Shared {
+    state: Mutex<State>,
+    cond: Condvar,
+}
 
 /// Handle to a background audio thread, suitable for running audio-related
 /// operations.
+///
+/// ```rust
+/// use std::sync::Arc;
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let audio_thread = Arc::new(rotary_device::AudioThread::new()?);
+/// let mut threads = Vec::new();
+///
+/// for n in 0..10 {
+///     let audio_thread = audio_thread.clone();
+///
+///     threads.push(std::thread::spawn(move || {
+///         audio_thread.submit(move || n)
+///     }));
+/// }
+///
+/// let mut result = 0;
+///
+/// for t in threads {
+///     result += t.join().unwrap()?;
+/// }
+///
+/// assert_eq!(result, (0..10).sum());
+///
+/// // Unwrap the audio thread.
+/// let audio_thread = Arc::try_unwrap(audio_thread).map_err(|_| "unwrap failed").unwrap();
+///
+/// let value = audio_thread.submit(|| {
+///     panic!("Audio thread: {:?}", std::thread::current().id());
+/// });
+///
+/// println!("Main thread: {:?}", std::thread::current().id());
+/// assert!(value.is_err());
+///
+/// assert!(audio_thread.join().is_err());
+/// Ok(())
+/// # }
+/// ```
 #[must_use = "The audio thread should be joined with AudioThread::join once no longer used"]
 pub struct AudioThread {
     /// Things that have been submitted for execution on the audio thread.
-    tx: mpsc::SyncSender<Task>,
+    shared: Arc<Shared>,
     /// The handle associated with the audio thread.
     handle: thread::JoinHandle<()>,
 }
@@ -41,13 +97,38 @@ pub struct AudioThread {
 impl AudioThread {
     /// Construct a new background audio thread.
     pub fn new() -> io::Result<Self> {
-        let (tx, rx) = mpsc::sync_channel(0);
+        let shared = Arc::new(Shared {
+            state: Mutex::new(State::Empty),
+            cond: Condvar::new(),
+        });
+
+        let shared2 = shared.clone();
 
         let handle = thread::Builder::new()
             .name(String::from("audio-thread"))
-            .spawn(move || Self::worker(rx))?;
+            .spawn(move || Self::worker(shared2))?;
 
-        Ok(Self { tx, handle })
+        Ok(Self { shared, handle })
+    }
+
+    /// Update the state to the given value.
+    fn set_state(&self, state: State) -> Result<(), Panicked> {
+        let mut guard = loop {
+            let mut guard = self.shared.state.lock();
+
+            match &*guard {
+                State::Submit(..) => {
+                    self.shared.cond.wait(&mut guard);
+                    continue;
+                }
+                State::Panicked => return Err(Panicked(())),
+                State::Empty => break guard,
+                State::Join => unreachable!(),
+            }
+        };
+
+        *guard = state;
+        Ok(())
     }
 
     /// Submit a task to run on the background audio thread.
@@ -59,17 +140,13 @@ impl AudioThread {
         let thread = thread::current();
         let storage = Box::into_raw(Box::new(AtomicPtr::new(ptr::null_mut())));
 
-        let result = self.tx.send(Task::Submit(Submit {
+        self.set_state(State::Submit(Submit {
             thread: thread.clone(),
             storage,
             task: Box::new(into_task(task)),
-        }));
+        }))?;
 
-        if result.is_err() {
-            // NB: free return address on errors.
-            let _ = unsafe { Box::from_raw(storage) };
-            return Err(Panicked(()));
-        }
+        self.handle.thread().unpark();
 
         // Park until a result is available.
         loop {
@@ -155,31 +232,52 @@ impl AudioThread {
 
     /// Join the audio background thread.
     pub fn join(self) -> Result<(), Panicked> {
-        // Thread has panicked.
-        if self.tx.send(Task::Join).is_err() {
-            return self.handle.join().map_err(|_| Panicked(()));
-        }
-
+        self.set_state(State::Join)?;
         self.handle.thread().unpark();
         self.handle.join().map_err(|_| Panicked(()))
     }
 
     /// Worker thread.
-    fn worker(rx: mpsc::Receiver<Task>) {
+    fn worker(shared: Arc<Shared>) {
         #[cfg(windows)]
         if let Err(e) = windows::initialize_mta() {
             panic!("windows: failed to initialize windows mta: {}", e);
         }
 
-        loop {
-            let task = rx.recv().unwrap();
+        let shared = PoisonGuard(&shared);
 
-            match task {
-                Task::Submit(mut submit) => {
+        loop {
+            thread::park();
+            let mut state = shared.0.state.lock();
+
+            if state.is_empty() {
+                continue;
+            }
+
+            let state = mem::replace(&mut *state, State::Empty);
+
+            match state {
+                State::Submit(mut submit) => {
                     (submit.task)(submit.thread, submit.storage);
+                    shared.0.cond.notify_one();
                     continue;
                 }
-                Task::Join => break,
+                _ => break,
+            }
+        }
+
+        mem::forget(shared);
+
+        /// Guard used to mark the state of the executed as "panicked". This is
+        /// accomplished by asserting that the only reason this destructor would
+        /// be called would be due to an unwinding panic.
+        struct PoisonGuard<'a>(&'a Shared);
+
+        impl Drop for PoisonGuard<'_> {
+            fn drop(&mut self) {
+                let mut guard = self.0.state.lock();
+                *guard = State::Panicked;
+                self.0.cond.notify_all();
             }
         }
     }
