@@ -11027,7 +11027,7 @@ pub mod Windows {
             clippy::all
         )]
         pub mod Automation {
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn SysAllocStringLen<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
@@ -11041,7 +11041,7 @@ pub mod Windows {
                 }
                 SysAllocStringLen(strin.into_param().abi(), ::std::mem::transmute(ui))
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn SysStringLen<'a, T0__: ::windows::IntoParam<'a, BSTR>>(
                 pbstr: T0__,
             ) -> u32 {
@@ -11051,7 +11051,7 @@ pub mod Windows {
                 }
                 SysStringLen(pbstr.into_param().abi())
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn SysFreeString<'a, T0__: ::windows::IntoParam<'a, BSTR>>(
                 bstrstring: T0__,
             ) {
@@ -12469,7 +12469,7 @@ pub mod Windows {
                     activatedinterface: *mut ::windows::RawPtr,
                 ) -> ::windows::ErrorCode,
             );
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn ActivateAudioInterfaceAsync<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
@@ -40142,7 +40142,7 @@ pub mod Windows {
             pub const KS_iPALETTE_COLORS: u32 = 256u32;
             pub const KS_iRED: u32 = 0u32;
             pub const KS_iTRUECOLOR: u32 = 16u32;
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn KsCreateAllocator<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
@@ -40165,7 +40165,7 @@ pub mod Windows {
                     ::std::mem::transmute(allocatorhandle),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn KsCreateAllocator2<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
@@ -40188,7 +40188,7 @@ pub mod Windows {
                     ::std::mem::transmute(allocatorhandle),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn KsCreateClock<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
@@ -40211,7 +40211,7 @@ pub mod Windows {
                     ::std::mem::transmute(clockhandle),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn KsCreateClock2<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
@@ -40234,7 +40234,7 @@ pub mod Windows {
                     ::std::mem::transmute(clockhandle),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn KsCreatePin<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
@@ -40260,7 +40260,7 @@ pub mod Windows {
                     ::std::mem::transmute(connectionhandle),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn KsCreatePin2<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
@@ -40286,7 +40286,7 @@ pub mod Windows {
                     ::std::mem::transmute(connectionhandle),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn KsCreateTopologyNode<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
@@ -40312,7 +40312,7 @@ pub mod Windows {
                     ::std::mem::transmute(nodehandle),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn KsCreateTopologyNode2<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
@@ -42707,7 +42707,7 @@ pub mod Windows {
             unsafe impl ::windows::Abi for _AUDCLNT_BUFFERFLAGS {
                 type Abi = Self;
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciDriverNotify<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
@@ -42730,7 +42730,7 @@ pub mod Windows {
                     ::std::mem::transmute(ustatus),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciDriverYield(wdeviceid: u32) -> u32 {
                 #[link(name = "WINMM")]
                 extern "system" {
@@ -42738,7 +42738,7 @@ pub mod Windows {
                 }
                 mciDriverYield(::std::mem::transmute(wdeviceid))
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciFreeCommandResource(wtable: u32) -> super::SystemServices::BOOL {
                 #[link(name = "WINMM")]
                 extern "system" {
@@ -42746,7 +42746,7 @@ pub mod Windows {
                 }
                 mciFreeCommandResource(::std::mem::transmute(wtable))
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetCreatorTask(mciid: u32) -> HTASK {
                 #[link(name = "WINMM")]
                 extern "system" {
@@ -42754,7 +42754,7 @@ pub mod Windows {
                 }
                 mciGetCreatorTask(::std::mem::transmute(mciid))
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetDeviceIDA<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::PSTR>,
@@ -42767,7 +42767,7 @@ pub mod Windows {
                 }
                 mciGetDeviceIDA(pszdevice.into_param().abi())
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetDeviceIDFromElementIDA<
                 'a,
                 T1__: ::windows::IntoParam<'a, super::SystemServices::PSTR>,
@@ -42787,7 +42787,7 @@ pub mod Windows {
                     lpstrtype.into_param().abi(),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetDeviceIDFromElementIDW<
                 'a,
                 T1__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
@@ -42807,7 +42807,7 @@ pub mod Windows {
                     lpstrtype.into_param().abi(),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetDeviceIDW<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
@@ -42820,7 +42820,7 @@ pub mod Windows {
                 }
                 mciGetDeviceIDW(pszdevice.into_param().abi())
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetDriverData(wdeviceid: u32) -> usize {
                 #[link(name = "WINMM")]
                 extern "system" {
@@ -42828,7 +42828,7 @@ pub mod Windows {
                 }
                 mciGetDriverData(::std::mem::transmute(wdeviceid))
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetErrorStringA(
                 mcierr: u32,
                 psztext: super::SystemServices::PSTR,
@@ -42848,7 +42848,7 @@ pub mod Windows {
                     ::std::mem::transmute(cchtext),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetErrorStringW(
                 mcierr: u32,
                 psztext: super::SystemServices::PWSTR,
@@ -42868,7 +42868,7 @@ pub mod Windows {
                     ::std::mem::transmute(cchtext),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetYieldProc(
                 mciid: u32,
                 pdwyielddata: *mut u32,
@@ -42885,7 +42885,7 @@ pub mod Windows {
                     ::std::mem::transmute(pdwyielddata),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciLoadCommandResource<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
@@ -42909,7 +42909,7 @@ pub mod Windows {
                     ::std::mem::transmute(wtype),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciSendCommandA(
                 mciid: u32,
                 umsg: u32,
@@ -42932,7 +42932,7 @@ pub mod Windows {
                     ::std::mem::transmute(dwparam2),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciSendCommandW(
                 mciid: u32,
                 umsg: u32,
@@ -42955,7 +42955,7 @@ pub mod Windows {
                     ::std::mem::transmute(dwparam2),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciSendStringA<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::PSTR>,
@@ -42982,7 +42982,7 @@ pub mod Windows {
                     hwndcallback.into_param().abi(),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciSendStringW<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
@@ -43009,7 +43009,7 @@ pub mod Windows {
                     hwndcallback.into_param().abi(),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciSetDriverData(
                 wdeviceid: u32,
                 dwdata: usize,
@@ -43026,7 +43026,7 @@ pub mod Windows {
                     ::std::mem::transmute(dwdata),
                 )
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn mciSetYieldProc(
                 mciid: u32,
                 fpyieldproc: ::std::option::Option<YIELDPROC>,
@@ -45497,7 +45497,7 @@ pub mod Windows {
             unsafe impl ::windows::Abi for SECURITY_ATTRIBUTES {
                 type Abi = Self;
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn CreateEventA<
                 'a,
                 T1__: ::windows::IntoParam<'a, BOOL>,
@@ -45526,7 +45526,7 @@ pub mod Windows {
                 )
             }
             pub const INVALID_HANDLE_VALUE: HANDLE = HANDLE(-1i32 as _);
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn ResetEvent<'a, T0__: ::windows::IntoParam<'a, HANDLE>>(
                 hevent: T0__,
             ) -> BOOL {
@@ -45536,7 +45536,7 @@ pub mod Windows {
                 }
                 ResetEvent(hevent.into_param().abi())
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn SetEvent<'a, T0__: ::windows::IntoParam<'a, HANDLE>>(
                 hevent: T0__,
             ) -> BOOL {
@@ -45594,7 +45594,7 @@ pub mod Windows {
                     self.0.bitand_assign(rhs.0)
                 }
             }
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn WaitForSingleObject<'a, T0__: ::windows::IntoParam<'a, HANDLE>>(
                 hhandle: T0__,
                 dwmilliseconds: u32,
@@ -45769,7 +45769,7 @@ pub mod Windows {
                 type Abi = Self;
             }
             pub const INFINITE: u32 = 4294967295u32;
-            #[cfg(feature = "coreaudio")]
+            #[cfg(feature = "wasapi")]
             pub unsafe fn CloseHandle<
                 'a,
                 T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,

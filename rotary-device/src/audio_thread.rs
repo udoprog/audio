@@ -151,12 +151,12 @@ impl AudioThread {
                 DEFAULT_PARK_TOKEN,
                 None,
             );
-
-            return match storage {
-                Some(result) => Ok(result),
-                None => Err(Panicked(())),
-            };
         }
+
+        return match storage {
+            Some(result) => Ok(result),
+            None => Err(Panicked(())),
+        };
 
         fn into_task<F, T>(task: F, storage: Storage<T>) -> impl FnMut() + 'static + Send
         where
