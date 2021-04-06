@@ -5,8 +5,11 @@ use std::process;
 
 fn main() -> io::Result<()> {
     let tokens = windows_macros::generate!(
+        #[cfg(feature = "coreaudio")]
         Windows::Win32::CoreAudio::*,
         Windows::Win32::Audio::*,
+        #[cfg(feature = "xaudio2")]
+        Windows::Win32::XAudio2::*,
         Windows::Win32::Multimedia::{
             WAVEFORMATEX,
             WAVEFORMATEXTENSIBLE,
@@ -29,6 +32,7 @@ fn main() -> io::Result<()> {
             TRUE,
         },
         Windows::Win32::WindowsProgramming::{INFINITE, CloseHandle},
+        Windows::Win32::ApplicationInstallationAndServicing::NTDDI_WIN7,
     );
 
     let path = windows_gen::workspace_dir()

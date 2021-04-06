@@ -50,7 +50,7 @@ pub fn main() -> Result<()> {
     let audio_thread = rotary_device::AudioThread::new()?;
 
     audio_thread.submit(|| {
-        let output = wasapi::default_output_device()?;
+        let output = wasapi::default_output_client()?;
         let output = output.ok_or_else(|| anyhow!("no default device found"))?;
 
         let config = output.default_client_config()?;

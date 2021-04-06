@@ -58,7 +58,7 @@ pub struct ClientConfig {
 }
 
 /// Open the default output device for WASAPI.
-pub fn default_output_device() -> Result<Option<Client>, Error> {
+pub fn default_output_client() -> Result<Option<Client>, Error> {
     let enumerator: core::IMMDeviceEnumerator =
         windows::create_instance(&core::MMDeviceEnumerator)?;
 

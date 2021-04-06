@@ -155,8 +155,6 @@ impl AudioThread {
 
     /// Join the audio background thread.
     pub fn join(self) -> Result<(), Panicked> {
-        println!("we're trying to join");
-
         // Thread has panicked.
         if self.tx.send(Task::Join).is_err() {
             return self.handle.join().map_err(|_| Panicked(()));

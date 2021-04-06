@@ -9,6 +9,9 @@
 #[cfg(windows)]
 pub mod wasapi;
 
+#[cfg(all(windows, feature = "xaudio2"))]
+pub mod xaudio2;
+
 #[cfg(windows)]
 pub mod bindings;
 
