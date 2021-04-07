@@ -32,6 +32,7 @@ use parking_lot_core::{DEFAULT_PARK_TOKEN, DEFAULT_UNPARK_TOKEN};
 use std::io;
 use std::mem;
 use std::ptr;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 use thiserror::Error;
 
@@ -150,31 +151,41 @@ impl Thread {
         F: Send + FnOnce() -> T,
         T: Send,
     {
+        let flag = AtomicUsize::new(0);
         let mut storage = None;
-        let mut task = into_task(task, RawSend(ptr::NonNull::from(&mut storage)));
 
-        // Safety: We're constructing a pointer to a local stack location. It
-        // will never be null.
-        //
-        // The transmute is necessary because we're constructing a trait object
-        // with a `'static` lifetime.
-        let task = unsafe {
-            ptr::NonNull::new_unchecked(mem::transmute::<&mut (dyn FnMut(Tag) + Send), _>(
-                &mut task,
-            ))
-        };
-        self.set_state(State::Submit(Submit(task)))?;
+        {
+            let storage = ptr::NonNull::from(&mut storage);
 
-        match self.handle.as_ref() {
-            Some(handle) => handle.thread().unpark(),
-            None => panic!("missing thread handle"),
-        }
+            let mut task = into_task(task, RawSend(ptr::NonNull::from(&flag)), RawSend(storage));
 
-        // Safety: we're the only ones controlling these, so we know that
-        // they are correctly allocated and who owns what with
-        // synchronization.
-        unsafe {
-            park(&mut storage as *mut _ as usize);
+            // Safety: We're constructing a pointer to a local stack location. It
+            // will never be null.
+            //
+            // The transmute is necessary because we're constructing a trait object
+            // with a `'static` lifetime.
+            let task = unsafe {
+                ptr::NonNull::new_unchecked(mem::transmute::<&mut (dyn FnMut(Tag) + Send), _>(
+                    &mut task,
+                ))
+            };
+            self.set_state(State::Submit(Submit(task)))?;
+
+            match self.handle.as_ref() {
+                Some(handle) => handle.thread().unpark(),
+                None => panic!("missing thread handle"),
+            }
+
+            // If 0, we know we got here first and have to park until the thread is
+            // ready.
+            if flag.fetch_add(1, Ordering::AcqRel) == 0 {
+                // Safety: we're the only ones controlling these, so we know that
+                // they are correctly allocated and who owns what with
+                // synchronization.
+                unsafe {
+                    park(storage.as_ptr() as usize);
+                }
+            }
         }
 
         return match storage {
@@ -182,7 +193,11 @@ impl Thread {
             None => Err(Panicked(())),
         };
 
-        fn into_task<F, T>(task: F, storage: RawSend<Option<T>>) -> impl FnMut(Tag) + Send
+        fn into_task<F, T>(
+            task: F,
+            flag: RawSend<AtomicUsize>,
+            storage: RawSend<Option<T>>,
+        ) -> impl FnMut(Tag) + Send
         where
             F: FnOnce() -> T + Send,
             T: Send,
@@ -190,9 +205,13 @@ impl Thread {
             let mut task = Some(task);
 
             move |tag| {
+                let RawSend(flag) = flag;
                 let RawSend(mut storage) = storage;
 
-                let _guard = UnparkGuard(storage.as_ptr() as usize);
+                // Safety: we know the flag is scoped to this thread.
+                let flag = unsafe { flag.as_ref() };
+
+                let _guard = UnparkGuard(flag, storage.as_ptr() as usize);
 
                 if let Some(task) = task.take() {
                     let output = with_tag(tag, task);
@@ -207,12 +226,19 @@ impl Thread {
         }
 
         /// Guard that guarantees that the given key will be unparked.
-        struct UnparkGuard(usize);
+        struct UnparkGuard<'a>(&'a AtomicUsize, usize);
 
-        impl Drop for UnparkGuard {
+        impl Drop for UnparkGuard<'_> {
             fn drop(&mut self) {
+                if self.0.fetch_add(1, Ordering::AcqRel) == 0 {
+                    // We got here first, so we know the calling thread won't
+                    // park since they will see our update. If the calling
+                    // thread got here before us, the value would be 1.
+                    return;
+                }
+
                 // Safety: the storage address is shared by the entity submitting the task.
-                while !unsafe { unpark_one(self.0) } {
+                while !unsafe { unpark_one(self.1) } {
                     thread::yield_now();
                 }
             }
