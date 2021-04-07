@@ -22,7 +22,7 @@ thread_local! {
 /// # Examples
 ///
 /// ```rust
-/// // Ensure that `Foo` is `!Send` and `!Sync`.
+/// // Ensure that `Foo` is both `!Send` and `!Sync`.
 /// struct Foo(*mut ());
 ///
 /// impl Foo {
@@ -45,6 +45,20 @@ thread_local! {
 /// assert_eq!(42, out);
 ///
 /// thread.drop(value)?;
+/// thread.join()?;
+/// # Ok(()) }    
+/// ```
+///
+/// If we omit the call to [drop][super::Thread::drop], the above will panic.
+///
+/// ```rust,should_panic
+/// # struct Foo(*mut ());
+/// # impl Drop for Foo { fn drop(&mut self) {} }
+/// # fn main() -> anyhow::Result<()> {
+/// let thread = ste::Thread::new()?;
+///
+/// let value = thread.submit(|| ste::Tagged::new(Foo(0 as *mut ())))?;
+///
 /// thread.join()?;
 /// # Ok(()) }    
 /// ```
