@@ -28,13 +28,15 @@
 //! [rotary]: https://github.com/udoprog/rotary
 
 use parking_lot::{Condvar, Mutex};
-use parking_lot_core::{DEFAULT_PARK_TOKEN, DEFAULT_UNPARK_TOKEN};
 use std::io;
 use std::mem;
 use std::ptr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 use thiserror::Error;
+
+mod parker;
+use self::parker::Unparker;
 
 mod tagged;
 pub use self::tagged::Tagged;
@@ -156,8 +158,14 @@ impl Thread {
 
         {
             let storage = ptr::NonNull::from(&mut storage);
+            let (parker, unparker) = parker::new(storage.as_ptr());
 
-            let mut task = into_task(task, RawSend(ptr::NonNull::from(&flag)), RawSend(storage));
+            let mut task = into_task(
+                task,
+                RawSend(ptr::NonNull::from(&flag)),
+                RawSend(storage),
+                unparker,
+            );
 
             // Safety: We're constructing a pointer to a local stack location. It
             // will never be null.
@@ -176,15 +184,13 @@ impl Thread {
                 None => panic!("missing thread handle"),
             }
 
-            // If 0, we know we got here first and have to park until the thread is
-            // ready.
+            // If 0, we know we got here first and have to park until the thread
+            // is ready.
             if flag.fetch_add(1, Ordering::AcqRel) == 0 {
                 // Safety: we're the only ones controlling these, so we know that
                 // they are correctly allocated and who owns what with
                 // synchronization.
-                unsafe {
-                    park(storage.as_ptr() as usize);
-                }
+                parker.park(|| flag.load(Ordering::Relaxed) == 2);
             }
         }
 
@@ -197,23 +203,20 @@ impl Thread {
             task: F,
             flag: RawSend<AtomicUsize>,
             storage: RawSend<Option<T>>,
+            unparker: Unparker,
         ) -> impl FnMut(Tag) + Send
         where
             F: FnOnce() -> T + Send,
             T: Send,
         {
-            let mut task = Some(task);
+            let mut task = Some((task, unparker));
 
             move |tag| {
                 let RawSend(flag) = flag;
                 let RawSend(mut storage) = storage;
 
-                // Safety: we know the flag is scoped to this thread.
-                let flag = unsafe { flag.as_ref() };
-
-                let _guard = UnparkGuard(flag, storage.as_ptr() as usize);
-
-                if let Some(task) = task.take() {
+                if let Some((task, unparker)) = task.take() {
+                    let _guard = UnparkGuard { flag, unparker };
                     let output = with_tag(tag, task);
 
                     // Safety: we're the only one with access to this pointer,
@@ -226,19 +229,23 @@ impl Thread {
         }
 
         /// Guard that guarantees that the given key will be unparked.
-        struct UnparkGuard<'a>(&'a AtomicUsize, usize);
+        struct UnparkGuard {
+            flag: ptr::NonNull<AtomicUsize>,
+            unparker: Unparker,
+        }
 
-        impl Drop for UnparkGuard<'_> {
+        impl Drop for UnparkGuard {
             fn drop(&mut self) {
-                if self.0.fetch_add(1, Ordering::AcqRel) == 0 {
+                // Safety: We know that the task holding the flag owns the
+                // reference.
+                if unsafe { self.flag.as_ref().fetch_add(1, Ordering::AcqRel) == 0 } {
                     // We got here first, so we know the calling thread won't
                     // park since they will see our update. If the calling
                     // thread got here before us, the value would be 1.
                     return;
                 }
 
-                // Safety: the storage address is shared by the entity submitting the task.
-                while !unsafe { unpark_one(self.1) } {
+                while !self.unparker.unpark_one() {
                     thread::yield_now();
                 }
             }
@@ -366,11 +373,11 @@ impl Thread {
 
     /// Worker thread.
     fn worker(prelude: Option<Box<Prelude>>, RawSend(shared): RawSend<Shared>) {
+        let poison_guard = PoisonGuard { shared };
+
         if let Some(prelude) = prelude {
             prelude();
         }
-
-        let poison_guard = PoisonGuard(shared);
 
         'outer: loop {
             let Submit(mut task) = loop {
@@ -399,17 +406,20 @@ impl Thread {
         /// Guard used to mark the state of the executed as "panicked". This is
         /// accomplished by asserting that the only reason this destructor would
         /// be called would be due to an unwinding panic.
-        struct PoisonGuard(ptr::NonNull<Shared>);
+        struct PoisonGuard {
+            shared: ptr::NonNull<Shared>,
+        }
 
         impl Drop for PoisonGuard {
             fn drop(&mut self) {
                 unsafe {
-                    let old = mem::replace(&mut *self.0.as_ref().state.lock(), State::Panicked);
+                    let old =
+                        mem::replace(&mut *self.shared.as_ref().state.lock(), State::Panicked);
                     // It's not possible for the state to be anything but empty
                     // here, because the worker thread takes the state before
                     // executing user code which might panic.
-                    debug_assert!(matches!(old, State::Empty));
-                    self.0.as_ref().cond.notify_all();
+                    debug_assert!(!matches!(old, State::Panicked));
+                    self.shared.as_ref().cond.notify_all();
                 }
             }
         }
@@ -538,11 +548,3 @@ struct Shared {
 
 /// The type of the prelude function.
 type Prelude = dyn Fn() + Send + 'static;
-
-unsafe fn park(key: usize) {
-    parking_lot_core::park(key, || true, || {}, |_, _| {}, DEFAULT_PARK_TOKEN, None);
-}
-
-unsafe fn unpark_one(key: usize) -> bool {
-    parking_lot_core::unpark_one(key, |_| DEFAULT_UNPARK_TOKEN).unparked_threads == 1
-}
