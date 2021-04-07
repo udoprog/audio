@@ -35,6 +35,9 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 use thiserror::Error;
 
+#[cfg(test)]
+mod tests;
+
 mod parker;
 use self::parker::Unparker;
 
@@ -160,12 +163,7 @@ impl Thread {
             let storage = ptr::NonNull::from(&mut storage);
             let (parker, unparker) = parker::new(storage.as_ptr());
 
-            let mut task = into_task(
-                task,
-                RawSend(ptr::NonNull::from(&flag)),
-                RawSend(storage),
-                unparker,
-            );
+            let mut task = into_task(task, RawSend(storage));
 
             // Safety: We're constructing a pointer to a local stack location. It
             // will never be null.
@@ -177,7 +175,11 @@ impl Thread {
                     &mut task,
                 ))
             };
-            self.set_state(State::Submit(Submit(task)))?;
+            self.set_state(State::Schedule(Schedule {
+                task,
+                unparker,
+                flag: ptr::NonNull::from(&flag),
+            }))?;
 
             match self.handle.as_ref() {
                 Some(handle) => handle.thread().unpark(),
@@ -186,11 +188,11 @@ impl Thread {
 
             // If 0, we know we got here first and have to park until the thread
             // is ready.
-            if flag.fetch_add(1, Ordering::AcqRel) == 0 {
+            if flag.fetch_add(1, Ordering::AcqRel) == NONE_READY {
                 // Safety: we're the only ones controlling these, so we know that
                 // they are correctly allocated and who owns what with
                 // synchronization.
-                parker.park(|| flag.load(Ordering::Relaxed) == 2);
+                parker.park(|| flag.load(Ordering::Relaxed) == BOTH_READY);
             }
         }
 
@@ -199,24 +201,17 @@ impl Thread {
             None => Err(Panicked(())),
         };
 
-        fn into_task<F, T>(
-            task: F,
-            flag: RawSend<AtomicUsize>,
-            storage: RawSend<Option<T>>,
-            unparker: Unparker,
-        ) -> impl FnMut(Tag) + Send
+        fn into_task<F, T>(task: F, storage: RawSend<Option<T>>) -> impl FnMut(Tag) + Send
         where
             F: FnOnce() -> T + Send,
             T: Send,
         {
-            let mut task = Some((task, unparker));
+            let mut task = Some(task);
 
             move |tag| {
-                let RawSend(flag) = flag;
                 let RawSend(mut storage) = storage;
 
-                if let Some((task, unparker)) = task.take() {
-                    let _guard = UnparkGuard { flag, unparker };
+                if let Some(task) = task.take() {
                     let output = with_tag(tag, task);
 
                     // Safety: we're the only one with access to this pointer,
@@ -224,29 +219,6 @@ impl Thread {
                     unsafe {
                         *storage.as_mut() = Some(output);
                     }
-                }
-            }
-        }
-
-        /// Guard that guarantees that the given key will be unparked.
-        struct UnparkGuard {
-            flag: ptr::NonNull<AtomicUsize>,
-            unparker: Unparker,
-        }
-
-        impl Drop for UnparkGuard {
-            fn drop(&mut self) {
-                // Safety: We know that the task holding the flag owns the
-                // reference.
-                if unsafe { self.flag.as_ref().fetch_add(1, Ordering::AcqRel) == 0 } {
-                    // We got here first, so we know the calling thread won't
-                    // park since they will see our update. If the calling
-                    // thread got here before us, the value would be 1.
-                    return;
-                }
-
-                while !self.unparker.unpark_one() {
-                    thread::yield_now();
                 }
             }
         }
@@ -344,14 +316,14 @@ impl Thread {
                 let mut guard = self.shared.as_ref().state.lock();
 
                 match &*guard {
-                    State::Submit(..) => {
+                    State::Busy | State::Schedule(..) => {
                         self.shared.as_ref().cond.wait(&mut guard);
                         continue;
                     }
                     State::Panicked => {
                         return Err(Panicked(()));
                     }
-                    State::Empty => break guard,
+                    State::Waiting => break guard,
                     State::Join => unreachable!(),
                 }
             }
@@ -379,8 +351,12 @@ impl Thread {
             prelude();
         }
 
+        unsafe {
+            *shared.as_ref().state.lock() = State::Waiting;
+        }
+
         'outer: loop {
-            let Submit(mut task) = loop {
+            let mut schedule = loop {
                 unsafe {
                     if !shared.as_ref().cond.notify_one() {
                         thread::park();
@@ -388,16 +364,16 @@ impl Thread {
 
                     let mut state = shared.as_ref().state.lock();
 
-                    match mem::replace(&mut *state, State::Empty) {
-                        State::Empty => continue,
-                        State::Submit(submit) => break submit,
+                    match mem::replace(&mut *state, State::Waiting) {
+                        State::Waiting => continue,
+                        State::Schedule(submit) => break submit,
                         _ => break 'outer,
                     }
                 }
             };
 
             let tag = Tag(shared.as_ptr() as usize);
-            unsafe { task.as_mut()(tag) };
+            unsafe { schedule.task.as_mut()(tag) };
         }
 
         // Forget the guard to disarm the panic.
@@ -496,7 +472,7 @@ impl Builder {
     /// ```
     pub fn build(self) -> io::Result<Thread> {
         let shared = ptr::NonNull::from(Box::leak(Box::new(Shared {
-            state: Mutex::new(State::Empty),
+            state: Mutex::new(State::Busy),
             cond: Condvar::new(),
         })));
 
@@ -521,10 +497,14 @@ unsafe impl<T> Send for RawSend<T> {}
 
 /// The state of the executor.
 enum State {
-    /// Something is being submitted to the scheduler.
-    Submit(Submit),
-    /// Scheduler is empty.
-    Empty,
+    /// The background thread is busy and cannot process tasks yet. The
+    /// scheduler starts out in this state, before the prelude has been
+    /// executed.
+    Busy,
+    /// Scheduler is waiting for tasks.
+    Waiting,
+    /// A task that is expected to be scheduled.
+    Schedule(Schedule),
     /// Scheduler has panicked.
     Panicked,
     /// Scheduler is being joined.
@@ -532,13 +512,32 @@ enum State {
 }
 
 /// A task submitted to the executor.
-#[derive(Debug, Clone, Copy)]
-#[repr(transparent)]
-struct Submit(ptr::NonNull<dyn FnMut(Tag) + Send + 'static>);
+struct Schedule {
+    task: ptr::NonNull<dyn FnMut(Tag) + Send + 'static>,
+    unparker: Unparker,
+    flag: ptr::NonNull<AtomicUsize>,
+}
 
-// The implementation of [Submit] is safe because it's privately constructed
+// The implementation of [Schedule] is safe because it's privately constructed
 // inside of this module.
-unsafe impl Send for Submit {}
+unsafe impl Send for Schedule {}
+
+impl Drop for Schedule {
+    fn drop(&mut self) {
+        // Safety: We know that the task holding the flag owns the
+        // reference.
+        if unsafe { self.flag.as_ref().fetch_add(1, Ordering::AcqRel) == NONE_READY } {
+            // We got here first, so we know the calling thread won't
+            // park since they will see our update. If the calling
+            // thread got here before us, the value would be 1.
+            return;
+        }
+
+        while !self.unparker.unpark_one() {
+            thread::yield_now();
+        }
+    }
+}
 
 // Shared state between the worker thread and [Thread].
 struct Shared {
@@ -548,3 +547,6 @@ struct Shared {
 
 /// The type of the prelude function.
 type Prelude = dyn Fn() + Send + 'static;
+
+const NONE_READY: usize = 0;
+const BOTH_READY: usize = 2;
