@@ -3,7 +3,6 @@ use parking_lot_core::{DEFAULT_PARK_TOKEN, DEFAULT_UNPARK_TOKEN};
 use std::io;
 use std::mem;
 use std::ptr;
-use std::sync::Arc;
 use std::thread;
 use thiserror::Error;
 
@@ -80,64 +79,84 @@ struct Shared {
 #[must_use = "The audio thread should be joined with AudioThread::join once no longer used"]
 pub struct AudioThread {
     /// Things that have been submitted for execution on the audio thread.
-    shared: Arc<Shared>,
+    shared: ptr::NonNull<Shared>,
     /// The handle associated with the audio thread.
-    handle: thread::JoinHandle<()>,
+    handle: Option<thread::JoinHandle<()>>,
 }
+
+/// Safety: The audio thread is both send and sync because it joins the background
+/// thread which keeps track of the state of `shared` and cleans it up once it's
+/// no longer needed.
+unsafe impl Send for AudioThread {}
+unsafe impl Sync for AudioThread {}
 
 impl AudioThread {
     /// Construct a new background audio thread.
     pub fn new() -> io::Result<Self> {
-        let shared = Arc::new(Shared {
+        let shared = ptr::NonNull::from(Box::leak(Box::new(Shared {
             state: Mutex::new(State::Empty),
             cond: Condvar::new(),
-        });
+        })));
 
-        let shared2 = shared.clone();
+        let shared2 = RawSend(shared);
 
         let handle = thread::Builder::new()
             .name(String::from("audio-thread"))
             .spawn(move || Self::worker(shared2))?;
 
-        Ok(Self { shared, handle })
+        Ok(Self {
+            shared,
+            handle: Some(handle),
+        })
     }
 
     /// Update the state to the given value.
     fn set_state(&self, state: State) -> Result<(), Panicked> {
         let mut guard = loop {
-            let mut guard = self.shared.state.lock();
+            unsafe {
+                let mut guard = self.shared.as_ref().state.lock();
 
-            match &*guard {
-                State::Submit(..) => {
-                    self.shared.cond.wait(&mut guard);
-                    continue;
+                match &*guard {
+                    State::Submit(..) => {
+                        self.shared.as_ref().cond.wait(&mut guard);
+                        continue;
+                    }
+                    State::Panicked => {
+                        return Err(Panicked(()));
+                    }
+                    State::Empty => break guard,
+                    State::Join => unreachable!(),
                 }
-                State::Panicked => {
-                    return Err(Panicked(()));
-                }
-                State::Empty => break guard,
-                State::Join => unreachable!(),
             }
         };
 
         *guard = state;
-        self.handle.thread().unpark();
         Ok(())
     }
 
     /// Submit a task to run on the background audio thread.
     pub fn submit<F, T>(&self, task: F) -> Result<T, Panicked>
     where
-        F: 'static + Send + FnOnce() -> T,
-        T: 'static + Send,
+        F: Send + FnOnce() -> T,
+        T: Send,
     {
         let mut storage = None;
-        let mut task = into_task(task, Storage(&mut storage));
+        let mut task = into_task(task, RawSend(ptr::NonNull::from(&mut storage)));
 
         // Safety: We're constructing a pointer to a local stack location. It
         // will never be null.
-        let task = unsafe { ptr::NonNull::new_unchecked(&mut task as *mut _) };
+        //
+        // The transmute is necessary because we're constructing a trait object
+        // with a `'static` lifetime.
+        let task = unsafe {
+            ptr::NonNull::new_unchecked(mem::transmute::<&mut (dyn FnMut() + Send), _>(&mut task))
+        };
         self.set_state(State::Submit(Submit(task)))?;
+
+        match self.handle.as_ref() {
+            Some(handle) => handle.thread().unpark(),
+            None => panic!("missing thread handle"),
+        }
 
         // Safety: we're the only ones controlling these, so we know that
         // they are correctly allocated and who owns what with
@@ -158,17 +177,17 @@ impl AudioThread {
             None => Err(Panicked(())),
         };
 
-        fn into_task<F, T>(task: F, storage: Storage<T>) -> impl FnMut() + 'static + Send
+        fn into_task<F, T>(task: F, storage: RawSend<Option<T>>) -> impl FnMut() + Send
         where
-            F: 'static + FnOnce() -> T + Send,
-            T: 'static + Send,
+            F: FnOnce() -> T + Send,
+            T: Send,
         {
             let mut task = Some(task);
 
             move || {
-                let Storage(storage) = storage;
+                let RawSend(mut storage) = storage;
 
-                let _guard = UnparkGuard(storage as usize);
+                let _guard = UnparkGuard(storage.as_ptr() as usize);
 
                 if let Some(task) = task.take() {
                     let output = task();
@@ -176,14 +195,11 @@ impl AudioThread {
                     // Safety: we're the only one with access to this pointer,
                     // and we know it hasn't been de-allocated yet.
                     unsafe {
-                        *storage = Some(output);
+                        *storage.as_mut() = Some(output);
                     }
                 }
             }
         }
-
-        struct Storage<T>(*mut Option<T>);
-        unsafe impl<T> Send for Storage<T> where T: Send {}
 
         /// Guard that guarantees that the given key will be unparked.
         struct UnparkGuard(usize);
@@ -205,33 +221,44 @@ impl AudioThread {
         }
     }
 
+    fn inner_join(&mut self) -> Result<(), Panicked> {
+        if let Some(handle) = self.handle.take() {
+            self.set_state(State::Join)?;
+            handle.thread().unpark();
+            return handle.join().map_err(|_| Panicked(()));
+        }
+
+        Ok(())
+    }
+
     /// Join the audio background thread.
-    pub fn join(self) -> Result<(), Panicked> {
-        self.set_state(State::Join)?;
-        self.handle.join().map_err(|_| Panicked(()))
+    pub fn join(mut self) -> Result<(), Panicked> {
+        self.inner_join()
     }
 
     /// Worker thread.
-    fn worker(shared: Arc<Shared>) {
+    fn worker(RawSend(shared): RawSend<Shared>) {
         #[cfg(windows)]
         if let Err(e) = windows::initialize_mta() {
             panic!("windows: failed to initialize windows mta: {}", e);
         }
 
-        let poison_guard = PoisonGuard(&shared);
+        let poison_guard = PoisonGuard(shared);
 
         'outer: loop {
             let Submit(mut task) = loop {
-                if !poison_guard.0.cond.notify_one() {
-                    thread::park();
-                }
+                unsafe {
+                    if !shared.as_ref().cond.notify_one() {
+                        thread::park();
+                    }
 
-                let mut state = poison_guard.0.state.lock();
+                    let mut state = shared.as_ref().state.lock();
 
-                match mem::replace(&mut *state, State::Empty) {
-                    State::Empty => continue,
-                    State::Submit(submit) => break submit,
-                    _ => break 'outer,
+                    match mem::replace(&mut *state, State::Empty) {
+                        State::Empty => continue,
+                        State::Submit(submit) => break submit,
+                        _ => break 'outer,
+                    }
                 }
             };
 
@@ -244,17 +271,44 @@ impl AudioThread {
         /// Guard used to mark the state of the executed as "panicked". This is
         /// accomplished by asserting that the only reason this destructor would
         /// be called would be due to an unwinding panic.
-        struct PoisonGuard<'a>(&'a Shared);
+        struct PoisonGuard(ptr::NonNull<Shared>);
 
-        impl Drop for PoisonGuard<'_> {
+        impl Drop for PoisonGuard {
             fn drop(&mut self) {
-                let old = mem::replace(&mut *self.0.state.lock(), State::Panicked);
-                // It's not possible for the state to be anything but empty
-                // here, because the worker thread takes the state before
-                // executing user code which might panic.
-                debug_assert!(matches!(old, State::Empty));
-                self.0.cond.notify_all();
+                unsafe {
+                    let old = mem::replace(&mut *self.0.as_ref().state.lock(), State::Panicked);
+                    // It's not possible for the state to be anything but empty
+                    // here, because the worker thread takes the state before
+                    // executing user code which might panic.
+                    debug_assert!(matches!(old, State::Empty));
+                    self.0.as_ref().cond.notify_all();
+                }
             }
         }
     }
 }
+
+impl Drop for AudioThread {
+    fn drop(&mut self) {
+        // Note: we can safely ignore the result, because it will only error in
+        // case the background thread has panicked. At which point we're still
+        // free to assume it's no longer using the shared state.
+        let _ = self.inner_join();
+
+        // Safety: at this point it's guaranteed that we've synchronized with
+        // the thread enough that the shared state can be safely deallocated.
+        //
+        // The background thread is in one of two states:
+        // * It has panicked, which means the shared state will not be used any
+        //   longer.
+        // * It has successfully been joined in. Which has the same
+        //   implications.
+        unsafe {
+            let _ = Box::from_raw(self.shared.as_ptr());
+        }
+    }
+}
+
+/// Small helper for sending things which are not Send.
+struct RawSend<T>(ptr::NonNull<T>);
+unsafe impl<T> Send for RawSend<T> {}

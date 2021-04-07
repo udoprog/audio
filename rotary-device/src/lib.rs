@@ -19,4 +19,4 @@ pub mod bindings;
 mod windows;
 
 mod audio_thread;
-pub use self::audio_thread::AudioThread;
+pub use self::audio_thread::{AudioThread, Panicked};

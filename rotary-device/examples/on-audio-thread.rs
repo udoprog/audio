@@ -1,14 +1,19 @@
 use anyhow::Result;
+use rotary_device::{AudioThread, Panicked};
 use std::sync::Arc;
 
 fn main() -> Result<()> {
-    let audio_thread = Arc::new(rotary_device::AudioThread::new()?);
+    let audio_thread = Arc::new(AudioThread::new()?);
     let mut threads = Vec::new();
 
     for n in 0..10 {
         let audio_thread = audio_thread.clone();
 
-        threads.push(std::thread::spawn(move || audio_thread.submit(move || n)));
+        threads.push(std::thread::spawn(move || {
+            let mut v = 0;
+            audio_thread.submit(|| v += n)?;
+            Ok::<_, Panicked>(v)
+        }));
     }
 
     let mut result = 0;

@@ -2,7 +2,7 @@ use crate::bindings::Windows::Win32::SystemServices as ss;
 use crate::bindings::Windows::Win32::WindowsProgramming as wp;
 use std::ptr;
 
-const NULL: ss::HANDLE = unsafe { std::mem::transmute(0usize) };
+const NULL: ss::HANDLE = ss::HANDLE(0);
 
 /// A reference counted event object.
 #[repr(transparent)]
