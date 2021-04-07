@@ -1,15 +1,15 @@
-#[cfg(not(feature = "wasapi"))]
+#[cfg(not(all(windows, feature = "wasapi")))]
 pub fn main() -> anyhow::Result<()> {
     println!("wasapi support is not enabled");
     Ok(())
 }
 
-#[cfg(feature = "wasapi")]
+#[cfg(all(windows, feature = "wasapi"))]
 fn main() -> anyhow::Result<()> {
     self::wasapi::main()
 }
 
-#[cfg(feature = "wasapi")]
+#[cfg(all(windows, feature = "wasapi"))]
 mod wasapi {
     use anyhow::{anyhow, Result};
     use rotary_device::wasapi;

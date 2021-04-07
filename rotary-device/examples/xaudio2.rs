@@ -1,11 +1,11 @@
-#[cfg(not(feature = "xaudio2"))]
+#[cfg(not(all(windows, feature = "xaudio2")))]
 pub fn main() {
     println!("xaudio2 support is not enabled");
 }
 
-#[cfg(feature = "xaudio2")]
+#[cfg(all(windows, feature = "xaudio2"))]
 pub fn main() -> Result<()> {
-    let audio_thread = rotary_device::AudioThread::new()?;
+    let audio_thread = ste::Builder::new().prelude(wasapi::audio_prelude).build()?;
 
     audio_thread.submit(|| {
         let output = rotary_device::xaudio2::default_audio()?;
