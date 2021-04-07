@@ -38,6 +38,13 @@ pub enum Error {
     EventFailed,
 }
 
+/// The audio prelude to use for wasapi.
+pub fn audio_prelude() {
+    if let Err(e) = windows::initialize_mta() {
+        panic!("failed to initialize multithreaded apartment: {}", e);
+    }
+}
+
 /// The sample format detected for the device.
 #[derive(Debug, Clone, Copy)]
 pub enum SampleFormat {

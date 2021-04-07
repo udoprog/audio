@@ -60,7 +60,7 @@ mod wasapi {
         let mut line = String::new();
         std::io::stdin().read_line(&mut line)?;
 
-        let audio_thread = rotary_device::AudioThread::new()?;
+        let audio_thread = ste::Builder::new().prelude(wasapi::audio_prelude).build()?;
 
         audio_thread.submit(|| {
             let output = wasapi::default_output_client()?;

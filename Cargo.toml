@@ -9,6 +9,7 @@ members = [
     "rotary-generator",
     "rotary-device-bindings",
     "bittle",
+    "ste",
 ]
 
 default-members = [
@@ -18,6 +19,7 @@ default-members = [
     "rotary-generator",
     "rotary-device-bindings",
     "bittle",
+    "ste",
 ]
 
 [patch.crates-io]

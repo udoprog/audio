@@ -1,0 +1,21 @@
+[package]
+name = "ste"
+version = "0.1.0-alpha.1"
+authors = ["John-John Tedro <udoprog@tedro.se>"]
+edition = "2018"
+license = "MIT/Apache-2.0"
+keywords = ["thread", "executor"]
+categories = ["concurrency"]
+repository = "https://github.com/udoprog/rotary"
+homepage = "https://github.com/udoprog/rotary"
+documentation = "https://docs.rs/rotary"
+description = "A single-threaded executor with some tricks up its sleeve."
+readme = "README.md"
+
+[dependencies]
+thiserror = "1.0.24"
+parking_lot = "0.11.1"
+parking_lot_core = "0.8.3"
+
+[dev-dependencies]
+anyhow = "1.0"

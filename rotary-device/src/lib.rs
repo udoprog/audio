@@ -17,6 +17,3 @@ pub mod bindings;
 
 #[cfg(windows)]
 mod windows;
-
-mod audio_thread;
-pub use self::audio_thread::{AudioThread, Panicked};
