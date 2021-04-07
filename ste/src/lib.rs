@@ -174,14 +174,7 @@ impl Thread {
         // they are correctly allocated and who owns what with
         // synchronization.
         unsafe {
-            parking_lot_core::park(
-                &mut storage as *mut _ as usize,
-                || true,
-                || {},
-                |_, _| {},
-                DEFAULT_PARK_TOKEN,
-                None,
-            );
+            park(&mut storage as *mut _ as usize);
         }
 
         return match storage {
@@ -218,15 +211,8 @@ impl Thread {
 
         impl Drop for UnparkGuard {
             fn drop(&mut self) {
-                loop {
-                    // SafetY: the storage address is shared by the entity submitting the task.
-                    let result =
-                        unsafe { parking_lot_core::unpark_one(self.0, |_| DEFAULT_UNPARK_TOKEN) };
-
-                    if result.unparked_threads == 1 {
-                        break;
-                    }
-
+                // Safety: the storage address is shared by the entity submitting the task.
+                while !unsafe { unpark_one(self.0) } {
                     thread::yield_now();
                 }
             }
@@ -526,3 +512,11 @@ struct Shared {
 
 /// The type of the prelude function.
 type Prelude = dyn Fn() + Send + 'static;
+
+unsafe fn park(key: usize) {
+    parking_lot_core::park(key, || true, || {}, |_, _| {}, DEFAULT_PARK_TOKEN, None);
+}
+
+unsafe fn unpark_one(key: usize) -> bool {
+    parking_lot_core::unpark_one(key, |_| DEFAULT_UNPARK_TOKEN).unparked_threads == 1
+}
