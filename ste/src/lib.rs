@@ -117,8 +117,10 @@ use parking_lot::{Condvar, Mutex};
 use std::future::Future;
 use std::io;
 use std::mem;
+use std::pin::Pin;
 use std::ptr;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::task::{Context, Poll, Waker};
 use std::thread;
 use thiserror::Error;
 
@@ -221,21 +223,101 @@ impl Thread {
     /// Run the given future on the background thread. The future can reference
     /// memory outside of the current scope, but will cause the runtime to block
     /// if it's being dropped until completion.
-    pub async fn submit_async<F>(&self, mut future: F) -> Result<F::Output, Panicked>
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe as heck right now. Polling it without it having
+    /// been called w/ wake_by_ref **will cause a data race**.
+    ///
+    /// The above will be fixed.
+    ///
+    /// # Examples
+    ///
+    /// This method supports panics the same way as other threads:
+    ///
+    /// ```rust
+    /// # #[tokio::main(flavor = "current_thread")] async fn main() -> anyhow::Result<()> {
+    /// let audio_thread = ste::Thread::new()?;
+    ///
+    /// let result = audio_thread
+    ///     .submit_async(async move { panic!("woops") })
+    ///     .await;
+    ///
+    /// assert!(result.is_err());
+    /// assert!(audio_thread.join().is_err());
+    /// # Ok(()) }
+    /// ```
+    pub async unsafe fn submit_async<F>(&self, future: F) -> Result<F::Output, Panicked>
     where
         F: Send + Future,
         F::Output: Send,
     {
-        let _drop_guard = DropGuard;
-        todo!();
+        // Stack location where the waker is stored.
+        let mut waker = None;
+        // Stack location where the output of the compuation is stored.
+        let mut output = None;
 
-        struct DropGuard;
+        let mut adapter = FutureAdapter {
+            future,
+            output: ptr::NonNull::from(&mut output),
+            waker: ptr::NonNull::from(&mut waker),
+        };
 
-        impl Drop for DropGuard {
-            fn drop(&mut self) {
-                panic!("I really dislike being dropped");
+        let wait_future = WaitFuture {
+            shared: self.shared,
+            node: ListNode::new(Entry::Poll(PollEntry {
+                adapter: ptr::NonNull::from(unsafe {
+                    let adapter: &mut dyn Adapter = &mut adapter;
+                    mem::transmute::<_, &mut dyn Adapter>(adapter)
+                }),
+            })),
+            waker: ptr::NonNull::from(&mut waker),
+            output: ptr::NonNull::from(&mut output),
+        };
+
+        return wait_future.await;
+
+        struct WaitFuture<T> {
+            shared: ptr::NonNull<Shared>,
+            node: ListNode<Entry>,
+            waker: ptr::NonNull<Option<Waker>>,
+            output: ptr::NonNull<Option<T>>,
+        }
+
+        impl<T> Future for WaitFuture<T> {
+            type Output = Result<T, Panicked>;
+
+            fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+                unsafe {
+                    let this = Pin::get_unchecked_mut(self);
+
+                    if let Some(output) = this.output.as_mut().take() {
+                        return Poll::Ready(Ok(output));
+                    }
+
+                    *this.waker.as_mut() = Some(cx.waker().clone());
+
+                    let first = {
+                        let mut guard = this.shared.as_ref().locked.lock();
+
+                        match guard.state {
+                            State::Default => (),
+                            State::End => return Poll::Ready(Err(Panicked(()))),
+                        }
+
+                        guard.queue.push_front(ptr::NonNull::from(&mut this.node))
+                    };
+
+                    if first {
+                        this.shared.as_ref().cond.notify_one();
+                    }
+                }
+
+                Poll::Pending
             }
         }
+
+        unsafe impl<T> Send for WaitFuture<T> where T: Send {}
     }
 
     /// Submit a task to run on the background thread.
@@ -287,7 +369,7 @@ impl Thread {
                 ))
             };
 
-            let mut schedule = ListNode::new(Entry::Schedule(Schedule {
+            let mut schedule = ListNode::new(Entry::Schedule(ScheduleEntry {
                 task,
                 unparker,
                 flag: ptr::NonNull::from(&flag),
@@ -472,10 +554,13 @@ impl Thread {
                 };
 
                 let entry = ptr::read(entry.as_ptr()).value;
+                let tag = Tag(shared.as_ptr() as usize);
 
                 match entry {
+                    Entry::Poll(mut poll) => {
+                        poll.adapter.as_mut().poll(tag);
+                    }
                     Entry::Schedule(mut schedule) => {
-                        let tag = Tag(shared.as_ptr() as usize);
                         schedule.task.as_mut()(tag);
                     }
                 }
@@ -612,11 +697,13 @@ unsafe impl<T> Send for RawSend<T> {}
 /// An entry onto the task queue.
 enum Entry {
     /// An entry to immediately be scheduled.
-    Schedule(Schedule),
+    Schedule(ScheduleEntry),
+    /// An entry to be polled.
+    Poll(PollEntry),
 }
 
 /// A task submitted to the executor.
-struct Schedule {
+struct ScheduleEntry {
     task: ptr::NonNull<dyn FnMut(Tag) + Send + 'static>,
     unparker: Unparker,
     flag: ptr::NonNull<AtomicUsize>,
@@ -624,9 +711,18 @@ struct Schedule {
 
 // The implementation of [Schedule] is safe because it's privately constructed
 // inside of this module.
-unsafe impl Send for Schedule {}
+unsafe impl Send for ScheduleEntry {}
 
-impl Drop for Schedule {
+/// A task to be polled by the scheduler.
+struct PollEntry {
+    adapter: ptr::NonNull<dyn Adapter + 'static>,
+}
+
+// The implementation of [Schedule] is safe because it's privately constructed
+// inside of this module.
+unsafe impl Send for PollEntry {}
+
+impl Drop for ScheduleEntry {
     fn drop(&mut self) {
         // Safety: We know that the task holding the flag owns the
         // reference.
@@ -669,3 +765,53 @@ type Prelude = dyn Fn() + Send + 'static;
 
 const NONE_READY: usize = 0;
 const BOTH_READY: usize = 2;
+
+trait Adapter: Send {
+    fn poll(&mut self, tag: Tag);
+}
+
+struct FutureAdapter<F>
+where
+    F: Future,
+{
+    output: ptr::NonNull<Option<F::Output>>,
+    waker: ptr::NonNull<Option<Waker>>,
+    future: F,
+}
+
+impl<F> Adapter for FutureAdapter<F>
+where
+    F: Future,
+{
+    fn poll(&mut self, tag: Tag) {
+        unsafe {
+            if let Some(waker) = self.waker.as_ref() {
+                let _guard = WakerPanicGuard { waker };
+
+                let mut cx = Context::from_waker(waker);
+                let future = Pin::new_unchecked(&mut self.future);
+
+                match with_tag(tag, || future.poll(&mut cx)) {
+                    Poll::Pending => (),
+                    Poll::Ready(output) => {
+                        *self.output.as_mut() = Some(output);
+                        waker.wake_by_ref();
+                    }
+                }
+            }
+        }
+
+        struct WakerPanicGuard<'a> {
+            waker: &'a Waker,
+        }
+
+        impl Drop for WakerPanicGuard<'_> {
+            fn drop(&mut self) {
+                self.waker.wake_by_ref();
+            }
+        }
+    }
+}
+
+/// Safety: We control how this future is used.
+unsafe impl<F> Send for FutureAdapter<F> where F: Future {}

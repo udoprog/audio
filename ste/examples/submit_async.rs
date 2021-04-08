@@ -12,5 +12,13 @@ async fn main() -> anyhow::Result<()> {
         assert!(audio_thread.join().is_ok());
     }
 
+    let audio_thread = ste::Thread::new()?;
+
+    let result = audio_thread
+        .submit_async(async move { panic!("woops") })
+        .await;
+
+    assert!(result.is_err());
+    assert!(audio_thread.join().is_err());
     Ok(())
 }
