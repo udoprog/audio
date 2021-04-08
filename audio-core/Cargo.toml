@@ -1,6 +1,6 @@
 [package]
 name = "audio-core"
-version = "0.2.0-alpha.2"
+version = "0.2.0-alpha.3"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
@@ -13,4 +13,4 @@ description = "A library for working with audio buffers"
 readme = "README.md"
 
 [dev-dependencies]
-audio = {version = "0.2.0-alpha.2", path = "../audio"}
+audio = {version = "0.2.0-alpha.3", path = "../audio"}

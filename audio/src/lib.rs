@@ -87,19 +87,18 @@
 //! };
 //! ```
 //!
-//! [play-mp3]: https://github.com/udoprog/audio/tree/main/examples/src/bin/play-mp3.rs
-//! [minimp3-rs]: https://github.com/germangb/minimp3-rs
-//! [cpal]: https://github.com/RustAudio/cpal
-//! [rubato]: https://github.com/HEnquist/rubato
-//! [Dynamic::resize]: https://docs.rs/audio/0/audio/dynamic/struct.Dynamic.html#method.resize
-//! [BitSet<u128>]: https://docs.rs/audio/0/audio/bit_set/struct.BitSet.html
-//! [dynamic!]: https://docs.rs/audio/0/audio/macros/macro.dynamic.html
-//! [Dynamic]: https://docs.rs/audio/0/audio/dynamic/struct.Dynamic.html
-//! [Interleaved]: https://docs.rs/audio/0/audio/interleaved/struct.Interleaved.html
-//! [Sequential]: https://docs.rs/audio/0/audio/sequential/struct.Sequential.html
-//! [wrap]: https://docs.rs/audio/0/audio/wrap/index.html
 //! [Channels]: https://docs.rs/audio-core/0/audio_core/trait.Channels.html
 //! [ChannelsMut]: https://docs.rs/audio-core/0/audio_core/trait.ChannelsMut.html
+//! [cpal]: https://github.com/RustAudio/cpal
+//! [Dynamic::resize]: https://docs.rs/audio/0.2.0-alpha.3/audio/dynamic/struct.Dynamic.html#method.resize
+//! [dynamic!]: https://docs.rs/audio/0.2.0-alpha.3/audio/macros/macro.dynamic.html
+//! [Dynamic]: https://docs.rs/audio/0.2.0-alpha.3/audio/dynamic/struct.Dynamic.html
+//! [Interleaved]: https://docs.rs/audio/0.2.0-alpha.3/audio/interleaved/struct.Interleaved.html
+//! [minimp3-rs]: https://github.com/germangb/minimp3-rs
+//! [play-mp3]: https://github.com/udoprog/audio/tree/main/examples/src/bin/play-mp3.rs
+//! [rubato]: https://github.com/HEnquist/rubato
+//! [Sequential]: https://docs.rs/audio/0.2.0-alpha.3/audio/sequential/struct.Sequential.html
+//! [wrap]: https://docs.rs/audio/0.2.0-alpha.3/audio/wrap/index.html
 
 #![deny(missing_docs, broken_intra_doc_links)]
 #![allow(clippy::should_implement_trait)]
