@@ -1,0 +1,222 @@
+//! An intrusive linked list.
+
+use std::ptr;
+
+/// A node in the intrusive [LinkedList].
+pub struct ListNode<T> {
+    next: Option<ptr::NonNull<ListNode<T>>>,
+    prev: Option<ptr::NonNull<ListNode<T>>>,
+    pub value: T,
+}
+
+impl<T> ListNode<T> {
+    /// Construct a new wait node.
+    pub fn new(value: T) -> Self {
+        Self {
+            next: None,
+            prev: None,
+            value,
+        }
+    }
+}
+
+/// An intrusive linked list.
+///
+/// This is an exceedingly unsafe collection that allows you to construct and
+/// reason about lists out of data stored somewhere else.
+pub struct LinkedList<T> {
+    first: Option<ptr::NonNull<ListNode<T>>>,
+    last: Option<ptr::NonNull<ListNode<T>>>,
+}
+
+impl<T> LinkedList<T> {
+    /// Construct a new empty linked list.
+    pub fn new() -> Self {
+        Self {
+            first: None,
+            last: None,
+        }
+    }
+
+    /// Push to the front of the linked list.
+    ///
+    /// # Safety
+    ///
+    /// The soundness of manipulating the data in the list depends entirely on
+    /// what was pushed. If you intend to mutate the data, you must push a
+    /// pointer that is based out of something that was exclusively borrowed
+    /// (example below).
+    ///
+    /// The caller also must ensure that the data pushed doesn't outlive its
+    /// use.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use std::ptr;
+    ///
+    /// let mut list = ste::LinkedList::new();
+    ///
+    /// let mut a = ste::ListNode::new(0);
+    /// let mut b = ste::ListNode::new(0);
+    ///
+    /// unsafe {
+    ///     list.push_front(ptr::NonNull::from(&mut a));
+    ///     list.push_front(ptr::NonNull::from(&mut b));
+    ///
+    ///     let mut n = 1;
+    ///
+    ///     while let Some(mut last) = list.pop_back() {
+    ///         last.as_mut().value += n;
+    ///         n <<= 1;
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(a.value, 1);
+    /// assert_eq!(b.value, 2);
+    /// ```
+    pub unsafe fn push_front(&mut self, mut node: ptr::NonNull<ListNode<T>>) {
+        if let Some(mut first) = self.first {
+            node.as_mut().next = Some(first);
+            first.as_mut().prev = Some(node);
+            self.first = Some(node);
+        } else {
+            self.first = Some(node);
+            self.last = Some(node);
+        }
+    }
+
+    /// Push to the front of the linked list.
+    ///
+    /// # Safety
+    ///
+    /// The soundness of manipulating the data in the list depends entirely on
+    /// what was pushed. If you intend to mutate the data, you must push a
+    /// pointer that is based out of something that was exclusively borrowed
+    /// (example below).
+    ///
+    /// The caller also must ensure that the data pushed doesn't outlive its
+    /// use.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use std::ptr;
+    ///
+    /// let mut list = ste::LinkedList::new();
+    ///
+    /// let mut a = ste::ListNode::new(0);
+    /// let mut b = ste::ListNode::new(0);
+    ///
+    /// unsafe {
+    ///     list.push_back(ptr::NonNull::from(&mut a));
+    ///     list.push_back(ptr::NonNull::from(&mut b));
+    ///
+    ///     let mut n = 1;
+    ///
+    ///     while let Some(mut last) = list.pop_back() {
+    ///         last.as_mut().value += n;
+    ///         n <<= 1;
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(a.value, 2);
+    /// assert_eq!(b.value, 1);
+    /// ```
+    pub unsafe fn push_back(&mut self, mut node: ptr::NonNull<ListNode<T>>) {
+        if let Some(mut last) = self.last {
+            node.as_mut().prev = Some(last);
+            last.as_mut().next = Some(node);
+            self.last = Some(node);
+        } else {
+            self.first = Some(node);
+            self.last = Some(node);
+        }
+    }
+
+    /// Pop the front element from the list.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use std::ptr;
+    ///
+    /// let mut list = ste::LinkedList::new();
+    ///
+    /// let mut a = ste::ListNode::new(0);
+    /// let mut b = ste::ListNode::new(0);
+    ///
+    /// unsafe {
+    ///     list.push_back(ptr::NonNull::from(&mut a));
+    ///     list.push_back(ptr::NonNull::from(&mut b));
+    ///
+    ///     let mut n = 1;
+    ///
+    ///     while let Some(mut last) = list.pop_front() {
+    ///         last.as_mut().value += n;
+    ///         n <<= 1;
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(a.value, 1);
+    /// assert_eq!(b.value, 2);
+    /// ```
+    pub unsafe fn pop_front(&mut self) -> Option<ptr::NonNull<ListNode<T>>> {
+        let mut first = self.first?;
+
+        if let Some(mut next) = first.as_mut().next.take() {
+            next.as_mut().prev = None;
+            self.first = Some(next);
+        } else {
+            self.first = None;
+            self.last = None;
+        }
+
+        debug_assert!(first.as_ref().prev.is_none());
+        debug_assert!(first.as_ref().next.is_none());
+        Some(first)
+    }
+
+    /// Pop the back element from the list.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use std::ptr;
+    ///
+    /// let mut list = ste::LinkedList::new();
+    ///
+    /// let mut a = ste::ListNode::new(0);
+    /// let mut b = ste::ListNode::new(0);
+    ///
+    /// unsafe {
+    ///     list.push_back(ptr::NonNull::from(&mut a));
+    ///     list.push_back(ptr::NonNull::from(&mut b));
+    ///
+    ///     let mut n = 1;
+    ///
+    ///     while let Some(mut last) = list.pop_back() {
+    ///         last.as_mut().value += n;
+    ///         n <<= 1;
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(a.value, 2);
+    /// assert_eq!(b.value, 1);
+    /// ```
+    pub unsafe fn pop_back(&mut self) -> Option<ptr::NonNull<ListNode<T>>> {
+        let mut last = self.last?;
+
+        if let Some(mut prev) = last.as_mut().prev.take() {
+            prev.as_mut().next = None;
+            self.last = Some(prev);
+        } else {
+            self.first = None;
+            self.last = None;
+        }
+
+        debug_assert!(last.as_ref().prev.is_none());
+        debug_assert!(last.as_ref().next.is_none());
+        Some(last)
+    }
+}

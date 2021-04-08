@@ -131,6 +131,10 @@ mod tagged;
 pub use self::tagged::Tagged;
 use self::tagged::{with_tag, Tag};
 
+mod linked_list;
+#[doc(hidden)]
+pub use self::linked_list::{LinkedList, ListNode};
+
 /// Error raised when we try to interact with a background thread that has
 /// panicked.
 #[derive(Debug, Error)]
