@@ -12,8 +12,8 @@ fn main() -> anyhow::Result<()> {
 #[cfg(all(windows, feature = "wasapi"))]
 mod wasapi {
     use anyhow::{anyhow, Result};
-    use rotary_device::wasapi;
-    use rotary_generator::{self as gen, Generator as _};
+    use audio_device::wasapi;
+    use audio_generator::{self as gen, Generator as _};
 
     fn run_output<T>(client: wasapi::Client, mut config: wasapi::ClientConfig) -> Result<()>
     where

@@ -33,7 +33,8 @@ impl Parker {
 
 impl Unparker {
     pub(crate) fn unpark_one(&self) -> bool {
-        // Safety: the storage address is shared by the entity submitting the task.
+        // Safety: the storage address is shared by the entity submitting the
+        // task.
         unsafe {
             parking_lot_core::unpark_one(self.key, |_| DEFAULT_UNPARK_TOKEN).unparked_threads == 1
         }

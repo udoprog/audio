@@ -5,7 +5,7 @@ use crate::generator::Generator;
 /// # Examples
 ///
 /// ```rust
-/// use rotary_generator::{Generator, Sin};
+/// use audio_generator::{Generator, Sin};
 ///
 /// let mut g = Sin::new(440.0, 44100.0);
 /// assert_eq!(g.sample(), 0.0);
@@ -24,7 +24,7 @@ impl Sin {
     /// # Examples
     ///
     /// ```rust
-    /// use rotary_generator::{Generator, Sin};
+    /// use audio_generator::{Generator, Sin};
     ///
     /// let mut g = Sin::new(440.0, 44100.0);
     /// assert_eq!(g.sample(), 0.0);
