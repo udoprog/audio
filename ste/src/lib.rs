@@ -114,6 +114,7 @@
 //! [audio]: https://github.com/udoprog/audio
 
 use parking_lot::{Condvar, Mutex};
+use std::future::Future;
 use std::io;
 use std::mem;
 use std::ptr;
@@ -217,6 +218,26 @@ impl Thread {
         Builder::new().build()
     }
 
+    /// Run the given future on the background thread. The future can reference
+    /// memory outside of the current scope, but will cause the runtime to block
+    /// if it's being dropped until completion.
+    pub async fn submit_async<F>(&self, mut future: F) -> Result<F::Output, Panicked>
+    where
+        F: Send + Future,
+        F::Output: Send,
+    {
+        let _drop_guard = DropGuard;
+        todo!();
+
+        struct DropGuard;
+
+        impl Drop for DropGuard {
+            fn drop(&mut self) {
+                panic!("I really dislike being dropped");
+            }
+        }
+    }
+
     /// Submit a task to run on the background thread.
     ///
     /// The call will block until it has been executed on the thread (or the
@@ -265,15 +286,28 @@ impl Thread {
                     &mut task,
                 ))
             };
-            self.set_state(State::Schedule(Schedule {
+
+            let mut schedule = ListNode::new(Entry::Schedule(Schedule {
                 task,
                 unparker,
                 flag: ptr::NonNull::from(&flag),
-            }))?;
+            }));
 
-            match self.handle.as_ref() {
-                Some(handle) => handle.thread().unpark(),
-                None => panic!("missing thread handle"),
+            unsafe {
+                let first = {
+                    let mut guard = self.shared.as_ref().locked.lock();
+
+                    match guard.state {
+                        State::Default => (),
+                        State::End => return Err(Panicked(())),
+                    }
+
+                    guard.queue.push_front(ptr::NonNull::from(&mut schedule))
+                };
+
+                if first {
+                    self.shared.as_ref().cond.notify_one();
+                }
             }
 
             // If 0, we know we got here first and have to park until the thread
@@ -284,6 +318,9 @@ impl Thread {
                 // synchronization.
                 parker.park(|| flag.load(Ordering::Relaxed) == BOTH_READY);
             }
+
+            // NB: At this point the background thread has taken care of it.
+            mem::forget(schedule);
         }
 
         return match storage {
@@ -395,37 +432,13 @@ impl Thread {
         self.inner_join()
     }
 
-    /// Update the shared state.
-    ///
-    /// This will *not* notify the background thread to allow it to be used in
-    /// contexts where the handle has been removed.
-    fn set_state(&self, state: State) -> Result<(), Panicked> {
-        let mut guard = loop {
-            unsafe {
-                let mut guard = self.shared.as_ref().state.lock();
-
-                match &*guard {
-                    State::Busy | State::Schedule(..) => {
-                        self.shared.as_ref().cond.wait(&mut guard);
-                        continue;
-                    }
-                    State::Panicked => {
-                        return Err(Panicked(()));
-                    }
-                    State::Waiting => break guard,
-                    State::Join => unreachable!(),
-                }
-            }
-        };
-
-        *guard = state;
-        Ok(())
-    }
-
     fn inner_join(&mut self) -> Result<(), Panicked> {
         if let Some(handle) = self.handle.take() {
-            self.set_state(State::Join)?;
-            handle.thread().unpark();
+            unsafe {
+                self.shared.as_ref().locked.lock().state = State::End;
+                self.shared.as_ref().cond.notify_one();
+            }
+
             return handle.join().map_err(|_| Panicked(()));
         }
 
@@ -441,28 +454,32 @@ impl Thread {
         }
 
         unsafe {
-            *shared.as_ref().state.lock() = State::Waiting;
-        }
+            'outer: loop {
+                let mut guard = shared.as_ref().locked.lock();
 
-        'outer: loop {
-            let mut schedule = loop {
-                unsafe {
-                    if !shared.as_ref().cond.notify_one() {
-                        thread::park();
+                let entry = loop {
+                    match guard.state {
+                        State::End => break 'outer,
+                        State::Default => (),
                     }
 
-                    let mut state = shared.as_ref().state.lock();
+                    if let Some(entry) = guard.queue.pop_back() {
+                        drop(guard);
+                        break entry;
+                    }
 
-                    match mem::replace(&mut *state, State::Waiting) {
-                        State::Waiting => continue,
-                        State::Schedule(submit) => break submit,
-                        _ => break 'outer,
+                    shared.as_ref().cond.wait(&mut guard);
+                };
+
+                let entry = ptr::read(entry.as_ptr()).value;
+
+                match entry {
+                    Entry::Schedule(mut schedule) => {
+                        let tag = Tag(shared.as_ptr() as usize);
+                        schedule.task.as_mut()(tag);
                     }
                 }
-            };
-
-            let tag = Tag(shared.as_ptr() as usize);
-            unsafe { schedule.task.as_mut()(tag) };
+            }
         }
 
         // Forget the guard to disarm the panic.
@@ -478,13 +495,18 @@ impl Thread {
         impl Drop for PoisonGuard {
             fn drop(&mut self) {
                 unsafe {
-                    let old =
-                        mem::replace(&mut *self.shared.as_ref().state.lock(), State::Panicked);
+                    let mut guard = self.shared.as_ref().locked.lock();
+                    let old = mem::replace(&mut guard.state, State::End);
+
                     // It's not possible for the state to be anything but empty
                     // here, because the worker thread takes the state before
                     // executing user code which might panic.
-                    debug_assert!(!matches!(old, State::Panicked));
-                    self.shared.as_ref().cond.notify_all();
+                    debug_assert!(matches!(old, State::Default));
+
+                    while let Some(entry) = guard.queue.pop_back() {
+                        // NB: drop all remaining entries.
+                        let _ = ptr::read(entry.as_ptr());
+                    }
                 }
             }
         }
@@ -561,7 +583,10 @@ impl Builder {
     /// ```
     pub fn build(self) -> io::Result<Thread> {
         let shared = ptr::NonNull::from(Box::leak(Box::new(Shared {
-            state: Mutex::new(State::Busy),
+            locked: Mutex::new(Locked {
+                state: State::Default,
+                queue: LinkedList::new(),
+            }),
             cond: Condvar::new(),
         })));
 
@@ -584,20 +609,10 @@ impl Builder {
 struct RawSend<T>(ptr::NonNull<T>);
 unsafe impl<T> Send for RawSend<T> {}
 
-/// The state of the executor.
-enum State {
-    /// The background thread is busy and cannot process tasks yet. The
-    /// scheduler starts out in this state, before the prelude has been
-    /// executed.
-    Busy,
-    /// Scheduler is waiting for tasks.
-    Waiting,
-    /// A task that is expected to be scheduled.
+/// An entry onto the task queue.
+enum Entry {
+    /// An entry to immediately be scheduled.
     Schedule(Schedule),
-    /// Scheduler has panicked.
-    Panicked,
-    /// Scheduler is being joined.
-    Join,
 }
 
 /// A task submitted to the executor.
@@ -628,10 +643,25 @@ impl Drop for Schedule {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+enum State {
+    /// The background thread is busy and cannot process tasks yet. The
+    /// scheduler starts out in this state, before the prelude has been
+    /// executed.
+    Default,
+    /// Scheduler is ending.
+    End,
+}
+
 // Shared state between the worker thread and [Thread].
 struct Shared {
-    state: Mutex<State>,
+    locked: Mutex<Locked>,
     cond: Condvar,
+}
+
+struct Locked {
+    state: State,
+    queue: LinkedList<Entry>,
 }
 
 /// The type of the prelude function.

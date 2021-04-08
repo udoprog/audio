@@ -40,6 +40,9 @@ impl<T> LinkedList<T> {
 
     /// Push to the front of the linked list.
     ///
+    /// Returns a boolean that if `true` indicates that this was the first
+    /// element in the list.
+    ///
     /// # Safety
     ///
     /// The soundness of manipulating the data in the list depends entirely on
@@ -75,18 +78,23 @@ impl<T> LinkedList<T> {
     /// assert_eq!(a.value, 1);
     /// assert_eq!(b.value, 2);
     /// ```
-    pub unsafe fn push_front(&mut self, mut node: ptr::NonNull<ListNode<T>>) {
+    pub unsafe fn push_front(&mut self, mut node: ptr::NonNull<ListNode<T>>) -> bool {
         if let Some(mut first) = self.first {
             node.as_mut().next = Some(first);
             first.as_mut().prev = Some(node);
             self.first = Some(node);
+            false
         } else {
             self.first = Some(node);
             self.last = Some(node);
+            true
         }
     }
 
     /// Push to the front of the linked list.
+    ///
+    /// Returns a boolean that if `true` indicates that this was the first
+    /// element in the list.
     ///
     /// # Safety
     ///
@@ -123,14 +131,16 @@ impl<T> LinkedList<T> {
     /// assert_eq!(a.value, 2);
     /// assert_eq!(b.value, 1);
     /// ```
-    pub unsafe fn push_back(&mut self, mut node: ptr::NonNull<ListNode<T>>) {
+    pub unsafe fn push_back(&mut self, mut node: ptr::NonNull<ListNode<T>>) -> bool {
         if let Some(mut last) = self.last {
             node.as_mut().prev = Some(last);
             last.as_mut().next = Some(node);
             self.last = Some(node);
+            false
         } else {
             self.first = Some(node);
             self.last = Some(node);
+            true
         }
     }
 
