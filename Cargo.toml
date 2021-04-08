@@ -3,25 +3,25 @@ resolver = "2"
 
 members = [
     "examples",
-    "rotary",
-    "rotary-core",
-    "rotary-device",
-    "rotary-generator",
-    "rotary-device-bindings",
+    "audio",
+    "audio-core",
+    "audio-device",
+    "audio-generator",
+    "audio-device-bindings",
     "bittle",
     "ste",
 ]
 
 default-members = [
-    "rotary",
-    "rotary-core",
-    "rotary-device",
-    "rotary-generator",
-    "rotary-device-bindings",
+    "audio",
+    "audio-core",
+    "audio-device",
+    "audio-generator",
+    "audio-device-bindings",
     "bittle",
     "ste",
 ]
 
 [patch.crates-io]
-rotary = {path = "rotary"}
-rotary-core = {path = "rotary-core"}
+audio = {path = "audio"}
+audio-core = {path = "audio-core"}

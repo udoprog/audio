@@ -2,11 +2,11 @@
 
 [![Documentation](https://docs.rs/ste/badge.svg)](https://docs.rs/ste)
 [![Crates](https://img.shields.io/crates/v/ste.svg)](https://crates.io/crates/ste)
-[![Actions Status](https://github.com/udoprog/rotary/workflows/Rust/badge.svg)](https://github.com/udoprog/rotary/actions)
+[![Actions Status](https://github.com/udoprog/audio/workflows/Rust/badge.svg)](https://github.com/udoprog/audio/actions)
 
 A single-threaded executor with some tricks up its sleeve.
 
-This was primarily written for use in [rotary] as a low-latency way of
+This was primarily written for use in [audio] as a low-latency way of
 interacting with a single background thread for audio-related purposes, but
 is otherwise a general purpose library that can be used by anyone.
 
@@ -105,6 +105,6 @@ guarantee uniqueness.
 [submit]: https://docs.rs/ste/0/ste/struct.Thread.html#method.submit
 [Thread]: https://docs.rs/ste/0/ste/struct.Thread.html
 [Tagged]: https://docs.rs/ste/0/ste/struct.Tagged.html
-[rotary]: https://github.com/udoprog/rotary
+[audio]: https://github.com/udoprog/audio
 
 License: MIT/Apache-2.0

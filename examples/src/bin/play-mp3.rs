@@ -1,6 +1,6 @@
 use anyhow::{anyhow, bail, Result};
+use audio::ChannelsMut;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use rotary::ChannelsMut;
 use rubato::{InterpolationParameters, InterpolationType, SincFixedIn, WindowFunction};
 use std::fs;
 use std::io;
@@ -31,8 +31,8 @@ fn main() -> anyhow::Result<()> {
 
 fn run<T>(path: &Path, device: &cpal::Device, config: &cpal::SupportedStreamConfig) -> Result<()>
 where
-    T: 'static + Send + cpal::Sample + rotary::Sample + rotary::Translate<f32>,
-    f32: rotary::Translate<i16>,
+    T: 'static + Send + cpal::Sample + audio::Sample + audio::Translate<f32>,
+    f32: audio::Translate<i16>,
 {
     let source = io::BufReader::new(fs::File::open(path)?);
     let decoder = minimp3::Decoder::new(source);
@@ -43,18 +43,18 @@ where
         buffer_size: cpal::BufferSize::Default,
     };
 
-    let pcm = rotary::Interleaved::new();
-    let output = rotary::Interleaved::with_topology(config.channels as usize, 1024);
-    let resample = rotary::Sequential::with_topology(config.channels as usize, CHUNK_SIZE);
+    let pcm = audio::Interleaved::new();
+    let output = audio::Interleaved::with_topology(config.channels as usize, 1024);
+    let resample = audio::Sequential::with_topology(config.channels as usize, CHUNK_SIZE);
 
     let mut writer = Writer {
         frames: 0,
         seconds: 0.0,
         decoder,
-        pcm: rotary::io::Read::new(pcm),
+        pcm: audio::io::Read::new(pcm),
         resampler: None,
-        output: rotary::io::ReadWrite::empty(output),
-        resample: rotary::io::ReadWrite::empty(resample),
+        output: audio::io::ReadWrite::empty(output),
+        resample: audio::io::ReadWrite::empty(resample),
         device_sample_rate: config.sample_rate.0,
         device_channels: config.channels as usize,
         last_frame: None,
@@ -92,16 +92,16 @@ where
     // The open mp3 decoder.
     decoder: minimp3::Decoder<R>,
     // Buffer used for mp3 decoding.
-    pcm: rotary::io::Read<rotary::Interleaved<i16>>,
+    pcm: audio::io::Read<audio::Interleaved<i16>>,
     // The last mp3 frame decoded.
     last_frame: Option<minimp3::FrameInfo>,
     // Sampler that is used in case the sample rate of a decoded frame needs to
     // be resampled.
     resampler: Option<rubato::SincFixedIn<f32>>,
     // Output buffer to flush to device buffer.
-    output: rotary::io::ReadWrite<rotary::Interleaved<f32>>,
+    output: audio::io::ReadWrite<audio::Interleaved<f32>>,
     // Resample buffer.
-    resample: rotary::io::ReadWrite<rotary::Sequential<f32>>,
+    resample: audio::io::ReadWrite<audio::Sequential<f32>>,
     // Sample rate expected to be written to the device.
     device_sample_rate: u32,
     // Number of channels in the device.
@@ -115,10 +115,10 @@ where
     // The decoder loop.
     fn write_to<T>(&mut self, out: &mut [T]) -> anyhow::Result<()>
     where
-        T: 'static + Send + rotary::Sample + rotary::Translate<f32>,
+        T: 'static + Send + audio::Sample + audio::Translate<f32>,
     {
-        use rotary::{io, wrap};
-        use rotary::{Buf, ExactSizeBuf, ReadBuf, WriteBuf};
+        use audio::{io, wrap};
+        use audio::{Buf, ExactSizeBuf, ReadBuf, WriteBuf};
         use rubato::Resampler;
 
         let mut data = io::Write::new(wrap::interleaved(out, self.device_channels));

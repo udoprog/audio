@@ -16,6 +16,6 @@ pub async fn main() {
         println(`${project}: ${status}`);
     }
 
-    let status = update_readme("rotary", "../README.md").await?;
+    let status = update_readme("audio", "../README.md").await?;
     println(`.: ${status}`);
 }

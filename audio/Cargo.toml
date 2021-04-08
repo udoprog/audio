@@ -1,0 +1,20 @@
+[package]
+name = "audio"
+version = "0.2.0-alpha.2"
+authors = ["John-John Tedro <udoprog@tedro.se>"]
+edition = "2018"
+license = "MIT/Apache-2.0"
+keywords = ["buffer", "audio", "dsp"]
+categories = ["multimedia::audio"]
+repository = "https://github.com/udoprog/audio"
+homepage = "https://github.com/udoprog/audio"
+documentation = "https://docs.rs/audio"
+description = "A library for working with audio buffers"
+readme = "README.md"
+
+[dependencies]
+audio-core = {version = "0.2.0-alpha.2", path = "../audio-core"}
+
+[dev-dependencies]
+rand = "0.8.3"
+bittle = {version = "0.1.0", path = "../bittle"}

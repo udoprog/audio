@@ -1,0 +1,9 @@
+[package]
+name = "audio-device-bindings"
+version = "0.1.0"
+authors = ["John-John Tedro <udoprog@tedro.se>"]
+edition = "2018"
+
+[dependencies]
+windows_macros = {git = "https://github.com/udoprog/windows-rs", branch = "type-constraints"}
+windows_gen = {git = "https://github.com/udoprog/windows-rs", branch = "type-constraints"}
