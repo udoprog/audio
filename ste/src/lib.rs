@@ -139,6 +139,9 @@ mod linked_list;
 #[doc(hidden)]
 pub use self::linked_list::{LinkedList, ListNode};
 
+#[doc(hidden)]
+pub mod lock_free_stack;
+
 mod submit_wake;
 use self::submit_wake::SubmitWake;
 
