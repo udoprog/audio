@@ -120,7 +120,8 @@ use std::mem;
 use std::pin::Pin;
 use std::ptr;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::task::{Context, Poll, Waker};
+use std::sync::Arc;
+use std::task::{Context, Poll, Wake, Waker};
 use std::thread;
 use thiserror::Error;
 
@@ -247,55 +248,78 @@ impl Thread {
     /// assert!(audio_thread.join().is_err());
     /// # Ok(()) }
     /// ```
-    pub async unsafe fn submit_async<F>(&self, future: F) -> Result<F::Output, Panicked>
+    pub async fn submit_async<F>(&self, future: F) -> Result<F::Output, Panicked>
     where
         F: Send + Future,
         F::Output: Send,
     {
-        // Stack location where the waker is stored.
-        let mut waker = None;
         // Stack location where the output of the compuation is stored.
         let mut output = None;
+
+        // The state of the thing being polled.
+        let submit_wake = Arc::new(SubmitWake {
+            state: AtomicUsize::new(STATE_POLLABLE),
+            waker: Mutex::new(None),
+        });
 
         let mut adapter = FutureAdapter {
             future,
             output: ptr::NonNull::from(&mut output),
-            waker: ptr::NonNull::from(&mut waker),
         };
 
         let wait_future = WaitFuture {
+            complete: false,
             shared: self.shared,
             node: ListNode::new(Entry::Poll(PollEntry {
                 adapter: ptr::NonNull::from(unsafe {
                     let adapter: &mut dyn Adapter = &mut adapter;
                     mem::transmute::<_, &mut dyn Adapter>(adapter)
                 }),
+                submit_wake: ptr::NonNull::from(&submit_wake),
             })),
-            waker: ptr::NonNull::from(&mut waker),
             output: ptr::NonNull::from(&mut output),
+            submit_wake: &*submit_wake,
         };
 
         return wait_future.await;
 
-        struct WaitFuture<T> {
+        struct WaitFuture<'a, T> {
+            complete: bool,
             shared: ptr::NonNull<Shared>,
             node: ListNode<Entry>,
-            waker: ptr::NonNull<Option<Waker>>,
             output: ptr::NonNull<Option<T>>,
+            submit_wake: &'a SubmitWake,
         }
 
-        impl<T> Future for WaitFuture<T> {
+        impl<'a, T> Future for WaitFuture<'a, T> {
             type Output = Result<T, Panicked>;
 
-            fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+            fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
                 unsafe {
-                    let this = Pin::get_unchecked_mut(self);
+                    let this = Pin::get_unchecked_mut(self.as_mut());
+
+                    let flags = this.submit_wake.state.swap(STATE_BUSY, Ordering::AcqRel);
+
+                    if flags & STATE_COMPLETE != 0 {
+                        this.complete = true;
+                    }
+
+                    if this.complete {
+                        return Poll::Ready(Err(Panicked(())));
+                    }
+
+                    if !(flags & STATE_BUSY == 0 && flags & STATE_POLLABLE != 0) {
+                        return Poll::Pending;
+                    }
 
                     if let Some(output) = this.output.as_mut().take() {
+                        this.submit_wake
+                            .state
+                            .store(STATE_COMPLETE, Ordering::Release);
                         return Poll::Ready(Ok(output));
                     }
 
-                    *this.waker.as_mut() = Some(cx.waker().clone());
+                    *this.submit_wake.waker.lock() = Some(cx.waker().clone());
 
                     let first = {
                         let mut guard = this.shared.as_ref().locked.lock();
@@ -317,7 +341,21 @@ impl Thread {
             }
         }
 
-        unsafe impl<T> Send for WaitFuture<T> where T: Send {}
+        unsafe impl<T> Send for WaitFuture<'_, T> where T: Send {}
+
+        impl<T> Drop for WaitFuture<'_, T> {
+            fn drop(&mut self) {
+                if self.complete {
+                    return;
+                }
+
+                // NB: We have no choide but to wait for the state of the submit
+                // wake to be safe.
+                while self.submit_wake.state.load(Ordering::Acquire) & STATE_BUSY != 0 {
+                    thread::yield_now();
+                }
+            }
+        }
     }
 
     /// Submit a task to run on the background thread.
@@ -529,10 +567,10 @@ impl Thread {
 
     /// Worker thread.
     fn worker(prelude: Option<Box<Prelude>>, RawSend(shared): RawSend<Shared>) {
-        let poison_guard = PoisonGuard { shared };
-
         if let Some(prelude) = prelude {
+            let poison_guard = PoisonGuard { shared };
             prelude();
+            mem::forget(poison_guard);
         }
 
         unsafe {
@@ -558,17 +596,56 @@ impl Thread {
 
                 match entry {
                     Entry::Poll(mut poll) => {
-                        poll.adapter.as_mut().poll(tag);
+                        let submit_wake = poll.submit_wake.as_ref();
+
+                        let poison_guard = WakerPoisonGuard {
+                            shared,
+                            submit_wake,
+                        };
+
+                        if poll.adapter.as_mut().poll(tag, submit_wake) {
+                            submit_wake.state.store(STATE_POLLABLE, Ordering::Release);
+                            submit_wake.inner_wake();
+                        } else {
+                            // Unset the busy flag and poll it if it has been marked
+                            // as pollable.
+                            if submit_wake.state.fetch_and(!STATE_BUSY, Ordering::AcqRel)
+                                & STATE_POLLABLE
+                                != 0
+                            {
+                                if let Some(waker) = &*submit_wake.waker.lock() {
+                                    waker.wake_by_ref();
+                                }
+                            }
+                        }
+
+                        mem::forget(poison_guard);
                     }
                     Entry::Schedule(mut schedule) => {
+                        let poison_guard = PoisonGuard { shared };
                         schedule.task.as_mut()(tag);
+                        mem::forget(poison_guard);
                     }
                 }
             }
         }
 
         // Forget the guard to disarm the panic.
-        mem::forget(poison_guard);
+
+        unsafe fn release_shared(shared: ptr::NonNull<Shared>) {
+            let mut guard = shared.as_ref().locked.lock();
+            let old = mem::replace(&mut guard.state, State::End);
+
+            // It's not possible for the state to be anything but empty
+            // here, because the worker thread takes the state before
+            // executing user code which might panic.
+            debug_assert!(matches!(old, State::Default));
+
+            while let Some(entry) = guard.queue.pop_back() {
+                // NB: drop all remaining entries.
+                let _ = ptr::read(entry.as_ptr());
+            }
+        }
 
         /// Guard used to mark the state of the executed as "panicked". This is
         /// accomplished by asserting that the only reason this destructor would
@@ -580,17 +657,28 @@ impl Thread {
         impl Drop for PoisonGuard {
             fn drop(&mut self) {
                 unsafe {
-                    let mut guard = self.shared.as_ref().locked.lock();
-                    let old = mem::replace(&mut guard.state, State::End);
+                    release_shared(self.shared);
+                }
+            }
+        }
 
-                    // It's not possible for the state to be anything but empty
-                    // here, because the worker thread takes the state before
-                    // executing user code which might panic.
-                    debug_assert!(matches!(old, State::Default));
+        struct WakerPoisonGuard<'a> {
+            shared: ptr::NonNull<Shared>,
+            submit_wake: &'a SubmitWake,
+        }
 
-                    while let Some(entry) = guard.queue.pop_back() {
-                        // NB: drop all remaining entries.
-                        let _ = ptr::read(entry.as_ptr());
+        impl Drop for WakerPoisonGuard<'_> {
+            fn drop(&mut self) {
+                unsafe {
+                    release_shared(self.shared);
+
+                    self.submit_wake
+                        .state
+                        .store(STATE_COMPLETE, Ordering::Release);
+
+                    // Wake up the task so that it sees the panic.
+                    if let Some(waker) = &*self.submit_wake.waker.lock() {
+                        waker.wake_by_ref();
                     }
                 }
             }
@@ -716,6 +804,7 @@ unsafe impl Send for ScheduleEntry {}
 /// A task to be polled by the scheduler.
 struct PollEntry {
     adapter: ptr::NonNull<dyn Adapter + 'static>,
+    submit_wake: ptr::NonNull<Arc<SubmitWake>>,
 }
 
 // The implementation of [Schedule] is safe because it's privately constructed
@@ -766,16 +855,25 @@ type Prelude = dyn Fn() + Send + 'static;
 const NONE_READY: usize = 0;
 const BOTH_READY: usize = 2;
 
+/// The underlying future was not processed in any specific way.
+const STATE_BUSY: usize = 1;
+/// The future has been polled.
+const STATE_POLLABLE: usize = 2;
+/// The task is in a complete state.
+const STATE_COMPLETE: usize = 4;
+
 trait Adapter: Send {
-    fn poll(&mut self, tag: Tag);
+    /// Poll the adapter, returning a boolean indicating if its complete or not.
+    fn poll(&mut self, tag: Tag, submit_wake: &Arc<SubmitWake>) -> bool;
 }
 
 struct FutureAdapter<F>
 where
     F: Future,
 {
+    /// Where to store output.
     output: ptr::NonNull<Option<F::Output>>,
-    waker: ptr::NonNull<Option<Waker>>,
+    /// The future being polled.
     future: F,
 }
 
@@ -783,31 +881,20 @@ impl<F> Adapter for FutureAdapter<F>
 where
     F: Future,
 {
-    fn poll(&mut self, tag: Tag) {
+    fn poll(&mut self, tag: Tag, submit_wake: &Arc<SubmitWake>) -> bool {
         unsafe {
-            if let Some(waker) = self.waker.as_ref() {
-                let _guard = WakerPanicGuard { waker };
+            debug_assert!(submit_wake.state.load(Ordering::Acquire) & STATE_BUSY != 0);
 
-                let mut cx = Context::from_waker(waker);
-                let future = Pin::new_unchecked(&mut self.future);
+            let waker = Waker::from(submit_wake.clone());
+            let mut cx = Context::from_waker(&waker);
+            let future = Pin::new_unchecked(&mut self.future);
 
-                match with_tag(tag, || future.poll(&mut cx)) {
-                    Poll::Pending => (),
-                    Poll::Ready(output) => {
-                        *self.output.as_mut() = Some(output);
-                        waker.wake_by_ref();
-                    }
+            match with_tag(tag, || future.poll(&mut cx)) {
+                Poll::Pending => false,
+                Poll::Ready(output) => {
+                    *self.output.as_mut() = Some(output);
+                    true
                 }
-            }
-        }
-
-        struct WakerPanicGuard<'a> {
-            waker: &'a Waker,
-        }
-
-        impl Drop for WakerPanicGuard<'_> {
-            fn drop(&mut self) {
-                self.waker.wake_by_ref();
             }
         }
     }
@@ -815,3 +902,24 @@ where
 
 /// Safety: We control how this future is used.
 unsafe impl<F> Send for FutureAdapter<F> where F: Future {}
+
+struct SubmitWake {
+    state: AtomicUsize,
+    waker: Mutex<Option<Waker>>,
+}
+
+impl SubmitWake {
+    fn inner_wake(&self) {
+        if let Some(waker) = &*self.waker.lock() {
+            waker.wake_by_ref();
+        }
+    }
+}
+
+impl Wake for SubmitWake {
+    fn wake(self: Arc<Self>) {
+        if self.state.fetch_or(STATE_POLLABLE, Ordering::AcqRel) & STATE_BUSY == 0 {
+            self.inner_wake();
+        }
+    }
+}
