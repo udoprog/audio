@@ -12,12 +12,14 @@ fn test_recover_from_panic() -> anyhow::Result<()> {
         for _ in 0..10 {
             let thread = thread.clone();
 
-            threads.push(thread::spawn(move || {
+            let t = thread::spawn(move || {
                 thread.submit(|| {
                     std::thread::sleep(std::time::Duration::from_millis(10));
                     panic!("trigger");
                 })
-            }));
+            });
+
+            threads.push(t);
         }
 
         for t in threads {
