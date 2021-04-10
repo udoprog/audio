@@ -44,7 +44,7 @@ impl<'a, T> Future for WaitFuture<'a, T> {
                 return Poll::Ready(Ok(output));
             }
 
-            *this.submit_wake.waker.lock().unwrap() = Some(cx.waker().clone());
+            this.submit_wake.register(cx.waker());
 
             let first = {
                 if let Some(_guard) = this.shared.modifier() {

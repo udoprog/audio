@@ -114,13 +114,14 @@
 //! [audio]: https://github.com/udoprog/audio
 
 use crate::loom::sync::atomic::{AtomicUsize, Ordering};
-use crate::loom::sync::Mutex;
 use std::future::Future;
 use std::io;
 use std::mem;
 use std::ptr;
 use std::sync::Arc;
 use thiserror::Error;
+
+mod atomic_waker;
 
 mod loom;
 use self::loom::thread;
@@ -149,7 +150,7 @@ mod submit_wake;
 use self::submit_wake::SubmitWake;
 
 mod state;
-use self::state::{State, BOTH_READY, NONE_READY};
+use self::state::{BOTH_READY, NONE_READY};
 
 mod adapter;
 use self::adapter::{Adapter, FutureAdapter};
@@ -275,10 +276,7 @@ impl Thread {
         let mut output = None;
 
         // The state of the thing being polled.
-        let submit_wake = Arc::new(SubmitWake {
-            state: State::new(),
-            waker: Mutex::new(None),
-        });
+        let submit_wake = Arc::new(SubmitWake::new());
 
         let mut adapter = FutureAdapter {
             future,

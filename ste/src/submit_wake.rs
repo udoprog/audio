@@ -1,4 +1,4 @@
-use crate::loom::sync::Mutex;
+use crate::atomic_waker::AtomicWaker;
 use crate::state::State;
 use std::sync::Arc;
 use std::task::{Wake, Waker};
@@ -6,14 +6,23 @@ use std::task::{Wake, Waker};
 /// Helper structure to transfer a waker.
 pub(super) struct SubmitWake {
     pub(super) state: State,
-    pub(super) waker: Mutex<Option<Waker>>,
+    waker: AtomicWaker,
 }
 
 impl SubmitWake {
-    pub(super) fn inner_wake(&self) {
-        if let Some(waker) = &*self.waker.lock().unwrap() {
-            waker.wake_by_ref();
+    pub(super) fn new() -> Self {
+        Self {
+            state: State::new(),
+            waker: AtomicWaker::new(),
         }
+    }
+
+    pub(super) fn register(&self, waker: &Waker) {
+        self.waker.register(waker);
+    }
+
+    pub(super) fn inner_wake(&self) {
+        self.waker.wake();
     }
 
     pub(super) unsafe fn release(&self) {
