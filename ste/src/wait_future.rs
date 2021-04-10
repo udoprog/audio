@@ -1,4 +1,4 @@
-use crate::linked_list::ListNode;
+use crate::lock_free_stack::Node;
 use crate::state::{STATE_BUSY, STATE_COMPLETE, STATE_POLLABLE};
 use crate::submit_wake::SubmitWake;
 use crate::worker::{Entry, Shared};
@@ -13,7 +13,7 @@ use std::thread;
 pub(super) struct WaitFuture<'a, T> {
     pub(super) complete: bool,
     pub(super) shared: ptr::NonNull<Shared>,
-    pub(super) node: ListNode<Entry>,
+    pub(super) node: Node<Entry>,
     pub(super) output: ptr::NonNull<Option<T>>,
     pub(super) submit_wake: &'a SubmitWake,
     pub(super) thread: Option<&'a thread::Thread>,
@@ -54,8 +54,7 @@ impl<'a, T> Future for WaitFuture<'a, T> {
                     this.shared
                         .as_ref()
                         .queue
-                        .lock()
-                        .push_front(ptr::NonNull::from(&mut this.node))
+                        .push(ptr::NonNull::from(&mut this.node))
                 } else {
                     return Poll::Ready(Err(Panicked(())));
                 }

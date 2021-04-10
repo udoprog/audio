@@ -1,10 +1,9 @@
 use crate::adapter::Adapter;
-use crate::linked_list::LinkedList;
+use crate::lock_free_stack::LockFreeStack;
 use crate::parker::Unparker;
 use crate::state::{NONE_READY, STATE_BUSY, STATE_POLLABLE};
 use crate::submit_wake::SubmitWake;
 use crate::tagged::Tag;
-use parking_lot::Mutex;
 use std::mem;
 use std::ptr;
 use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
@@ -17,7 +16,7 @@ pub(super) type Prelude = dyn Fn() + Send + 'static;
 // Shared state between the worker thread and [Thread].
 pub(super) struct Shared {
     pub(super) state: AtomicIsize,
-    pub(super) queue: Mutex<LinkedList<Entry>>,
+    pub(super) queue: LockFreeStack<Entry>,
 }
 
 impl Shared {
@@ -25,7 +24,7 @@ impl Shared {
     pub(super) fn new() -> Self {
         Self {
             state: AtomicIsize::new(0),
-            queue: Mutex::new(LinkedList::new()),
+            queue: LockFreeStack::new(),
         }
     }
 
@@ -54,9 +53,7 @@ impl Shared {
             thread::yield_now();
         }
 
-        let mut guard = self.queue.lock();
-
-        while let Some(entry) = guard.pop_back() {
+        while let Some(entry) = self.queue.pop() {
             match &entry.as_ref().value {
                 Entry::Poll(poll) => {
                     poll.submit_wake.as_ref().release();
@@ -97,7 +94,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                     None => break 'outer,
                 };
 
-                if let Some(entry) = shared.queue.lock().pop_back() {
+                if let Some(entry) = shared.queue.pop() {
                     break entry;
                 }
 

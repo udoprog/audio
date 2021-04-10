@@ -135,12 +135,12 @@ mod tagged;
 pub use self::tagged::Tagged;
 use self::tagged::{with_tag, Tag};
 
-mod linked_list;
 #[doc(hidden)]
-pub use self::linked_list::{LinkedList, ListNode};
+pub mod linked_list;
 
 #[doc(hidden)]
 pub mod lock_free_stack;
+use self::lock_free_stack::Node;
 
 mod submit_wake;
 use self::submit_wake::SubmitWake;
@@ -285,7 +285,7 @@ impl Thread {
         let wait_future = WaitFuture {
             complete: false,
             shared: self.shared,
-            node: ListNode::new(Entry::Poll(PollEntry {
+            node: Node::new(Entry::Poll(PollEntry {
                 adapter: ptr::NonNull::from(unsafe {
                     let adapter: &mut dyn Adapter = &mut adapter;
                     mem::transmute::<_, &mut dyn Adapter>(adapter)
@@ -349,7 +349,7 @@ impl Thread {
                 ))
             };
 
-            let mut schedule = ListNode::new(Entry::Schedule(ScheduleEntry {
+            let mut schedule = Node::new(Entry::Schedule(ScheduleEntry {
                 task,
                 unparker,
                 flag: ptr::NonNull::from(&flag),
@@ -364,10 +364,7 @@ impl Thread {
                         None => return Err(Panicked(())),
                     };
 
-                    shared
-                        .queue
-                        .lock()
-                        .push_front(ptr::NonNull::from(&mut schedule))
+                    shared.queue.push(ptr::NonNull::from(&mut schedule))
                 };
 
                 if first {

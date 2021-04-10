@@ -3,13 +3,13 @@
 use std::ptr;
 
 /// A node in the intrusive [LinkedList].
-pub struct ListNode<T> {
-    next: Option<ptr::NonNull<ListNode<T>>>,
-    prev: Option<ptr::NonNull<ListNode<T>>>,
+pub struct Node<T> {
+    next: Option<ptr::NonNull<Node<T>>>,
+    prev: Option<ptr::NonNull<Node<T>>>,
     pub value: T,
 }
 
-impl<T> ListNode<T> {
+impl<T> Node<T> {
     /// Construct a new wait node.
     pub fn new(value: T) -> Self {
         Self {
@@ -25,8 +25,8 @@ impl<T> ListNode<T> {
 /// This is an exceedingly unsafe collection that allows you to construct and
 /// reason about lists out of data stored somewhere else.
 pub struct LinkedList<T> {
-    first: Option<ptr::NonNull<ListNode<T>>>,
-    last: Option<ptr::NonNull<ListNode<T>>>,
+    first: Option<ptr::NonNull<Node<T>>>,
+    last: Option<ptr::NonNull<Node<T>>>,
 }
 
 impl<T> LinkedList<T> {
@@ -57,11 +57,12 @@ impl<T> LinkedList<T> {
     ///
     /// ```rust
     /// use std::ptr;
+    /// use ste::linked_list::{Node, LinkedList};
     ///
-    /// let mut list = ste::LinkedList::new();
+    /// let mut list = LinkedList::new();
     ///
-    /// let mut a = ste::ListNode::new(0);
-    /// let mut b = ste::ListNode::new(0);
+    /// let mut a = Node::new(0);
+    /// let mut b = Node::new(0);
     ///
     /// unsafe {
     ///     list.push_front(ptr::NonNull::from(&mut a));
@@ -78,7 +79,7 @@ impl<T> LinkedList<T> {
     /// assert_eq!(a.value, 1);
     /// assert_eq!(b.value, 2);
     /// ```
-    pub unsafe fn push_front(&mut self, mut node: ptr::NonNull<ListNode<T>>) -> bool {
+    pub unsafe fn push_front(&mut self, mut node: ptr::NonNull<Node<T>>) -> bool {
         if let Some(mut first) = self.first {
             node.as_mut().next = Some(first);
             first.as_mut().prev = Some(node);
@@ -110,11 +111,12 @@ impl<T> LinkedList<T> {
     ///
     /// ```rust
     /// use std::ptr;
+    /// use ste::linked_list::{Node, LinkedList};
     ///
-    /// let mut list = ste::LinkedList::new();
+    /// let mut list = LinkedList::new();
     ///
-    /// let mut a = ste::ListNode::new(0);
-    /// let mut b = ste::ListNode::new(0);
+    /// let mut a = Node::new(0);
+    /// let mut b = Node::new(0);
     ///
     /// unsafe {
     ///     list.push_back(ptr::NonNull::from(&mut a));
@@ -131,7 +133,7 @@ impl<T> LinkedList<T> {
     /// assert_eq!(a.value, 2);
     /// assert_eq!(b.value, 1);
     /// ```
-    pub unsafe fn push_back(&mut self, mut node: ptr::NonNull<ListNode<T>>) -> bool {
+    pub unsafe fn push_back(&mut self, mut node: ptr::NonNull<Node<T>>) -> bool {
         if let Some(mut last) = self.last {
             node.as_mut().prev = Some(last);
             last.as_mut().next = Some(node);
@@ -150,11 +152,12 @@ impl<T> LinkedList<T> {
     ///
     /// ```rust
     /// use std::ptr;
+    /// use ste::linked_list::{Node, LinkedList};
     ///
-    /// let mut list = ste::LinkedList::new();
+    /// let mut list = LinkedList::new();
     ///
-    /// let mut a = ste::ListNode::new(0);
-    /// let mut b = ste::ListNode::new(0);
+    /// let mut a = Node::new(0);
+    /// let mut b = Node::new(0);
     ///
     /// unsafe {
     ///     list.push_back(ptr::NonNull::from(&mut a));
@@ -171,7 +174,7 @@ impl<T> LinkedList<T> {
     /// assert_eq!(a.value, 1);
     /// assert_eq!(b.value, 2);
     /// ```
-    pub unsafe fn pop_front(&mut self) -> Option<ptr::NonNull<ListNode<T>>> {
+    pub unsafe fn pop_front(&mut self) -> Option<ptr::NonNull<Node<T>>> {
         let mut first = self.first?;
 
         if let Some(mut next) = first.as_mut().next.take() {
@@ -193,11 +196,12 @@ impl<T> LinkedList<T> {
     ///
     /// ```rust
     /// use std::ptr;
+    /// use ste::linked_list::{Node, LinkedList};
     ///
-    /// let mut list = ste::LinkedList::new();
+    /// let mut list = LinkedList::new();
     ///
-    /// let mut a = ste::ListNode::new(0);
-    /// let mut b = ste::ListNode::new(0);
+    /// let mut a = Node::new(0);
+    /// let mut b = Node::new(0);
     ///
     /// unsafe {
     ///     list.push_back(ptr::NonNull::from(&mut a));
@@ -214,7 +218,7 @@ impl<T> LinkedList<T> {
     /// assert_eq!(a.value, 2);
     /// assert_eq!(b.value, 1);
     /// ```
-    pub unsafe fn pop_back(&mut self) -> Option<ptr::NonNull<ListNode<T>>> {
+    pub unsafe fn pop_back(&mut self) -> Option<ptr::NonNull<Node<T>>> {
         let mut last = self.last?;
 
         if let Some(mut prev) = last.as_mut().prev.take() {
