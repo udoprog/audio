@@ -357,13 +357,17 @@ impl Thread {
 
             unsafe {
                 let first = {
-                    let mut guard = self.shared.as_ref().locked.lock();
+                    let shared = self.shared.as_ref();
 
-                    if !guard.running {
-                        return Err(Panicked(()));
-                    }
+                    let _guard = match shared.modifier() {
+                        Some(guard) => guard,
+                        None => return Err(Panicked(())),
+                    };
 
-                    guard.queue.push_front(ptr::NonNull::from(&mut schedule))
+                    shared
+                        .queue
+                        .lock()
+                        .push_front(ptr::NonNull::from(&mut schedule))
                 };
 
                 if first {
@@ -496,7 +500,10 @@ impl Thread {
     fn inner_join(&mut self) -> Result<(), Panicked> {
         if let Some(handle) = self.handle.take() {
             unsafe {
-                self.shared.as_ref().locked.lock().running = false;
+                self.shared
+                    .as_ref()
+                    .state
+                    .fetch_sub(isize::MIN, Ordering::AcqRel);
             }
 
             handle.thread().unpark();

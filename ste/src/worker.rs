@@ -7,7 +7,7 @@ use crate::tagged::Tag;
 use parking_lot::Mutex;
 use std::mem;
 use std::ptr;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;
 
@@ -16,31 +16,47 @@ pub(super) type Prelude = dyn Fn() + Send + 'static;
 
 // Shared state between the worker thread and [Thread].
 pub(super) struct Shared {
-    pub(super) locked: Mutex<Locked>,
+    pub(super) state: AtomicIsize,
+    pub(super) queue: Mutex<LinkedList<Entry>>,
 }
 
 impl Shared {
     /// Construct new shared state.
     pub(super) fn new() -> Self {
         Self {
-            locked: Mutex::new(Locked {
-                running: true,
-                queue: LinkedList::new(),
-            }),
+            state: AtomicIsize::new(0),
+            queue: Mutex::new(LinkedList::new()),
         }
+    }
+
+    /// Add a worker lock.
+    pub(super) fn modifier(&self) -> Option<ModifierGuard<'_>> {
+        if self.state.fetch_add(1, Ordering::AcqRel) < 0 {
+            self.state.fetch_sub(1, Ordering::AcqRel);
+            return None;
+        }
+
+        Some(ModifierGuard { state: &self.state })
     }
 
     // Release all shared state.
     unsafe fn release(&self) {
-        let mut guard = self.locked.lock();
-        let running = mem::take(&mut guard.running);
+        let state = self.state.fetch_sub(isize::MIN, Ordering::AcqRel);
 
         // It's not possible for the state to be anything but empty
         // here, because the worker thread takes the state before
         // executing user code which might panic.
-        debug_assert!(running);
+        debug_assert!(state >= 0);
 
-        while let Some(entry) = guard.queue.pop_back() {
+        // NB: we have to wait until the number of modifiers of the queue
+        // reaches zero before we can drain it.
+        while self.state.load(Ordering::Acquire) != isize::MIN {
+            thread::yield_now();
+        }
+
+        let mut guard = self.queue.lock();
+
+        while let Some(entry) = guard.pop_back() {
             match &entry.as_ref().value {
                 Entry::Poll(poll) => {
                     poll.submit_wake.as_ref().release();
@@ -53,39 +69,42 @@ impl Shared {
     }
 }
 
-pub(super) struct Locked {
-    pub(super) running: bool,
-    pub(super) queue: LinkedList<Entry>,
+pub(super) struct ModifierGuard<'a> {
+    pub(super) state: &'a AtomicIsize,
+}
+
+impl Drop for ModifierGuard<'_> {
+    fn drop(&mut self) {
+        self.state.fetch_sub(1, Ordering::Release);
+    }
 }
 
 /// Worker thread.
 pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
-    if let Some(prelude) = prelude {
-        let guard = PoisonGuard { shared };
-        prelude();
-        mem::forget(guard);
-    }
-
     unsafe {
+        let shared = shared.as_ref();
+
+        if let Some(prelude) = prelude {
+            let guard = PoisonGuard { shared };
+            prelude();
+            mem::forget(guard);
+        }
+
         'outer: loop {
             let mut entry = loop {
-                {
-                    let mut guard = shared.as_ref().locked.lock();
+                let _guard = match shared.modifier() {
+                    Some(guard) => guard,
+                    None => break 'outer,
+                };
 
-                    if !guard.running {
-                        break 'outer;
-                    }
-
-                    if let Some(entry) = guard.queue.pop_back() {
-                        drop(guard);
-                        break entry;
-                    }
+                if let Some(entry) = shared.queue.lock().pop_back() {
+                    break entry;
                 }
 
                 thread::park();
             };
 
-            let tag = Tag(shared.as_ptr() as usize);
+            let tag = Tag(shared as *const _ as usize);
 
             match &mut entry.as_mut().value {
                 Entry::Poll(poll) => {
@@ -124,7 +143,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
         }
 
         struct SchedulePoisonGuard<'a> {
-            shared: ptr::NonNull<Shared>,
+            shared: &'a Shared,
             schedule: &'a mut ScheduleEntry,
         }
 
@@ -133,7 +152,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                 // Safety: We know that the task holding the flag owns the
                 // reference.
                 unsafe {
-                    self.shared.as_ref().release();
+                    self.shared.release();
                     self.schedule.release();
                 }
             }
@@ -143,27 +162,27 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
     /// Guard used to mark the state of the executed as "panicked". This is
     /// accomplished by asserting that the only reason this destructor would
     /// be called would be due to an unwinding panic.
-    struct PoisonGuard {
-        shared: ptr::NonNull<Shared>,
+    struct PoisonGuard<'a> {
+        shared: &'a Shared,
     }
 
-    impl Drop for PoisonGuard {
+    impl Drop for PoisonGuard<'_> {
         fn drop(&mut self) {
             unsafe {
-                self.shared.as_ref().release();
+                self.shared.release();
             }
         }
     }
 
     struct WakerPoisonGuard<'a> {
-        shared: ptr::NonNull<Shared>,
+        shared: &'a Shared,
         submit_wake: &'a SubmitWake,
     }
 
     impl Drop for WakerPoisonGuard<'_> {
         fn drop(&mut self) {
             unsafe {
-                self.shared.as_ref().release();
+                self.shared.release();
                 self.submit_wake.release();
             }
         }
