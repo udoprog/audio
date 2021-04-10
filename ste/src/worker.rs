@@ -1,7 +1,7 @@
 use crate::adapter::Adapter;
 use crate::linked_list::LinkedList;
 use crate::parker::Unparker;
-use crate::state::{State, NONE_READY, STATE_BUSY, STATE_POLLABLE};
+use crate::state::{NONE_READY, STATE_BUSY, STATE_POLLABLE};
 use crate::submit_wake::SubmitWake;
 use crate::tagged::Tag;
 use parking_lot::Mutex;
@@ -24,7 +24,7 @@ impl Shared {
     pub(super) fn new() -> Self {
         Self {
             locked: Mutex::new(Locked {
-                state: State::Default,
+                running: true,
                 queue: LinkedList::new(),
             }),
         }
@@ -33,12 +33,12 @@ impl Shared {
     // Release all shared state.
     unsafe fn release(&self) {
         let mut guard = self.locked.lock();
-        let old = mem::replace(&mut guard.state, State::End);
+        let running = mem::take(&mut guard.running);
 
         // It's not possible for the state to be anything but empty
         // here, because the worker thread takes the state before
         // executing user code which might panic.
-        debug_assert!(matches!(old, State::Default));
+        debug_assert!(running);
 
         while let Some(entry) = guard.queue.pop_back() {
             match &entry.as_ref().value {
@@ -54,7 +54,7 @@ impl Shared {
 }
 
 pub(super) struct Locked {
-    pub(super) state: State,
+    pub(super) running: bool,
     pub(super) queue: LinkedList<Entry>,
 }
 
@@ -72,9 +72,8 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                 {
                     let mut guard = shared.as_ref().locked.lock();
 
-                    match guard.state {
-                        State::End => break 'outer,
-                        State::Default => (),
+                    if !guard.running {
+                        break 'outer;
                     }
 
                     if let Some(entry) = guard.queue.pop_back() {

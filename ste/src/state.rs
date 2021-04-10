@@ -1,13 +1,3 @@
-#[derive(Debug, Clone, Copy)]
-pub(super) enum State {
-    /// The background thread is busy and cannot process tasks yet. The
-    /// scheduler starts out in this state, before the prelude has been
-    /// executed.
-    Default,
-    /// Scheduler is ending.
-    End,
-}
-
 /// The underlying future was not processed in any specific way.
 pub(super) const STATE_BUSY: usize = 1;
 /// The future has been polled.

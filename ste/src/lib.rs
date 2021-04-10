@@ -146,7 +146,7 @@ mod submit_wake;
 use self::submit_wake::SubmitWake;
 
 mod state;
-use self::state::{State, BOTH_READY, NONE_READY, STATE_POLLABLE};
+use self::state::{BOTH_READY, NONE_READY, STATE_POLLABLE};
 
 mod adapter;
 use self::adapter::{Adapter, FutureAdapter};
@@ -359,9 +359,8 @@ impl Thread {
                 let first = {
                     let mut guard = self.shared.as_ref().locked.lock();
 
-                    match guard.state {
-                        State::Default => (),
-                        State::End => return Err(Panicked(())),
+                    if !guard.running {
+                        return Err(Panicked(()));
                     }
 
                     guard.queue.push_front(ptr::NonNull::from(&mut schedule))
@@ -497,7 +496,7 @@ impl Thread {
     fn inner_join(&mut self) -> Result<(), Panicked> {
         if let Some(handle) = self.handle.take() {
             unsafe {
-                self.shared.as_ref().locked.lock().state = State::End;
+                self.shared.as_ref().locked.lock().running = false;
             }
 
             handle.thread().unpark();

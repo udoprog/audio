@@ -1,5 +1,4 @@
 use crate::linked_list::ListNode;
-use crate::state::State;
 use crate::state::{STATE_BUSY, STATE_COMPLETE, STATE_POLLABLE};
 use crate::submit_wake::SubmitWake;
 use crate::worker::{Entry, Shared};
@@ -53,9 +52,8 @@ impl<'a, T> Future for WaitFuture<'a, T> {
             let first = {
                 let mut guard = this.shared.as_ref().locked.lock();
 
-                match guard.state {
-                    State::Default => (),
-                    State::End => return Poll::Ready(Err(Panicked(()))),
+                if !guard.running {
+                    return Poll::Ready(Err(Panicked(())));
                 }
 
                 guard.queue.push_front(ptr::NonNull::from(&mut this.node))
