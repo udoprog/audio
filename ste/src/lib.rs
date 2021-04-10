@@ -294,6 +294,7 @@ impl Thread {
             })),
             output: ptr::NonNull::from(&mut output),
             submit_wake: &*submit_wake,
+            thread: self.handle.as_ref().map(|h| h.thread()),
         };
 
         wait_future.await
@@ -367,7 +368,9 @@ impl Thread {
                 };
 
                 if first {
-                    self.shared.as_ref().cond.notify_one();
+                    if let Some(handle) = &self.handle {
+                        handle.thread().unpark();
+                    }
                 }
             }
 
@@ -495,9 +498,9 @@ impl Thread {
         if let Some(handle) = self.handle.take() {
             unsafe {
                 self.shared.as_ref().locked.lock().state = State::End;
-                self.shared.as_ref().cond.notify_one();
             }
 
+            handle.thread().unpark();
             return handle.join().map_err(|_| Panicked(()));
         }
 

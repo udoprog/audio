@@ -4,7 +4,7 @@ use crate::parker::Unparker;
 use crate::state::{State, NONE_READY, STATE_BUSY, STATE_POLLABLE};
 use crate::submit_wake::SubmitWake;
 use crate::tagged::Tag;
-use parking_lot::{Condvar, Mutex};
+use parking_lot::Mutex;
 use std::mem;
 use std::ptr;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -17,7 +17,6 @@ pub(super) type Prelude = dyn Fn() + Send + 'static;
 // Shared state between the worker thread and [Thread].
 pub(super) struct Shared {
     pub(super) locked: Mutex<Locked>,
-    pub(super) cond: Condvar,
 }
 
 impl Shared {
@@ -28,7 +27,6 @@ impl Shared {
                 state: State::Default,
                 queue: LinkedList::new(),
             }),
-            cond: Condvar::new(),
         }
     }
 
@@ -70,20 +68,22 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
 
     unsafe {
         'outer: loop {
-            let mut guard = shared.as_ref().locked.lock();
-
             let mut entry = loop {
-                match guard.state {
-                    State::End => break 'outer,
-                    State::Default => (),
+                {
+                    let mut guard = shared.as_ref().locked.lock();
+
+                    match guard.state {
+                        State::End => break 'outer,
+                        State::Default => (),
+                    }
+
+                    if let Some(entry) = guard.queue.pop_back() {
+                        drop(guard);
+                        break entry;
+                    }
                 }
 
-                if let Some(entry) = guard.queue.pop_back() {
-                    drop(guard);
-                    break entry;
-                }
-
-                shared.as_ref().cond.wait(&mut guard);
+                thread::park();
             };
 
             let tag = Tag(shared.as_ptr() as usize);

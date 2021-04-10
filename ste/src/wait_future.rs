@@ -17,6 +17,7 @@ pub(super) struct WaitFuture<'a, T> {
     pub(super) node: ListNode<Entry>,
     pub(super) output: ptr::NonNull<Option<T>>,
     pub(super) submit_wake: &'a SubmitWake,
+    pub(super) thread: Option<&'a thread::Thread>,
 }
 
 impl<'a, T> Future for WaitFuture<'a, T> {
@@ -61,7 +62,9 @@ impl<'a, T> Future for WaitFuture<'a, T> {
             };
 
             if first {
-                this.shared.as_ref().cond.notify_one();
+                if let Some(thread) = this.thread {
+                    thread.unpark();
+                }
             }
         }
 
