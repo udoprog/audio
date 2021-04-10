@@ -1,4 +1,6 @@
 use crate::lock_free_stack::Node;
+use crate::loom::sync::atomic::Ordering;
+use crate::loom::thread;
 use crate::state::{STATE_BUSY, STATE_COMPLETE, STATE_POLLABLE};
 use crate::submit_wake::SubmitWake;
 use crate::worker::{Entry, Shared};
@@ -6,17 +8,14 @@ use crate::Panicked;
 use std::future::Future;
 use std::pin::Pin;
 use std::ptr;
-use std::sync::atomic::Ordering;
 use std::task::{Context, Poll};
-use std::thread;
 
 pub(super) struct WaitFuture<'a, T> {
     pub(super) complete: bool,
-    pub(super) shared: ptr::NonNull<Shared>,
+    pub(super) shared: &'a Shared,
     pub(super) node: Node<Entry>,
     pub(super) output: ptr::NonNull<Option<T>>,
     pub(super) submit_wake: &'a SubmitWake,
-    pub(super) thread: Option<&'a thread::Thread>,
 }
 
 impl<'a, T> Future for WaitFuture<'a, T> {
@@ -47,23 +46,18 @@ impl<'a, T> Future for WaitFuture<'a, T> {
                 return Poll::Ready(Ok(output));
             }
 
-            *this.submit_wake.waker.lock() = Some(cx.waker().clone());
+            *this.submit_wake.waker.lock().unwrap() = Some(cx.waker().clone());
 
             let first = {
-                if let Some(_guard) = this.shared.as_ref().modifier() {
-                    this.shared
-                        .as_ref()
-                        .queue
-                        .push(ptr::NonNull::from(&mut this.node))
+                if let Some(_guard) = this.shared.modifier() {
+                    this.shared.queue.push(ptr::NonNull::from(&mut this.node))
                 } else {
                     return Poll::Ready(Err(Panicked(())));
                 }
             };
 
             if first {
-                if let Some(thread) = this.thread {
-                    thread.unpark();
-                }
+                this.shared.parker.unpark();
             }
         }
 

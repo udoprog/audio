@@ -1,14 +1,14 @@
 use crate::adapter::Adapter;
 use crate::lock_free_stack::LockFreeStack;
-use crate::parker::Unparker;
+use crate::loom::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
+use crate::parker::Parker;
 use crate::state::{NONE_READY, STATE_BUSY, STATE_POLLABLE};
 use crate::submit_wake::SubmitWake;
 use crate::tagged::Tag;
+use crate::thread;
 use std::mem;
 use std::ptr;
-use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 use std::sync::Arc;
-use std::thread;
 
 /// The type of the prelude function.
 pub(super) type Prelude = dyn Fn() + Send + 'static;
@@ -17,6 +17,7 @@ pub(super) type Prelude = dyn Fn() + Send + 'static;
 pub(super) struct Shared {
     pub(super) state: AtomicIsize,
     pub(super) queue: LockFreeStack<Entry>,
+    pub(super) parker: Parker,
 }
 
 impl Shared {
@@ -25,6 +26,7 @@ impl Shared {
         Self {
             state: AtomicIsize::new(0),
             queue: LockFreeStack::new(),
+            parker: Parker::new(),
         }
     }
 
@@ -98,7 +100,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                     break entry;
                 }
 
-                thread::park();
+                shared.parker.park();
             };
 
             let tag = Tag(shared as *const _ as usize);
@@ -122,7 +124,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                             & STATE_POLLABLE
                             != 0
                         {
-                            if let Some(waker) = &*submit_wake.waker.lock() {
+                            if let Some(waker) = &*submit_wake.waker.lock().unwrap() {
                                 waker.wake_by_ref();
                             }
                         }
@@ -197,7 +199,7 @@ pub(super) enum Entry {
 /// A task submitted to the executor.
 pub(super) struct ScheduleEntry {
     pub(super) task: ptr::NonNull<dyn FnMut(Tag) + Send + 'static>,
-    pub(super) unparker: Unparker,
+    pub(super) parker: Parker,
     pub(super) flag: ptr::NonNull<AtomicUsize>,
 }
 
@@ -211,9 +213,7 @@ impl ScheduleEntry {
                 return;
             }
 
-            while !self.unparker.unpark_one() {
-                thread::yield_now();
-            }
+            self.parker.unpark();
         }
     }
 }

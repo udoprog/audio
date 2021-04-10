@@ -1,5 +1,5 @@
 fn main() -> anyhow::Result<()> {
-    for _ in 0..10 {
+    for _ in 0..1000 {
         let audio_thread = ste::Thread::new()?;
         let mut result = 0;
 

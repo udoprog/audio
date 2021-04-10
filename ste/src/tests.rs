@@ -14,7 +14,7 @@ fn test_recover_from_panic() -> anyhow::Result<()> {
 
             let t = thread::spawn(move || {
                 thread.submit(|| {
-                    std::thread::sleep(std::time::Duration::from_millis(10));
+                    thread::sleep(std::time::Duration::from_millis(10));
                     panic!("trigger");
                 })
             });

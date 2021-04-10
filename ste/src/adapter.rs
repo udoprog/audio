@@ -1,10 +1,10 @@
+use crate::loom::sync::atomic::Ordering;
 use crate::state::STATE_BUSY;
 use crate::submit_wake::SubmitWake;
 use crate::tagged::{with_tag, Tag};
 use std::future::Future;
 use std::pin::Pin;
 use std::ptr;
-use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::task::{Context, Poll, Waker};
 

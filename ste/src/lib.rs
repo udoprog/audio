@@ -113,20 +113,23 @@
 //! [Tagged]: https://docs.rs/ste/0/ste/struct.Tagged.html
 //! [audio]: https://github.com/udoprog/audio
 
-use parking_lot::Mutex;
+use crate::loom::sync::atomic::{AtomicUsize, Ordering};
+use crate::loom::sync::Mutex;
 use std::future::Future;
 use std::io;
 use std::mem;
 use std::ptr;
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
-use std::thread;
 use thiserror::Error;
+
+mod loom;
+use self::loom::thread;
 
 #[cfg(test)]
 mod tests;
 
 mod parker;
+use crate::parker::Parker;
 
 mod worker;
 use self::worker::{Entry, PollEntry, Prelude, ScheduleEntry, Shared};
@@ -284,7 +287,7 @@ impl Thread {
 
         let wait_future = WaitFuture {
             complete: false,
-            shared: self.shared,
+            shared: unsafe { self.shared.as_ref() },
             node: Node::new(Entry::Poll(PollEntry {
                 adapter: ptr::NonNull::from(unsafe {
                     let adapter: &mut dyn Adapter = &mut adapter;
@@ -294,7 +297,6 @@ impl Thread {
             })),
             output: ptr::NonNull::from(&mut output),
             submit_wake: &*submit_wake,
-            thread: self.handle.as_ref().map(|h| h.thread()),
         };
 
         wait_future.await
@@ -334,7 +336,7 @@ impl Thread {
 
         {
             let storage = ptr::NonNull::from(&mut storage);
-            let (parker, unparker) = parker::new(storage.as_ptr());
+            let parker = Parker::new();
 
             let mut task = into_task(task, storage);
 
@@ -351,14 +353,14 @@ impl Thread {
 
             let mut schedule = Node::new(Entry::Schedule(ScheduleEntry {
                 task,
-                unparker,
+                parker: parker.clone(),
                 flag: ptr::NonNull::from(&flag),
             }));
 
             unsafe {
-                let first = {
-                    let shared = self.shared.as_ref();
+                let shared = self.shared.as_ref();
 
+                let first = {
                     let _guard = match shared.modifier() {
                         Some(guard) => guard,
                         None => return Err(Panicked(())),
@@ -368,9 +370,7 @@ impl Thread {
                 };
 
                 if first {
-                    if let Some(handle) = &self.handle {
-                        handle.thread().unpark();
-                    }
+                    shared.parker.unpark();
                 }
             }
 
@@ -380,7 +380,9 @@ impl Thread {
                 // Safety: we're the only ones controlling these, so we know that
                 // they are correctly allocated and who owns what with
                 // synchronization.
-                parker.park(|| flag.load(Ordering::Relaxed) == BOTH_READY);
+                while flag.load(Ordering::Relaxed) != BOTH_READY {
+                    parker.park();
+                }
             }
         }
 
@@ -497,13 +499,11 @@ impl Thread {
     fn inner_join(&mut self) -> Result<(), Panicked> {
         if let Some(handle) = self.handle.take() {
             unsafe {
-                self.shared
-                    .as_ref()
-                    .state
-                    .fetch_sub(isize::MIN, Ordering::AcqRel);
+                let shared = self.shared.as_ref();
+                shared.state.fetch_sub(isize::MIN, Ordering::AcqRel);
+                shared.parker.unpark();
             }
 
-            handle.thread().unpark();
             return handle.join().map_err(|_| Panicked(()));
         }
 

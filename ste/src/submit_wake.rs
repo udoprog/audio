@@ -1,5 +1,5 @@
-use parking_lot::Mutex;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use crate::loom::sync::atomic::{AtomicUsize, Ordering};
+use crate::loom::sync::Mutex;
 use std::sync::Arc;
 use std::task::{Wake, Waker};
 
@@ -13,7 +13,7 @@ pub(super) struct SubmitWake {
 
 impl SubmitWake {
     pub(super) fn inner_wake(&self) {
-        if let Some(waker) = &*self.waker.lock() {
+        if let Some(waker) = &*self.waker.lock().unwrap() {
             waker.wake_by_ref();
         }
     }
@@ -22,7 +22,7 @@ impl SubmitWake {
         self.state.store(STATE_COMPLETE, Ordering::Release);
 
         // Wake up the task so that it sees the panic.
-        if let Some(waker) = &*self.waker.lock() {
+        if let Some(waker) = &*self.waker.lock().unwrap() {
             waker.wake_by_ref();
         }
     }

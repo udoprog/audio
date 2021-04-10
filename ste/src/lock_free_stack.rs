@@ -1,5 +1,5 @@
+use crate::loom::sync::atomic::{AtomicPtr, Ordering};
 use std::ptr;
-use std::sync::atomic::{AtomicPtr, Ordering};
 
 pub struct Node<T> {
     next: Option<ptr::NonNull<Node<T>>>,
