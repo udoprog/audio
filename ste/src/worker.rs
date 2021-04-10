@@ -2,7 +2,7 @@ use crate::adapter::Adapter;
 use crate::lock_free_stack::LockFreeStack;
 use crate::loom::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 use crate::parker::Parker;
-use crate::state::{NONE_READY, STATE_BUSY, STATE_POLLABLE};
+use crate::state::NONE_READY;
 use crate::submit_wake::SubmitWake;
 use crate::tagged::Tag;
 use crate::thread;
@@ -15,7 +15,7 @@ pub(super) type Prelude = dyn Fn() + Send + 'static;
 
 // Shared state between the worker thread and [Thread].
 pub(super) struct Shared {
-    pub(super) state: AtomicIsize,
+    pub(super) modifiers: AtomicIsize,
     pub(super) queue: LockFreeStack<Entry>,
     pub(super) parker: Parker,
 }
@@ -24,7 +24,7 @@ impl Shared {
     /// Construct new shared state.
     pub(super) fn new() -> Self {
         Self {
-            state: AtomicIsize::new(0),
+            modifiers: AtomicIsize::new(0),
             queue: LockFreeStack::new(),
             parker: Parker::new(),
         }
@@ -32,26 +32,28 @@ impl Shared {
 
     /// Add a worker lock.
     pub(super) fn modifier(&self) -> Option<ModifierGuard<'_>> {
-        if self.state.fetch_add(1, Ordering::AcqRel) < 0 {
-            self.state.fetch_sub(1, Ordering::AcqRel);
+        if self.modifiers.fetch_add(1, Ordering::AcqRel) < 0 {
+            self.modifiers.fetch_sub(1, Ordering::AcqRel);
             return None;
         }
 
-        Some(ModifierGuard { state: &self.state })
+        Some(ModifierGuard {
+            modifiers: &self.modifiers,
+        })
     }
 
     // Release all shared state.
     unsafe fn release(&self) {
-        let state = self.state.fetch_sub(isize::MIN, Ordering::AcqRel);
+        let modifiers = self.modifiers.fetch_add(isize::MIN, Ordering::AcqRel);
 
         // It's not possible for the state to be anything but empty
         // here, because the worker thread takes the state before
         // executing user code which might panic.
-        debug_assert!(state >= 0);
+        debug_assert!(modifiers >= 0);
 
         // NB: we have to wait until the number of modifiers of the queue
         // reaches zero before we can drain it.
-        while self.state.load(Ordering::Acquire) != isize::MIN {
+        while self.modifiers.load(Ordering::Acquire) != isize::MIN {
             thread::yield_now();
         }
 
@@ -69,12 +71,12 @@ impl Shared {
 }
 
 pub(super) struct ModifierGuard<'a> {
-    pub(super) state: &'a AtomicIsize,
+    pub(super) modifiers: &'a AtomicIsize,
 }
 
 impl Drop for ModifierGuard<'_> {
     fn drop(&mut self) {
-        self.state.fetch_sub(1, Ordering::Release);
+        self.modifiers.fetch_sub(1, Ordering::Release);
     }
 }
 
@@ -91,13 +93,15 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
 
         'outer: loop {
             let mut entry = loop {
-                let _guard = match shared.modifier() {
-                    Some(guard) => guard,
-                    None => break 'outer,
-                };
+                {
+                    let _guard = match shared.modifier() {
+                        Some(guard) => guard,
+                        None => break 'outer,
+                    };
 
-                if let Some(entry) = shared.queue.pop() {
-                    break entry;
+                    if let Some(entry) = shared.queue.pop() {
+                        break entry;
+                    }
                 }
 
                 shared.parker.park();
@@ -115,18 +119,14 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                     };
 
                     if poll.adapter.as_mut().poll(tag, submit_wake) {
-                        submit_wake.state.store(STATE_POLLABLE, Ordering::Release);
+                        // Immediately ready, set as pollable and wake up.
+                        submit_wake.state.set_pollable();
                         submit_wake.inner_wake();
                     } else {
                         // Unset the busy flag and poll it if it has been marked
                         // as pollable.
-                        if submit_wake.state.fetch_and(!STATE_BUSY, Ordering::AcqRel)
-                            & STATE_POLLABLE
-                            != 0
-                        {
-                            if let Some(waker) = &*submit_wake.waker.lock().unwrap() {
-                                waker.wake_by_ref();
-                            }
+                        if submit_wake.state.unmark_busy_and_is_pollable() {
+                            submit_wake.inner_wake();
                         }
                     }
 

@@ -1,5 +1,4 @@
 use crate::lock_free_stack::Node;
-use crate::loom::sync::atomic::Ordering;
 use crate::loom::thread;
 use crate::state::{STATE_BUSY, STATE_COMPLETE, STATE_POLLABLE};
 use crate::submit_wake::SubmitWake;
@@ -25,13 +24,14 @@ impl<'a, T> Future for WaitFuture<'a, T> {
         unsafe {
             let this = Pin::get_unchecked_mut(self.as_mut());
 
-            let flags = this.submit_wake.state.swap(STATE_BUSY, Ordering::AcqRel);
+            if this.complete {
+                return Poll::Ready(Err(Panicked(())));
+            }
+
+            let flags = this.submit_wake.state.take_busy();
 
             if flags & STATE_COMPLETE != 0 {
                 this.complete = true;
-            }
-
-            if this.complete {
                 return Poll::Ready(Err(Panicked(())));
             }
 
@@ -40,9 +40,7 @@ impl<'a, T> Future for WaitFuture<'a, T> {
             }
 
             if let Some(output) = this.output.as_mut().take() {
-                this.submit_wake
-                    .state
-                    .store(STATE_COMPLETE, Ordering::Release);
+                this.submit_wake.state.complete();
                 return Poll::Ready(Ok(output));
             }
 
@@ -75,7 +73,7 @@ impl<T> Drop for WaitFuture<'_, T> {
 
         // NB: We have no choide but to wait for the state of the submit
         // wake to be safe.
-        while self.submit_wake.state.load(Ordering::Acquire) & STATE_BUSY != 0 {
+        while self.submit_wake.state.is_busy() {
             thread::yield_now();
         }
     }

@@ -1,5 +1,3 @@
-use crate::loom::sync::atomic::Ordering;
-use crate::state::STATE_BUSY;
 use crate::submit_wake::SubmitWake;
 use crate::tagged::{with_tag, Tag};
 use std::future::Future;
@@ -30,7 +28,7 @@ where
 {
     fn poll(&mut self, tag: Tag, submit_wake: &Arc<SubmitWake>) -> bool {
         unsafe {
-            debug_assert!(submit_wake.state.load(Ordering::Acquire) & STATE_BUSY != 0);
+            debug_assert!(submit_wake.state.is_busy());
 
             let waker = Waker::from(submit_wake.clone());
             let mut cx = Context::from_waker(&waker);

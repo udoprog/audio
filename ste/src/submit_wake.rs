@@ -1,13 +1,11 @@
-use crate::loom::sync::atomic::{AtomicUsize, Ordering};
 use crate::loom::sync::Mutex;
+use crate::state::State;
 use std::sync::Arc;
 use std::task::{Wake, Waker};
 
-use crate::state::{STATE_BUSY, STATE_COMPLETE, STATE_POLLABLE};
-
 /// Helper structure to transfer a waker.
 pub(super) struct SubmitWake {
-    pub(super) state: AtomicUsize,
+    pub(super) state: State,
     pub(super) waker: Mutex<Option<Waker>>,
 }
 
@@ -19,18 +17,16 @@ impl SubmitWake {
     }
 
     pub(super) unsafe fn release(&self) {
-        self.state.store(STATE_COMPLETE, Ordering::Release);
+        self.state.complete();
 
         // Wake up the task so that it sees the panic.
-        if let Some(waker) = &*self.waker.lock().unwrap() {
-            waker.wake_by_ref();
-        }
+        self.inner_wake();
     }
 }
 
 impl Wake for SubmitWake {
     fn wake(self: Arc<Self>) {
-        if self.state.fetch_or(STATE_POLLABLE, Ordering::AcqRel) & STATE_BUSY == 0 {
+        if self.state.mark_pollable_and_is_not_busy() {
             self.inner_wake();
         }
     }

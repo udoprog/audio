@@ -149,7 +149,7 @@ mod submit_wake;
 use self::submit_wake::SubmitWake;
 
 mod state;
-use self::state::{BOTH_READY, NONE_READY, STATE_POLLABLE};
+use self::state::{State, BOTH_READY, NONE_READY};
 
 mod adapter;
 use self::adapter::{Adapter, FutureAdapter};
@@ -276,7 +276,7 @@ impl Thread {
 
         // The state of the thing being polled.
         let submit_wake = Arc::new(SubmitWake {
-            state: AtomicUsize::new(STATE_POLLABLE),
+            state: State::new(),
             waker: Mutex::new(None),
         });
 
@@ -498,11 +498,19 @@ impl Thread {
 
     fn inner_join(&mut self) -> Result<(), Panicked> {
         if let Some(handle) = self.handle.take() {
-            unsafe {
-                let shared = self.shared.as_ref();
-                shared.state.fetch_sub(isize::MIN, Ordering::AcqRel);
-                shared.parker.unpark();
-            }
+            let shared = unsafe { self.shared.as_ref() };
+            // We get the thread to shut down by disallowing the queue to be
+            // modified. If the thread has already shut down (due to a panic)
+            // this will already have been set to `isize::MIN` and will wrap
+            // around or do some other nonsense we can ignore.
+            let old = shared.modifiers.fetch_add(isize::MIN, Ordering::AcqRel);
+            shared.parker.unpark();
+
+            assert!(
+                old == 0 || old == isize::MIN,
+                "modifiers should be zero as we are joining; was = {}",
+                old
+            );
 
             return handle.join().map_err(|_| Panicked(()));
         }
