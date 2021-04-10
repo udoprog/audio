@@ -91,20 +91,15 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
             mem::forget(guard);
         }
 
-        'outer: loop {
-            let mut entry = loop {
-                {
-                    let _guard = match shared.modifier() {
-                        Some(guard) => guard,
-                        None => break 'outer,
-                    };
+        while let Some(m) = shared.modifier() {
+            let entry = shared.queue.pop();
+            drop(m);
 
-                    if let Some(entry) = shared.queue.pop() {
-                        break entry;
-                    }
-                }
-
+            let mut entry = if let Some(entry) = entry {
+                entry
+            } else {
                 shared.parker.park();
+                continue;
             };
 
             let tag = Tag(shared as *const _ as usize);
@@ -118,7 +113,10 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                         submit_wake,
                     };
 
-                    if poll.adapter.as_mut().poll(tag, submit_wake) {
+                    let result = poll.adapter.as_mut().poll(tag, submit_wake);
+                    mem::forget(guard);
+
+                    if result {
                         // Immediately ready, set as pollable and wake up.
                         submit_wake.state.set_pollable();
                         submit_wake.inner_wake();
@@ -129,30 +127,12 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                             submit_wake.inner_wake();
                         }
                     }
-
-                    mem::forget(guard);
                 }
                 Entry::Schedule(schedule) => {
                     let guard = SchedulePoisonGuard { shared, schedule };
                     guard.schedule.task.as_mut()(tag);
                     mem::forget(guard);
                     schedule.release();
-                }
-            }
-        }
-
-        struct SchedulePoisonGuard<'a> {
-            shared: &'a Shared,
-            schedule: &'a mut ScheduleEntry,
-        }
-
-        impl<'a> Drop for SchedulePoisonGuard<'a> {
-            fn drop(&mut self) {
-                // Safety: We know that the task holding the flag owns the
-                // reference.
-                unsafe {
-                    self.shared.release();
-                    self.schedule.release();
                 }
             }
         }
@@ -180,9 +160,27 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
 
     impl Drop for WakerPoisonGuard<'_> {
         fn drop(&mut self) {
+            // Safety: We know that the task holding the flag owns the
+            // reference.
             unsafe {
                 self.shared.release();
                 self.submit_wake.release();
+            }
+        }
+    }
+
+    struct SchedulePoisonGuard<'a> {
+        shared: &'a Shared,
+        schedule: &'a mut ScheduleEntry,
+    }
+
+    impl<'a> Drop for SchedulePoisonGuard<'a> {
+        fn drop(&mut self) {
+            // Safety: We know that the task holding the flag owns the
+            // reference.
+            unsafe {
+                self.shared.release();
+                self.schedule.release();
             }
         }
     }
