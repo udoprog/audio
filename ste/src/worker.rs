@@ -14,9 +14,9 @@ pub(super) type Prelude = dyn Fn() + Send + 'static;
 
 // Shared state between the worker thread and [Thread].
 pub(super) struct Shared {
-    pub(super) modifiers: AtomicIsize,
-    pub(super) queue: LockFreeStack<Entry>,
-    pub(super) parker: Parker,
+    modifiers: AtomicIsize,
+    queue: LockFreeStack<Entry>,
+    parker: Parker,
 }
 
 impl Shared {
@@ -29,10 +29,27 @@ impl Shared {
         }
     }
 
-    /// Add a worker lock.
-    pub(super) fn modifier(&self) -> Option<ModifierGuard<'_>> {
-        if self.modifiers.fetch_add(1, Ordering::AcqRel) < 0 {
-            self.modifiers.fetch_sub(1, Ordering::AcqRel);
+    /// Construct a guard which while held ensures that the system knows someone
+    /// is modifying the worker queue.
+    ///
+    /// Interior cleanup of the worker queue will only be considered complete
+    /// once modifiers reaches 0, because otherwise we run the risk of another
+    /// thread being in the middle of a modification while we are cleaning up
+    /// and we leave that thread in a blocked state.
+    pub(super) fn lock_queue(&self) -> Option<ModifierGuard<'_>> {
+        let value = self.modifiers.fetch_add(1, Ordering::SeqCst);
+
+        if value == isize::MAX {
+            // We don't have much choice here. Wrapping around is very unlikely
+            // to happen because the number of threads required for it to happen
+            // is so big. We eprintln in an attempt to get some information out
+            // but we really need to abort to maintain the safety of the system.
+            eprintln!("ste: modifiers invariant breached, aborting");
+            std::process::abort();
+        }
+
+        if value < 0 {
+            self.modifiers.fetch_sub(1, Ordering::SeqCst);
             return None;
         }
 
@@ -41,8 +58,10 @@ impl Shared {
         })
     }
 
-    // Release all shared state.
-    unsafe fn release(&self) {
+    // Release all shared state, this will hang until the number of modifiers is
+    // zero, after which it will pop all elements from the queue and release
+    // them.
+    unsafe fn join_inside(&self) {
         let modifiers = self.modifiers.fetch_add(isize::MIN, Ordering::AcqRel);
 
         // It's not possible for the state to be anything but empty
@@ -50,23 +69,25 @@ impl Shared {
         // executing user code which might panic.
         debug_assert!(modifiers >= 0);
 
+        // Free as many entries as we can concurrently to prevent as much
+        // spinning as possible below. We steal the head pointer atomically and
+        // construct a new queue out of it which we pop locally completely
+        // uncontended.
+        let local = self.queue.steal();
+
+        while let Some(entry) = local.pop() {
+            entry.as_ref().value.release();
+        }
+
         // NB: we have to wait until the number of modifiers of the queue
         // reaches zero before we can drain it.
         while self.modifiers.load(Ordering::Acquire) != isize::MIN {
             thread::yield_now();
         }
 
+        // Release the rest.
         while let Some(entry) = self.queue.pop() {
-            match &entry.as_ref().value {
-                Entry::Poll(poll) => {
-                    let poll = poll.as_ref();
-                    (*poll.waker).wake_by_ref();
-                    poll.parker.as_ref().unpark();
-                }
-                Entry::Schedule(schedule) => {
-                    schedule.as_ref().release();
-                }
-            }
+            entry.as_ref().value.release();
         }
     }
 
@@ -85,7 +106,7 @@ impl Shared {
         let mut node = Node::new(entry);
 
         let first = {
-            let _guard = match self.modifier() {
+            let _guard = match self.lock_queue() {
                 Some(guard) => guard,
                 None => return Err(Panicked(())),
             };
@@ -107,10 +128,32 @@ impl Shared {
         parker.as_ref().park();
         Ok(())
     }
+
+    /// What should happen when the shared state is joined.
+    ///
+    /// We mark the modifiers count as negative to signal any entering threads
+    /// that they are no longer permitted to push tasks onto the task set.
+    pub(super) fn outer_join(&self) {
+        // We get the thread to shut down by disallowing the queue to be
+        // modified. If the thread has already shut down (due to a panic)
+        // this will already have been set to `isize::MIN` and will wrap
+        // around or do some other nonsense we can ignore.
+        let old = self.modifiers.fetch_add(isize::MIN, Ordering::AcqRel);
+        self.parker.unpark();
+
+        // This assertion should always hold, because the handle doesn't expose
+        // any APIs which allows it to be joined while things are being
+        // scheduled.
+        assert!(
+            old == 0 || old == isize::MIN,
+            "modifiers should be zero as we are joining; was = {}",
+            old
+        );
+    }
 }
 
 pub(super) struct ModifierGuard<'a> {
-    pub(super) modifiers: &'a AtomicIsize,
+    modifiers: &'a AtomicIsize,
 }
 
 impl Drop for ModifierGuard<'_> {
@@ -130,7 +173,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
             mem::forget(guard);
         }
 
-        while let Some(m) = shared.modifier() {
+        while let Some(m) = shared.lock_queue() {
             let entry = shared.queue.pop();
             drop(m);
 
@@ -146,6 +189,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
             match &mut entry.as_mut().value {
                 Entry::Poll(poll) => {
                     let poll = poll.as_mut();
+
                     // Safety: At this point, we know the waker has been
                     // replaced by the polling task and can safely deref it into
                     // the underlying waker.
@@ -163,10 +207,15 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                 }
                 Entry::Schedule(schedule) => {
                     let schedule = schedule.as_mut();
-                    let guard = SchedulePoisonGuard { shared, schedule };
-                    guard.schedule.task.as_mut()(tag);
+
+                    let guard = SchedulePoisonGuard {
+                        shared,
+                        parker: schedule.parker.as_ref(),
+                    };
+
+                    schedule.task.as_mut()(tag);
                     mem::forget(guard);
-                    schedule.release();
+                    schedule.parker.as_ref().unpark();
                 }
             }
         }
@@ -182,7 +231,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
     impl Drop for PoisonGuard<'_> {
         fn drop(&mut self) {
             unsafe {
-                self.shared.release();
+                self.shared.join_inside();
             }
         }
     }
@@ -198,7 +247,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
             // Safety: We know that the task holding the flag owns the
             // reference.
             unsafe {
-                self.shared.release();
+                self.shared.join_inside();
                 self.waker.wake_by_ref();
                 self.parker.unpark();
             }
@@ -207,7 +256,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
 
     struct SchedulePoisonGuard<'a> {
         shared: &'a Shared,
-        schedule: &'a mut ScheduleEntry,
+        parker: &'a Parker,
     }
 
     impl<'a> Drop for SchedulePoisonGuard<'a> {
@@ -215,8 +264,8 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
             // Safety: We know that the task holding the flag owns the
             // reference.
             unsafe {
-                self.shared.release();
-                self.schedule.release();
+                self.shared.join_inside();
+                self.parker.unpark();
             }
         }
     }
@@ -230,18 +279,27 @@ pub(super) enum Entry {
     Poll(ptr::NonNull<PollEntry>),
 }
 
+impl Entry {
+    /// Release all resources associated with the entry.
+    unsafe fn release(&self) {
+        match self {
+            Entry::Poll(poll) => {
+                let poll = poll.as_ref();
+                (*poll.waker).wake_by_ref();
+                poll.parker.as_ref().unpark();
+            }
+            Entry::Schedule(schedule) => {
+                let schedule = schedule.as_ref();
+                schedule.parker.as_ref().unpark();
+            }
+        }
+    }
+}
+
 /// A task submitted to the executor.
 pub(super) struct ScheduleEntry {
     pub(super) task: ptr::NonNull<dyn FnMut(Tag) + Send + 'static>,
     pub(super) parker: ptr::NonNull<Parker>,
-}
-
-impl ScheduleEntry {
-    pub(super) fn release(&self) {
-        unsafe {
-            self.parker.as_ref().unpark();
-        }
-    }
 }
 
 unsafe impl Send for ScheduleEntry {}

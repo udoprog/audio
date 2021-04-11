@@ -24,6 +24,15 @@ impl<T> LockFreeStack<T> {
         }
     }
 
+    /// Steal the head pointer and construct a new queue out of it.
+    pub fn steal(&self) -> Self {
+        let head = self.head.swap(ptr::null_mut(), Ordering::AcqRel);
+
+        Self {
+            head: AtomicPtr::new(head),
+        }
+    }
+
     /// Push to the head of the queue.
     ///
     /// Returns `true` if the stack was empty, `false` otherwise.

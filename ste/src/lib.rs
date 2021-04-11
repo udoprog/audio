@@ -113,7 +113,6 @@
 //! [Tagged]: https://docs.rs/ste/0/ste/struct.Tagged.html
 //! [audio]: https://github.com/udoprog/audio
 
-use crate::loom::sync::atomic::Ordering;
 use std::future::Future;
 use std::io;
 use std::mem;
@@ -135,9 +134,6 @@ use self::worker::{Entry, PollEntry, Prelude, ScheduleEntry, Shared};
 mod tagged;
 pub use self::tagged::Tagged;
 use self::tagged::{with_tag, Tag};
-
-#[doc(hidden)]
-pub mod linked_list;
 
 #[doc(hidden)]
 pub mod lock_free_stack;
@@ -442,25 +438,8 @@ impl Thread {
     /// # Ok(()) }    
     /// ```
     pub fn join(mut self) -> Result<(), Panicked> {
-        self.inner_join()
-    }
-
-    fn inner_join(&mut self) -> Result<(), Panicked> {
         if let Some(handle) = self.handle.take() {
-            let shared = unsafe { self.shared.as_ref() };
-            // We get the thread to shut down by disallowing the queue to be
-            // modified. If the thread has already shut down (due to a panic)
-            // this will already have been set to `isize::MIN` and will wrap
-            // around or do some other nonsense we can ignore.
-            let old = shared.modifiers.fetch_add(isize::MIN, Ordering::AcqRel);
-            shared.parker.unpark();
-
-            assert!(
-                old == 0 || old == isize::MIN,
-                "modifiers should be zero as we are joining; was = {}",
-                old
-            );
-
+            unsafe { self.shared.as_ref().outer_join() };
             return handle.join().map_err(|_| Panicked(()));
         }
 
@@ -473,7 +452,7 @@ impl Drop for Thread {
         // Note: we can safely ignore the result, because it will only error in
         // case the background thread has panicked. At which point we're still
         // free to assume it's no longer using the shared state.
-        let _ = self.inner_join();
+        unsafe { self.shared.as_ref().outer_join() };
 
         // Safety: at this point it's guaranteed that we've synchronized with
         // the thread enough that the shared state can be safely deallocated.
