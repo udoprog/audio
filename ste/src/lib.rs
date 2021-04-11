@@ -141,10 +141,9 @@ pub mod linked_list;
 
 #[doc(hidden)]
 pub mod lock_free_stack;
-use self::lock_free_stack::Node;
 
 mod adapter;
-use self::adapter::{Adapter, FutureAdapter};
+use self::adapter::FutureAdapter;
 
 mod wait_future;
 use self::wait_future::WaitFuture;
@@ -268,28 +267,20 @@ impl Thread {
         let parker = Parker::new();
         // Stack location where the output of the compuation is stored.
         let mut output = None;
+        // Static adapter for the future.
+        let mut adapter = FutureAdapter::new(future, ptr::NonNull::from(&mut output));
 
-        let mut adapter = FutureAdapter {
-            future,
-            output: ptr::NonNull::from(&mut output),
-        };
-
-        let wait_future = WaitFuture {
-            parker: &parker,
-            complete: false,
-            shared: unsafe { self.shared.as_ref() },
-            node: Node::new(Entry::Poll(PollEntry {
-                adapter: ptr::NonNull::from(unsafe {
-                    let adapter: &mut dyn Adapter = &mut adapter;
-                    mem::transmute::<_, &mut dyn Adapter>(adapter)
-                }),
-                waker: ptr::null(),
+        unsafe {
+            let wait_future = WaitFuture {
                 parker: ptr::NonNull::from(&parker),
-            })),
-            output: ptr::NonNull::from(&mut output),
-        };
+                complete: false,
+                shared: self.shared.as_ref(),
+                poll_entry: PollEntry::new(&mut adapter, ptr::NonNull::from(&parker)),
+                output: ptr::NonNull::from(&mut output),
+            };
 
-        wait_future.await
+            wait_future.await
+        }
     }
 
     /// Submit a task to run on the background thread.
@@ -326,21 +317,21 @@ impl Thread {
             let parker = Parker::new();
 
             let mut task = into_task(task, ptr::NonNull::from(&mut storage));
+            let mut entry = ScheduleEntry {
+                task: ptr::NonNull::new_unchecked(
+                    mem::transmute::<&mut (dyn FnMut(Tag) + Send), _>(&mut task),
+                ),
+                parker: ptr::NonNull::from(&parker),
+            };
 
             // Safety: We're constructing a pointer to a local stack location. It
             // will never be null.
             //
             // The transmute is necessary because we're constructing a trait object
             // with a `'static` lifetime.
-            self.shared.as_ref().schedule(
-                &parker,
-                Entry::Schedule(ScheduleEntry {
-                    task: ptr::NonNull::new_unchecked(mem::transmute::<
-                        &mut (dyn FnMut(Tag) + Send),
-                        _,
-                    >(&mut task)),
-                    parker: ptr::NonNull::from(&parker),
-                }),
+            self.shared.as_ref().schedule_in_place(
+                ptr::NonNull::from(&parker),
+                Entry::Schedule(ptr::NonNull::from(&mut entry)),
             )?;
 
             return match storage {

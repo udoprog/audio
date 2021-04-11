@@ -1,6 +1,5 @@
-use crate::lock_free_stack::Node;
 use crate::parker::Parker;
-use crate::worker::{Entry, Shared};
+use crate::worker::{Entry, PollEntry, Shared};
 use crate::Panicked;
 use std::future::Future;
 use std::pin::Pin;
@@ -8,10 +7,10 @@ use std::ptr;
 use std::task::{Context, Poll};
 
 pub(super) struct WaitFuture<'a, T> {
-    pub(super) parker: &'a Parker,
+    pub(super) parker: ptr::NonNull<Parker>,
     pub(super) complete: bool,
     pub(super) shared: &'a Shared,
-    pub(super) node: Node<Entry>,
+    pub(super) poll_entry: PollEntry,
     pub(super) output: ptr::NonNull<Option<T>>,
 }
 
@@ -27,37 +26,19 @@ impl<'a, T> Future for WaitFuture<'a, T> {
             }
 
             // NB: smuggle the current waker in for the duration of the poll.
-            if let Entry::Poll(poll) = &mut this.node.value {
-                poll.waker = cx.waker() as *const _;
-            }
+            this.poll_entry.waker = cx.waker() as *const _;
 
-            let first = {
-                if let Some(_guard) = this.shared.modifier() {
-                    this.shared.queue.push(ptr::NonNull::from(&mut this.node))
-                } else {
-                    return Poll::Ready(Err(Panicked(())));
-                }
-            };
-
-            if first {
-                this.shared.parker.unpark();
-            }
-
-            // NB: We must park here until the remote task wakes us up to allow
-            // the task to access things from the environment in the other
-            // thread safely.
-            //
-            // We also know fully that the parker is balanced - i.e. there are
-            // no sporadic wakes that can happen because we contrl the state of
-            // the submitted task exactly above.
-            this.parker.park();
+            this.shared.schedule_in_place(
+                this.parker,
+                Entry::Poll(ptr::NonNull::from(&mut this.poll_entry)),
+            )?;
 
             if let Some(output) = this.output.as_mut().take() {
                 this.complete = true;
-                return Poll::Ready(Ok(output));
+                Poll::Ready(Ok(output))
+            } else {
+                Poll::Pending
             }
-
-            Poll::Pending
         }
     }
 }

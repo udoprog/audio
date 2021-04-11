@@ -59,18 +59,29 @@ impl Shared {
         while let Some(entry) = self.queue.pop() {
             match &entry.as_ref().value {
                 Entry::Poll(poll) => {
+                    let poll = poll.as_ref();
                     (*poll.waker).wake_by_ref();
                     poll.parker.as_ref().unpark();
                 }
                 Entry::Schedule(schedule) => {
-                    schedule.release();
+                    schedule.as_ref().release();
                 }
             }
         }
     }
 
     /// Process the given entry on the remote thread.
-    pub(super) fn schedule(&self, parker: &Parker, entry: Entry) -> Result<(), Panicked> {
+    ///
+    /// # Safety
+    ///
+    /// We're sending the entry to be executed on a remote thread, the caller
+    /// must assure that anything being referenced in it is owned by the caller
+    /// and will not be dropped or deallocated for the duration of this call.
+    pub(super) unsafe fn schedule_in_place(
+        &self,
+        parker: ptr::NonNull<Parker>,
+        entry: Entry,
+    ) -> Result<(), Panicked> {
         let mut node = Node::new(entry);
 
         let first = {
@@ -86,7 +97,14 @@ impl Shared {
             self.parker.unpark();
         }
 
-        parker.park();
+        // NB: We must park here until the remote task wakes us up to allow
+        // the task to access things from the environment in the other
+        // thread safely.
+        //
+        // We also know fully that the parker is balanced - i.e. there are
+        // no sporadic wakes that can happen because we contrl the state of
+        // the submitted task exactly above.
+        parker.as_ref().park();
         Ok(())
     }
 }
@@ -127,6 +145,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
 
             match &mut entry.as_mut().value {
                 Entry::Poll(poll) => {
+                    let poll = poll.as_mut();
                     // Safety: At this point, we know the waker has been
                     // replaced by the polling task and can safely deref it into
                     // the underlying waker.
@@ -143,6 +162,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                     poll.parker.as_ref().unpark();
                 }
                 Entry::Schedule(schedule) => {
+                    let schedule = schedule.as_mut();
                     let guard = SchedulePoisonGuard { shared, schedule };
                     guard.schedule.task.as_mut()(tag);
                     mem::forget(guard);
@@ -205,9 +225,9 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
 /// An entry onto the task queue.
 pub(super) enum Entry {
     /// An entry to immediately be scheduled.
-    Schedule(ScheduleEntry),
+    Schedule(ptr::NonNull<ScheduleEntry>),
     /// An entry to be polled.
-    Poll(PollEntry),
+    Poll(ptr::NonNull<PollEntry>),
 }
 
 /// A task submitted to the executor.
@@ -224,12 +244,26 @@ impl ScheduleEntry {
     }
 }
 
+unsafe impl Send for ScheduleEntry {}
+
 /// A task to be polled by the scheduler.
 pub(super) struct PollEntry {
     /// Polling adapter to poll.
-    pub(super) adapter: ptr::NonNull<dyn Adapter + 'static>,
+    pub(super) adapter: ptr::NonNull<dyn Adapter>,
     /// Waker to use.
     pub(super) waker: *const Waker,
     /// Parker to wake once a poll completes.
     pub(super) parker: ptr::NonNull<Parker>,
 }
+
+impl PollEntry {
+    pub(super) unsafe fn new(adapter: &mut dyn Adapter, parker: ptr::NonNull<Parker>) -> Self {
+        Self {
+            adapter: mem::transmute(ptr::NonNull::from(adapter)),
+            waker: ptr::null(),
+            parker,
+        }
+    }
+}
+
+unsafe impl Send for PollEntry {}

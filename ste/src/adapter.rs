@@ -7,17 +7,26 @@ use std::task::{Context, Poll, Waker};
 /// Adapter trait used when shipping tasks to the remote thread.
 pub(super) trait Adapter: Send {
     /// Poll the adapter, returning a boolean indicating if its complete or not.
-    fn poll(&mut self, tag: Tag, submit_wake: &Waker);
+    fn poll(&mut self, tag: Tag, waker: &Waker);
 }
 
 pub(super) struct FutureAdapter<F>
 where
     F: Future,
 {
-    /// Where to store output.
-    pub(super) output: ptr::NonNull<Option<F::Output>>,
     /// The future being polled.
-    pub(super) future: F,
+    future: F,
+    /// Where to store output.
+    output: ptr::NonNull<Option<F::Output>>,
+}
+
+impl<F> FutureAdapter<F>
+where
+    F: Future,
+{
+    pub(super) fn new(future: F, output: ptr::NonNull<Option<F::Output>>) -> Self {
+        Self { future, output }
+    }
 }
 
 impl<F> Adapter for FutureAdapter<F>
