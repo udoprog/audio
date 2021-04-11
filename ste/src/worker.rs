@@ -1,9 +1,10 @@
 use crate::adapter::Adapter;
-use crate::lock_free_stack::LockFreeStack;
+use crate::lock_free_stack::{LockFreeStack, Node};
 use crate::loom::sync::atomic::{AtomicIsize, Ordering};
 use crate::parker::Parker;
 use crate::tagged::Tag;
 use crate::thread;
+use crate::Panicked;
 use std::mem;
 use std::ptr;
 use std::task::Waker;
@@ -66,6 +67,27 @@ impl Shared {
                 }
             }
         }
+    }
+
+    /// Process the given entry on the remote thread.
+    pub(super) fn schedule(&self, parker: &Parker, entry: Entry) -> Result<(), Panicked> {
+        let mut node = Node::new(entry);
+
+        let first = {
+            let _guard = match self.modifier() {
+                Some(guard) => guard,
+                None => return Err(Panicked(())),
+            };
+
+            self.queue.push(ptr::NonNull::from(&mut node))
+        };
+
+        if first {
+            self.parker.unpark();
+        }
+
+        parker.park();
+        Ok(())
     }
 }
 

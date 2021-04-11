@@ -321,53 +321,33 @@ impl Thread {
         F: Send + FnOnce() -> T,
         T: Send,
     {
-        let mut storage = None;
-        let parker = Parker::new();
+        unsafe {
+            let mut storage = None;
+            let parker = Parker::new();
 
-        {
-            let storage = ptr::NonNull::from(&mut storage);
-            let mut task = into_task(task, storage);
+            let mut task = into_task(task, ptr::NonNull::from(&mut storage));
 
             // Safety: We're constructing a pointer to a local stack location. It
             // will never be null.
             //
             // The transmute is necessary because we're constructing a trait object
             // with a `'static` lifetime.
-            let task = unsafe {
-                ptr::NonNull::new_unchecked(mem::transmute::<&mut (dyn FnMut(Tag) + Send), _>(
-                    &mut task,
-                ))
+            self.shared.as_ref().schedule(
+                &parker,
+                Entry::Schedule(ScheduleEntry {
+                    task: ptr::NonNull::new_unchecked(mem::transmute::<
+                        &mut (dyn FnMut(Tag) + Send),
+                        _,
+                    >(&mut task)),
+                    parker: ptr::NonNull::from(&parker),
+                }),
+            )?;
+
+            return match storage {
+                Some(result) => Ok(result),
+                None => Err(Panicked(())),
             };
-
-            let mut schedule = Node::new(Entry::Schedule(ScheduleEntry {
-                task,
-                parker: ptr::NonNull::from(&parker),
-            }));
-
-            unsafe {
-                let shared = self.shared.as_ref();
-
-                let first = {
-                    let _guard = match shared.modifier() {
-                        Some(guard) => guard,
-                        None => return Err(Panicked(())),
-                    };
-
-                    shared.queue.push(ptr::NonNull::from(&mut schedule))
-                };
-
-                if first {
-                    shared.parker.unpark();
-                }
-            }
-
-            parker.park();
         }
-
-        return match storage {
-            Some(result) => Ok(result),
-            None => Err(Panicked(())),
-        };
 
         fn into_task<T, O>(task: T, storage: ptr::NonNull<Option<O>>) -> impl FnMut(Tag) + Send
         where
