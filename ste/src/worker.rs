@@ -1,8 +1,7 @@
 use crate::adapter::Adapter;
 use crate::lock_free_stack::LockFreeStack;
-use crate::loom::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
+use crate::loom::sync::atomic::{AtomicIsize, Ordering};
 use crate::parker::Parker;
-use crate::state::NONE_READY;
 use crate::submit_wake::SubmitWake;
 use crate::tagged::Tag;
 use crate::thread;
@@ -111,6 +110,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                     let guard = WakerPoisonGuard {
                         shared,
                         submit_wake,
+                        parker: poll.parker.as_ref(),
                     };
 
                     let result = poll.adapter.as_mut().poll(tag, submit_wake);
@@ -127,6 +127,8 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                             submit_wake.inner_wake();
                         }
                     }
+
+                    poll.parker.as_ref().unpark();
                 }
                 Entry::Schedule(schedule) => {
                     let guard = SchedulePoisonGuard { shared, schedule };
@@ -156,6 +158,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
     struct WakerPoisonGuard<'a> {
         shared: &'a Shared,
         submit_wake: &'a SubmitWake,
+        parker: &'a Parker,
     }
 
     impl Drop for WakerPoisonGuard<'_> {
@@ -165,6 +168,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
             unsafe {
                 self.shared.release();
                 self.submit_wake.release();
+                self.parker.unpark();
             }
         }
     }
@@ -197,27 +201,23 @@ pub(super) enum Entry {
 /// A task submitted to the executor.
 pub(super) struct ScheduleEntry {
     pub(super) task: ptr::NonNull<dyn FnMut(Tag) + Send + 'static>,
-    pub(super) parker: Parker,
-    pub(super) flag: ptr::NonNull<AtomicUsize>,
+    pub(super) parker: ptr::NonNull<Parker>,
 }
 
 impl ScheduleEntry {
     pub(super) fn release(&self) {
         unsafe {
-            if self.flag.as_ref().fetch_add(1, Ordering::AcqRel) == NONE_READY {
-                // We got here first, so we know the calling thread won't
-                // park since they will see our update. If the calling
-                // thread got here before us, the value would be 1.
-                return;
-            }
-
-            self.parker.unpark();
+            self.parker.as_ref().unpark();
         }
     }
 }
 
 /// A task to be polled by the scheduler.
 pub(super) struct PollEntry {
+    /// Polling adapter to poll.
     pub(super) adapter: ptr::NonNull<dyn Adapter + 'static>,
+    /// Waker to use.
     pub(super) submit_wake: ptr::NonNull<Arc<SubmitWake>>,
+    /// Parker to wake once a poll completes.
+    pub(super) parker: ptr::NonNull<Parker>,
 }

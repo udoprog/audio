@@ -5,7 +5,7 @@
 // See: https://github.com/tokio-rs/tokio/blob/master/LICENSE
 
 use crate::loom::sync::atomic::{AtomicUsize, Ordering};
-use crate::loom::sync::{Arc, Condvar, Mutex};
+use crate::loom::sync::{Condvar, Mutex};
 use crate::loom::thread;
 
 const EMPTY: usize = 0;
@@ -37,20 +37,19 @@ struct Inner {
     condvar: Condvar,
 }
 
-#[derive(Clone)]
 pub struct Parker {
-    inner: Arc<Inner>,
+    inner: Inner,
 }
 
 impl Parker {
     /// Construct a new parker.
     pub(crate) fn new() -> Self {
         Self {
-            inner: Arc::new(Inner {
+            inner: Inner {
                 state: State(AtomicUsize::new(EMPTY)),
                 mutex: Mutex::new(()),
                 condvar: Condvar::new(),
-            }),
+            },
         }
     }
 

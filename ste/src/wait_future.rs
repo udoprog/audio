@@ -1,5 +1,6 @@
 use crate::lock_free_stack::Node;
 use crate::loom::thread;
+use crate::parker::Parker;
 use crate::state::{STATE_BUSY, STATE_COMPLETE, STATE_POLLABLE};
 use crate::submit_wake::SubmitWake;
 use crate::worker::{Entry, Shared};
@@ -10,6 +11,7 @@ use std::ptr;
 use std::task::{Context, Poll};
 
 pub(super) struct WaitFuture<'a, T> {
+    pub(super) parker: &'a Parker,
     pub(super) complete: bool,
     pub(super) shared: &'a Shared,
     pub(super) node: Node<Entry>,
@@ -57,9 +59,17 @@ impl<'a, T> Future for WaitFuture<'a, T> {
             if first {
                 this.shared.parker.unpark();
             }
-        }
 
-        Poll::Pending
+            // NB: We must park here until the remote task wakes us up to allow
+            // the task to access things from the environment in the other
+            // thread safely.
+            //
+            // We also know fully that the parker is balanced - i.e. there are
+            // no sporadic wakes that can happen because we contrl the state of
+            // the submitted task exactly above.
+            this.parker.park();
+            Poll::Pending
+        }
     }
 }
 

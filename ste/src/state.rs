@@ -1,8 +1,5 @@
 use crate::loom::sync::atomic::{AtomicUsize, Ordering};
 
-pub(super) const NONE_READY: usize = 0;
-pub(super) const BOTH_READY: usize = 2;
-
 /// The underlying future was not processed in any specific way.
 pub(super) const STATE_BUSY: usize = 1;
 /// The future has been polled.

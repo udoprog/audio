@@ -113,7 +113,7 @@
 //! [Tagged]: https://docs.rs/ste/0/ste/struct.Tagged.html
 //! [audio]: https://github.com/udoprog/audio
 
-use crate::loom::sync::atomic::{AtomicUsize, Ordering};
+use crate::loom::sync::atomic::Ordering;
 use std::future::Future;
 use std::io;
 use std::mem;
@@ -150,7 +150,6 @@ mod submit_wake;
 use self::submit_wake::SubmitWake;
 
 mod state;
-use self::state::{BOTH_READY, NONE_READY};
 
 mod adapter;
 use self::adapter::{Adapter, FutureAdapter};
@@ -272,6 +271,8 @@ impl Thread {
         F: Send + Future,
         F::Output: Send,
     {
+        // Parker to use during polling.
+        let parker = Parker::new();
         // Stack location where the output of the compuation is stored.
         let mut output = None;
 
@@ -284,6 +285,7 @@ impl Thread {
         };
 
         let wait_future = WaitFuture {
+            parker: &parker,
             complete: false,
             shared: unsafe { self.shared.as_ref() },
             node: Node::new(Entry::Poll(PollEntry {
@@ -292,6 +294,7 @@ impl Thread {
                     mem::transmute::<_, &mut dyn Adapter>(adapter)
                 }),
                 submit_wake: ptr::NonNull::from(&submit_wake),
+                parker: ptr::NonNull::from(&parker),
             })),
             output: ptr::NonNull::from(&mut output),
             submit_wake: &*submit_wake,
@@ -329,13 +332,11 @@ impl Thread {
         F: Send + FnOnce() -> T,
         T: Send,
     {
-        let flag = AtomicUsize::new(0);
         let mut storage = None;
+        let parker = Parker::new();
 
         {
             let storage = ptr::NonNull::from(&mut storage);
-            let parker = Parker::new();
-
             let mut task = into_task(task, storage);
 
             // Safety: We're constructing a pointer to a local stack location. It
@@ -351,8 +352,7 @@ impl Thread {
 
             let mut schedule = Node::new(Entry::Schedule(ScheduleEntry {
                 task,
-                parker: parker.clone(),
-                flag: ptr::NonNull::from(&flag),
+                parker: ptr::NonNull::from(&parker),
             }));
 
             unsafe {
@@ -372,16 +372,7 @@ impl Thread {
                 }
             }
 
-            // If 0, we know we got here first and have to park until the thread
-            // is ready.
-            if flag.fetch_add(1, Ordering::AcqRel) == NONE_READY {
-                // Safety: we're the only ones controlling these, so we know that
-                // they are correctly allocated and who owns what with
-                // synchronization.
-                while flag.load(Ordering::Relaxed) != BOTH_READY {
-                    parker.park();
-                }
-            }
+            parker.park();
         }
 
         return match storage {
