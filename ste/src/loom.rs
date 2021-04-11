@@ -1,9 +1,9 @@
 #[cfg(loom)]
-pub(crate) use loom::sync;
+pub use loom::sync;
 #[cfg(loom)]
-pub(crate) use loom::thread;
+pub use loom::thread;
 
 #[cfg(not(loom))]
-pub(crate) use ::std::sync;
+pub use ::std::sync;
 #[cfg(not(loom))]
-pub(crate) use ::std::thread;
+pub use ::std::thread;

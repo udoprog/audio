@@ -119,7 +119,7 @@ use std::mem;
 use std::ptr;
 use thiserror::Error;
 
-mod loom;
+pub(crate) mod loom;
 use self::loom::thread;
 
 #[cfg(test)]
