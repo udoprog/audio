@@ -62,7 +62,7 @@ impl Shared {
     // zero, after which it will pop all elements from the queue and release
     // them.
     unsafe fn join_inside(&self) {
-        let modifiers = self.modifiers.fetch_add(isize::MIN, Ordering::AcqRel);
+        let modifiers = self.modifiers.fetch_add(isize::MIN, Ordering::SeqCst);
 
         // It's not possible for the state to be anything but empty
         // here, because the worker thread takes the state before
@@ -138,17 +138,8 @@ impl Shared {
         // modified. If the thread has already shut down (due to a panic)
         // this will already have been set to `isize::MIN` and will wrap
         // around or do some other nonsense we can ignore.
-        let old = self.modifiers.fetch_add(isize::MIN, Ordering::AcqRel);
+        self.modifiers.fetch_add(isize::MIN, Ordering::SeqCst);
         self.parker.unpark();
-
-        // This assertion should always hold, because the handle doesn't expose
-        // any APIs which allows it to be joined while things are being
-        // scheduled.
-        assert!(
-            old == 0 || old == isize::MIN,
-            "modifiers should be zero as we are joining; was = {}",
-            old
-        );
     }
 }
 
@@ -158,7 +149,7 @@ pub(super) struct ModifierGuard<'a> {
 
 impl Drop for ModifierGuard<'_> {
     fn drop(&mut self) {
-        self.modifiers.fetch_sub(1, Ordering::Release);
+        self.modifiers.fetch_sub(1, Ordering::SeqCst);
     }
 }
 
@@ -188,12 +179,10 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
 
             match &mut entry.as_mut().value {
                 Entry::Poll(poll) => {
-                    let poll = poll.as_mut();
-
                     // Safety: At this point, we know the waker has been
                     // replaced by the polling task and can safely deref it into
                     // the underlying waker.
-                    let waker = &*poll.waker;
+                    let waker = poll.waker.as_ref();
 
                     let guard = WakerPoisonGuard {
                         shared,
@@ -206,8 +195,6 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                     poll.parker.as_ref().unpark();
                 }
                 Entry::Schedule(schedule) => {
-                    let schedule = schedule.as_mut();
-
                     let guard = SchedulePoisonGuard {
                         shared,
                         parker: schedule.parker.as_ref(),
@@ -272,11 +259,12 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
 }
 
 /// An entry onto the task queue.
+#[derive(Debug)]
 pub(super) enum Entry {
     /// An entry to immediately be scheduled.
-    Schedule(ptr::NonNull<ScheduleEntry>),
+    Schedule(ScheduleEntry),
     /// An entry to be polled.
-    Poll(ptr::NonNull<PollEntry>),
+    Poll(PollEntry),
 }
 
 impl Entry {
@@ -284,12 +272,10 @@ impl Entry {
     unsafe fn release(&self) {
         match self {
             Entry::Poll(poll) => {
-                let poll = poll.as_ref();
-                (*poll.waker).wake_by_ref();
+                poll.waker.as_ref().wake_by_ref();
                 poll.parker.as_ref().unpark();
             }
             Entry::Schedule(schedule) => {
-                let schedule = schedule.as_ref();
                 schedule.parker.as_ref().unpark();
             }
         }
@@ -297,31 +283,42 @@ impl Entry {
 }
 
 /// A task submitted to the executor.
+#[derive(Debug)]
 pub(super) struct ScheduleEntry {
-    pub(super) task: ptr::NonNull<dyn FnMut(Tag) + Send + 'static>,
-    pub(super) parker: ptr::NonNull<Parker>,
+    task: ptr::NonNull<dyn FnMut(Tag) + Send + 'static>,
+    parker: ptr::NonNull<Parker>,
 }
 
-unsafe impl Send for ScheduleEntry {}
+impl ScheduleEntry {
+    pub(super) unsafe fn new(
+        task: ptr::NonNull<dyn FnMut(Tag) + Send + 'static>,
+        parker: ptr::NonNull<Parker>,
+    ) -> Self {
+        Self { task, parker }
+    }
+}
 
 /// A task to be polled by the scheduler.
+#[derive(Debug)]
 pub(super) struct PollEntry {
     /// Polling adapter to poll.
-    pub(super) adapter: ptr::NonNull<dyn Adapter>,
+    adapter: ptr::NonNull<dyn Adapter + 'static>,
     /// Waker to use.
-    pub(super) waker: *const Waker,
+    waker: ptr::NonNull<Waker>,
     /// Parker to wake once a poll completes.
-    pub(super) parker: ptr::NonNull<Parker>,
+    parker: ptr::NonNull<Parker>,
 }
 
 impl PollEntry {
-    pub(super) unsafe fn new(adapter: &mut dyn Adapter, parker: ptr::NonNull<Parker>) -> Self {
+    pub(super) unsafe fn new(
+        adapter: ptr::NonNull<dyn Adapter + 'static>,
+        waker: ptr::NonNull<Waker>,
+        parker: ptr::NonNull<Parker>,
+    ) -> Self {
         Self {
-            adapter: mem::transmute(ptr::NonNull::from(adapter)),
-            waker: ptr::null(),
+            adapter,
+            waker,
             parker,
         }
     }
 }
-
-unsafe impl Send for PollEntry {}

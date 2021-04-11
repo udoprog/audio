@@ -15,7 +15,7 @@ where
     F: Future,
 {
     /// The future being polled.
-    future: F,
+    future: ptr::NonNull<F>,
     /// Where to store output.
     output: ptr::NonNull<Option<F::Output>>,
 }
@@ -24,7 +24,7 @@ impl<F> FutureAdapter<F>
 where
     F: Future,
 {
-    pub(super) fn new(future: F, output: ptr::NonNull<Option<F::Output>>) -> Self {
+    pub(super) fn new(future: ptr::NonNull<F>, output: ptr::NonNull<Option<F::Output>>) -> Self {
         Self { future, output }
     }
 }
@@ -35,8 +35,8 @@ where
 {
     fn poll(&mut self, tag: Tag, waker: &Waker) {
         unsafe {
-            let mut cx = Context::from_waker(&waker);
-            let future = Pin::new_unchecked(&mut self.future);
+            let mut cx = Context::from_waker(waker);
+            let future = Pin::new_unchecked(self.future.as_mut());
 
             match with_tag(tag, || future.poll(&mut cx)) {
                 Poll::Pending => (),

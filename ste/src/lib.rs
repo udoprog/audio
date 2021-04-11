@@ -129,7 +129,7 @@ mod parker;
 use crate::parker::Parker;
 
 mod worker;
-use self::worker::{Entry, PollEntry, Prelude, ScheduleEntry, Shared};
+use self::worker::{Entry, Prelude, ScheduleEntry, Shared};
 
 mod tagged;
 pub use self::tagged::Tagged;
@@ -139,7 +139,7 @@ use self::tagged::{with_tag, Tag};
 pub mod lock_free_stack;
 
 mod adapter;
-use self::adapter::FutureAdapter;
+use self::adapter::{Adapter, FutureAdapter};
 
 mod wait_future;
 use self::wait_future::WaitFuture;
@@ -254,7 +254,7 @@ impl Thread {
     /// assert!(audio_thread.join().is_err());
     /// # Ok(()) }
     /// ```
-    pub async fn submit_async<F>(&self, future: F) -> Result<F::Output, Panicked>
+    pub async fn submit_async<F>(&self, mut future: F) -> Result<F::Output, Panicked>
     where
         F: Send + Future,
         F::Output: Send,
@@ -264,14 +264,26 @@ impl Thread {
         // Stack location where the output of the compuation is stored.
         let mut output = None;
         // Static adapter for the future.
-        let mut adapter = FutureAdapter::new(future, ptr::NonNull::from(&mut output));
+        let mut adapter = FutureAdapter::new(
+            ptr::NonNull::from(&mut future),
+            ptr::NonNull::from(&mut output),
+        );
 
         unsafe {
             let wait_future = WaitFuture {
+                adapter: {
+                    // Note: the transmute is necessary to extend the lifetime
+                    // of the adapter so that it can be send to the thread.
+                    //
+                    // That's because trait objects behind raw pointers still
+                    // require lifetimes (for some reason).
+                    ptr::NonNull::from(mem::transmute::<&mut dyn Adapter, &mut dyn Adapter>(
+                        &mut adapter,
+                    ))
+                },
                 parker: ptr::NonNull::from(&parker),
                 complete: false,
                 shared: self.shared.as_ref(),
-                poll_entry: PollEntry::new(&mut adapter, ptr::NonNull::from(&parker)),
                 output: ptr::NonNull::from(&mut output),
             };
 
@@ -313,22 +325,21 @@ impl Thread {
             let parker = Parker::new();
 
             let mut task = into_task(task, ptr::NonNull::from(&mut storage));
-            let mut entry = ScheduleEntry {
-                task: ptr::NonNull::new_unchecked(
-                    mem::transmute::<&mut (dyn FnMut(Tag) + Send), _>(&mut task),
-                ),
-                parker: ptr::NonNull::from(&parker),
-            };
+            let entry = ScheduleEntry::new(
+                ptr::NonNull::new_unchecked(mem::transmute::<&mut (dyn FnMut(Tag) + Send), _>(
+                    &mut task,
+                )),
+                ptr::NonNull::from(&parker),
+            );
 
             // Safety: We're constructing a pointer to a local stack location. It
             // will never be null.
             //
             // The transmute is necessary because we're constructing a trait object
             // with a `'static` lifetime.
-            self.shared.as_ref().schedule_in_place(
-                ptr::NonNull::from(&parker),
-                Entry::Schedule(ptr::NonNull::from(&mut entry)),
-            )?;
+            self.shared
+                .as_ref()
+                .schedule_in_place(ptr::NonNull::from(&parker), Entry::Schedule(entry))?;
 
             return match storage {
                 Some(result) => Ok(result),
@@ -452,7 +463,10 @@ impl Drop for Thread {
         // Note: we can safely ignore the result, because it will only error in
         // case the background thread has panicked. At which point we're still
         // free to assume it's no longer using the shared state.
-        unsafe { self.shared.as_ref().outer_join() };
+        if let Some(handle) = self.handle.take() {
+            unsafe { self.shared.as_ref().outer_join() };
+            let _ = handle.join();
+        }
 
         // Safety: at this point it's guaranteed that we've synchronized with
         // the thread enough that the shared state can be safely deallocated.

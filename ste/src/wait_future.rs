@@ -1,3 +1,4 @@
+use crate::adapter::Adapter;
 use crate::parker::Parker;
 use crate::worker::{Entry, PollEntry, Shared};
 use crate::Panicked;
@@ -7,10 +8,10 @@ use std::ptr;
 use std::task::{Context, Poll};
 
 pub(super) struct WaitFuture<'a, T> {
+    pub(super) adapter: ptr::NonNull<dyn Adapter + 'static>,
     pub(super) parker: ptr::NonNull<Parker>,
     pub(super) complete: bool,
     pub(super) shared: &'a Shared,
-    pub(super) poll_entry: PollEntry,
     pub(super) output: ptr::NonNull<Option<T>>,
 }
 
@@ -26,12 +27,10 @@ impl<'a, T> Future for WaitFuture<'a, T> {
             }
 
             // NB: smuggle the current waker in for the duration of the poll.
-            this.poll_entry.waker = cx.waker() as *const _;
+            let poll_entry = PollEntry::new(this.adapter, cx.waker().into(), this.parker);
 
-            this.shared.schedule_in_place(
-                this.parker,
-                Entry::Poll(ptr::NonNull::from(&mut this.poll_entry)),
-            )?;
+            this.shared
+                .schedule_in_place(this.parker, Entry::Poll(poll_entry))?;
 
             if let Some(output) = this.output.as_mut().take() {
                 this.complete = true;
