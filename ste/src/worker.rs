@@ -2,12 +2,11 @@ use crate::adapter::Adapter;
 use crate::lock_free_stack::LockFreeStack;
 use crate::loom::sync::atomic::{AtomicIsize, Ordering};
 use crate::parker::Parker;
-use crate::submit_wake::SubmitWake;
 use crate::tagged::Tag;
 use crate::thread;
 use std::mem;
 use std::ptr;
-use std::sync::Arc;
+use std::task::Waker;
 
 /// The type of the prelude function.
 pub(super) type Prelude = dyn Fn() + Send + 'static;
@@ -59,7 +58,8 @@ impl Shared {
         while let Some(entry) = self.queue.pop() {
             match &entry.as_ref().value {
                 Entry::Poll(poll) => {
-                    poll.submit_wake.as_ref().release();
+                    (*poll.waker).wake_by_ref();
+                    poll.parker.as_ref().unpark();
                 }
                 Entry::Schedule(schedule) => {
                     schedule.release();
@@ -105,29 +105,19 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
 
             match &mut entry.as_mut().value {
                 Entry::Poll(poll) => {
-                    let submit_wake = poll.submit_wake.as_ref();
+                    // Safety: At this point, we know the waker has been
+                    // replaced by the polling task and can safely deref it into
+                    // the underlying waker.
+                    let waker = &*poll.waker;
 
                     let guard = WakerPoisonGuard {
                         shared,
-                        submit_wake,
+                        waker,
                         parker: poll.parker.as_ref(),
                     };
 
-                    let result = poll.adapter.as_mut().poll(tag, submit_wake);
+                    poll.adapter.as_mut().poll(tag, waker);
                     mem::forget(guard);
-
-                    if result {
-                        // Immediately ready, set as pollable and wake up.
-                        submit_wake.state.set_pollable();
-                        submit_wake.inner_wake();
-                    } else {
-                        // Unset the busy flag and poll it if it has been marked
-                        // as pollable.
-                        if submit_wake.state.unmark_busy_and_is_pollable() {
-                            submit_wake.inner_wake();
-                        }
-                    }
-
                     poll.parker.as_ref().unpark();
                 }
                 Entry::Schedule(schedule) => {
@@ -157,7 +147,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
 
     struct WakerPoisonGuard<'a> {
         shared: &'a Shared,
-        submit_wake: &'a SubmitWake,
+        waker: &'a Waker,
         parker: &'a Parker,
     }
 
@@ -167,7 +157,7 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
             // reference.
             unsafe {
                 self.shared.release();
-                self.submit_wake.release();
+                self.waker.wake_by_ref();
                 self.parker.unpark();
             }
         }
@@ -217,7 +207,7 @@ pub(super) struct PollEntry {
     /// Polling adapter to poll.
     pub(super) adapter: ptr::NonNull<dyn Adapter + 'static>,
     /// Waker to use.
-    pub(super) submit_wake: ptr::NonNull<Arc<SubmitWake>>,
+    pub(super) waker: *const Waker,
     /// Parker to wake once a poll completes.
     pub(super) parker: ptr::NonNull<Parker>,
 }

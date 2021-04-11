@@ -5,7 +5,11 @@ async fn main() -> anyhow::Result<()> {
         let mut result = 0u32;
 
         for n in 0..100u32 {
-            result += audio_thread.submit_async(async move { n }).await?;
+            audio_thread
+                .submit_async(async {
+                    result += n;
+                })
+                .await?;
         }
 
         assert_eq!(result, 4950);

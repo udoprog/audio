@@ -118,10 +118,7 @@ use std::future::Future;
 use std::io;
 use std::mem;
 use std::ptr;
-use std::sync::Arc;
 use thiserror::Error;
-
-mod atomic_waker;
 
 mod loom;
 use self::loom::thread;
@@ -145,11 +142,6 @@ pub mod linked_list;
 #[doc(hidden)]
 pub mod lock_free_stack;
 use self::lock_free_stack::Node;
-
-mod submit_wake;
-use self::submit_wake::SubmitWake;
-
-mod state;
 
 mod adapter;
 use self::adapter::{Adapter, FutureAdapter};
@@ -240,8 +232,9 @@ impl Thread {
     }
 
     /// Run the given future on the background thread. The future can reference
-    /// memory outside of the current scope, but will cause the runtime to block
-    /// if it's being dropped until completion.
+    /// memory outside of the current scope, but in order to do so, every time
+    /// it is polled it has to be perfectly synchronized with a remote poll
+    /// happening on the background thread.
     ///
     /// # Safety
     ///
@@ -276,9 +269,6 @@ impl Thread {
         // Stack location where the output of the compuation is stored.
         let mut output = None;
 
-        // The state of the thing being polled.
-        let submit_wake = Arc::new(SubmitWake::new());
-
         let mut adapter = FutureAdapter {
             future,
             output: ptr::NonNull::from(&mut output),
@@ -293,11 +283,10 @@ impl Thread {
                     let adapter: &mut dyn Adapter = &mut adapter;
                     mem::transmute::<_, &mut dyn Adapter>(adapter)
                 }),
-                submit_wake: ptr::NonNull::from(&submit_wake),
+                waker: ptr::null(),
                 parker: ptr::NonNull::from(&parker),
             })),
             output: ptr::NonNull::from(&mut output),
-            submit_wake: &*submit_wake,
         };
 
         wait_future.await
