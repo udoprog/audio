@@ -17,6 +17,7 @@ audio-core = {path = "../audio-core"}
 audio-generator = {path = "../audio-generator"}
 anyhow = "1.0"
 ste = {path = "../ste"}
+tokio = {version = "1.4.0", features = ["full"]}
 
 [target.'cfg(windows)'.dependencies]
 windows = {git = "https://github.com/microsoft/windows-rs", default-features = false}

@@ -16,4 +16,8 @@ pub mod xaudio2;
 pub mod bindings;
 
 #[cfg(windows)]
-mod windows;
+pub mod windows;
+
+pub mod driver;
+
+pub(crate) mod loom;

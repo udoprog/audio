@@ -6,12 +6,12 @@ const NULL: ss::HANDLE = ss::HANDLE(0);
 
 /// A reference counted event object.
 #[repr(transparent)]
-pub(crate) struct Event {
+pub struct Event {
     handle: ss::HANDLE,
 }
 
 impl Event {
-    pub(crate) fn create_event(manual_reset: bool, initial_state: bool) -> windows::Result<Self> {
+    pub(crate) fn new(manual_reset: bool, initial_state: bool) -> windows::Result<Self> {
         let handle = unsafe {
             ss::CreateEventA(
                 ptr::null_mut(),
@@ -29,6 +29,20 @@ impl Event {
         }
 
         Ok(Self { handle })
+    }
+
+    /// Set the event.
+    pub fn set(&self) {
+        unsafe {
+            ss::SetEvent(self.handle);
+        }
+    }
+
+    /// Reset the event.
+    pub fn reset(&self) {
+        unsafe {
+            ss::ResetEvent(self.handle);
+        }
     }
 
     /// Return the raw pointer to the underlying handle.
@@ -50,3 +64,6 @@ impl Drop for Event {
         }
     }
 }
+
+unsafe impl Send for Event {}
+unsafe impl Sync for Event {}

@@ -27,6 +27,7 @@ fn main() -> io::Result<()> {
             SetEvent,
             WAIT_RETURN_CAUSE,
             WaitForSingleObject,
+            WaitForMultipleObjects,
             FALSE,
             TRUE,
         },

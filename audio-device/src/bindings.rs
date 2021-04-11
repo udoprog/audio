@@ -45576,6 +45576,28 @@ pub mod Windows {
                     ::std::mem::transmute(dwmilliseconds),
                 )
             }
+            pub unsafe fn WaitForMultipleObjects<'a, T2__: ::windows::IntoParam<'a, BOOL>>(
+                ncount: u32,
+                lphandles: *const HANDLE,
+                bwaitall: T2__,
+                dwmilliseconds: u32,
+            ) -> WAIT_RETURN_CAUSE {
+                #[link(name = "KERNEL32")]
+                extern "system" {
+                    pub fn WaitForMultipleObjects(
+                        ncount: u32,
+                        lphandles: *const HANDLE,
+                        bwaitall: BOOL,
+                        dwmilliseconds: u32,
+                    ) -> WAIT_RETURN_CAUSE;
+                }
+                WaitForMultipleObjects(
+                    ::std::mem::transmute(ncount),
+                    ::std::mem::transmute(lphandles),
+                    bwaitall.into_param().abi(),
+                    ::std::mem::transmute(dwmilliseconds),
+                )
+            }
             pub const FALSE: BOOL = BOOL(0i32 as _);
             pub const TRUE: BOOL = BOOL(1i32 as _);
         }
