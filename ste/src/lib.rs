@@ -253,91 +253,6 @@ impl Thread {
         Builder::new().build()
     }
 
-    /// Run the given future on the background thread. The future can reference
-    /// memory outside of the current scope, but in order to do so, every time
-    /// it is polled it has to be perfectly synchronized with a remote poll
-    /// happening on the background thread.
-    ///
-    /// # Safety
-    ///
-    /// This function is unsafe as heck right now. Polling it without it having
-    /// been called w/ wake_by_ref **will cause a data race**.
-    ///
-    /// The above will be fixed.
-    ///
-    /// # Examples
-    ///
-    /// This method supports panics the same way as other threads:
-    ///
-    /// ```rust
-    /// # #[tokio::main(flavor = "current_thread")]
-    /// # async fn main() -> anyhow::Result<()> {
-    /// let thread = ste::Builder::new().with_tokio().build()?;
-    ///
-    /// thread.submit_async(async {
-    ///     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-    ///     println!("Hello World!");
-    /// });
-    ///
-    /// thread.join()?;
-    /// # Ok(()) }
-    /// ```
-    ///
-    /// Unwinding panics as isolated on a per-task basis the same was as for
-    /// [submit][Thread::submit].
-    ///
-    /// ```rust
-    /// # #[tokio::main(flavor = "current_thread")]
-    /// # async fn main() -> anyhow::Result<()> {
-    /// let thread = ste::Thread::new()?;
-    ///
-    /// let result = thread.submit_async(async move { panic!("woops") }).await;
-    /// assert!(result.is_err());
-    ///
-    /// let mut result = 0;
-    /// thread.submit_async(async { result += 1 }).await?;
-    /// assert_eq!(result, 1);
-    ///
-    /// thread.join()?;
-    /// # Ok(()) }
-    /// ```
-    pub async fn submit_async<F>(&self, mut future: F) -> Result<F::Output, Panicked>
-    where
-        F: Send + Future,
-        F::Output: Send,
-    {
-        // Parker to use during polling.
-        let parker = Parker::new();
-        // Stack location where the output of the compuation is stored.
-        let mut output = None;
-        // Static adapter for the future.
-        let mut adapter = FutureAdapter::new(
-            ptr::NonNull::from(&mut future),
-            ptr::NonNull::from(&mut output),
-        );
-
-        unsafe {
-            let wait_future = WaitFuture {
-                adapter: {
-                    // Note: the transmute is necessary to extend the lifetime
-                    // of the adapter so that it can be send to the thread.
-                    //
-                    // That's because trait objects behind raw pointers still
-                    // require lifetimes (for some reason).
-                    ptr::NonNull::from(mem::transmute::<&mut dyn Adapter, &mut dyn Adapter>(
-                        &mut adapter,
-                    ))
-                },
-                parker: ptr::NonNull::from(&parker),
-                complete: false,
-                shared: self.shared.as_ref(),
-                output: ptr::NonNull::from(&mut output),
-            };
-
-            wait_future.await
-        }
-    }
-
     /// Submit a task to run on the background thread.
     ///
     /// The call will block until it has been executed on the thread (or the
@@ -434,6 +349,91 @@ impl Thread {
                     }
                 }
             }
+        }
+    }
+
+    /// Run the given future on the background thread. The future can reference
+    /// memory outside of the current scope, but in order to do so, every time
+    /// it is polled it has to be perfectly synchronized with a remote poll
+    /// happening on the background thread.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe as heck right now. Polling it without it having
+    /// been called w/ wake_by_ref **will cause a data race**.
+    ///
+    /// The above will be fixed.
+    ///
+    /// # Examples
+    ///
+    /// This method supports panics the same way as other threads:
+    ///
+    /// ```rust
+    /// # #[tokio::main(flavor = "current_thread")]
+    /// # async fn main() -> anyhow::Result<()> {
+    /// let thread = ste::Builder::new().with_tokio().build()?;
+    ///
+    /// thread.submit_async(async {
+    ///     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    ///     println!("Hello World!");
+    /// });
+    ///
+    /// thread.join()?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// Unwinding panics as isolated on a per-task basis the same was as for
+    /// [submit][Thread::submit].
+    ///
+    /// ```rust
+    /// # #[tokio::main(flavor = "current_thread")]
+    /// # async fn main() -> anyhow::Result<()> {
+    /// let thread = ste::Thread::new()?;
+    ///
+    /// let result = thread.submit_async(async move { panic!("woops") }).await;
+    /// assert!(result.is_err());
+    ///
+    /// let mut result = 0;
+    /// thread.submit_async(async { result += 1 }).await?;
+    /// assert_eq!(result, 1);
+    ///
+    /// thread.join()?;
+    /// # Ok(()) }
+    /// ```
+    pub async fn submit_async<F>(&self, mut future: F) -> Result<F::Output, Panicked>
+    where
+        F: Send + Future,
+        F::Output: Send,
+    {
+        // Parker to use during polling.
+        let parker = Parker::new();
+        // Stack location where the output of the compuation is stored.
+        let mut output = None;
+        // Static adapter for the future.
+        let mut adapter = FutureAdapter::new(
+            ptr::NonNull::from(&mut future),
+            ptr::NonNull::from(&mut output),
+        );
+
+        unsafe {
+            let wait_future = WaitFuture {
+                adapter: {
+                    // Note: the transmute is necessary to extend the lifetime
+                    // of the adapter so that it can be send to the thread.
+                    //
+                    // That's because trait objects behind raw pointers still
+                    // require lifetimes (for some reason).
+                    ptr::NonNull::from(mem::transmute::<&mut dyn Adapter, &mut dyn Adapter>(
+                        &mut adapter,
+                    ))
+                },
+                parker: ptr::NonNull::from(&parker),
+                complete: false,
+                shared: self.shared.as_ref(),
+                output: ptr::NonNull::from(&mut output),
+            };
+
+            wait_future.await
         }
     }
 
