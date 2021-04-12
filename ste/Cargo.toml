@@ -1,6 +1,6 @@
 [package]
 name = "ste"
-version = "0.1.0-alpha.3"
+version = "0.1.0-alpha.4"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
@@ -12,13 +12,8 @@ documentation = "https://docs.rs/audio"
 description = "A single-threaded executor with some tricks up its sleeve."
 readme = "README.md"
 
-[features]
-parking-lot-parker = ["parking_lot_core"]
-
 [dependencies]
 thiserror = "1.0.24"
-parking_lot = "0.11.1"
-parking_lot_core = {version = "0.8.3", optional = true}
 
 [dev-dependencies]
 anyhow = "1.0"

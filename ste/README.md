@@ -39,17 +39,26 @@ which created it. Any attempt to access the data will check this tag against
 the tag in the current thread.
 
 ```rust
-struct Foo;
+struct Foo {
+    tag: ste::Tag,
+}
 
 impl Foo {
+    fn new() -> Self {
+        Self {
+            tag: ste::Tag::current_thread(),
+        }
+    }
+
     fn say_hello(&self) {
+        self.tag.ensure_on_thread();
         println!("Hello World!");
     }
 }
 
 let thread = ste::Thread::new()?;
 
-let foo = thread.submit(|| ste::Tagged::new(Foo))?;
+let foo = thread.submit(|| Foo::new())?;
 foo.say_hello(); // <- Panics!
 
 thread.join()?;
@@ -60,7 +69,7 @@ Using it inside of the thread that created it is fine.
 ```rust
 let thread = ste::Thread::new()?;
 
-let foo = thread.submit(|| ste::Tagged::new(Foo))?;
+let foo = thread.submit(|| Foo::new())?;
 
 thread.submit(|| {
     foo.say_hello(); // <- OK!

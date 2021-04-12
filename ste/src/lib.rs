@@ -39,10 +39,19 @@
 //! the tag in the current thread.
 //!
 //! ```rust,should_panic
-//! struct Foo;
+//! struct Foo {
+//!     tag: ste::Tag,
+//! }
 //!
 //! impl Foo {
+//!     fn new() -> Self {
+//!         Self {
+//!             tag: ste::Tag::current_thread(),
+//!         }
+//!     }
+//!
 //!     fn say_hello(&self) {
+//!         self.tag.ensure_on_thread();
 //!         println!("Hello World!");
 //!     }
 //! }
@@ -50,7 +59,7 @@
 //! # fn main() -> anyhow::Result<()> {
 //! let thread = ste::Thread::new()?;
 //!
-//! let foo = thread.submit(|| ste::Tagged::new(Foo))?;
+//! let foo = thread.submit(|| Foo::new())?;
 //! foo.say_hello(); // <- Panics!
 //!
 //! thread.join()?;
@@ -60,12 +69,15 @@
 //! Using it inside of the thread that created it is fine.
 //!
 //! ```rust
-//! # struct Foo;
-//! # impl Foo { fn say_hello(&self) { println!("Hello World!"); } }
+//! # struct Foo { tag: ste::Tag }
+//! # impl Foo {
+//! #     fn new() -> Self { Self { tag: ste::Tag::current_thread() } }
+//! #     fn say_hello(&self) { self.tag.ensure_on_thread(); println!("Hello World!"); }
+//! # }
 //! # fn main() -> anyhow::Result<()> {
 //! let thread = ste::Thread::new()?;
 //!
-//! let foo = thread.submit(|| ste::Tagged::new(Foo))?;
+//! let foo = thread.submit(|| Foo::new())?;
 //!
 //! thread.submit(|| {
 //!     foo.say_hello(); // <- OK!
@@ -373,51 +385,28 @@ impl Thread {
 
     /// Move the provided `value` onto the background thread and drop it.
     ///
-    /// This is necessary for [Tagged] values that needs to be dropped which
-    /// would otherwise panic.
+    /// This is necessary for values which uses [Tag] to ensure that a type is
+    /// not dropped incorrectly.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// // Ensure that `Foo` is both `!Send` and `!Sync`.
-    /// struct Foo(*mut ());
-    ///
-    /// impl Foo {
-    ///     fn test(&self) -> u32 {
-    ///         42
-    ///     }
-    /// }
+    /// struct Foo(ste::Tag);
     ///
     /// impl Drop for Foo {
     ///     fn drop(&mut self) {
-    ///         println!("Foo was dropped");
+    ///         self.0.ensure_on_thread();
     ///     }
     /// }
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let thread = ste::Thread::new()?;
     ///
-    /// let value = thread.submit(|| ste::Tagged::new(Foo(0 as *mut ())))?;
-    /// let out = thread.submit(|| value.test())?;
-    /// assert_eq!(42, out);
-    ///
-    /// thread.drop(value)?;
-    /// thread.join()?;
-    /// # Ok(()) }    
-    /// ```
-    ///
-    /// If we omit the call to [drop][Thread::drop], the above will panic.
-    ///
-    /// ```rust,should_panic
-    /// # struct Foo(*mut ());
-    /// # impl Drop for Foo { fn drop(&mut self) {} }
-    /// # fn main() -> anyhow::Result<()> {
-    /// let thread = ste::Thread::new()?;
-    ///
-    /// let value = thread.submit(|| ste::Tagged::new(Foo(0 as *mut ())))?;
+    /// let foo = thread.submit(|| Foo(ste::Tag::current_thread()));
+    /// thread.drop(foo);
     ///
     /// thread.join()?;
-    /// # Ok(()) }    
+    /// # Ok(()) }
     /// ```
     pub fn drop<T>(&self, value: T) -> Result<(), Panicked>
     where
@@ -455,6 +444,37 @@ impl Thread {
         }
 
         Ok(())
+    }
+
+    /// Construct the tag that is associated with the current thread externally
+    /// from the thread.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// struct Foo(ste::Tag);
+    ///
+    /// impl Foo {
+    ///     fn say_hello(&self) {
+    ///         self.0.ensure_on_thread();
+    ///         println!("Hello World");
+    ///     }
+    /// }
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let thread = ste::Thread::new()?;
+    ///
+    /// let foo = Foo(thread.tag());
+    ///
+    /// thread.submit(|| {
+    ///     foo.say_hello();
+    /// })?;
+    ///
+    /// thread.join()?;
+    /// # Ok(()) }
+    /// ```
+    pub fn tag(&self) -> Tag {
+        Tag(self.shared.as_ptr() as usize)
     }
 }
 
