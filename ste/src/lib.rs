@@ -131,9 +131,9 @@ use crate::parker::Parker;
 mod worker;
 use self::worker::{Entry, Prelude, ScheduleEntry, Shared};
 
-mod tagged;
-pub use self::tagged::Tagged;
-use self::tagged::{with_tag, Tag};
+mod tag;
+use self::tag::with_tag;
+pub use self::tag::Tag;
 
 #[doc(hidden)]
 pub mod linked_list;

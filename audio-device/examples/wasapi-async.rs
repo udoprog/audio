@@ -18,7 +18,7 @@ mod wasapi {
 
     async fn run_output<T>(
         handle: &Handle,
-        client: ste::Tagged<wasapi::Client>,
+        client: wasapi::Client,
         mut config: wasapi::ClientConfig,
     ) -> Result<()>
     where
@@ -27,8 +27,8 @@ mod wasapi {
     {
         config.sample_rate = 120000;
 
-        let initialized = ste::Tagged::new(client.initialize_async::<T>(handle, config)?);
-        let mut render_client = ste::Tagged::new(initialized.render_client()?);
+        let initialized = client.initialize_async::<T>(handle, config)?;
+        let mut render_client = initialized.render_client()?;
 
         client.start()?;
 
@@ -71,10 +71,8 @@ mod wasapi {
 
         audio_thread
             .submit_async(async {
-                let output = ste::Tagged::new(
-                    wasapi::default_output_client()?
-                        .ok_or_else(|| anyhow!("no default device found"))?,
-                );
+                let output = wasapi::default_output_client()?
+                    .ok_or_else(|| anyhow!("no default device found"))?;
 
                 let config = output.default_client_config()?;
 

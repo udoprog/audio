@@ -11,12 +11,12 @@ wasapi = ["bindings/wasapi"]
 [dependencies]
 thiserror = "1.0.24"
 rand = "0.8.3"
+ste = {path = "../ste"}
 
 [dev-dependencies]
 audio-core = {path = "../audio-core"}
 audio-generator = {path = "../audio-generator"}
 anyhow = "1.0"
-ste = {path = "../ste"}
 tokio = {version = "1.4.0", features = ["full"]}
 
 [target.'cfg(windows)'.dependencies]

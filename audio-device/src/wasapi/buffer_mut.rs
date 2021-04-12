@@ -5,6 +5,7 @@ use std::ops;
 use std::slice;
 
 pub struct BufferMut<'a, T> {
+    pub(super) tag: ste::Tag,
     pub(super) render_client: &'a mut core::IAudioRenderClient,
     pub(super) data: *mut T,
     pub(super) frames: u32,
@@ -16,6 +17,8 @@ pub struct BufferMut<'a, T> {
 impl<'a, T> BufferMut<'a, T> {
     /// Release the buffer allowing the audio device to consume it.
     pub fn release(mut self) -> Result<(), Error> {
+        self.tag.ensure_on_thread();
+
         if std::mem::take(&mut self.in_use) {
             unsafe {
                 self.render_client.ReleaseBuffer(self.frames, 0).ok()?;
@@ -28,6 +31,8 @@ impl<'a, T> BufferMut<'a, T> {
 
 impl<'a, T> Drop for BufferMut<'a, T> {
     fn drop(&mut self) {
+        self.tag.ensure_on_thread();
+
         if std::mem::take(&mut self.in_use) {
             unsafe {
                 self.render_client
@@ -43,6 +48,7 @@ impl<'a, T> ops::Deref for BufferMut<'a, T> {
     type Target = [T];
 
     fn deref(&self) -> &Self::Target {
+        self.tag.ensure_on_thread();
         debug_assert!(self.in_use);
         unsafe { slice::from_raw_parts(self.data, self.len) }
     }
@@ -50,9 +56,11 @@ impl<'a, T> ops::Deref for BufferMut<'a, T> {
 
 impl<'a, T> ops::DerefMut for BufferMut<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
+        self.tag.ensure_on_thread();
         debug_assert!(self.in_use);
         unsafe { slice::from_raw_parts_mut(self.data, self.len) }
     }
 }
 
+// Safety: thread safety is ensured through tagging with ste::Tag.
 unsafe impl<T> Send for BufferMut<'_, T> {}

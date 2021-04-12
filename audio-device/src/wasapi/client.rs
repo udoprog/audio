@@ -12,12 +12,15 @@ use std::sync::Arc;
 
 /// An audio client.
 pub struct Client {
+    pub(super) tag: ste::Tag,
     pub(super) audio_client: core::IAudioClient,
 }
 
 impl Client {
     /// Get the default client configuration.
     pub fn default_client_config(&self) -> Result<ClientConfig, Error> {
+        let tag = ste::Tag::current_thread();
+
         unsafe {
             let mut mix_format = mem::MaybeUninit::<*mut mm::WAVEFORMATEX>::zeroed();
 
@@ -64,6 +67,7 @@ impl Client {
             let sample_rate = (*mix_format).nSamplesPerSec;
 
             Ok(ClientConfig {
+                tag,
                 channels,
                 sample_rate,
                 sample_format,
@@ -148,6 +152,7 @@ impl Client {
             let buffer_size = buffer_size.assume_init();
 
             Ok(InitializedClient {
+                tag: self.tag,
                 audio_client: self.audio_client.clone(),
                 config,
                 buffer_size,
@@ -175,3 +180,6 @@ impl Client {
         Ok(())
     }
 }
+
+// Safety: thread safety is ensured through tagging with ste::Tag.
+unsafe impl Send for Client {}

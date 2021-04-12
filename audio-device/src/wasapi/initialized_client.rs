@@ -6,6 +6,7 @@ use std::sync::Arc;
 use windows::Interface as _;
 
 pub struct InitializedClient<T, E> {
+    pub(super) tag: ste::Tag,
     pub(super) audio_client: core::IAudioClient,
     pub(super) config: ClientConfig,
     pub(super) buffer_size: u32,
@@ -24,6 +25,8 @@ where
 
     /// Construct a render client used for writing output into.
     pub fn render_client(&self) -> Result<RenderClient<T, E>, Error> {
+        self.tag.ensure_on_thread();
+
         let render_client: core::IAudioRenderClient = unsafe {
             let mut render_client = std::ptr::null_mut();
 
@@ -36,6 +39,7 @@ where
         };
 
         Ok(RenderClient {
+            tag: self.tag,
             audio_client: self.audio_client.clone(),
             render_client,
             buffer_size: self.buffer_size,
@@ -45,3 +49,6 @@ where
         })
     }
 }
+
+// Safety: thread safety is ensured through tagging with ste::Tag.
+unsafe impl<T, E> Send for InitializedClient<T, E> {}

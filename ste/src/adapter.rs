@@ -1,4 +1,4 @@
-use crate::tagged::{with_tag, Tag};
+use crate::tag::{with_tag, Tag};
 use std::future::Future;
 use std::pin::Pin;
 use std::ptr;

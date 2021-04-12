@@ -59,6 +59,7 @@ pub enum SampleFormat {
 /// Constructed through [Client::default_client_config].
 #[derive(Debug, Clone, Copy)]
 pub struct ClientConfig {
+    tag: ste::Tag,
     pub channels: u16,
     pub sample_rate: u32,
     pub sample_format: SampleFormat,
@@ -66,6 +67,8 @@ pub struct ClientConfig {
 
 /// Open the default output device for WASAPI.
 pub fn default_output_client() -> Result<Option<Client>, Error> {
+    let tag = ste::Tag::current_thread();
+
     let enumerator: core::IMMDeviceEnumerator =
         windows::create_instance(&core::MMDeviceEnumerator)?;
 
@@ -94,6 +97,6 @@ pub fn default_output_client() -> Result<Option<Client>, Error> {
 
         let audio_client = audio_client.assume_init();
 
-        Ok(Some(Client { audio_client }))
+        Ok(Some(Client { tag, audio_client }))
     }
 }

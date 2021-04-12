@@ -8,6 +8,7 @@ use std::mem;
 use std::sync::Arc;
 
 pub struct RenderClient<T, E> {
+    pub(super) tag: ste::Tag,
     pub(super) audio_client: core::IAudioClient,
     pub(super) render_client: core::IAudioRenderClient,
     pub(super) buffer_size: u32,
@@ -46,6 +47,8 @@ impl<T> RenderClient<T, Event> {
     ///
     /// This will block until it is appropriate to submit a buffer.
     pub fn buffer_mut(&mut self) -> Result<BufferMut<'_, T>, Error> {
+        self.tag.ensure_on_thread();
+
         unsafe {
             loop {
                 match ss::WaitForSingleObject(self.event.raw_event(), wp::INFINITE) {
@@ -65,6 +68,7 @@ impl<T> RenderClient<T, Event> {
                 let data = self.get_buffer(frames)?;
 
                 return Ok(BufferMut {
+                    tag: self.tag,
                     render_client: &mut self.render_client,
                     data,
                     frames,
@@ -84,6 +88,7 @@ impl<T> RenderClient<T, AsyncEvent> {
     pub async fn buffer_mut_async(&mut self) -> Result<BufferMut<'_, T>, Error> {
         loop {
             self.event.wait().await;
+            self.tag.ensure_on_thread();
 
             let padding = self.get_current_padding()?;
             let frames = self.buffer_size.saturating_sub(padding);
@@ -95,6 +100,7 @@ impl<T> RenderClient<T, AsyncEvent> {
             let data = self.get_buffer(frames)?;
 
             return Ok(BufferMut {
+                tag: self.tag,
                 render_client: &mut self.render_client,
                 data,
                 frames,
@@ -106,4 +112,5 @@ impl<T> RenderClient<T, AsyncEvent> {
     }
 }
 
+// Safety: thread safety is ensured through tagging with ste::Tag.
 unsafe impl<T, E> Send for RenderClient<T, E> {}

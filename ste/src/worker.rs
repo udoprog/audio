@@ -4,7 +4,7 @@ use crate::loom::sync::atomic::{AtomicIsize, Ordering};
 use crate::loom::sync::Mutex;
 use crate::loom::thread;
 use crate::parker::Parker;
-use crate::tagged::Tag;
+use crate::tag::Tag;
 use crate::Panicked;
 use std::mem;
 use std::ptr;
