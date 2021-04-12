@@ -1,6 +1,13 @@
+use crate::driver::events::{Shared, Waker};
+use crate::loom::sync::atomic::Ordering;
+use crate::windows::RawEvent;
 use bindings::Windows::Win32::SystemServices as ss;
 use bindings::Windows::Win32::WindowsProgramming as wp;
+use std::future::Future;
+use std::pin::Pin;
 use std::ptr;
+use std::sync::Arc;
+use std::task::{Context, Poll};
 
 const NULL: ss::HANDLE = ss::HANDLE(0);
 
@@ -44,14 +51,10 @@ impl Event {
             ss::ResetEvent(self.handle);
         }
     }
+}
 
-    /// Return the raw pointer to the underlying handle.
-    ///
-    /// # Safety
-    ///
-    /// Caller must ensure that this event handle stays alive for the duration
-    /// of whatever its being associated with.
-    pub(crate) unsafe fn handle(&self) -> ss::HANDLE {
+impl RawEvent for Event {
+    unsafe fn raw_event(&self) -> ss::HANDLE {
         self.handle
     }
 }
@@ -67,3 +70,76 @@ impl Drop for Event {
 
 unsafe impl Send for Event {}
 unsafe impl Sync for Event {}
+
+/// An asynchronous variant of [Event].
+///
+/// Constructed through [Handle::event][crate::driver::events::Handle::event]
+pub struct AsyncEvent {
+    shared: Arc<Shared>,
+    waker: Arc<Waker>,
+    event: Option<Event>,
+}
+
+impl AsyncEvent {
+    /// Construct a new async event.
+    pub(crate) fn new(shared: Arc<Shared>, waker: Arc<Waker>, event: Event) -> Self {
+        Self {
+            shared,
+            waker,
+            event: Some(event),
+        }
+    }
+
+    /// Wait for the specified event handle to become set.
+    pub async fn wait(&self) {
+        return WaitFor {
+            shared: &*self.shared,
+            waker: &*self.waker,
+        }
+        .await;
+
+        struct WaitFor<'a> {
+            shared: &'a Shared,
+            waker: &'a Waker,
+        }
+
+        impl Future for WaitFor<'_> {
+            type Output = ();
+
+            fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+                if !self.shared.running.load(Ordering::Acquire) {
+                    panic!("background thread panicked");
+                }
+
+                if self.waker.ready.load(Ordering::Acquire) {
+                    return Poll::Ready(());
+                }
+
+                self.waker.waker.register_by_ref(cx.waker());
+                Poll::Pending
+            }
+        }
+    }
+
+    /// Set the current event handle.
+    pub fn set(&self) {
+        self.event.as_ref().unwrap().set();
+    }
+}
+
+impl RawEvent for AsyncEvent {
+    unsafe fn raw_event(&self) -> ss::HANDLE {
+        self.event.as_ref().unwrap().raw_event()
+    }
+}
+
+impl Drop for AsyncEvent {
+    fn drop(&mut self) {
+        let event = self.event.take().unwrap();
+        self.shared.holders.lock().unwrap().removed.push(event);
+        self.shared.parker.set();
+    }
+}
+
+unsafe impl Send for AsyncEvent {}
+unsafe impl Sync for AsyncEvent {}

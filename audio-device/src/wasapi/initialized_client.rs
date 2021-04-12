@@ -1,20 +1,19 @@
 use crate::wasapi::{ClientConfig, Error, RenderClient, Sample};
-use crate::windows::Event;
 use bindings::Windows::Win32::CoreAudio as core;
 use std::marker;
 use std::mem;
 use std::sync::Arc;
 use windows::Interface as _;
 
-pub struct InitializedClient<T> {
+pub struct InitializedClient<T, E> {
     pub(super) audio_client: core::IAudioClient,
     pub(super) config: ClientConfig,
     pub(super) buffer_size: u32,
-    pub(super) event: Arc<Event>,
+    pub(super) event: Arc<E>,
     pub(super) _marker: marker::PhantomData<T>,
 }
 
-impl<T> InitializedClient<T>
+impl<T, E> InitializedClient<T, E>
 where
     T: Sample,
 {
@@ -24,7 +23,7 @@ where
     }
 
     /// Construct a render client used for writing output into.
-    pub fn render_client(&self) -> Result<RenderClient<T>, Error> {
+    pub fn render_client(&self) -> Result<RenderClient<T, E>, Error> {
         let render_client: core::IAudioRenderClient = unsafe {
             let mut render_client = std::ptr::null_mut();
 

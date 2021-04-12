@@ -7,7 +7,7 @@ use std::slice;
 pub struct BufferMut<'a, T> {
     pub(super) render_client: &'a mut core::IAudioRenderClient,
     pub(super) data: *mut T,
-    pub(super) frames_available: u32,
+    pub(super) frames: u32,
     pub(super) len: usize,
     pub(super) in_use: bool,
     pub(super) _marker: marker::PhantomData<&'a mut [T]>,
@@ -18,9 +18,7 @@ impl<'a, T> BufferMut<'a, T> {
     pub fn release(mut self) -> Result<(), Error> {
         if std::mem::take(&mut self.in_use) {
             unsafe {
-                self.render_client
-                    .ReleaseBuffer(self.frames_available, 0)
-                    .ok()?;
+                self.render_client.ReleaseBuffer(self.frames, 0).ok()?;
             }
         }
 
@@ -33,7 +31,7 @@ impl<'a, T> Drop for BufferMut<'a, T> {
         if std::mem::take(&mut self.in_use) {
             unsafe {
                 self.render_client
-                    .ReleaseBuffer(self.frames_available, 0)
+                    .ReleaseBuffer(self.frames, 0)
                     .ok()
                     .unwrap();
             }
@@ -56,3 +54,5 @@ impl<'a, T> ops::DerefMut for BufferMut<'a, T> {
         unsafe { slice::from_raw_parts_mut(self.data, self.len) }
     }
 }
+
+unsafe impl<T> Send for BufferMut<'_, T> {}

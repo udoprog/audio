@@ -4,14 +4,11 @@ use crate::driver::atomic_waker::AtomicWaker;
 use crate::loom::sync::atomic::{AtomicBool, Ordering};
 use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
-use crate::windows::Event;
+use crate::windows::{AsyncEvent, Event, RawEvent as _};
 use bindings::Windows::Win32::SystemServices as ss;
 use bindings::Windows::Win32::WindowsProgramming as wp;
-use std::future::Future;
 use std::io;
 use std::mem;
-use std::pin::Pin;
-use std::task::{Context, Poll};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -19,22 +16,22 @@ use thiserror::Error;
 pub struct Panicked(());
 
 /// Data on the waker for a handle.
-struct Waker {
-    ready: AtomicBool,
-    waker: AtomicWaker,
+pub(crate) struct Waker {
+    pub(crate) ready: AtomicBool,
+    pub(crate) waker: AtomicWaker,
     handle: ss::HANDLE,
 }
 
-#[derive(Default)]
-struct Holders {
-    added: Vec<Arc<Waker>>,
-    removed: Vec<Event>,
+pub(crate) struct Shared {
+    pub(crate) running: AtomicBool,
+    pub(crate) holders: Mutex<Holders>,
+    pub(crate) parker: Event,
 }
 
-struct Shared {
-    running: AtomicBool,
-    holders: Mutex<Holders>,
-    parker: Event,
+#[derive(Default)]
+pub(crate) struct Holders {
+    pub(crate) added: Vec<Arc<Waker>>,
+    pub(crate) removed: Vec<Event>,
 }
 
 pub struct Handle {
@@ -65,9 +62,9 @@ impl Handle {
     }
 
     /// Construct an asynchronous event associated with the current handle.
-    pub fn event(&self) -> windows::Result<AsyncEvent> {
-        let event = Event::new(false, false)?;
-        let handle = unsafe { event.handle() };
+    pub fn event(&self, initial_state: bool) -> windows::Result<AsyncEvent> {
+        let event = Event::new(false, initial_state)?;
+        let handle = unsafe { event.raw_event() };
 
         let waker = Arc::new(Waker {
             ready: AtomicBool::new(false),
@@ -83,11 +80,7 @@ impl Handle {
             .push(waker.clone());
         self.shared.parker.set();
 
-        Ok(AsyncEvent {
-            shared: self.shared.clone(),
-            waker,
-            event: Some(event),
-        })
+        Ok(AsyncEvent::new(self.shared.clone(), waker, event))
     }
 
     /// Join the current handle.
@@ -110,64 +103,6 @@ impl Handle {
 impl Drop for Handle {
     fn drop(&mut self) {
         let _ = self.inner_join();
-    }
-}
-
-/// An asynchronous event.
-pub struct AsyncEvent {
-    shared: Arc<Shared>,
-    waker: Arc<Waker>,
-    event: Option<Event>,
-}
-
-impl AsyncEvent {
-    /// Wait for the specified event handle to become set.
-    pub async fn wait(&self) {
-        return WaitFor {
-            shared: &*self.shared,
-            waker: &*self.waker,
-        }
-        .await;
-
-        struct WaitFor<'a> {
-            shared: &'a Shared,
-            waker: &'a Waker,
-        }
-
-        impl Future for WaitFor<'_> {
-            type Output = ();
-
-            fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-                if !self.shared.running.load(Ordering::Acquire) {
-                    panic!("background thread panicked");
-                }
-
-                if self.waker.ready.load(Ordering::Acquire) {
-                    return Poll::Ready(());
-                }
-
-                self.waker.waker.register_by_ref(cx.waker());
-                Poll::Pending
-            }
-        }
-    }
-
-    /// Set the current event handle.
-    pub fn set(&self) {
-        self.event.as_ref().unwrap().set();
-    }
-
-    /// Access the underlying handle.
-    pub unsafe fn handle(&self) -> ss::HANDLE {
-        self.event.as_ref().unwrap().handle()
-    }
-}
-
-impl Drop for AsyncEvent {
-    fn drop(&mut self) {
-        let event = self.event.take().unwrap();
-        self.shared.holders.lock().unwrap().removed.push(event);
-        self.shared.parker.set();
     }
 }
 
@@ -240,7 +175,7 @@ impl Driver {
             let mut removed = mem::replace(&mut holders.removed, Vec::new());
 
             for event in removed.drain(..) {
-                let removed = unsafe { event.handle().0 };
+                let removed = unsafe { event.raw_event().0 };
 
                 if let Some(index) = guard.wakers.iter().position(|w| w.handle.0 == removed) {
                     guard.wakers.swap_remove(index);
@@ -274,7 +209,7 @@ impl Driver {
 
     fn start(shared: Arc<Shared>) {
         let state = Driver {
-            events: vec![unsafe { shared.parker.handle() }],
+            events: vec![unsafe { shared.parker.raw_event() }],
             wakers: vec![],
             shared,
         };

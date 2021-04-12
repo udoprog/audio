@@ -1,5 +1,6 @@
+use crate::driver::events::Handle;
 use crate::wasapi::{ClientConfig, Error, InitializedClient, Sample, SampleFormat};
-use crate::windows::Event;
+use crate::windows::{AsyncEvent, Event, RawEvent};
 use bindings::Windows::Win32::Com as com;
 use bindings::Windows::Win32::CoreAudio as core;
 use bindings::Windows::Win32::Multimedia as mm;
@@ -71,9 +72,35 @@ impl Client {
     }
 
     /// Try to initialize the client with the given configuration.
-    pub fn initialize<T>(&self, mut config: ClientConfig) -> Result<InitializedClient<T>, Error>
+    pub fn initialize<T>(&self, config: ClientConfig) -> Result<InitializedClient<T, Event>, Error>
     where
         T: Sample,
+    {
+        self.initialize_inner(config, || Event::new(false, false))
+    }
+
+    /// Try to initialize the client with the given configuration.
+    pub fn initialize_async<T>(
+        &self,
+        handle: &Handle,
+        config: ClientConfig,
+    ) -> Result<InitializedClient<T, AsyncEvent>, Error>
+    where
+        T: Sample,
+    {
+        self.initialize_inner(config, || handle.event(false))
+    }
+
+    /// Try to initialize the client with the given configuration.
+    fn initialize_inner<T, F, E>(
+        &self,
+        mut config: ClientConfig,
+        event: F,
+    ) -> Result<InitializedClient<T, E>, Error>
+    where
+        T: Sample,
+        F: FnOnce() -> windows::Result<E>,
+        E: RawEvent,
     {
         unsafe {
             let mut mix_format = T::mix_format(config);
@@ -110,9 +137,9 @@ impl Client {
                 )
                 .ok()?;
 
-            let event = Arc::new(Event::new(false, false)?);
+            let event = Arc::new(event()?);
 
-            self.audio_client.SetEventHandle(event.handle()).ok()?;
+            self.audio_client.SetEventHandle(event.raw_event()).ok()?;
 
             let mut buffer_size = mem::MaybeUninit::<u32>::uninit();
             self.audio_client
