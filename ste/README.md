@@ -33,14 +33,14 @@ thread.join()?;
 
 This library provides the ability to construct a [Tag] which is uniquely
 associated with the thread that created it. This can then be used to ensure
-that data is only accessed on any one given thread.
+that data is only accessible by one thread.
 
-This is useful, because many APIs requires *thread-locality*. Instances can
-only safely be used by the thread that created them. This is a low-level
+This is useful, because many APIs requires *thread-locality* where instances
+can only safely be used by the thread that created them. This is a low-level
 tool we provide which allows the safe implementation of `Send` for types
 which are otherwise `!Send`.
 
-Note that correctly using a [Tag] is hard, and incorrect use has sever
+Note that correctly using a [Tag] is hard, and incorrect use has severe
 safety implications. Make sure to study its documentation closely before
 use.
 
@@ -65,21 +65,23 @@ impl Foo {
 let thread = ste::Thread::new()?;
 
 let foo = thread.submit(|| Foo::new())?;
-foo.say_hello(); // <- Panics!
+
+thread.submit(|| {
+    foo.say_hello(); // <- OK!
+})?;
 
 thread.join()?;
 ```
 
-Using `say_hello` inside of the thread that created it is however fine.
+Using `say_hello` outside of the thread that created it is not fine and will
+panic to prevent racy access:
 
 ```rust
 let thread = ste::Thread::new()?;
 
 let foo = thread.submit(|| Foo::new())?;
 
-thread.submit(|| {
-    foo.say_hello(); // <- OK!
-})?;
+foo.say_hello(); // <- Oops, panics!
 
 thread.join()?;
 ```

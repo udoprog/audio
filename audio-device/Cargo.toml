@@ -5,6 +5,7 @@ authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
 
 [features]
+default = ["wasapi"]
 xaudio2 = ["bindings/xaudio2"]
 wasapi = ["bindings/wasapi"]
 

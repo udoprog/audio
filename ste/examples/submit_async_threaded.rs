@@ -6,15 +6,15 @@ async fn main() -> anyhow::Result<()> {
     for _ in 0..10 {
         let mut threads = Vec::new();
 
-        let audio_thread = Arc::new(ste::Thread::new()?);
+        let thread = Arc::new(ste::Thread::new()?);
 
         for n in 0..100 {
-            let audio_thread = audio_thread.clone();
+            let thread = thread.clone();
 
             threads.push(thread::spawn(move || {
                 let mut result = 0u32;
 
-                let future = audio_thread.submit_async(async {
+                let future = thread.submit_async(async {
                     result += n;
                 });
 
@@ -31,10 +31,8 @@ async fn main() -> anyhow::Result<()> {
 
         assert_eq!(result, 4950);
 
-        let audio_thread = Arc::try_unwrap(audio_thread)
-            .map_err(|_| "not unique")
-            .unwrap();
-        assert!(audio_thread.join().is_ok());
+        let thread = Arc::try_unwrap(thread).map_err(|_| "not unique").unwrap();
+        assert!(thread.join().is_ok());
     }
 
     Ok(())

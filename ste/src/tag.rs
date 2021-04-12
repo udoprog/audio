@@ -33,34 +33,57 @@ where
 /// the current tag through [Tag::ensure_on_thread]. This includes everything
 /// which poses a potential thread safety risk.
 ///
-/// If that is done, you can safely implement [Send] for the type.
+/// This includes, but is not limited to:
+/// * Accessing or mutating any racy data or APIs, such as `Cell<T>`.
+/// * The type that is tagged, (and any nested types) [drop][Drop::drop]
+///   implementation.
+///
+/// If all of the above is satifised, you can safely implement [Send] and [Sync]
+/// for the type. Make sure to include a comprehensive safety message such as:
+///
+/// ```rust
+/// # struct Foo;
+/// // Safety: the structure is explicitly tagged with the thread that created
+/// // it, and we ensure everywhere (including drop implementations) where racy
+/// // access might occur that it is on the thread that created it.
+/// unsafe impl Send for Foo {}
+/// ```
+///
+/// Tags can only be correctly constructed in two ways:
+/// * By calling [Tag::current_thread] if inside of a thread context. Such as
+///   [Thread::submit][super::Thread::submit] or
+///   [Thread::submit_async][super::Thread::submit_async].
+/// * Externally by calling [Thread::tag][super::Thread::tag].
 ///
 /// # Examples
 ///
-/// ```rust,should_panic
+/// ```rust
+/// use std::cell::Cell;
+///
 /// struct Foo {
 ///     tag: ste::Tag,
-///     data: *mut (),
+///     data: Cell<usize>,
 /// }
 ///
 /// impl Foo {
 ///     fn new() -> Self {
 ///         Self {
 ///             tag: ste::Tag::current_thread(),
-///             data: std::ptr::null_mut(),
+///             data: Cell::new(42),
 ///         }
 ///     }
 ///
 ///     fn say_hello(&self) {
 ///         self.tag.ensure_on_thread();
-///         println!("Hello from Foo");
+///         println!("Hello from Foo: {}", self.data.get());
 ///     }
 /// }
 ///
 /// // Safety: the structure is explicitly tagged with the thread that created
-/// // it, and we ensure everywhere where racy access might otherwise happen
-/// // that it is on the creating thread.
+/// // it, and we ensure everywhere (including drop implementations) where racy
+/// // access might occur that it is on the thread that created it.
 /// unsafe impl Send for Foo {}
+/// unsafe impl Sync for Foo {}
 ///
 /// # fn main() -> anyhow::Result<()> {
 /// let thread = ste::Thread::new()?;
@@ -69,7 +92,28 @@ where
 ///
 /// assert!(!foo.tag.is_on_thread());
 ///
-/// foo.say_hello(); // <- oops, this panics
+/// thread.submit(|| foo.say_hello());
+///
+/// thread.join()?;
+/// # Ok(()) }
+/// ```
+///
+/// Incorrect use of the tagged struct **must** panic:
+///
+/// ```rust,should_panic
+/// # struct Foo { tag: ste::Tag }
+/// # impl Foo {
+/// #     fn new() -> Self { Self { tag: ste::Tag::current_thread() } }
+/// #     fn say_hello(&self) { self.tag.ensure_on_thread(); }
+/// # }
+/// # fn main() -> anyhow::Result<()> {
+/// let thread = ste::Thread::new()?;
+///
+/// let foo = thread.submit(|| Foo::new())?;
+///
+/// assert!(!foo.tag.is_on_thread());
+///
+/// foo.say_hello(); // <- oops, this panics!
 ///
 /// thread.join()?;
 /// # Ok(()) }
@@ -81,7 +125,7 @@ pub struct Tag(pub(super) usize);
 impl Tag {
     /// Get the tag associated with the current thread.
     ///
-    /// See [Tag] documentation for how to use.
+    /// See [Tag] documentation for how to use correctly.
     ///
     /// # Panics
     ///
