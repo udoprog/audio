@@ -4,7 +4,7 @@ use crate::bindings::Windows::Win32::SystemServices as ss;
 use crate::bindings::Windows::Win32::WindowsProgramming as wp;
 use crate::driver::atomic_waker::AtomicWaker;
 use crate::loom::sync::atomic::{AtomicBool, Ordering};
-use crate::loom::sync::{Arc, RwLock};
+use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
 use crate::windows::Event;
 use std::future::Future;
@@ -33,7 +33,7 @@ struct Holders {
 
 struct Shared {
     running: AtomicBool,
-    holders: RwLock<Holders>,
+    holders: Mutex<Holders>,
     parker: Event,
 }
 
@@ -47,7 +47,7 @@ impl Handle {
     pub fn new() -> windows::Result<Self> {
         let shared = Arc::new(Shared {
             running: AtomicBool::new(true),
-            holders: RwLock::new(Holders::default()),
+            holders: Mutex::new(Holders::default()),
             parker: Event::new(false, false)?,
         });
 
@@ -77,7 +77,7 @@ impl Handle {
 
         self.shared
             .holders
-            .write()
+            .lock()
             .unwrap()
             .added
             .push(waker.clone());
@@ -166,8 +166,7 @@ impl AsyncEvent {
 impl Drop for AsyncEvent {
     fn drop(&mut self) {
         let event = self.event.take().unwrap();
-        let mut holders = self.shared.holders.write().unwrap();
-        holders.removed.push(event);
+        self.shared.holders.lock().unwrap().removed.push(event);
         self.shared.parker.set();
     }
 }
@@ -228,7 +227,7 @@ impl Driver {
                 }
             }
 
-            let mut holders = self.shared.holders.write().unwrap();
+            let mut holders = self.shared.holders.lock().unwrap();
             let mut added = mem::replace(&mut holders.added, Vec::new());
 
             for waker in added.drain(..) {
@@ -248,6 +247,8 @@ impl Driver {
                     self.events.swap_remove(index + 1);
                 }
             }
+
+            holders.removed = removed;
         }
 
         mem::forget(guard);
