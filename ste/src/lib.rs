@@ -133,7 +133,6 @@
 
 use std::future::Future;
 use std::io;
-use std::mem;
 use std::ptr;
 use thiserror::Error;
 
@@ -147,7 +146,7 @@ mod parker;
 use crate::parker::Parker;
 
 mod worker;
-use self::worker::{Entry, Prelude, ScheduleEntry, Shared};
+use self::worker::{Entry, Prelude, Shared};
 
 mod tag;
 use self::tag::with_tag;
@@ -156,11 +155,11 @@ pub use self::tag::Tag;
 #[doc(hidden)]
 pub mod linked_list;
 
-mod adapter;
-use self::adapter::{Adapter, FutureAdapter};
-
 mod wait_future;
 use self::wait_future::WaitFuture;
+
+mod misc;
+use self::misc::RawSend;
 
 /// Error raised when we try to interact with a background thread that has
 /// panicked.
@@ -305,13 +304,8 @@ impl Thread {
             let mut storage = None;
             let parker = Parker::new();
 
-            let mut task = into_task(task, ptr::NonNull::from(&mut storage));
-            let entry = ScheduleEntry::new(
-                ptr::NonNull::new_unchecked(mem::transmute::<&mut (dyn FnMut(Tag) + Send), _>(
-                    &mut task,
-                )),
-                ptr::NonNull::from(&parker),
-            );
+            let mut task = into_task(task, RawSend(ptr::NonNull::from(&mut storage)));
+            let entry = Entry::new(&mut task, ptr::NonNull::from(&parker));
 
             // Safety: We're constructing a pointer to a local stack location. It
             // will never be null.
@@ -320,7 +314,7 @@ impl Thread {
             // with a `'static` lifetime.
             self.shared
                 .as_ref()
-                .schedule_in_place(ptr::NonNull::from(&parker), Entry::Schedule(entry))?;
+                .schedule_in_place(ptr::NonNull::from(&parker), entry)?;
 
             return match storage {
                 Some(result) => Ok(result),
@@ -328,25 +322,26 @@ impl Thread {
             };
         }
 
-        fn into_task<T, O>(task: T, storage: ptr::NonNull<Option<O>>) -> impl FnMut(Tag) + Send
+        fn into_task<T, O>(task: T, mut storage: RawSend<Option<O>>) -> impl FnMut(Tag) + Send
         where
             T: FnOnce() -> O + Send,
             O: Send,
         {
+            use std::panic;
+
             let mut task = Some(task);
-            let storage = RawSend(storage);
 
             move |tag| {
-                let RawSend(mut storage) = storage;
-
                 if let Some(task) = task.take() {
-                    let output = with_tag(tag, task);
+                    let _ = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+                        let output = with_tag(tag, task);
 
-                    // Safety: we're the only one with access to this pointer,
-                    // and we know it hasn't been de-allocated yet.
-                    unsafe {
-                        *storage.as_mut() = Some(output);
-                    }
+                        // Safety: we're the only one with access to this pointer,
+                        // and we know it hasn't been de-allocated yet.
+                        unsafe {
+                            *storage.0.as_mut() = Some(output);
+                        }
+                    }));
                 }
             }
         }
@@ -409,28 +404,14 @@ impl Thread {
         let parker = Parker::new();
         // Stack location where the output of the compuation is stored.
         let mut output = None;
-        // Static adapter for the future.
-        let mut adapter = FutureAdapter::new(
-            ptr::NonNull::from(&mut future),
-            ptr::NonNull::from(&mut output),
-        );
 
         unsafe {
             let wait_future = WaitFuture {
-                adapter: {
-                    // Note: the transmute is necessary to extend the lifetime
-                    // of the adapter so that it can be send to the thread.
-                    //
-                    // That's because trait objects behind raw pointers still
-                    // require lifetimes (for some reason).
-                    ptr::NonNull::from(mem::transmute::<&mut dyn Adapter, &mut dyn Adapter>(
-                        &mut adapter,
-                    ))
-                },
+                future: ptr::NonNull::from(&mut future),
+                output: ptr::NonNull::from(&mut output),
                 parker: ptr::NonNull::from(&parker),
                 complete: false,
                 shared: self.shared.as_ref(),
-                output: ptr::NonNull::from(&mut output),
             };
 
             wait_future.await
@@ -665,7 +646,3 @@ impl Builder {
         })
     }
 }
-
-/// Small helper for sending things which are not Send.
-struct RawSend<T>(ptr::NonNull<T>);
-unsafe impl<T> Send for RawSend<T> {}

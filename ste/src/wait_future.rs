@@ -1,22 +1,31 @@
-use crate::adapter::Adapter;
+use crate::misc::RawSend;
 use crate::parker::Parker;
-use crate::worker::{Entry, PollEntry, Shared};
+use crate::tag::{with_tag, Tag};
+use crate::worker::{Entry, Shared};
 use crate::Panicked;
 use std::future::Future;
 use std::pin::Pin;
 use std::ptr;
-use std::task::{Context, Poll};
+use std::task::{Context, Poll, Waker};
 
-pub(super) struct WaitFuture<'a, T> {
-    pub(super) adapter: ptr::NonNull<dyn Adapter + 'static>,
+pub(super) struct WaitFuture<'a, F>
+where
+    F: Future,
+{
+    /// The future being polled.
+    pub(super) future: ptr::NonNull<F>,
+    /// Where to store output.
+    pub(super) output: ptr::NonNull<Option<F::Output>>,
     pub(super) parker: ptr::NonNull<Parker>,
     pub(super) complete: bool,
     pub(super) shared: &'a Shared,
-    pub(super) output: ptr::NonNull<Option<T>>,
 }
 
-impl<'a, T> Future for WaitFuture<'a, T> {
-    type Output = Result<T, Panicked>;
+impl<'a, F> Future for WaitFuture<'a, F>
+where
+    F: Future,
+{
+    type Output = Result<F::Output, Panicked>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         unsafe {
@@ -26,16 +35,15 @@ impl<'a, T> Future for WaitFuture<'a, T> {
                 return Poll::Ready(Err(Panicked(())));
             }
 
-            // NB: smuggle the current waker in for the duration of the poll.
-            let poll_entry = PollEntry::new(
-                (&mut this.complete).into(),
-                this.adapter,
-                cx.waker().into(),
-                this.parker,
+            let mut task = into_task(
+                RawSend((&mut this.complete).into()),
+                RawSend(this.future),
+                RawSend(this.output),
+                RawSend(cx.waker().into()),
             );
+            let entry = Entry::new(&mut task, this.parker);
 
-            this.shared
-                .schedule_in_place(this.parker, Entry::Poll(poll_entry))?;
+            this.shared.schedule_in_place(this.parker, entry)?;
 
             if this.complete {
                 return Poll::Ready(Err(Panicked(())));
@@ -51,4 +59,38 @@ impl<'a, T> Future for WaitFuture<'a, T> {
     }
 }
 
-unsafe impl<T> Send for WaitFuture<'_, T> where T: Send {}
+unsafe impl<F> Send for WaitFuture<'_, F> where F: Future {}
+
+fn into_task<F>(
+    mut complete: RawSend<bool>,
+    mut future: RawSend<F>,
+    mut output: RawSend<Option<F::Output>>,
+    waker: RawSend<Waker>,
+) -> impl FnMut(Tag) + Send
+where
+    F: Future,
+{
+    use std::panic;
+
+    move |tag| {
+        unsafe {
+            // Safety: At this point, we know the waker has been
+            // replaced by the polling task and can safely deref it into
+            // the underlying waker.
+            let waker = waker.0.as_ref();
+
+            let mut cx = Context::from_waker(waker);
+            let future = Pin::new_unchecked(future.0.as_mut());
+
+            let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+                if let Poll::Ready(ready) = with_tag(tag, || future.poll(&mut cx)) {
+                    *output.0.as_mut() = Some(ready);
+                }
+            }));
+
+            if result.is_err() {
+                *complete.0.as_mut() = true;
+            }
+        }
+    }
+}

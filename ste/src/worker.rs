@@ -1,4 +1,3 @@
-use crate::adapter::Adapter;
 use crate::linked_list::{LinkedList, Node};
 use crate::loom::sync::atomic::{AtomicIsize, Ordering};
 use crate::loom::sync::Mutex;
@@ -7,9 +6,7 @@ use crate::parker::Parker;
 use crate::tag::Tag;
 use crate::Panicked;
 use std::mem;
-use std::panic;
 use std::ptr;
-use std::task::Waker;
 
 /// The type of the prelude function.
 pub(super) type Prelude = dyn Fn() + Send + 'static;
@@ -169,35 +166,9 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
             }
 
             while let Some(mut entry) = local.pop_front() {
-                match &mut entry.as_mut().value {
-                    Entry::Poll(poll) => {
-                        // Safety: At this point, we know the waker has been
-                        // replaced by the polling task and can safely deref it into
-                        // the underlying waker.
-                        let waker = poll.waker.as_ref();
-                        let adapter = poll.adapter.as_mut();
-
-                        let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
-                            adapter.poll(tag, waker)
-                        }));
-
-                        if result.is_err() {
-                            *poll.complete.as_mut() = true;
-                            waker.wake_by_ref();
-                            poll.parker.as_ref().unpark();
-                            continue;
-                        }
-
-                        poll.parker.as_ref().unpark();
-                    }
-                    Entry::Schedule(schedule) => {
-                        let _ = panic::catch_unwind(panic::AssertUnwindSafe(|| {
-                            schedule.task.as_mut()(tag)
-                        }));
-
-                        schedule.parker.as_ref().unpark();
-                    }
-                }
+                let entry = &mut entry.as_mut().value;
+                entry.task.as_mut()(tag);
+                entry.parker.as_ref().unpark();
             }
         }
     }
@@ -218,71 +189,29 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
     }
 }
 
-/// An entry onto the task queue.
-#[derive(Debug)]
-pub(super) enum Entry {
-    /// An entry to immediately be scheduled.
-    Schedule(ScheduleEntry),
-    /// An entry to be polled.
-    Poll(PollEntry),
-}
-
-impl Entry {
-    /// Release all resources associated with the entry.
-    unsafe fn release(&self) {
-        match self {
-            Entry::Poll(poll) => {
-                poll.waker.as_ref().wake_by_ref();
-                poll.parker.as_ref().unpark();
-            }
-            Entry::Schedule(schedule) => {
-                schedule.parker.as_ref().unpark();
-            }
-        }
-    }
-}
-
 /// A task submitted to the executor.
 #[derive(Debug)]
-pub(super) struct ScheduleEntry {
+pub(super) struct Entry {
     task: ptr::NonNull<dyn FnMut(Tag) + Send + 'static>,
     parker: ptr::NonNull<Parker>,
 }
 
-impl ScheduleEntry {
+impl Entry {
     pub(super) unsafe fn new(
-        task: ptr::NonNull<dyn FnMut(Tag) + Send + 'static>,
-        parker: ptr::NonNull<Parker>,
-    ) -> Self {
-        Self { task, parker }
-    }
-}
-
-/// A task to be polled by the scheduler.
-#[derive(Debug)]
-pub(super) struct PollEntry {
-    complete: ptr::NonNull<bool>,
-    /// Polling adapter to poll.
-    adapter: ptr::NonNull<dyn Adapter + 'static>,
-    /// Waker to use.
-    waker: ptr::NonNull<Waker>,
-    /// Parker to wake once a poll completes.
-    parker: ptr::NonNull<Parker>,
-}
-
-impl PollEntry {
-    pub(super) unsafe fn new(
-        complete: ptr::NonNull<bool>,
-        adapter: ptr::NonNull<dyn Adapter + 'static>,
-        waker: ptr::NonNull<Waker>,
+        task: &mut (impl FnMut(Tag) + Send),
         parker: ptr::NonNull<Parker>,
     ) -> Self {
         Self {
-            complete,
-            adapter,
-            waker,
+            task: ptr::NonNull::new_unchecked(mem::transmute::<&mut (dyn FnMut(Tag) + Send), _>(
+                task,
+            )),
             parker,
         }
+    }
+
+    /// Release all resources associated with the entry.
+    unsafe fn release(&self) {
+        self.parker.as_ref().unpark();
     }
 }
 
