@@ -7,7 +7,6 @@ use crate::loom::sync::atomic::{AtomicBool, Ordering};
 use crate::loom::sync::{Arc, RwLock};
 use crate::loom::thread;
 use crate::windows::Event;
-use std::collections::HashMap;
 use std::future::Future;
 use std::io;
 use std::mem;
@@ -28,9 +27,8 @@ struct Waker {
 
 #[derive(Default)]
 struct Holders {
-    added: Vec<isize>,
+    added: Vec<Arc<Waker>>,
     removed: Vec<Event>,
-    wakers: HashMap<isize, Waker>,
 }
 
 struct Shared {
@@ -71,22 +69,23 @@ impl Handle {
         let event = Event::new(false, false)?;
         let handle = unsafe { event.handle() };
 
-        let mut holders = self.shared.holders.write().unwrap();
+        let waker = Arc::new(Waker {
+            ready: AtomicBool::new(false),
+            waker: AtomicWaker::new(),
+            handle,
+        });
 
-        holders.wakers.insert(
-            handle.0,
-            Waker {
-                ready: AtomicBool::new(false),
-                waker: AtomicWaker::new(),
-                handle,
-            },
-        );
-
-        holders.added.push(handle.0);
+        self.shared
+            .holders
+            .write()
+            .unwrap()
+            .added
+            .push(waker.clone());
         self.shared.parker.set();
 
         Ok(AsyncEvent {
             shared: self.shared.clone(),
+            waker,
             event: Some(event),
         })
     }
@@ -117,6 +116,7 @@ impl Drop for Handle {
 /// An asynchronous event.
 pub struct AsyncEvent {
     shared: Arc<Shared>,
+    waker: Arc<Waker>,
     event: Option<Event>,
 }
 
@@ -125,13 +125,13 @@ impl AsyncEvent {
     pub async fn wait(&self) {
         return WaitFor {
             shared: &*self.shared,
-            event: self.event.as_ref().unwrap(),
+            waker: &*self.waker,
         }
         .await;
 
         struct WaitFor<'a> {
             shared: &'a Shared,
-            event: &'a Event,
+            waker: &'a Waker,
         }
 
         impl Future for WaitFor<'_> {
@@ -142,18 +142,12 @@ impl AsyncEvent {
                     panic!("background thread panicked");
                 }
 
-                let holders = self.shared.holders.read().unwrap();
-
-                if let Some(waker) = holders.wakers.get(&unsafe { self.event.handle().0 }) {
-                    if waker.ready.load(Ordering::Acquire) {
-                        return Poll::Ready(());
-                    }
-
-                    waker.waker.register_by_ref(cx.waker());
-                    return Poll::Pending;
+                if self.waker.ready.load(Ordering::Acquire) {
+                    return Poll::Ready(());
                 }
 
-                panic!("event handle missing in driver")
+                self.waker.waker.register_by_ref(cx.waker());
+                Poll::Pending
             }
         }
     }
@@ -180,6 +174,7 @@ impl Drop for AsyncEvent {
 
 struct Driver {
     events: Vec<ss::HANDLE>,
+    wakers: Vec<Arc<Waker>>,
     shared: Arc<Shared>,
 }
 
@@ -187,6 +182,7 @@ impl Driver {
     fn run(mut self) {
         let guard = PanicGuard {
             shared: &*self.shared,
+            wakers: &mut self.wakers,
         };
 
         while self.shared.running.load(Ordering::Acquire) {
@@ -221,14 +217,10 @@ impl Driver {
 
                     // NB: index 0 is the wakeup to notify once things are
                     // added, any other is a legit registered event.
-                    if index != 0 {
-                        let holders = self.shared.holders.read().unwrap();
-
-                        if let Some(handle) = self.events.get(index) {
-                            if let Some(waker) = holders.wakers.get(&handle.0) {
-                                waker.ready.store(true, Ordering::Release);
-                                waker.waker.wake();
-                            }
+                    if index > 0 {
+                        if let Some(waker) = guard.wakers.get(index - 1) {
+                            waker.ready.store(true, Ordering::Release);
+                            waker.waker.wake();
                         }
 
                         continue;
@@ -239,10 +231,9 @@ impl Driver {
             let mut holders = self.shared.holders.write().unwrap();
             let mut added = mem::replace(&mut holders.added, Vec::new());
 
-            for handle in added.drain(..) {
-                if let Some(waker) = holders.wakers.get(&handle) {
-                    self.events.push(waker.handle);
-                }
+            for waker in added.drain(..) {
+                self.events.push(waker.handle);
+                guard.wakers.push(waker);
             }
 
             holders.added = added;
@@ -251,9 +242,11 @@ impl Driver {
 
             for event in removed.drain(..) {
                 let removed = unsafe { event.handle().0 };
-                let result = holders.wakers.remove(&removed).is_some();
-                debug_assert!(result);
-                self.events.retain(|e| e.0 != removed);
+
+                if let Some(index) = guard.wakers.iter().position(|w| w.handle.0 == removed) {
+                    guard.wakers.swap_remove(index);
+                    self.events.swap_remove(index + 1);
+                }
             }
         }
 
@@ -263,16 +256,15 @@ impl Driver {
         /// has allocated when dropped and mark itself as panicked.
         struct PanicGuard<'a> {
             shared: &'a Shared,
+            wakers: &'a mut Vec<Arc<Waker>>,
         }
 
         impl Drop for PanicGuard<'_> {
             fn drop(&mut self) {
                 self.shared.running.store(false, Ordering::Release);
 
-                let holders = self.shared.holders.read().unwrap();
-
                 // Wake up every waker so that they can observe the panic.
-                for waker in holders.wakers.values() {
+                for waker in self.wakers.iter() {
                     waker.waker.wake();
                 }
             }
@@ -282,6 +274,7 @@ impl Driver {
     fn start(shared: Arc<Shared>) {
         let state = Driver {
             events: vec![unsafe { shared.parker.handle() }],
+            wakers: vec![],
             shared,
         };
 

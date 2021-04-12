@@ -84,28 +84,32 @@ impl<T> LockFreeStack<T> {
     }
 
     /// Pop the head of the wait queue.
-    pub fn pop(&self) -> Option<ptr::NonNull<Node<T>>> {
-        unsafe {
-            let mut head = self.head.load(Ordering::Acquire);
+    ///
+    /// # Safety
+    ///
+    /// The popper has to assert that it is the only thread trying to pop from
+    /// this stack. Otherwise the modification is susceptible to the ABA
+    /// problem.
+    pub unsafe fn pop(&self) -> Option<ptr::NonNull<Node<T>>> {
+        let mut head = self.head.load(Ordering::Acquire);
 
-            loop {
-                let next = match head.as_ref()?.next {
-                    Some(next) => next.as_ptr(),
-                    None => ptr::null_mut(),
-                };
+        loop {
+            let next = match head.as_ref()?.next {
+                Some(next) => next.as_ptr(),
+                None => ptr::null_mut(),
+            };
 
-                head = match self.head.compare_exchange_weak(
-                    head,
-                    next,
-                    Ordering::AcqRel,
-                    Ordering::Relaxed,
-                ) {
-                    Ok(..) => break,
-                    Err(head) => head,
-                };
-            }
-
-            Some(ptr::NonNull::new_unchecked(head))
+            head = match self.head.compare_exchange_weak(
+                head,
+                next,
+                Ordering::AcqRel,
+                Ordering::Relaxed,
+            ) {
+                Ok(..) => break,
+                Err(head) => head,
+            };
         }
+
+        Some(ptr::NonNull::new_unchecked(head))
     }
 }
