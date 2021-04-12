@@ -8,7 +8,7 @@ A single-threaded executor with some tricks up its sleeve.
 
 This was primarily written for use in [audio] as a low-latency way of
 interacting with a single background thread for audio-related purposes, but
-is otherwise a general purpose library that can be used by anyone.
+is otherwise a general purpose library that can be used to do anything.
 
 > **Soundness Warning:** This crate uses a fair bit of **unsafe**. Some of
 > the tricks employed needs to be rigirously sanity checked for safety
@@ -29,14 +29,20 @@ assert_eq!(20, n);
 thread.join()?;
 ```
 
-## Restricting which threads can access data
+## Restricting thread access using tags
 
-We provide the [Tagged] container. Things stored in this container may
-*only* be accessed by the thread in which the container was created.
+This library provides the ability to construct a [Tag] which is uniquely
+associated with the thread that created it. This can then be used to ensure
+that data is only accessed on any one given thread.
 
-It works by associating a tag with the data that is unique to the thread
-which created it. Any attempt to access the data will check this tag against
-the tag in the current thread.
+This is useful, because many APIs requires *thread-locality*. Instances can
+only safely be used by the thread that created them. This is a low-level
+tool we provide which allows the safe implementation of `Send` for types
+which are otherwise `!Send`.
+
+Note that correctly using a [Tag] is hard, and incorrect use has sever
+safety implications. Make sure to study its documentation closely before
+use.
 
 ```rust
 struct Foo {
@@ -64,7 +70,7 @@ foo.say_hello(); // <- Panics!
 thread.join()?;
 ```
 
-Using it inside of the thread that created it is fine.
+Using `say_hello` inside of the thread that created it is however fine.
 
 ```rust
 let thread = ste::Thread::new()?;
@@ -78,13 +84,11 @@ thread.submit(|| {
 thread.join()?;
 ```
 
-> There are some other details you need to know relevant to how to use the
-> [Tagged] container. See its documentation for more.
-
 ## Known unsafety and soundness issues
 
-Below you can find a list of known soundness issues this library currently
-has.
+Below you can find a list of unsafe use and known soundness issues this
+library currently has. The soundness issues **must be fixed** before this
+library goes out of *alpha*.
 
 ### Pointers to stack-local addresses
 
@@ -99,9 +103,9 @@ executing a task that is no longer synchronized properly with a caller of
 [submit] it might end up referencing data which is either no longer valid
 (use after free), or contains something else (dirty).
 
-### Soundness issue with tag re-use
+### Tag re-use
 
-[Tagged] containers currently use a tag based on the address of a slab of
+[Tag] containers currently use a tag based on the address of a slab of
 allocated memory that is associated with each [Thread]. If however a
 [Thread] is shut down, and a new later recreated, there is a slight risk
 that this might re-use an existing memory address.
@@ -111,9 +115,9 @@ easy to access. Due to this it might however be desirable to use a generated
 ID per thread instead which can for example abort a program in case it can't
 guarantee uniqueness.
 
-[submit]: https://docs.rs/ste/0/ste/struct.Thread.html#method.submit
-[Thread]: https://docs.rs/ste/0/ste/struct.Thread.html
-[Tagged]: https://docs.rs/ste/0/ste/struct.Tagged.html
+[submit]: https://docs.rs/ste/0.1.0-alpha.6/ste/struct.Thread.html#method.submit
+[Thread]: https://docs.rs/ste/0.1.0-alpha.6/ste/struct.Thread.html
+[Tag]: https://docs.rs/ste/0.1.0-alpha.6/ste/struct.Tag.html
 [audio]: https://github.com/udoprog/audio
 
 License: MIT/Apache-2.0
