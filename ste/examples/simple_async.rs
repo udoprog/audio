@@ -1,10 +1,18 @@
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    let audio_thread = ste::Thread::new()?;
-    let result = 42u32;
-    audio_thread.submit_async(async move { result }).await?;
-    assert_eq!(result, 42u32);
-    assert!(audio_thread.join().is_ok());
+    let thread = ste::Builder::new().with_tokio().build()?;
 
+    let mut result = 0u32;
+
+    thread
+        .submit_async(async {
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            result += 1
+        })
+        .await?;
+
+    assert_eq!(result, 1u32);
+
+    thread.join()?;
     Ok(())
 }

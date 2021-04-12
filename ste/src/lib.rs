@@ -124,9 +124,9 @@
 //! ID per thread instead which can for example abort a program in case it can't
 //! guarantee uniqueness.
 //!
-//! [submit]: https://docs.rs/ste/0.1.0-alpha.6/ste/struct.Thread.html#method.submit
-//! [Thread]: https://docs.rs/ste/0.1.0-alpha.6/ste/struct.Thread.html
-//! [Tag]: https://docs.rs/ste/0.1.0-alpha.6/ste/struct.Tag.html
+//! [submit]: https://docs.rs/ste/0.1.0-alpha.7/ste/struct.Thread.html#method.submit
+//! [Thread]: https://docs.rs/ste/0.1.0-alpha.7/ste/struct.Thread.html
+//! [Tag]: https://docs.rs/ste/0.1.0-alpha.7/ste/struct.Tag.html
 //! [audio]: https://github.com/udoprog/audio
 
 use std::future::Future;
@@ -513,12 +513,44 @@ impl Drop for Thread {
 /// The builder for a [Thread] which can be configured a bit more.
 pub struct Builder {
     prelude: Option<Box<Prelude>>,
+    #[cfg(feature = "tokio")]
+    tokio: Option<tokio::runtime::Handle>,
 }
 
 impl Builder {
     /// Construct a new builder.
     pub fn new() -> Self {
-        Self { prelude: None }
+        Self {
+            prelude: None,
+            #[cfg(feature = "tokio")]
+            tokio: None,
+        }
+    }
+
+    /// Enable tokio support.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[tokio::main(flavor = "current_thread")]
+    /// # async fn main() -> anyhow::Result<()> {
+    /// let thread = ste::Builder::new().with_tokio().build()?;
+    ///
+    /// thread.submit_async(async {
+    ///     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    ///     println!("Hello World!");
+    /// });
+    ///
+    /// thread.join()?;
+    /// # Ok(()) }
+    /// ```
+    #[cfg(feature = "tokio")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
+    pub fn with_tokio(self) -> Self {
+        Self {
+            tokio: Some(::tokio::runtime::Handle::current()),
+            ..self
+        }
     }
 
     /// Configure a prelude to the [Thread]. This is code that will run just as
@@ -544,6 +576,7 @@ impl Builder {
     {
         Self {
             prelude: Some(Box::new(prelude)),
+            ..self
         }
     }
 
@@ -561,6 +594,8 @@ impl Builder {
         let shared = ptr::NonNull::from(Box::leak(Box::new(Shared::new())));
 
         let prelude = self.prelude;
+        #[cfg(feature = "tokio")]
+        let tokio = self.tokio;
 
         let shared2 = RawSend(shared);
 
@@ -568,6 +603,10 @@ impl Builder {
             .name(String::from("ste-thread"))
             .spawn(move || {
                 let RawSend(shared) = shared2;
+
+                #[cfg(feature = "tokio")]
+                let _guard = tokio.as_ref().map(|h| h.enter());
+
                 worker::run(prelude, shared)
             })?;
 

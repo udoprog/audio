@@ -1,6 +1,6 @@
 [package]
 name = "ste"
-version = "0.1.0-alpha.6"
+version = "0.1.0-alpha.7"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
@@ -12,12 +12,16 @@ documentation = "https://docs.rs/audio"
 description = "A single-threaded executor with some tricks up its sleeve."
 readme = "README.md"
 
+[features]
+default = ["tokio"]
+
 [dependencies]
 thiserror = "1.0.24"
+tokio = {version = "1.4", features = ["rt"], optional = true}
 
 [dev-dependencies]
 anyhow = "1.0"
-tokio = {version = "1.4", features = ["rt", "macros", "sync"]}
+tokio = {version = "1.4", features = ["rt", "macros", "sync", "time"]}
 futures = "0.3"
 
 [target.'cfg(loom)'.dependencies]
