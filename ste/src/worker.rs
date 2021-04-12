@@ -7,6 +7,7 @@ use crate::parker::Parker;
 use crate::tag::Tag;
 use crate::Panicked;
 use std::mem;
+use std::panic;
 use std::ptr;
 use std::task::Waker;
 
@@ -175,26 +176,24 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                         // the underlying waker.
                         let waker = poll.waker.as_ref();
 
-                        let guard = WakerPoisonGuard {
-                            shared,
-                            waker,
-                            parker: poll.parker.as_ref(),
-                            local: &mut local,
-                        };
+                        let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+                            poll.adapter.as_mut().poll(tag, waker)
+                        }));
 
-                        poll.adapter.as_mut().poll(tag, waker);
-                        mem::forget(guard);
+                        if result.is_err() {
+                            *poll.complete.as_mut() = true;
+                            waker.wake_by_ref();
+                            poll.parker.as_ref().unpark();
+                            continue;
+                        }
+
                         poll.parker.as_ref().unpark();
                     }
                     Entry::Schedule(schedule) => {
-                        let guard = SchedulePoisonGuard {
-                            shared,
-                            parker: schedule.parker.as_ref(),
-                            local: &mut local,
-                        };
+                        let _ = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+                            schedule.task.as_mut()(tag)
+                        }));
 
-                        schedule.task.as_mut()(tag);
-                        mem::forget(guard);
                         schedule.parker.as_ref().unpark();
                     }
                 }
@@ -213,44 +212,6 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
         fn drop(&mut self) {
             unsafe {
                 self.shared.panic_join();
-            }
-        }
-    }
-
-    struct WakerPoisonGuard<'a> {
-        shared: &'a Shared,
-        waker: &'a Waker,
-        parker: &'a Parker,
-        local: &'a mut LinkedList<Entry>,
-    }
-
-    impl Drop for WakerPoisonGuard<'_> {
-        fn drop(&mut self) {
-            // Safety: We know that the task holding the flag owns the
-            // reference.
-            unsafe {
-                self.shared.panic_join();
-                self.waker.wake_by_ref();
-                self.parker.unpark();
-                release_local_queue(self.local);
-            }
-        }
-    }
-
-    struct SchedulePoisonGuard<'a> {
-        shared: &'a Shared,
-        parker: &'a Parker,
-        local: &'a mut LinkedList<Entry>,
-    }
-
-    impl<'a> Drop for SchedulePoisonGuard<'a> {
-        fn drop(&mut self) {
-            // Safety: We know that the task holding the flag owns the
-            // reference.
-            unsafe {
-                self.shared.panic_join();
-                self.parker.unpark();
-                release_local_queue(self.local);
             }
         }
     }
@@ -299,6 +260,7 @@ impl ScheduleEntry {
 /// A task to be polled by the scheduler.
 #[derive(Debug)]
 pub(super) struct PollEntry {
+    complete: ptr::NonNull<bool>,
     /// Polling adapter to poll.
     adapter: ptr::NonNull<dyn Adapter + 'static>,
     /// Waker to use.
@@ -309,11 +271,13 @@ pub(super) struct PollEntry {
 
 impl PollEntry {
     pub(super) unsafe fn new(
+        complete: ptr::NonNull<bool>,
         adapter: ptr::NonNull<dyn Adapter + 'static>,
         waker: ptr::NonNull<Waker>,
         parker: ptr::NonNull<Parker>,
     ) -> Self {
         Self {
+            complete,
             adapter,
             waker,
             parker,

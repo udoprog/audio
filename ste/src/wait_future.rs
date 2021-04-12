@@ -27,10 +27,19 @@ impl<'a, T> Future for WaitFuture<'a, T> {
             }
 
             // NB: smuggle the current waker in for the duration of the poll.
-            let poll_entry = PollEntry::new(this.adapter, cx.waker().into(), this.parker);
+            let poll_entry = PollEntry::new(
+                (&mut this.complete).into(),
+                this.adapter,
+                cx.waker().into(),
+                this.parker,
+            );
 
             this.shared
                 .schedule_in_place(this.parker, Entry::Poll(poll_entry))?;
+
+            if this.complete {
+                return Poll::Ready(Err(Panicked(())));
+            }
 
             if let Some(output) = this.output.as_mut().take() {
                 this.complete = true;

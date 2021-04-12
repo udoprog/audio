@@ -213,14 +213,14 @@ pub struct Panicked(());
 /// // Unwrap the thread.
 /// let thread = Arc::try_unwrap(thread).map_err(|_| "unwrap failed").unwrap();
 ///
-/// let value = thread.submit(|| {
+/// let result = thread.submit(|| {
 ///     panic!("Background thread: {:?}", std::thread::current().id());
 /// });
+/// assert!(result.is_err());
 ///
 /// println!("Main thread: {:?}", std::thread::current().id());
-/// assert!(value.is_err());
 ///
-/// assert!(thread.join().is_err());
+/// thread.join()?;
 /// # Ok(()) }
 /// ```
 #[must_use = "The thread should be joined with Thread::join once no longer used, \
@@ -270,15 +270,35 @@ impl Thread {
     /// This method supports panics the same way as other threads:
     ///
     /// ```rust
-    /// # #[tokio::main(flavor = "current_thread")] async fn main() -> anyhow::Result<()> {
+    /// # #[tokio::main(flavor = "current_thread")]
+    /// # async fn main() -> anyhow::Result<()> {
+    /// let thread = ste::Builder::new().with_tokio().build()?;
+    ///
+    /// thread.submit_async(async {
+    ///     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    ///     println!("Hello World!");
+    /// });
+    ///
+    /// thread.join()?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// Unwinding panics as isolated on a per-task basis the same was as for
+    /// [submit][Thread::submit].
+    ///
+    /// ```rust
+    /// # #[tokio::main(flavor = "current_thread")]
+    /// # async fn main() -> anyhow::Result<()> {
     /// let thread = ste::Thread::new()?;
     ///
-    /// let result = thread
-    ///     .submit_async(async move { panic!("woops") })
-    ///     .await;
-    ///
+    /// let result = thread.submit_async(async move { panic!("woops") }).await;
     /// assert!(result.is_err());
-    /// assert!(thread.join().is_err());
+    ///
+    /// let mut result = 0;
+    /// thread.submit_async(async { result += 1 }).await?;
+    /// assert_eq!(result, 1);
+    ///
+    /// thread.join()?;
     /// # Ok(()) }
     /// ```
     pub async fn submit_async<F>(&self, mut future: F) -> Result<F::Output, Panicked>
@@ -342,6 +362,24 @@ impl Thread {
     ///
     /// thread.join()?;
     /// # Ok(()) }    
+    /// ```
+    ///
+    /// Unwinding panics as isolated on a per-task basis.
+    ///
+    /// ```rust
+    /// # #[tokio::main(flavor = "current_thread")]
+    /// # async fn main() -> anyhow::Result<()> {
+    /// let thread = ste::Thread::new()?;
+    ///
+    /// let result = thread.submit(|| panic!("woops"));
+    /// assert!(result.is_err());
+    ///
+    /// let mut result = 0;
+    /// thread.submit(|| { result += 1 })?;
+    /// assert_eq!(result, 1);
+    ///
+    /// thread.join()?;
+    /// # Ok(()) }
     /// ```
     pub fn submit<F, T>(&self, task: F) -> Result<T, Panicked>
     where

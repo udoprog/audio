@@ -8,7 +8,7 @@ fn main() -> anyhow::Result<()> {
         }
 
         assert_eq!(result, 4950);
-        assert!(thread.join().is_ok());
+        thread.join()?;
     }
 
     Ok(())

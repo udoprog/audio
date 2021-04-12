@@ -32,7 +32,7 @@ async fn main() -> anyhow::Result<()> {
         assert_eq!(result, 4950);
 
         let thread = Arc::try_unwrap(thread).map_err(|_| "not unique").unwrap();
-        assert!(thread.join().is_ok());
+        thread.join()?;
     }
 
     Ok(())

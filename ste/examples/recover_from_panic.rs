@@ -27,7 +27,7 @@ fn main() -> anyhow::Result<()> {
         }
 
         let thread = Arc::try_unwrap(thread).map_err(|_| anyhow!("unwrap failed"))?;
-        assert!(thread.join().is_err());
+        thread.join()?;
     }
 
     Ok(())

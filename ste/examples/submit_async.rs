@@ -21,6 +21,6 @@ async fn main() -> anyhow::Result<()> {
     let result = thread.submit_async(async move { panic!("woops") }).await;
 
     assert!(result.is_err());
-    assert!(thread.join().is_err());
+    thread.join()?;
     Ok(())
 }
