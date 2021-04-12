@@ -175,9 +175,10 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
                         // replaced by the polling task and can safely deref it into
                         // the underlying waker.
                         let waker = poll.waker.as_ref();
+                        let adapter = poll.adapter.as_mut();
 
                         let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
-                            poll.adapter.as_mut().poll(tag, waker)
+                            adapter.poll(tag, waker)
                         }));
 
                         if result.is_err() {
