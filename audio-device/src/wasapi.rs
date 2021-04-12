@@ -1,4 +1,4 @@
-use crate::bindings::Windows::Win32::CoreAudio as core;
+use bindings::Windows::Win32::CoreAudio as core;
 use std::mem;
 use std::ptr;
 use thiserror::Error;

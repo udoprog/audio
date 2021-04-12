@@ -1,8 +1,9 @@
-use crate::bindings::Windows::Win32::Com as com;
-use crate::bindings::Windows::Win32::CoreAudio as core;
-use crate::bindings::Windows::Win32::Multimedia as mm;
 use crate::wasapi::{ClientConfig, Error, InitializedClient, Sample, SampleFormat};
 use crate::windows::Event;
+use bindings::Windows::Win32::Com as com;
+use bindings::Windows::Win32::CoreAudio as core;
+use bindings::Windows::Win32::Multimedia as mm;
+use bindings::Windows::Win32::SystemServices as ss;
 use std::marker;
 use std::mem;
 use std::ptr;
@@ -84,7 +85,7 @@ impl Client {
                 &mut closest_match as *mut _ as *mut *mut mm::WAVEFORMATEX,
             );
 
-            if result == windows::ErrorCode::S_FALSE {
+            if result == ss::S_FALSE {
                 if !T::is_compatible_with(closest_match as *const _) {
                     return Err(Error::UnsupportedMixFormat);
                 }
@@ -109,7 +110,7 @@ impl Client {
                 )
                 .ok()?;
 
-            let event = Arc::new(Event::create_event(false, false)?);
+            let event = Arc::new(Event::new(false, false)?);
 
             self.audio_client.SetEventHandle(event.handle()).ok()?;
 

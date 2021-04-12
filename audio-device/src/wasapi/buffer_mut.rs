@@ -1,5 +1,5 @@
-use crate::bindings::Windows::Win32::CoreAudio as core;
 use crate::wasapi::Error;
+use bindings::Windows::Win32::CoreAudio as core;
 use std::marker;
 use std::ops;
 use std::slice;

@@ -13,9 +13,6 @@ pub mod wasapi;
 pub mod xaudio2;
 
 #[cfg(windows)]
-pub mod bindings;
-
-#[cfg(windows)]
 pub mod windows;
 
 pub mod driver;

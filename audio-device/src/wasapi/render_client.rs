@@ -1,8 +1,8 @@
-use crate::bindings::Windows::Win32::CoreAudio as core;
-use crate::bindings::Windows::Win32::SystemServices as ss;
-use crate::bindings::Windows::Win32::WindowsProgramming as wp;
 use crate::wasapi::{BufferMut, Error};
 use crate::windows::Event;
+use bindings::Windows::Win32::CoreAudio as core;
+use bindings::Windows::Win32::SystemServices as ss;
+use bindings::Windows::Win32::WindowsProgramming as wp;
 use std::marker;
 use std::mem;
 use std::sync::Arc;

@@ -5,8 +5,8 @@ authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
 
 [features]
-xaudio2 = []
-wasapi = []
+xaudio2 = ["bindings/xaudio2"]
+wasapi = ["bindings/wasapi"]
 
 [dependencies]
 thiserror = "1.0.24"
@@ -20,4 +20,5 @@ ste = {path = "../ste"}
 tokio = {version = "1.4.0", features = ["full"]}
 
 [target.'cfg(windows)'.dependencies]
+bindings = {package = "audio-device-bindings", path = "../audio-device-bindings"}
 windows = {git = "https://github.com/microsoft/windows-rs", default-features = false}

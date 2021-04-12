@@ -7,6 +7,7 @@ members = [
     "audio-core",
     "audio-device",
     "audio-generator",
+    "audio-device-generate",
     "audio-device-bindings",
     "bittle",
     "ste",
@@ -25,3 +26,6 @@ default-members = [
 [patch.crates-io]
 audio = {path = "audio"}
 audio-core = {path = "audio-core"}
+
+[profile.dev]
+lto = true

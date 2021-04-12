@@ -5,8 +5,9 @@ use std::process;
 
 fn main() -> io::Result<()> {
     let tokens = windows_macros::generate!(
-        Windows::Win32::CoreAudio::*,
         Windows::Win32::Audio::*,
+        #[cfg(feature = "wasapi")]
+        Windows::Win32::CoreAudio::*,
         #[cfg(feature = "xaudio2")]
         Windows::Win32::XAudio2::*,
         Windows::Win32::Multimedia::{
@@ -30,15 +31,16 @@ fn main() -> io::Result<()> {
             WaitForMultipleObjects,
             FALSE,
             TRUE,
+            S_FALSE,
         },
         Windows::Win32::WindowsProgramming::{INFINITE, CloseHandle},
         Windows::Win32::ApplicationInstallationAndServicing::NTDDI_WIN7,
     );
 
     let path = windows_gen::workspace_dir()
-        .join("audio-device")
+        .join("audio-device-bindings")
         .join("src")
-        .join("bindings.rs");
+        .join("lib.rs");
 
     let mut file = fs::File::create(&path)?;
     file.write_all(
@@ -50,6 +52,5 @@ fn main() -> io::Result<()> {
     let mut cmd = process::Command::new("rustfmt");
     cmd.arg(&path);
     cmd.output()?;
-
     Ok(())
 }

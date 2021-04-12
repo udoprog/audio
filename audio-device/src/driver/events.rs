@@ -1,12 +1,12 @@
 //! A Windows event executor.
 
-use crate::bindings::Windows::Win32::SystemServices as ss;
-use crate::bindings::Windows::Win32::WindowsProgramming as wp;
 use crate::driver::atomic_waker::AtomicWaker;
 use crate::loom::sync::atomic::{AtomicBool, Ordering};
 use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
 use crate::windows::Event;
+use bindings::Windows::Win32::SystemServices as ss;
+use bindings::Windows::Win32::WindowsProgramming as wp;
 use std::future::Future;
 use std::io;
 use std::mem;

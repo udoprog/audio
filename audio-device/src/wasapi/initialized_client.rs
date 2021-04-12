@@ -1,6 +1,6 @@
-use crate::bindings::Windows::Win32::CoreAudio as core;
 use crate::wasapi::{ClientConfig, Error, RenderClient, Sample};
 use crate::windows::Event;
+use bindings::Windows::Win32::CoreAudio as core;
 use std::marker;
 use std::mem;
 use std::sync::Arc;

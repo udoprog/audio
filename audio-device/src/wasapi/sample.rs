@@ -1,5 +1,5 @@
-use crate::bindings::Windows::Win32::CoreAudio as core;
-use crate::bindings::Windows::Win32::Multimedia as mm;
+use bindings::Windows::Win32::CoreAudio as core;
+use bindings::Windows::Win32::Multimedia as mm;
 use std::mem;
 
 use super::ClientConfig;

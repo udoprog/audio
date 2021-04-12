@@ -1,5 +1,5 @@
-use crate::bindings::Windows::Win32::SystemServices as ss;
-use crate::bindings::Windows::Win32::WindowsProgramming as wp;
+use bindings::Windows::Win32::SystemServices as ss;
+use bindings::Windows::Win32::WindowsProgramming as wp;
 use std::ptr;
 
 const NULL: ss::HANDLE = ss::HANDLE(0);
