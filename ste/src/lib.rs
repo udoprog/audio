@@ -136,7 +136,7 @@ pub use self::tagged::Tagged;
 use self::tagged::{with_tag, Tag};
 
 #[doc(hidden)]
-pub mod lock_free_stack;
+pub mod linked_list;
 
 mod adapter;
 use self::adapter::{Adapter, FutureAdapter};

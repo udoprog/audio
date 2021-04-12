@@ -8,7 +8,7 @@ fn main() -> anyhow::Result<()> {
 
         let mut threads = Vec::new();
 
-        for _ in 0..10 {
+        for _ in 0..2 {
             let thread = thread.clone();
 
             let t = thread::spawn(move || {
