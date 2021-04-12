@@ -117,9 +117,9 @@ easy to access. Due to this it might however be desirable to use a generated
 ID per thread instead which can for example abort a program in case it can't
 guarantee uniqueness.
 
-[submit]: https://docs.rs/ste/0.1.0-alpha.7/ste/struct.Thread.html#method.submit
-[Thread]: https://docs.rs/ste/0.1.0-alpha.7/ste/struct.Thread.html
-[Tag]: https://docs.rs/ste/0.1.0-alpha.7/ste/struct.Tag.html
+[submit]: https://docs.rs/ste/0.1.0-alpha.8/ste/struct.Thread.html#method.submit
+[Thread]: https://docs.rs/ste/0.1.0-alpha.8/ste/struct.Thread.html
+[Tag]: https://docs.rs/ste/0.1.0-alpha.8/ste/struct.Tag.html
 [audio]: https://github.com/udoprog/audio
 
 License: MIT/Apache-2.0
