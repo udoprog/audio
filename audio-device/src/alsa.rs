@@ -76,7 +76,7 @@ mod pcm;
 pub use self::pcm::{Pcm, Stream};
 
 mod hardware_parameters;
-pub use self::hardware_parameters::{Direction, HardwareParameters};
+pub use self::hardware_parameters::{Direction, HardwareParametersAny, HardwareParametersCurrent};
 
 mod format_mask;
 pub use self::format_mask::FormatMask;

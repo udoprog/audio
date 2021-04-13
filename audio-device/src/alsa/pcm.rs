@@ -1,4 +1,4 @@
-use crate::alsa::{HardwareParameters, Result};
+use crate::alsa::{HardwareParametersAny, HardwareParametersCurrent, Result};
 use alsa_sys as alsa;
 use std::ffi::CStr;
 use std::mem;
@@ -100,7 +100,7 @@ impl Pcm {
         }
     }
 
-    /// Open hardware parameters for the current handle.
+    /// Open all available hardware parameters for the current handle.
     ///
     /// # Examples
     ///
@@ -113,8 +113,26 @@ impl Pcm {
     /// let hw = pcm.hardware_parameters_any()?;
     /// # Ok(()) }
     /// ```
-    pub fn hardware_parameters_any(&self) -> Result<HardwareParameters> {
-        unsafe { HardwareParameters::any(&self.handle) }
+    pub fn hardware_parameters_any(&mut self) -> Result<HardwareParametersAny<'_>> {
+        unsafe { HardwareParametersAny::new(&mut self.handle) }
+    }
+
+    /// Open current hardware parameters for the current handle.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use audio_device::alsa;
+    /// use std::ffi::CStr;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
+    /// let hw = pcm.hardware_parameters_current()?;
+    /// dbg!(hw.rate()?);
+    /// # Ok(()) }
+    /// ```
+    pub fn hardware_parameters_current(&mut self) -> Result<HardwareParametersCurrent> {
+        unsafe { HardwareParametersCurrent::new(&mut self.handle) }
     }
 }
 
