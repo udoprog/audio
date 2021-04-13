@@ -1,6 +1,6 @@
 //! Shared helpers for windows programming.
 
-use bindings::Windows::Win32::SystemServices as ss;
+use windows_sys::Windows::Win32::SystemServices as ss;
 mod event;
 pub use self::event::{AsyncEvent, Event};
 

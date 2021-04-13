@@ -5,11 +5,11 @@ use crate::loom::sync::atomic::{AtomicBool, Ordering};
 use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
 use crate::windows::{AsyncEvent, Event, RawEvent as _};
-use bindings::Windows::Win32::SystemServices as ss;
-use bindings::Windows::Win32::WindowsProgramming as wp;
 use std::io;
 use std::mem;
 use thiserror::Error;
+use windows_sys::Windows::Win32::SystemServices as ss;
+use windows_sys::Windows::Win32::WindowsProgramming as wp;
 
 #[derive(Debug, Error)]
 #[error("background thread panicked")]

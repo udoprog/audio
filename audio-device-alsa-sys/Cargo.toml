@@ -1,0 +1,11 @@
+[package]
+name = "audio-device-alsa-sys"
+version = "0.0.0"
+edition = "2018"
+
+[dependencies]
+libc = "0.2.93"
+
+[build-dependencies]
+anyhow = "1.0"
+pkg-config = "0.3.19"

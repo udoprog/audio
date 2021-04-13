@@ -1,6 +1,6 @@
-use bindings::Windows::Win32::CoreAudio as core;
-use bindings::Windows::Win32::Multimedia as mm;
 use std::mem;
+use windows_sys::Windows::Win32::CoreAudio as core;
+use windows_sys::Windows::Win32::Multimedia as mm;
 
 use super::ClientConfig;
 

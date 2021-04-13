@@ -1,8 +1,10 @@
-use bindings::Windows::Win32::CoreAudio as core;
+//! An idiomatic Rust WASAPI interface.
+
 use std::mem;
 use std::ptr;
 use thiserror::Error;
 use windows::Interface as _;
+use windows_sys::Windows::Win32::CoreAudio as core;
 
 mod initialized_client;
 pub use self::initialized_client::InitializedClient;

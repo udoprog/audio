@@ -38,9 +38,9 @@ fn main() -> io::Result<()> {
     );
 
     let path = windows_gen::workspace_dir()
-        .join("audio-device-bindings")
+        .join("audio-device-windows-sys")
         .join("src")
-        .join("lib.rs");
+        .join("bindings.rs");
 
     let mut file = fs::File::create(&path)?;
     file.write_all(

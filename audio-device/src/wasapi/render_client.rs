@@ -1,11 +1,11 @@
 use crate::wasapi::{BufferMut, Error};
 use crate::windows::{AsyncEvent, Event, RawEvent};
-use bindings::Windows::Win32::CoreAudio as core;
-use bindings::Windows::Win32::SystemServices as ss;
-use bindings::Windows::Win32::WindowsProgramming as wp;
 use std::marker;
 use std::mem;
 use std::sync::Arc;
+use windows_sys::Windows::Win32::CoreAudio as core;
+use windows_sys::Windows::Win32::SystemServices as ss;
+use windows_sys::Windows::Win32::WindowsProgramming as wp;
 
 pub struct RenderClient<T, E> {
     pub(super) tag: ste::Tag,

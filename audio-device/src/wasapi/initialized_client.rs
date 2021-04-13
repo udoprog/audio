@@ -1,9 +1,9 @@
 use crate::wasapi::{ClientConfig, Error, RenderClient, Sample};
-use bindings::Windows::Win32::CoreAudio as core;
 use std::marker;
 use std::mem;
 use std::sync::Arc;
 use windows::Interface as _;
+use windows_sys::Windows::Win32::CoreAudio as core;
 
 pub struct InitializedClient<T, E> {
     pub(super) tag: ste::Tag,

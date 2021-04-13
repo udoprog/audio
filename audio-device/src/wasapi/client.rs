@@ -1,14 +1,14 @@
 use crate::driver::events::Handle;
 use crate::wasapi::{ClientConfig, Error, InitializedClient, Sample, SampleFormat};
 use crate::windows::{AsyncEvent, Event, RawEvent};
-use bindings::Windows::Win32::Com as com;
-use bindings::Windows::Win32::CoreAudio as core;
-use bindings::Windows::Win32::Multimedia as mm;
-use bindings::Windows::Win32::SystemServices as ss;
 use std::marker;
 use std::mem;
 use std::ptr;
 use std::sync::Arc;
+use windows_sys::Windows::Win32::Com as com;
+use windows_sys::Windows::Win32::CoreAudio as core;
+use windows_sys::Windows::Win32::Multimedia as mm;
+use windows_sys::Windows::Win32::SystemServices as ss;
 
 /// An audio client.
 pub struct Client {

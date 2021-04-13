@@ -7,8 +7,9 @@ members = [
     "audio-core",
     "audio-device",
     "audio-generator",
-    "audio-device-generate",
-    "audio-device-bindings",
+    "generate",
+    "audio-device-windows-sys",
+    "audio-device-alsa-sys",
     "bittle",
     "ste",
 ]
@@ -18,7 +19,7 @@ default-members = [
     "audio-core",
     "audio-device",
     "audio-generator",
-    "audio-device-bindings",
+    "generate",
     "bittle",
     "ste",
 ]

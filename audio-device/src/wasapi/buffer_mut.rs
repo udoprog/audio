@@ -1,8 +1,8 @@
 use crate::wasapi::Error;
-use bindings::Windows::Win32::CoreAudio as core;
 use std::marker;
 use std::ops;
 use std::slice;
+use windows_sys::Windows::Win32::CoreAudio as core;
 
 pub struct BufferMut<'a, T> {
     pub(super) tag: ste::Tag,

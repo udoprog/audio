@@ -9,11 +9,11 @@
 #[cfg(all(windows, feature = "wasapi"))]
 pub mod wasapi;
 
-#[cfg(all(windows, feature = "xaudio2"))]
-pub mod xaudio2;
-
 #[cfg(windows)]
 pub mod windows;
+
+#[cfg(all(unix, feature = "alsa"))]
+pub mod alsa;
 
 pub mod driver;
 

@@ -1,5 +1,5 @@
 [package]
-name = "audio-device-bindings"
+name = "audio-device-windows-sys"
 version = "0.0.0"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"

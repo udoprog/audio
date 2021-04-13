@@ -1,13 +1,13 @@
 use crate::driver::events::{Shared, Waker};
 use crate::loom::sync::atomic::Ordering;
 use crate::windows::RawEvent;
-use bindings::Windows::Win32::SystemServices as ss;
-use bindings::Windows::Win32::WindowsProgramming as wp;
 use std::future::Future;
 use std::pin::Pin;
 use std::ptr;
 use std::sync::Arc;
 use std::task::{Context, Poll};
+use windows_sys::Windows::Win32::SystemServices as ss;
+use windows_sys::Windows::Win32::WindowsProgramming as wp;
 
 const NULL: ss::HANDLE = ss::HANDLE(0);
 
