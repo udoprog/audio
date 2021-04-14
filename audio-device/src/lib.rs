@@ -23,7 +23,7 @@
 //! | Windows  | WASAPI | **wip**  | **wip** |
 //! | Linux    | ALSA   | **wip**  | **wip** |
 //!
-//! [audio ecosystem] : https://docs.rs/audio
+//! [audio ecosystem]: https://docs.rs/audio
 //! [alsa-blocking]: https://github.com/udoprog/audio/blob/main/audio-device/examples/alsa.rs
 //! [audio-core]: https://docs.rs/audio-core
 //! [wasapi-async]: https://github.com/udoprog/audio/blob/main/audio-device/examples/wasapi-async.rs

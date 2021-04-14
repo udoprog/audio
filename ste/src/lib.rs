@@ -126,10 +126,10 @@
 //! ID per thread instead which can for example abort a program in case it can't
 //! guarantee uniqueness.
 //!
-//! [submit]: https://docs.rs/ste/0.1.0-alpha.9/ste/struct.Thread.html#method.submit
-//! [Thread]: https://docs.rs/ste/0.1.0-alpha.9/ste/struct.Thread.html
-//! [Tag]: https://docs.rs/ste/0.1.0-alpha.9/ste/struct.Tag.html
 //! [audio]: https://github.com/udoprog/audio
+//! [submit]: https://docs.rs/ste/*/ste/struct.Thread.html#method.submit
+//! [Tag]: https://docs.rs/ste/*/ste/struct.Tag.html
+//! [Thread]: https://docs.rs/ste/*/ste/struct.Thread.html
 
 use std::future::Future;
 use std::io;
