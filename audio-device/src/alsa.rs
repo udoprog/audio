@@ -1,13 +1,14 @@
 //! An idiomatic Rust ALSA interface.
 
-pub use nix::errno::Errno;
+use crate::libc as c;
+use crate::unix::errno::Errno;
 use std::ops;
 use thiserror::Error;
 
 /// A string allocated through libc.
 #[repr(transparent)]
 pub struct CString {
-    ptr: *mut libc::c_char,
+    ptr: *mut c::c_char,
 }
 
 impl CString {
@@ -16,7 +17,7 @@ impl CString {
     /// This differs from [std::ffi::CString] in that it requires the underlying
     /// string to have been allocated using libc allocators, and will free the
     /// underlying string using those as well.
-    pub unsafe fn from_raw(ptr: *mut libc::c_char) -> Self {
+    pub unsafe fn from_raw(ptr: *mut c::c_char) -> Self {
         Self { ptr }
     }
 }
@@ -24,7 +25,7 @@ impl CString {
 impl Drop for CString {
     fn drop(&mut self) {
         unsafe {
-            libc::free(self.ptr as *mut _);
+            c::free(self.ptr as *mut _);
         }
     }
 }
@@ -44,11 +45,11 @@ unsafe impl Sync for CString {}
 
 macro_rules! errno {
     ($expr:expr) => {{
-        let result: i32 = $expr;
+        let result = $expr;
 
         if result < 0 {
-            Err($crate::alsa::Error::Errno(::nix::errno::Errno::from_i32(
-                -result,
+            Err($crate::alsa::Error::Sys(::nix::errno::Errno::from_i32(
+                -result as i32,
             )))
         } else {
             Ok(result)
@@ -58,12 +59,21 @@ macro_rules! errno {
 
 #[derive(Debug, Error)]
 pub enum Error {
+    /// System error.
     #[error("system error: {0}")]
-    Errno(Errno),
+    Sys(Errno),
+    /// Underlying function call returned an illegal format identifier.
     #[error("bad format identifier ({0})")]
-    BadFormat(i32),
+    BadFormat(c::c_int),
+    /// Underlying function call returned an illegal access identifier.
     #[error("bad access identifier ({0})")]
-    BadAccess(u32),
+    BadAccess(c::c_uint),
+    /// Underlying function call returned an illegal timestamp identifier.
+    #[error("bad timestamp mode identifier ({0})")]
+    BadTimestamp(c::c_uint),
+    /// Underlying function call returned an illegal timestamp type identifier.
+    #[error("bad timestamp type identifier ({0})")]
+    BadTimestampType(c::c_uint),
 }
 
 /// Helper result wrapper.
@@ -76,7 +86,10 @@ mod pcm;
 pub use self::pcm::{Pcm, Stream};
 
 mod hardware_parameters;
-pub use self::hardware_parameters::{Direction, HardwareParametersAny, HardwareParametersCurrent};
+pub use self::hardware_parameters::{Direction, HardwareParameters, HardwareParametersMut};
+
+mod software_parameters;
+pub use self::software_parameters::{SoftwareParameters, SoftwareParametersMut};
 
 mod format_mask;
 pub use self::format_mask::FormatMask;
@@ -85,4 +98,4 @@ mod access_mask;
 pub use self::access_mask::AccessMask;
 
 mod enums;
-pub use self::enums::{Access, Format};
+pub use self::enums::{Access, Format, Timestamp, TimestampType};

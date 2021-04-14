@@ -12,6 +12,12 @@ pub mod wasapi;
 #[cfg(windows)]
 pub mod windows;
 
+#[cfg(unix)]
+pub mod unix;
+
+#[cfg(feature = "alsa")]
+pub mod libc;
+
 #[cfg(all(unix, feature = "alsa"))]
 pub mod alsa;
 

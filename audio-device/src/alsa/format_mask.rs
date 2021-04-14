@@ -1,4 +1,5 @@
 use crate::alsa::{Format, Result};
+use crate::libc as c;
 use alsa_sys as alsa;
 use std::mem;
 use std::ptr;
@@ -87,7 +88,7 @@ impl FormatMask {
     /// See [FormatMask] documentation.
     pub fn set(&mut self, format: Format) {
         unsafe {
-            alsa::snd_pcm_format_mask_set(self.handle.as_mut(), format as libc::c_int);
+            alsa::snd_pcm_format_mask_set(self.handle.as_mut(), format as c::c_int);
         }
     }
 
@@ -96,7 +97,7 @@ impl FormatMask {
     /// See [FormatMask] documentation.
     pub fn reset(&mut self, format: Format) {
         unsafe {
-            alsa::snd_pcm_format_mask_reset(self.handle.as_mut(), format as libc::c_int);
+            alsa::snd_pcm_format_mask_reset(self.handle.as_mut(), format as c::c_int);
         }
     }
 
@@ -104,7 +105,7 @@ impl FormatMask {
     ///
     /// See [FormatMask] documentation.
     pub fn test(&mut self, format: Format) -> bool {
-        unsafe { alsa::snd_pcm_format_mask_test(self.handle.as_mut(), format as libc::c_int) == 1 }
+        unsafe { alsa::snd_pcm_format_mask_test(self.handle.as_mut(), format as c::c_int) == 1 }
     }
 
     /// Copy one mask to another.

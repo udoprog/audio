@@ -1,4 +1,5 @@
 use crate::alsa::{Access, Result};
+use crate::libc as c;
 use alsa_sys as alsa;
 use std::mem;
 use std::ptr;
@@ -87,7 +88,7 @@ impl AccessMask {
     /// See [AccessMask] documentation.
     pub fn set(&mut self, access: Access) {
         unsafe {
-            alsa::snd_pcm_access_mask_set(self.handle.as_mut(), access as libc::c_uint);
+            alsa::snd_pcm_access_mask_set(self.handle.as_mut(), access as c::c_uint);
         }
     }
 
@@ -96,7 +97,7 @@ impl AccessMask {
     /// See [AccessMask] documentation.
     pub fn reset(&mut self, access: Access) {
         unsafe {
-            alsa::snd_pcm_access_mask_reset(self.handle.as_mut(), access as libc::c_uint);
+            alsa::snd_pcm_access_mask_reset(self.handle.as_mut(), access as c::c_uint);
         }
     }
 
@@ -104,7 +105,7 @@ impl AccessMask {
     ///
     /// See [AccessMask] documentation.
     pub fn test(&mut self, access: Access) -> bool {
-        unsafe { alsa::snd_pcm_access_mask_test(self.handle.as_mut(), access as libc::c_uint) == 1 }
+        unsafe { alsa::snd_pcm_access_mask_test(self.handle.as_mut(), access as c::c_uint) == 1 }
     }
 
     /// Copy one mask to another.

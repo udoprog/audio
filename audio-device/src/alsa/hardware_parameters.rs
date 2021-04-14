@@ -1,4 +1,5 @@
 use crate::alsa::{Access, AccessMask, Error, Format, FormatMask, Result};
+use crate::libc as c;
 use alsa_sys as alsa;
 use std::mem;
 use std::ops;
@@ -24,17 +25,17 @@ impl Direction {
     }
 }
 
-/// Collection of harward parameters being configured for a [Pcm][super::Pcm]
-/// handle.
+/// Collection of current hardware parameters being configured for a
+/// [Pcm][super::Pcm] handle.
 ///
-/// See [Pcm::hardware_parameters_current][super::Pcm::hardware_parameters_current].
-pub struct HardwareParametersCurrent {
+/// See [Pcm::hardware_parameters][super::Pcm::hardware_parameters].
+pub struct HardwareParameters {
     handle: ptr::NonNull<alsa::snd_pcm_hw_params_t>,
 }
 
-impl HardwareParametersCurrent {
+impl HardwareParameters {
     /// Open current hardware parameters for the current device for writing.
-    pub(super) unsafe fn new(pcm: &mut ptr::NonNull<alsa::snd_pcm_t>) -> Result<Self> {
+    pub(super) unsafe fn current(pcm: &mut ptr::NonNull<alsa::snd_pcm_t>) -> Result<Self> {
         let mut handle = mem::MaybeUninit::uninit();
 
         errno!(alsa::snd_pcm_hw_params_malloc(handle.as_mut_ptr()))?;
@@ -49,7 +50,23 @@ impl HardwareParametersCurrent {
             return Err(e);
         }
 
-        Ok(HardwareParametersCurrent { handle })
+        Ok(HardwareParameters { handle })
+    }
+
+    /// Open all available hardware parameters for the current device.
+    pub(super) unsafe fn any(pcm: &mut ptr::NonNull<alsa::snd_pcm_t>) -> Result<Self> {
+        let mut handle = mem::MaybeUninit::uninit();
+
+        errno!(alsa::snd_pcm_hw_params_malloc(handle.as_mut_ptr()))?;
+
+        let mut handle = ptr::NonNull::new_unchecked(handle.assume_init());
+
+        if let Err(e) = errno!(alsa::snd_pcm_hw_params_any(pcm.as_ptr(), handle.as_mut())) {
+            alsa::snd_pcm_hw_params_free(handle.as_mut());
+            return Err(e);
+        }
+
+        Ok(HardwareParameters { handle })
     }
 
     /// Restrict a configuration space to contain only one channels count.
@@ -61,13 +78,13 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// let result = hw.channels()?;
     /// dbg!(result);
     /// # Ok(()) }
     /// ```
-    pub fn channels(&self) -> Result<libc::c_uint> {
+    pub fn channels(&self) -> Result<c::c_uint> {
         unsafe {
             let mut channels = mem::MaybeUninit::uninit();
 
@@ -89,12 +106,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.channels_max()?);
     /// # Ok(()) }
     /// ```
-    pub fn channels_max(&self) -> Result<libc::c_uint> {
+    pub fn channels_max(&self) -> Result<c::c_uint> {
         unsafe {
             let mut channels = mem::MaybeUninit::uninit();
 
@@ -116,12 +133,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.channels_min()?);
     /// # Ok(()) }
     /// ```
-    pub fn channels_min(&self) -> Result<libc::c_uint> {
+    pub fn channels_min(&self) -> Result<c::c_uint> {
         unsafe {
             let mut channels = mem::MaybeUninit::uninit();
 
@@ -148,7 +165,7 @@ impl HardwareParametersCurrent {
     /// println!("{}", hw.rate()?);
     /// # Ok(()) }
     /// ```
-    pub fn rate(&self) -> Result<libc::c_uint> {
+    pub fn rate(&self) -> Result<c::c_uint> {
         unsafe {
             let mut rate = 0;
             let mut dir = 0;
@@ -177,7 +194,7 @@ impl HardwareParametersCurrent {
     /// dbg!(hw.rate_numden()?);
     /// # Ok(()) }
     /// ```
-    pub fn rate_numden(&self) -> Result<(libc::c_uint, libc::c_uint)> {
+    pub fn rate_numden(&self) -> Result<(c::c_uint, c::c_uint)> {
         unsafe {
             let mut num = mem::MaybeUninit::uninit();
             let mut den = mem::MaybeUninit::uninit();
@@ -206,7 +223,7 @@ impl HardwareParametersCurrent {
     /// println!("{}", hw.rate_max()?);
     /// # Ok(()) }
     /// ```
-    pub fn rate_max(&self) -> Result<libc::c_uint> {
+    pub fn rate_max(&self) -> Result<c::c_uint> {
         unsafe {
             let mut rate = 0;
             let mut dir = 0;
@@ -235,7 +252,7 @@ impl HardwareParametersCurrent {
     /// println!("{}", hw.rate_min()?);
     /// # Ok(()) }
     /// ```
-    pub fn rate_min(&self) -> Result<libc::c_uint> {
+    pub fn rate_min(&self) -> Result<c::c_uint> {
         unsafe {
             let mut rate = 0;
             let mut dir = 0;
@@ -288,7 +305,7 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// let _mask = hw.format_mask()?;
     /// # Ok(()) }
@@ -339,7 +356,7 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// let _mask = hw.get_access_mask()?;
     /// # Ok(()) }
@@ -402,13 +419,13 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let a = pcm.hardware_parameters_current()?;
-    /// let mut hw = pcm.hardware_parameters_current()?;
+    /// let a = pcm.hardware_parameters()?;
+    /// let mut hw = pcm.hardware_parameters()?;
     ///
     /// hw.copy(&a);
     /// # Ok(()) }
     /// ```
-    pub fn copy(&mut self, other: &HardwareParametersCurrent) {
+    pub fn copy(&mut self, other: &HardwareParameters) {
         unsafe { alsa::snd_pcm_hw_params_copy(self.handle.as_mut(), other.handle.as_ptr()) };
     }
 
@@ -421,7 +438,7 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.can_mmap_sample_resolution());
     /// # Ok(()) }
@@ -439,7 +456,7 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.is_double());
     /// # Ok(()) }
@@ -457,7 +474,7 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.is_batch());
     /// # Ok(()) }
@@ -475,7 +492,7 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.is_block_transfer());
     /// # Ok(()) }
@@ -493,7 +510,7 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.is_monotonic());
     /// # Ok(()) }
@@ -511,7 +528,7 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.can_overrange());
     /// # Ok(()) }
@@ -529,7 +546,7 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.is_half_duplex());
     /// # Ok(()) }
@@ -547,7 +564,7 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.is_joint_duplex());
     /// # Ok(()) }
@@ -565,7 +582,7 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.can_sync_start());
     /// # Ok(()) }
@@ -583,7 +600,7 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.can_disable_period_wakeup());
     /// # Ok(()) }
@@ -601,7 +618,7 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.supports_audio_wallclock_ts());
     /// # Ok(()) }
@@ -619,12 +636,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.supports_audio_ts_type(2));
     /// # Ok(()) }
     /// ```
-    pub fn supports_audio_ts_type(&self, ty: libc::c_int) -> bool {
+    pub fn supports_audio_ts_type(&self, ty: c::c_int) -> bool {
         unsafe { alsa::snd_pcm_hw_params_supports_audio_ts_type(self.handle.as_ptr(), ty) == 1 }
     }
 
@@ -637,12 +654,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.sbits()?);
     /// # Ok(()) }
     /// ```
-    pub fn sbits(&self) -> Result<libc::c_int> {
+    pub fn sbits(&self) -> Result<c::c_int> {
         unsafe { errno!(alsa::snd_pcm_hw_params_get_sbits(self.handle.as_ptr())) }
     }
 
@@ -655,12 +672,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// println!("{}", hw.fifo_size()?);
     /// # Ok(()) }
     /// ```
-    pub fn fifo_size(&self) -> Result<libc::c_int> {
+    pub fn fifo_size(&self) -> Result<c::c_int> {
         unsafe { errno!(alsa::snd_pcm_hw_params_get_fifo_size(self.handle.as_ptr())) }
     }
 
@@ -673,12 +690,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.period_time());
     /// # Ok(()) }
     /// ```
-    pub fn period_time(&self) -> Result<(libc::c_uint, Direction)> {
+    pub fn period_time(&self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut period_time = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -702,12 +719,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.period_time_min());
     /// # Ok(()) }
     /// ```
-    pub fn period_time_min(&self) -> Result<(libc::c_uint, Direction)> {
+    pub fn period_time_min(&self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut period_time = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -731,12 +748,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.period_time_max());
     /// # Ok(()) }
     /// ```
-    pub fn period_time_max(&self) -> Result<(libc::c_uint, Direction)> {
+    pub fn period_time_max(&self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut period_time = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -760,12 +777,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.period_size());
     /// # Ok(()) }
     /// ```
-    pub fn period_size(&self) -> Result<(libc::c_ulong, Direction)> {
+    pub fn period_size(&self) -> Result<(c::c_ulong, Direction)> {
         unsafe {
             let mut frames = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -790,12 +807,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.period_size_min());
     /// # Ok(()) }
     /// ```
-    pub fn period_size_min(&self) -> Result<(libc::c_ulong, Direction)> {
+    pub fn period_size_min(&self) -> Result<(c::c_ulong, Direction)> {
         unsafe {
             let mut frames = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -820,12 +837,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.period_size_max()?);
     /// # Ok(()) }
     /// ```
-    pub fn period_size_max(&self) -> Result<(libc::c_ulong, Direction)> {
+    pub fn period_size_max(&self) -> Result<(c::c_ulong, Direction)> {
         unsafe {
             let mut frames = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -850,12 +867,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.periods()?);
     /// # Ok(()) }
     /// ```
-    pub fn periods(&self) -> Result<(libc::c_uint, Direction)> {
+    pub fn periods(&self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut periods = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -879,12 +896,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.periods_min()?);
     /// # Ok(()) }
     /// ```
-    pub fn periods_min(&self) -> Result<(libc::c_uint, Direction)> {
+    pub fn periods_min(&self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut periods = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -908,12 +925,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.periods_max()?);
     /// # Ok(()) }
     /// ```
-    pub fn periods_max(&self) -> Result<(libc::c_uint, Direction)> {
+    pub fn periods_max(&self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut periods = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -937,12 +954,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.buffer_time()?);
     /// # Ok(()) }
     /// ```
-    pub fn buffer_time(&self) -> Result<(libc::c_uint, Direction)> {
+    pub fn buffer_time(&self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut periods = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -966,12 +983,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.buffer_time_min()?);
     /// # Ok(()) }
     /// ```
-    pub fn buffer_time_min(&self) -> Result<(libc::c_uint, Direction)> {
+    pub fn buffer_time_min(&self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut periods = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -995,12 +1012,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let hw = pcm.hardware_parameters_current()?;
+    /// let hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.buffer_time_max()?);
     /// # Ok(()) }
     /// ```
-    pub fn buffer_time_max(&self) -> Result<(libc::c_uint, Direction)> {
+    pub fn buffer_time_max(&self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut periods = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -1024,12 +1041,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let mut hw = pcm.hardware_parameters_current()?;
+    /// let mut hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.buffer_size()?);
     /// # Ok(()) }
     /// ```
-    pub fn buffer_size(&self) -> Result<libc::c_ulong> {
+    pub fn buffer_size(&self) -> Result<c::c_ulong> {
         unsafe {
             let mut buffer_size = mem::MaybeUninit::uninit();
             errno!(alsa::snd_pcm_hw_params_get_buffer_size(
@@ -1049,12 +1066,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let mut hw = pcm.hardware_parameters_current()?;
+    /// let mut hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.buffer_size_min()?);
     /// # Ok(()) }
     /// ```
-    pub fn buffer_size_min(&self) -> Result<libc::c_ulong> {
+    pub fn buffer_size_min(&self) -> Result<c::c_ulong> {
         unsafe {
             let mut buffer_size = mem::MaybeUninit::uninit();
             errno!(alsa::snd_pcm_hw_params_get_buffer_size_min(
@@ -1074,12 +1091,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let mut hw = pcm.hardware_parameters_current()?;
+    /// let mut hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.buffer_size_max()?);
     /// # Ok(()) }
     /// ```
-    pub fn buffer_size_max(&self) -> Result<libc::c_ulong> {
+    pub fn buffer_size_max(&self) -> Result<c::c_ulong> {
         unsafe {
             let mut buffer_size = mem::MaybeUninit::uninit();
             errno!(alsa::snd_pcm_hw_params_get_buffer_size_max(
@@ -1099,12 +1116,12 @@ impl HardwareParametersCurrent {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-    /// let mut hw = pcm.hardware_parameters_current()?;
+    /// let mut hw = pcm.hardware_parameters()?;
     ///
     /// dbg!(hw.min_align()?);
     /// # Ok(()) }
     /// ```
-    pub fn min_align(&self) -> Result<libc::c_ulong> {
+    pub fn min_align(&self) -> Result<c::c_ulong> {
         unsafe {
             let mut min_align = mem::MaybeUninit::uninit();
             errno!(alsa::snd_pcm_hw_params_get_min_align(
@@ -1116,7 +1133,7 @@ impl HardwareParametersCurrent {
     }
 }
 
-impl Drop for HardwareParametersCurrent {
+impl Drop for HardwareParameters {
     fn drop(&mut self) {
         unsafe {
             let _ = alsa::snd_pcm_hw_params_free(self.handle.as_mut());
@@ -1128,30 +1145,25 @@ impl Drop for HardwareParametersCurrent {
 /// handle.
 ///
 /// Must be refined before they are applied to a [Pcm][super::Pcm] device
-/// through [HardwareParametersAny::install].
+/// through [HardwareParametersMut::install].
 ///
 /// See [Pcm::hardware_parameters_any][super::Pcm::hardware_parameters_any].
-pub struct HardwareParametersAny<'a> {
+pub struct HardwareParametersMut<'a> {
     pcm: &'a mut ptr::NonNull<alsa::snd_pcm_t>,
-    base: HardwareParametersCurrent,
+    base: HardwareParameters,
 }
 
-impl<'a> HardwareParametersAny<'a> {
-    /// Open hardware parameters for the current device for writing.
-    pub(super) unsafe fn new(pcm: &'a mut ptr::NonNull<alsa::snd_pcm_t>) -> Result<Self> {
-        let mut handle = mem::MaybeUninit::uninit();
+impl<'a> HardwareParametersMut<'a> {
+    /// Open current hardware parameters for the current device for writing.
+    pub(super) unsafe fn current(pcm: &'a mut ptr::NonNull<alsa::snd_pcm_t>) -> Result<Self> {
+        let base = HardwareParameters::current(pcm)?;
+        Ok(HardwareParametersMut { pcm, base })
+    }
 
-        errno!(alsa::snd_pcm_hw_params_malloc(handle.as_mut_ptr()))?;
-
-        let mut handle = ptr::NonNull::new_unchecked(handle.assume_init());
-
-        if let Err(e) = errno!(alsa::snd_pcm_hw_params_any(pcm.as_ptr(), handle.as_mut())) {
-            alsa::snd_pcm_hw_params_free(handle.as_mut());
-            return Err(e);
-        }
-
-        let base = HardwareParametersCurrent { handle };
-        Ok(HardwareParametersAny { pcm, base })
+    /// Open all available hardware parameters for the current device.
+    pub(super) unsafe fn any(pcm: &'a mut ptr::NonNull<alsa::snd_pcm_t>) -> Result<Self> {
+        let base = HardwareParameters::any(pcm)?;
+        Ok(HardwareParametersMut { pcm, base })
     }
 
     /// Install one PCM hardware configuration chosen from a configuration space
@@ -1251,7 +1263,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_channels_near(&mut self, mut channels: libc::c_uint) -> Result<libc::c_uint> {
+    pub fn set_channels_near(&mut self, mut channels: c::c_uint) -> Result<c::c_uint> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_channels_near(
                 self.pcm.as_mut(),
@@ -1278,7 +1290,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_channels(&mut self, channels: libc::c_uint) -> Result<()> {
+    pub fn set_channels(&mut self, channels: c::c_uint) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_channels(
                 self.pcm.as_mut(),
@@ -1305,7 +1317,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(result);
     /// # Ok(()) }
     /// ```
-    pub fn test_channels(&mut self, channels: libc::c_uint) -> Result<bool> {
+    pub fn test_channels(&mut self, channels: c::c_uint) -> Result<bool> {
         unsafe {
             let result = alsa::snd_pcm_hw_params_test_channels(
                 self.pcm.as_mut(),
@@ -1332,7 +1344,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_channels_min(&mut self, mut channels: libc::c_uint) -> Result<libc::c_uint> {
+    pub fn set_channels_min(&mut self, mut channels: c::c_uint) -> Result<c::c_uint> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_channels_min(
                 self.pcm.as_mut(),
@@ -1358,7 +1370,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_channels_max(&mut self, mut channels: libc::c_uint) -> Result<libc::c_uint> {
+    pub fn set_channels_max(&mut self, mut channels: c::c_uint) -> Result<c::c_uint> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_channels_max(
                 self.pcm.as_mut(),
@@ -1386,9 +1398,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_channels_minmax(
         &mut self,
-        mut channels_min: libc::c_uint,
-        mut channels_max: libc::c_uint,
-    ) -> Result<(libc::c_uint, libc::c_uint)> {
+        mut channels_min: c::c_uint,
+        mut channels_max: c::c_uint,
+    ) -> Result<(c::c_uint, c::c_uint)> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_channels_minmax(
                 self.pcm.as_mut(),
@@ -1415,7 +1427,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_channels_first(&mut self) -> Result<libc::c_uint> {
+    pub fn set_channels_first(&mut self) -> Result<c::c_uint> {
         unsafe {
             let mut channels = mem::MaybeUninit::uninit();
             errno!(alsa::snd_pcm_hw_params_set_channels_first(
@@ -1442,7 +1454,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_channels_last(&mut self) -> Result<libc::c_uint> {
+    pub fn set_channels_last(&mut self) -> Result<c::c_uint> {
         unsafe {
             let mut channels = mem::MaybeUninit::uninit();
             errno!(alsa::snd_pcm_hw_params_set_channels_last(
@@ -1472,11 +1484,11 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_rate_near(
         &mut self,
-        mut rate: libc::c_uint,
+        mut rate: c::c_uint,
         dir: Direction,
     ) -> Result<(u32, Direction)> {
         unsafe {
-            let mut dir = dir as libc::c_int;
+            let mut dir = dir as c::c_int;
 
             errno!(alsa::snd_pcm_hw_params_set_rate_near(
                 self.pcm.as_mut(),
@@ -1504,13 +1516,13 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_rate(&mut self, rate: libc::c_uint, dir: Direction) -> Result<()> {
+    pub fn set_rate(&mut self, rate: c::c_uint, dir: Direction) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_rate(
                 self.pcm.as_mut(),
                 self.base.handle.as_mut(),
                 rate,
-                dir as libc::c_int,
+                dir as c::c_int,
             ))?;
 
             Ok(())
@@ -1534,9 +1546,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_rate_min(
         &mut self,
-        mut rate: libc::c_uint,
+        mut rate: c::c_uint,
         dir: Direction,
-    ) -> Result<(libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_rate_min(
@@ -1567,9 +1579,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_rate_max(
         &mut self,
-        mut rate: libc::c_uint,
+        mut rate: c::c_uint,
         dir: Direction,
-    ) -> Result<(libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_rate_max(
@@ -1600,11 +1612,11 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_rate_minmax(
         &mut self,
-        mut rate_min: libc::c_uint,
+        mut rate_min: c::c_uint,
         dir_min: Direction,
-        mut rate_max: libc::c_uint,
+        mut rate_max: c::c_uint,
         dir_max: Direction,
-    ) -> Result<(libc::c_uint, Direction, libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction, c::c_uint, Direction)> {
         unsafe {
             let mut dir_min = dir_min as i32;
             let mut dir_max = dir_max as i32;
@@ -1637,7 +1649,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_rate_first(&mut self) -> Result<(libc::c_uint, Direction)> {
+    pub fn set_rate_first(&mut self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut rate = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -1668,7 +1680,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_rate_last(&mut self) -> Result<(libc::c_uint, Direction)> {
+    pub fn set_rate_last(&mut self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut rate = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -1699,7 +1711,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(result);
     /// # Ok(()) }
     /// ```
-    pub fn test_rate(&mut self, rate: libc::c_uint) -> Result<bool> {
+    pub fn test_rate(&mut self, rate: c::c_uint) -> Result<bool> {
         unsafe {
             let result = alsa::snd_pcm_hw_params_test_rate(
                 self.pcm.as_mut(),
@@ -1732,7 +1744,7 @@ impl<'a> HardwareParametersAny<'a> {
             errno!(alsa::snd_pcm_hw_params_set_format(
                 self.pcm.as_mut(),
                 self.base.handle.as_mut(),
-                format as libc::c_int
+                format as c::c_int
             ))?;
 
             Ok(())
@@ -1851,7 +1863,7 @@ impl<'a> HardwareParametersAny<'a> {
             let result = alsa::snd_pcm_hw_params_test_format(
                 self.pcm.as_mut(),
                 self.base.handle.as_mut(),
-                format as libc::c_int,
+                format as c::c_int,
             );
 
             Ok(result == 0)
@@ -1878,7 +1890,7 @@ impl<'a> HardwareParametersAny<'a> {
             errno!(alsa::snd_pcm_hw_params_set_access(
                 self.pcm.as_mut(),
                 self.base.handle.as_mut(),
-                access as libc::c_uint
+                access as c::c_uint
             ))?;
 
             Ok(())
@@ -1905,7 +1917,7 @@ impl<'a> HardwareParametersAny<'a> {
             let result = alsa::snd_pcm_hw_params_test_access(
                 self.pcm.as_mut(),
                 self.base.handle.as_mut(),
-                access as libc::c_uint,
+                access as c::c_uint,
             );
 
             Ok(result == 0)
@@ -2017,7 +2029,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_export_buffer(&mut self, export_buffer: libc::c_uint) -> Result<()> {
+    pub fn set_export_buffer(&mut self, export_buffer: c::c_uint) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_export_buffer(
                 self.pcm.as_mut(),
@@ -2043,7 +2055,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(result);
     /// # Ok(()) }
     /// ```
-    pub fn export_buffer(&mut self) -> Result<libc::c_uint> {
+    pub fn export_buffer(&mut self) -> Result<c::c_uint> {
         unsafe {
             let mut export_buffer = mem::MaybeUninit::uninit();
             errno!(alsa::snd_pcm_hw_params_get_export_buffer(
@@ -2070,7 +2082,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_period_wakeup(&mut self, period_wakeup: libc::c_uint) -> Result<()> {
+    pub fn set_period_wakeup(&mut self, period_wakeup: c::c_uint) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_period_wakeup(
                 self.pcm.as_mut(),
@@ -2095,7 +2107,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(hw.period_wakeup()?);
     /// # Ok(()) }
     /// ```
-    pub fn period_wakeup(&mut self) -> Result<libc::c_uint> {
+    pub fn period_wakeup(&mut self) -> Result<c::c_uint> {
         unsafe {
             let mut period_wakeup = mem::MaybeUninit::uninit();
             errno!(alsa::snd_pcm_hw_params_get_period_wakeup(
@@ -2121,7 +2133,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(hw.test_period_time(1000, alsa::Direction::Nearest)?);
     /// # Ok(()) }
     /// ```
-    pub fn test_period_time(&mut self, period_time: libc::c_uint, dir: Direction) -> Result<bool> {
+    pub fn test_period_time(&mut self, period_time: c::c_uint, dir: Direction) -> Result<bool> {
         unsafe {
             let result = errno!(alsa::snd_pcm_hw_params_test_period_time(
                 self.pcm.as_mut(),
@@ -2148,7 +2160,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_period_time(&mut self, period_time: libc::c_uint, dir: Direction) -> Result<()> {
+    pub fn set_period_time(&mut self, period_time: c::c_uint, dir: Direction) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_period_time(
                 self.pcm.as_mut(),
@@ -2177,9 +2189,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_period_time_min(
         &mut self,
-        mut period_time: libc::c_uint,
+        mut period_time: c::c_uint,
         dir: Direction,
-    ) -> Result<(libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_period_time_min(
@@ -2210,9 +2222,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_period_time_max(
         &mut self,
-        mut period_time: libc::c_uint,
+        mut period_time: c::c_uint,
         dir: Direction,
-    ) -> Result<(libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_period_time_max(
@@ -2243,11 +2255,11 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_period_time_minmax(
         &mut self,
-        mut period_time_max: libc::c_uint,
+        mut period_time_max: c::c_uint,
         dir_max: Direction,
-        mut period_time_min: libc::c_uint,
+        mut period_time_min: c::c_uint,
         dir_min: Direction,
-    ) -> Result<(libc::c_uint, Direction, libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction, c::c_uint, Direction)> {
         unsafe {
             let mut dir_min = dir_min as i32;
             let mut dir_max = dir_max as i32;
@@ -2282,9 +2294,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_period_time_near(
         &mut self,
-        mut period_time: libc::c_uint,
+        mut period_time: c::c_uint,
         dir: Direction,
-    ) -> Result<(libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_period_time_near(
@@ -2313,7 +2325,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_period_time_first(&mut self) -> Result<(libc::c_uint, Direction)> {
+    pub fn set_period_time_first(&mut self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut period_time = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -2344,7 +2356,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_period_time_last(&mut self) -> Result<(libc::c_uint, Direction)> {
+    pub fn set_period_time_last(&mut self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut period_time = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -2376,7 +2388,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// }
     /// # Ok(()) }
     /// ```
-    pub fn test_period_size(&mut self, frames: libc::c_ulong, dir: Direction) -> Result<bool> {
+    pub fn test_period_size(&mut self, frames: c::c_ulong, dir: Direction) -> Result<bool> {
         unsafe {
             let result = alsa::snd_pcm_hw_params_test_period_size(
                 self.pcm.as_mut(),
@@ -2403,7 +2415,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_period_size(&mut self, frames: libc::c_ulong, dir: Direction) -> Result<()> {
+    pub fn set_period_size(&mut self, frames: c::c_ulong, dir: Direction) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_period_size(
                 self.pcm.as_mut(),
@@ -2432,9 +2444,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_period_size_min(
         &mut self,
-        mut frames: libc::c_ulong,
+        mut frames: c::c_ulong,
         dir: Direction,
-    ) -> Result<(libc::c_ulong, Direction)> {
+    ) -> Result<(c::c_ulong, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_period_size_min(
@@ -2465,9 +2477,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_period_size_max(
         &mut self,
-        mut frames: libc::c_ulong,
+        mut frames: c::c_ulong,
         dir: Direction,
-    ) -> Result<(libc::c_ulong, Direction)> {
+    ) -> Result<(c::c_ulong, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_period_size_max(
@@ -2498,11 +2510,11 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_period_size_minmax(
         &mut self,
-        mut frames_min: libc::c_ulong,
+        mut frames_min: c::c_ulong,
         dir_min: Direction,
-        mut frames_max: libc::c_ulong,
+        mut frames_max: c::c_ulong,
         dir_max: Direction,
-    ) -> Result<(libc::c_ulong, Direction, libc::c_ulong, Direction)> {
+    ) -> Result<(c::c_ulong, Direction, c::c_ulong, Direction)> {
         unsafe {
             let mut dir_min = dir_min as i32;
             let mut dir_max = dir_max as i32;
@@ -2537,9 +2549,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_period_size_near(
         &mut self,
-        mut frames: libc::c_ulong,
+        mut frames: c::c_ulong,
         dir: Direction,
-    ) -> Result<(libc::c_ulong, Direction)> {
+    ) -> Result<(c::c_ulong, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_period_size_near(
@@ -2568,7 +2580,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_period_size_first(&mut self) -> Result<(libc::c_ulong, Direction)> {
+    pub fn set_period_size_first(&mut self) -> Result<(c::c_ulong, Direction)> {
         unsafe {
             let mut frames = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -2599,7 +2611,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_period_size_last(&mut self) -> Result<(libc::c_ulong, Direction)> {
+    pub fn set_period_size_last(&mut self) -> Result<(c::c_ulong, Direction)> {
         unsafe {
             let mut frames = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -2656,7 +2668,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// }
     /// # Ok(()) }
     /// ```
-    pub fn test_periods(&mut self, periods: libc::c_uint, dir: Direction) -> Result<bool> {
+    pub fn test_periods(&mut self, periods: c::c_uint, dir: Direction) -> Result<bool> {
         unsafe {
             let result = alsa::snd_pcm_hw_params_test_periods(
                 self.pcm.as_mut(),
@@ -2683,7 +2695,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_periods(&mut self, periods: libc::c_uint, dir: Direction) -> Result<()> {
+    pub fn set_periods(&mut self, periods: c::c_uint, dir: Direction) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_periods(
                 self.pcm.as_mut(),
@@ -2712,9 +2724,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_periods_min(
         &mut self,
-        mut periods: libc::c_uint,
+        mut periods: c::c_uint,
         dir: Direction,
-    ) -> Result<(libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_periods_min(
@@ -2745,9 +2757,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_periods_max(
         &mut self,
-        mut periods: libc::c_uint,
+        mut periods: c::c_uint,
         dir: Direction,
-    ) -> Result<(libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_periods_max(
@@ -2778,11 +2790,11 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_periods_minmax(
         &mut self,
-        mut periods_min: libc::c_uint,
+        mut periods_min: c::c_uint,
         dir_min: Direction,
-        mut periods_max: libc::c_uint,
+        mut periods_max: c::c_uint,
         dir_max: Direction,
-    ) -> Result<(libc::c_uint, Direction, libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction, c::c_uint, Direction)> {
         unsafe {
             let mut dir_min = dir_min as i32;
             let mut dir_max = dir_max as i32;
@@ -2817,9 +2829,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_periods_near(
         &mut self,
-        mut periods: libc::c_uint,
+        mut periods: c::c_uint,
         dir: Direction,
-    ) -> Result<(libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_periods_near(
@@ -2848,7 +2860,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_periods_first(&mut self) -> Result<(libc::c_uint, Direction)> {
+    pub fn set_periods_first(&mut self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut periods = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -2879,7 +2891,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_periods_last(&mut self) -> Result<(libc::c_uint, Direction)> {
+    pub fn set_periods_last(&mut self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut periods = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -2934,7 +2946,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(hw.test_buffer_time(10_000, alsa::Direction::Nearest)?);
     /// # Ok(()) }
     /// ```
-    pub fn test_buffer_time(&mut self, buffer_time: libc::c_uint, dir: Direction) -> Result<bool> {
+    pub fn test_buffer_time(&mut self, buffer_time: c::c_uint, dir: Direction) -> Result<bool> {
         unsafe {
             let result = errno!(alsa::snd_pcm_hw_params_test_buffer_time(
                 self.pcm.as_mut(),
@@ -2961,7 +2973,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_buffer_time(&mut self, buffer_time: libc::c_uint, dir: Direction) -> Result<()> {
+    pub fn set_buffer_time(&mut self, buffer_time: c::c_uint, dir: Direction) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_buffer_time(
                 self.pcm.as_mut(),
@@ -2990,9 +3002,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_buffer_time_min(
         &mut self,
-        mut buffer_time: libc::c_uint,
+        mut buffer_time: c::c_uint,
         dir: Direction,
-    ) -> Result<(libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_buffer_time_min(
@@ -3023,9 +3035,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_buffer_time_max(
         &mut self,
-        mut buffer_time: libc::c_uint,
+        mut buffer_time: c::c_uint,
         dir: Direction,
-    ) -> Result<(libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_buffer_time_max(
@@ -3056,11 +3068,11 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_buffer_time_minmax(
         &mut self,
-        mut buffer_time_min: libc::c_uint,
+        mut buffer_time_min: c::c_uint,
         dir_min: Direction,
-        mut buffer_time_max: libc::c_uint,
+        mut buffer_time_max: c::c_uint,
         dir_max: Direction,
-    ) -> Result<(libc::c_uint, Direction, libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction, c::c_uint, Direction)> {
         unsafe {
             let mut dir_min = dir_min as i32;
             let mut dir_max = dir_max as i32;
@@ -3095,9 +3107,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_buffer_time_near(
         &mut self,
-        mut buffer_time: libc::c_uint,
+        mut buffer_time: c::c_uint,
         dir: Direction,
-    ) -> Result<(libc::c_uint, Direction)> {
+    ) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut dir = dir as i32;
             errno!(alsa::snd_pcm_hw_params_set_buffer_time_near(
@@ -3126,7 +3138,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_buffer_time_first(&mut self) -> Result<(libc::c_uint, Direction)> {
+    pub fn set_buffer_time_first(&mut self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut buffer_time = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -3157,7 +3169,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_buffer_time_last(&mut self) -> Result<(libc::c_uint, Direction)> {
+    pub fn set_buffer_time_last(&mut self) -> Result<(c::c_uint, Direction)> {
         unsafe {
             let mut buffer_time = mem::MaybeUninit::uninit();
             let mut dir = mem::MaybeUninit::uninit();
@@ -3187,7 +3199,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(hw.test_buffer_size(1024)?);
     /// # Ok(()) }
     /// ```
-    pub fn test_buffer_size(&mut self, buffer_size: libc::c_ulong) -> Result<bool> {
+    pub fn test_buffer_size(&mut self, buffer_size: c::c_ulong) -> Result<bool> {
         unsafe {
             let result = errno!(alsa::snd_pcm_hw_params_test_buffer_size(
                 self.pcm.as_mut(),
@@ -3213,7 +3225,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_buffer_size(&mut self, buffer_size: libc::c_ulong) -> Result<()> {
+    pub fn set_buffer_size(&mut self, buffer_size: c::c_ulong) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_buffer_size(
                 self.pcm.as_mut(),
@@ -3239,7 +3251,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_buffer_size_min(&mut self, mut buffer_size: libc::c_ulong) -> Result<libc::c_ulong> {
+    pub fn set_buffer_size_min(&mut self, mut buffer_size: c::c_ulong) -> Result<c::c_ulong> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_buffer_size_min(
                 self.pcm.as_mut(),
@@ -3265,7 +3277,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_buffer_size_max(&mut self, mut buffer_size: libc::c_ulong) -> Result<libc::c_ulong> {
+    pub fn set_buffer_size_max(&mut self, mut buffer_size: c::c_ulong) -> Result<c::c_ulong> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_buffer_size_max(
                 self.pcm.as_mut(),
@@ -3293,9 +3305,9 @@ impl<'a> HardwareParametersAny<'a> {
     /// ```
     pub fn set_buffer_size_minmax(
         &mut self,
-        mut buffer_size_min: libc::c_ulong,
-        mut buffer_size_max: libc::c_ulong,
-    ) -> Result<(libc::c_ulong, libc::c_ulong)> {
+        mut buffer_size_min: c::c_ulong,
+        mut buffer_size_max: c::c_ulong,
+    ) -> Result<(c::c_ulong, c::c_ulong)> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_buffer_size_minmax(
                 self.pcm.as_mut(),
@@ -3322,10 +3334,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_buffer_size_near(
-        &mut self,
-        mut buffer_size: libc::c_ulong,
-    ) -> Result<libc::c_ulong> {
+    pub fn set_buffer_size_near(&mut self, mut buffer_size: c::c_ulong) -> Result<c::c_ulong> {
         unsafe {
             errno!(alsa::snd_pcm_hw_params_set_buffer_size_near(
                 self.pcm.as_mut(),
@@ -3351,7 +3360,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_buffer_size_first(&mut self) -> Result<libc::c_ulong> {
+    pub fn set_buffer_size_first(&mut self) -> Result<c::c_ulong> {
         unsafe {
             let mut buffer_size = mem::MaybeUninit::uninit();
             errno!(alsa::snd_pcm_hw_params_set_buffer_size_first(
@@ -3378,7 +3387,7 @@ impl<'a> HardwareParametersAny<'a> {
     /// dbg!(actual);
     /// # Ok(()) }
     /// ```
-    pub fn set_buffer_size_last(&mut self) -> Result<libc::c_ulong> {
+    pub fn set_buffer_size_last(&mut self) -> Result<c::c_ulong> {
         unsafe {
             let mut buffer_size = mem::MaybeUninit::uninit();
             errno!(alsa::snd_pcm_hw_params_set_buffer_size_last(
@@ -3414,8 +3423,8 @@ impl<'a> HardwareParametersAny<'a> {
     // Get subformat mask from a configuration space.
 }
 
-impl ops::Deref for HardwareParametersAny<'_> {
-    type Target = HardwareParametersCurrent;
+impl ops::Deref for HardwareParametersMut<'_> {
+    type Target = HardwareParameters;
 
     fn deref(&self) -> &Self::Target {
         &self.base

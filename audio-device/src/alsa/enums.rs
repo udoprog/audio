@@ -43,7 +43,7 @@ macro_rules! decl_enum {
     }
 }
 
-decl_enum!(
+decl_enum! {
     #[repr(i32)]
     pub enum Format {
         Unknown = SND_PCM_FORMAT_UNKNOWN,
@@ -95,9 +95,9 @@ decl_enum!(
         DSDU16BE = SND_PCM_FORMAT_DSD_U16_BE,
         DSDU32BE = SND_PCM_FORMAT_DSD_U32_BE,
     }
-);
+}
 
-decl_enum!(
+decl_enum! {
     #[repr(u32)]
     pub enum Access {
         /// mmap access with simple interleaved channels
@@ -111,4 +111,26 @@ decl_enum!(
         /// snd_pcm_readn/snd_pcm_writen access
         MmapReadWriteNoninterleaved = SND_PCM_ACCESS_RW_NONINTERLEAVED,
     }
-);
+}
+
+decl_enum! {
+    #[repr(u32)]
+    pub enum Timestamp {
+        /// No timestamp.
+        None = SND_PCM_TSTAMP_NONE,
+        //// Update timestamp at every hardware position update.
+        Enable = SND_PCM_TSTAMP_ENABLE,
+    }
+}
+
+decl_enum! {
+    #[repr(u32)]
+    pub enum TimestampType {
+        /// gettimeofday equivalent
+        GetTimeOfDay = SND_PCM_TSTAMP_TYPE_GETTIMEOFDAY,
+        /// posix_clock_monotonic equivalent
+        Monotonic = SND_PCM_TSTAMP_TYPE_MONOTONIC,
+        /// monotonic_raw (no NTP)
+        MonotonicRaw = SND_PCM_TSTAMP_TYPE_MONOTONIC_RAW,
+    }
+}

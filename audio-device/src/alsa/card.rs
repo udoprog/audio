@@ -1,6 +1,6 @@
 use crate::alsa::{CString, Result};
+use crate::libc as c;
 use alsa_sys as alsa;
-use libc::c_int;
 use std::ffi::CStr;
 use std::mem;
 
@@ -26,7 +26,7 @@ pub fn cards() -> Cards {
 ///
 /// See [cards].
 pub struct Cards {
-    index: c_int,
+    index: c::c_int,
 }
 
 impl Iterator for Cards {
@@ -49,7 +49,7 @@ impl Iterator for Cards {
 
 /// A reference to a card.
 pub struct Card {
-    index: c_int,
+    index: c::c_int,
 }
 
 impl Card {
@@ -90,7 +90,7 @@ impl Card {
     /// }
     /// # Ok(()) }
     /// ```
-    pub fn index(&self) -> c_int {
+    pub fn index(&self) -> c::c_int {
         self.index
     }
 
