@@ -18,4 +18,42 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --all-features --package audio --package audio-core --package ste
+        args: >
+          --all-features
+          --package audio
+          --package audio-core
+          --package audio-generator
+          --package ste
+          --package bittle
+  build-wasapi:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - name: cargo test
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: >
+          --features wasapi
+          --package audio-device
+  build-alsa:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - name: install libasound2-dev
+      run: sudo apt install libasound2-dev
+    - name: cargo test
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: >
+          --features alsa
+          --package audio-device

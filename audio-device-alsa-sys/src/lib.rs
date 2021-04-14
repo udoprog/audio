@@ -6,7 +6,7 @@
 //! cargo run --package generate --bin generate-alsa
 //! ```
 //!
-//! [audio-device]: https://crates.io/crates/audio-device
+//! [audio-device]: https://docs.rs/audio-device
 
 #![allow(non_camel_case_types)]
 

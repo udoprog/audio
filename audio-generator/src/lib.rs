@@ -1,10 +1,13 @@
 //! Audio generators.
 //!
-//! Central to these is the [Generator] trait which allows for describing an
-//! abstract generator in an object-safe manner.
+//! This provides audio generators which implements the [Generator] trait.
+//!
+//! It is part of the [audio ecosystem] of crates.
+//!
+//! [audio ecosystem]: https://docs.rs/audio
 
 mod generator;
 pub use self::generator::Generator;
 
-mod sin;
-pub use self::sin::Sin;
+mod sine;
+pub use self::sine::Sine;

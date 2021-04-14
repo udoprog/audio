@@ -19,9 +19,9 @@ where
 
     dbg!(config);
 
-    let mut a = gen::Sin::new(261.63, sample_rate);
-    let mut b = gen::Sin::new(329.63, sample_rate);
-    let mut c = gen::Sin::new(440.00, sample_rate);
+    let mut a = gen::Sine::new(261.63, sample_rate);
+    let mut b = gen::Sine::new(329.63, sample_rate);
+    let mut c = gen::Sine::new(440.00, sample_rate);
 
     loop {
         let mut data = render_client.buffer_mut()?;

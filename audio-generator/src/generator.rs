@@ -15,9 +15,9 @@ pub trait Generator {
     /// # Examples
     ///
     /// ```rust
-    /// use audio_generator::{Generator, Sin};
+    /// use audio_generator::{Generator, Sine};
     ///
-    /// let mut g = Sin::new(440.0, 44100.0);
+    /// let mut g = Sine::new(440.0, 44100.0);
     /// assert_eq!(g.sample(), 0.0);
     /// assert!(g.sample() > 0.0);
     /// ```
@@ -26,9 +26,9 @@ pub trait Generator {
     /// Construct an iterator from this generator.
     ///
     /// ```rust
-    /// use audio_generator::{Generator, Sin};
+    /// use audio_generator::{Generator, Sine};
     ///
-    /// let mut g = Sin::new(440.0, 44100.0).amplitude(0.5);
+    /// let mut g = Sine::new(440.0, 44100.0).amplitude(0.5);
     /// let samples = g.iter().take(10).collect::<Vec<f32>>();
     ///
     /// assert_eq!(samples.len(), 10);
@@ -45,10 +45,10 @@ pub trait Generator {
     /// # Examples
     ///
     /// ```rust
-    /// use audio_generator::{Generator, Sin};
+    /// use audio_generator::{Generator, Sine};
     ///
-    /// let mut a = Sin::new(440.0, 44100.0).amplitude(0.1);
-    /// let mut b = Sin::new(440.0, 44100.0).amplitude(0.1);
+    /// let mut a = Sine::new(440.0, 44100.0).amplitude(0.1);
+    /// let mut b = Sine::new(440.0, 44100.0).amplitude(0.1);
     ///
     /// for _ in 0..100 {
     ///     assert!(a.sample().abs() <= b.sample().abs());

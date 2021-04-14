@@ -30,7 +30,7 @@ impl Event {
 
         if handle == NULL {
             return Err(windows::Error::new(
-                windows::ErrorCode::from_thread(),
+                windows::HRESULT::from_thread(),
                 "failed to create event handle",
             ));
         }

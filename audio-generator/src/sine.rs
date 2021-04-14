@@ -5,28 +5,28 @@ use crate::generator::Generator;
 /// # Examples
 ///
 /// ```rust
-/// use audio_generator::{Generator, Sin};
+/// use audio_generator::{Generator, Sine};
 ///
-/// let mut g = Sin::new(440.0, 44100.0);
+/// let mut g = Sine::new(440.0, 44100.0);
 /// assert_eq!(g.sample(), 0.0);
 /// assert!(g.sample() > 0.0);
 /// ```
-pub struct Sin {
+pub struct Sine {
     at: f32,
     step: f32,
     round_at: f32,
 }
 
-impl Sin {
+impl Sine {
     /// Construct a new sine tone generator. The generated tone has the given
     /// `rate` adjusted for the provided `sample_rate`.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use audio_generator::{Generator, Sin};
+    /// use audio_generator::{Generator, Sine};
     ///
-    /// let mut g = Sin::new(440.0, 44100.0);
+    /// let mut g = Sine::new(440.0, 44100.0);
     /// assert_eq!(g.sample(), 0.0);
     /// assert!(g.sample() > 0.0);
     /// ```
@@ -42,7 +42,7 @@ impl Sin {
     }
 }
 
-impl Iterator for Sin {
+impl Iterator for Sine {
     type Item = f32;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -50,7 +50,7 @@ impl Iterator for Sin {
     }
 }
 
-impl Generator for Sin {
+impl Generator for Sine {
     type Sample = f32;
 
     fn sample(&mut self) -> Self::Sample {

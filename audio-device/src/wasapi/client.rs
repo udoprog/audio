@@ -110,7 +110,7 @@ impl Client {
             let mut mix_format = T::mix_format(config);
             let mut closest_match: *mut mm::WAVEFORMATEXTENSIBLE = ptr::null_mut();
 
-            let result: windows::ErrorCode = self.audio_client.IsFormatSupported(
+            let result: windows::HRESULT = self.audio_client.IsFormatSupported(
                 core::AUDCLNT_SHAREMODE::AUDCLNT_SHAREMODE_SHARED,
                 &mix_format as *const _ as *const mm::WAVEFORMATEX,
                 &mut closest_match as *mut _ as *mut *mut mm::WAVEFORMATEX,

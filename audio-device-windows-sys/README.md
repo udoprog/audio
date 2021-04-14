@@ -8,6 +8,6 @@ These bindings are generated with:
 cargo run --package generate --bin generate-windows
 ```
 
-[audio-device]: https://crates.io/crates/audio-device
+[audio-device]: https://docs.rs/audio-device
 
 License: MIT/Apache-2.0

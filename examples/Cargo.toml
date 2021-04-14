@@ -6,7 +6,7 @@ edition = "2018"
 publish = false
 
 [dependencies]
-audio ="0.2.0-alpha.3"
+audio = {version = "0.2.0-alpha.4", path = "../audio"}
 bittle = "0.1.0"
 cpal = "0.13.3"
 minimp3 = {git = "https://github.com/udoprog/minimp3-rs", branch = "next"}

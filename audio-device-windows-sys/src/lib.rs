@@ -6,6 +6,6 @@
 //! cargo run --package generate --bin generate-windows
 //! ```
 //!
-//! [audio-device]: https://crates.io/crates/audio-device
+//! [audio-device]: https://docs.rs/audio-device
 
 include!("bindings.rs");

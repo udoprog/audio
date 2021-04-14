@@ -4,16 +4,27 @@
 [![Crates](https://img.shields.io/crates/v/audio.svg)](https://crates.io/crates/audio)
 [![Actions Status](https://github.com/udoprog/audio/workflows/Rust/badge.svg)](https://github.com/udoprog/audio/actions)
 
-A library for working with audio buffers
+A crate for working with audio in Rust.
 
-The buffer is constructed similarly to a `Vec<Vec<T>>`, except the interior
-vector has a fixed size. And the buffer makes no attempt to clear data which
-is freed when using functions such as [Dynamic::resize].
+This is made up of several parts, each can be used independently of each other:
+
+* [audio-core] - which defines core traits that allows for safely
+  interacting with audio buffers.
+* [audio] - this crate, which provides a collection of high-quality audio
+  buffers which implements the traits provided in [audio-core].
+* [audio-device] - a crate for interacting with audio devices in idiomatic
+  Rust.
+* [audio-generator] - crate for generating audio.
+
+Audio buffers provided by this crate are conceptually kinda like
+`Vec<Vec<T>>`, except the interior vector has a fixed size. And the buffer
+makes no attempt to *clear data* which is freed when using resizing
+functions such as [Dynamic::resize].
 
 ## Formats and topologies
 
 The following are the three canonical audio formats which are supported by
-this library:
+this crate:
 * [dynamic][Dynamic] - where each channel is stored in its own
   heap-allocated buffer.
 * [interleaved][Interleaved] - where each channel is interleaved, like
@@ -89,17 +100,21 @@ assert_eq! {
 };
 ```
 
-[Channels]: https://docs.rs/audio-core/0/audio_core/trait.Channels.html
-[ChannelsMut]: https://docs.rs/audio-core/0/audio_core/trait.ChannelsMut.html
+[audio]: https://docs.rs/audio/0.2.0-alpha.4
+[audio-core]: https://docs.rs/audio-core/0.2.0-alpha.4
+[audio-device]: https://docs.rs/audio-device/0.2.0-alpha.4
+[audio-generator]: https://docs.rs/audio-generator/0.2.0-alpha.4
+[Channels]: https://docs.rs/audio-core/0.2.0-alpha.4/audio_core/trait.Channels.html
+[ChannelsMut]: https://docs.rs/audio-core/0.2.0-alpha.4/audio_core/trait.ChannelsMut.html
 [cpal]: https://github.com/RustAudio/cpal
-[Dynamic::resize]: https://docs.rs/audio/0.2.0-alpha.3/audio/dynamic/struct.Dynamic.html#method.resize
-[dynamic!]: https://docs.rs/audio/0.2.0-alpha.3/audio/macros/macro.dynamic.html
-[Dynamic]: https://docs.rs/audio/0.2.0-alpha.3/audio/dynamic/struct.Dynamic.html
-[Interleaved]: https://docs.rs/audio/0.2.0-alpha.3/audio/interleaved/struct.Interleaved.html
+[Dynamic::resize]: https://docs.rs/audio/0.2.0-alpha.4/audio/dynamic/struct.Dynamic.html#method.resize
+[dynamic!]: https://docs.rs/audio/0.2.0-alpha.4/audio/macros/macro.dynamic.html
+[Dynamic]: https://docs.rs/audio/0.2.0-alpha.4/audio/dynamic/struct.Dynamic.html
+[Interleaved]: https://docs.rs/audio/0.2.0-alpha.4/audio/interleaved/struct.Interleaved.html
 [minimp3-rs]: https://github.com/germangb/minimp3-rs
 [play-mp3]: https://github.com/udoprog/audio/tree/main/examples/src/bin/play-mp3.rs
 [rubato]: https://github.com/HEnquist/rubato
-[Sequential]: https://docs.rs/audio/0.2.0-alpha.3/audio/sequential/struct.Sequential.html
-[wrap]: https://docs.rs/audio/0.2.0-alpha.3/audio/wrap/index.html
+[Sequential]: https://docs.rs/audio/0.2.0-alpha.4/audio/sequential/struct.Sequential.html
+[wrap]: https://docs.rs/audio/0.2.0-alpha.4/audio/wrap/index.html
 
 License: MIT/Apache-2.0
