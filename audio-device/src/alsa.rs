@@ -62,6 +62,10 @@ pub enum Error {
     /// System error.
     #[error("system error: {0}")]
     Sys(Errno),
+    #[error("type `{ty}` is not appropriate to use with format `{format}`")]
+    FormatMismatch { ty: &'static str, format: Format },
+    #[error("mismatch in number of channels in buffer; actual = {actual}, expected = {expected}")]
+    ChannelsMismatch { actual: usize, expected: usize },
     /// Underlying function call returned an illegal format identifier.
     #[error("bad format identifier ({0})")]
     BadFormat(c::c_int),
@@ -83,7 +87,7 @@ mod card;
 pub use self::card::{cards, Card};
 
 mod pcm;
-pub use self::pcm::{Pcm, Stream};
+pub use self::pcm::Pcm;
 
 mod hardware_parameters;
 pub use self::hardware_parameters::{Direction, HardwareParameters, HardwareParametersMut};
@@ -98,4 +102,16 @@ mod access_mask;
 pub use self::access_mask::AccessMask;
 
 mod enums;
-pub use self::enums::{Access, Format, Timestamp, TimestampType};
+pub use self::enums::{Access, Format, Stream, Timestamp, TimestampType};
+
+mod channel_area;
+pub use self::channel_area::ChannelArea;
+
+mod writer;
+pub use self::writer::Writer;
+
+mod sample;
+pub use self::sample::Sample;
+
+mod configurator;
+pub use self::configurator::{Config, Configurator};

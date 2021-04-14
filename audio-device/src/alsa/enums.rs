@@ -1,3 +1,5 @@
+use crate::alsa::Result;
+use crate::libc as c;
 use alsa_sys as alsa;
 use std::fmt;
 
@@ -97,6 +99,34 @@ decl_enum! {
     }
 }
 
+impl Format {
+    /// Return bits needed to store a PCM sample.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use audio_device::alsa;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// assert_eq!(alsa::Format::U8.physical_width()?, 8);
+    /// assert_eq!(alsa::Format::S16LE.physical_width()?, 16);
+    /// assert_eq!(alsa::Format::S243LE.physical_width()?, 24);
+    /// # Ok(()) }
+    /// ```
+    pub fn physical_width(self) -> Result<usize> {
+        unsafe { Ok(errno!(alsa::snd_pcm_format_physical_width(self as c::c_int))? as usize) }
+    }
+}
+decl_enum! {
+    #[repr(u32)]
+    pub enum Stream {
+        /// A capture stream. Corresponds to `SND_PCM_STREAM_CAPTURE`.
+        Capture = SND_PCM_STREAM_CAPTURE,
+        /// A playback stream. Corresponds to `SND_PCM_STREAM_PLAYBACK`.
+        Playback = SND_PCM_STREAM_PLAYBACK,
+    }
+}
+
 decl_enum! {
     #[repr(u32)]
     pub enum Access {
@@ -107,9 +137,9 @@ decl_enum! {
         /// mmap access with complex placement
         MmapComplex = SND_PCM_ACCESS_MMAP_COMPLEX,
         /// snd_pcm_readi/snd_pcm_writei access
-        MmapReadWriteInterleaved = SND_PCM_ACCESS_RW_INTERLEAVED,
+        ReadWriteInterleaved = SND_PCM_ACCESS_RW_INTERLEAVED,
         /// snd_pcm_readn/snd_pcm_writen access
-        MmapReadWriteNoninterleaved = SND_PCM_ACCESS_RW_NONINTERLEAVED,
+        ReadWriteNoninterleaved = SND_PCM_ACCESS_RW_NONINTERLEAVED,
     }
 }
 

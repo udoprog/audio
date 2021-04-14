@@ -4,18 +4,21 @@ version = "0.1.0"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
 
+autoexamples = false
+
 [features]
-default = ["wasapi"]
+default = []
 wasapi = ["windows", "windows-sys/wasapi"]
 alsa = ["libc", "alsa-sys"]
 
 [dependencies]
+audio-core = {version = "0.2.0-alpha.3", path = "../audio-core"}
 thiserror = "1.0.24"
 rand = "0.8.3"
 ste = {path = "../ste"}
 
 [dev-dependencies]
-audio-core = {path = "../audio-core"}
+audio = {version = "0.2.0-alpha.3", path = "../audio"}
 audio-generator = {path = "../audio-generator"}
 anyhow = "1.0"
 tokio = {version = "1.4.0", features = ["full"]}
@@ -34,5 +37,13 @@ name = "alsa-list"
 required-features = ["alsa"]
 
 [[example]]
-name = "alsa-open"
+name = "alsa"
 required-features = ["alsa"]
+
+[[example]]
+name = "wasapi"
+required-features = ["wasapi"]
+
+[[example]]
+name = "wasapi-async"
+required-features = ["wasapi"]

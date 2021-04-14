@@ -10,4 +10,4 @@ pub use ::libc::free;
 #[doc(inherit)]
 pub use ::libc::pollfd;
 #[doc(inherit)]
-pub use ::libc::{c_char, c_int, c_short, c_uint, c_ulong};
+pub use ::libc::{c_char, c_int, c_long, c_short, c_uint, c_ulong, c_void};

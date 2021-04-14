@@ -1,5 +1,6 @@
 use crate::alsa::{
-    HardwareParameters, HardwareParametersMut, Result, SoftwareParameters, SoftwareParametersMut,
+    ChannelArea, Configurator, Error, HardwareParameters, HardwareParametersMut, Result, Sample,
+    SoftwareParameters, SoftwareParametersMut, Stream, Writer,
 };
 use crate::libc as c;
 use crate::unix::poll::{PollFd, PollFlags};
@@ -7,23 +8,6 @@ use alsa_sys as alsa;
 use std::ffi::CStr;
 use std::mem;
 use std::ptr;
-
-#[derive(Debug, Clone, Copy)]
-pub enum Stream {
-    /// A capture stream. Corresponds to `SND_PCM_STREAM_CAPTURE`.
-    Capture,
-    /// A playback stream. Corresponds to `SND_PCM_STREAM_PLAYBACK`.
-    Playback,
-}
-
-impl Stream {
-    fn into_flag(self) -> u32 {
-        match self {
-            Stream::Capture => alsa::SND_PCM_STREAM_CAPTURE,
-            Stream::Playback => alsa::SND_PCM_STREAM_CAPTURE,
-        }
-    }
-}
 
 /// An opened PCM device.
 pub struct Pcm {
@@ -69,6 +53,31 @@ impl Pcm {
         )
     }
 
+    /// Construct a simple stream [Configurator].
+    ///
+    /// It will be initialized with a set of default parameters which are
+    /// usually suitable for simple playback or recording for the given sample
+    /// type `T`.
+    ///
+    /// See [Configurator].
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use audio_device::alsa;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
+    /// let config = pcm.configure::<i16>().install()?;
+    /// # Ok(()) }
+    /// ```
+    pub fn configure<T>(&mut self) -> Configurator<'_, T>
+    where
+        T: Sample,
+    {
+        Configurator::new(self)
+    }
+
     /// Open the given pcm device identified by name in a nonblocking manner.
     ///
     /// # Examples
@@ -94,13 +103,70 @@ impl Pcm {
             errno!(alsa::snd_pcm_open(
                 handle.as_mut_ptr(),
                 name.as_ptr(),
-                stream.into_flag(),
+                stream as c::c_uint,
                 flags
             ))?;
 
             Ok(Self {
                 handle: ptr::NonNull::new_unchecked(handle.assume_init()),
             })
+        }
+    }
+
+    /// Start a PCM.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use audio_device::alsa;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
+    /// pcm.start()?;
+    /// # Ok(()) }
+    /// ```
+    pub fn start(&mut self) -> Result<()> {
+        unsafe {
+            errno!(alsa::snd_pcm_start(self.handle.as_mut()))?;
+            Ok(())
+        }
+    }
+
+    /// Pause a PCM.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use audio_device::alsa;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
+    /// pcm.pause()?;
+    /// # Ok(()) }
+    /// ```
+    pub fn pause(&mut self) -> Result<()> {
+        unsafe {
+            errno!(alsa::snd_pcm_pause(self.handle.as_mut(), 1))?;
+            Ok(())
+        }
+    }
+
+    /// Resume a PCM.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use audio_device::alsa;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
+    /// pcm.resume()?;
+    /// # Ok(()) }
+    /// ```
+    pub fn resume(&mut self) -> Result<()> {
+        unsafe {
+            errno!(alsa::snd_pcm_pause(self.handle.as_mut(), 0))?;
+            Ok(())
         }
     }
 
@@ -298,16 +364,102 @@ impl Pcm {
         }
     }
 
-    /// Write interleaved frames to a PCM.
-    pub fn write_interleaved(&mut self, buffer: &[u8]) -> Result<usize> {
-        unsafe {
-            let written = errno!(alsa::snd_pcm_writei(
-                self.handle.as_mut(),
-                buffer.as_ptr() as *const _,
-                buffer.len() as c::c_ulong
-            ))?;
+    /// Write unchecked interleaved frames to a PCM.
+    ///
+    /// Note: that the `len` must be the number of frames in the `buf` which
+    /// *does not* account for the number of channels. So if `len` is 100, and
+    /// the number of configured channels is 2, the `buf` must contain **at
+    /// least** 200 bytes.
+    ///
+    /// See [HardwareParameters::channels].
+    pub unsafe fn write_interleaved_unchecked(
+        &mut self,
+        buf: *const c::c_void,
+        len: c::c_ulong,
+    ) -> Result<c::c_long> {
+        let written = errno!(alsa::snd_pcm_writei(self.handle.as_mut(), buf, len))?;
+        Ok(written)
+    }
 
-            Ok(written as usize)
+    /// Construct a checked safe writer with the given number of channels and
+    /// the specified sample type.
+    ///
+    /// This will error if the type `T` is not appropriate for this device, or
+    /// if the number of channels does not match the number of configured
+    /// channels.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use audio_device::alsa;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
+    /// let config = pcm.configure::<i16>().install()?;
+    ///
+    /// let mut writer = pcm.writer::<i16>()?;
+    /// // use writer with the resulting config.
+    /// # Ok(()) }
+    /// ```
+    pub fn writer<T>(&mut self) -> Result<Writer<'_, T>>
+    where
+        T: Sample,
+    {
+        let hw = self.hardware_parameters()?;
+        let channels = hw.channels()? as usize;
+
+        // NB: here we check that `T` is appropriate for the current format.
+        let format = hw.format()?;
+
+        if !T::test(format) {
+            return Err(Error::FormatMismatch {
+                ty: T::describe(),
+                format,
+            });
+        }
+
+        unsafe { Ok(Writer::new(self, channels)) }
+    }
+
+    /// Return number of frames ready to be read (capture) / written (playback).
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use audio_device::alsa;
+    /// use audio_device::unix::poll::PollFd;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
+    ///
+    /// let avail = pcm.available_update()?;
+    /// dbg!(avail);
+    /// # Ok(()) }
+    /// ```
+    pub fn available_update(&mut self) -> Result<usize> {
+        unsafe { Ok(errno!(alsa::snd_pcm_avail_update(self.handle.as_mut()))? as usize) }
+    }
+
+    // Application request to access a portion of direct (mmap) area.
+    pub fn mmap_begin(&mut self, mut frames: c::c_ulong) -> Result<ChannelArea<'_>> {
+        unsafe {
+            let mut area = mem::MaybeUninit::uninit();
+            let mut offset = mem::MaybeUninit::uninit();
+            errno!(alsa::snd_pcm_mmap_begin(
+                self.handle.as_mut(),
+                area.as_mut_ptr(),
+                offset.as_mut_ptr(),
+                &mut frames
+            ))?;
+            let area = area.assume_init();
+            let offset = offset.assume_init();
+
+            Ok(ChannelArea {
+                pcm: &mut self.handle,
+                area,
+                offset,
+                frames,
+            })
         }
     }
 }

@@ -63,33 +63,44 @@ macro_rules! int_to_float {
             #[inline]
             fn translate(value: $unsigned) -> Self {
                 // Note: less conversion loss the closer we stay to 0.
-                $float::translate(i16::translate(value))
+                $float::translate($signed::translate(value))
             }
         }
     };
+}
+
+macro_rules! signed_to_unsigned {
+    ($signed:ty, $unsigned:ty) => {
+        impl Translate<$unsigned> for $signed {
+            #[inline]
+            fn translate(value: $unsigned) -> Self {
+                (value as $signed).wrapping_sub(<$signed>::MIN)
+            }
+        }
+
+        impl Translate<$signed> for $unsigned {
+            #[inline]
+            fn translate(value: $signed) -> Self {
+                value.wrapping_add(<$signed>::MIN) as $unsigned
+            }
+        }
+    }
 }
 
 identity!(f32);
 identity!(f64);
 identity!(i16);
 identity!(u16);
+identity!(u8);
 
 int_to_float!(i16, u16, f32);
 int_to_float!(i16, u16, f64);
 
-impl Translate<u16> for i16 {
-    #[inline]
-    fn translate(value: u16) -> Self {
-        (value as i16).wrapping_sub(i16::MIN)
-    }
-}
+int_to_float!(i8, u8, f32);
+int_to_float!(i8, u8, f64);
 
-impl Translate<i16> for u16 {
-    #[inline]
-    fn translate(value: i16) -> Self {
-        value.wrapping_add(i16::MIN) as u16
-    }
-}
+signed_to_unsigned!(i16, u16);
+signed_to_unsigned!(i8, u8);
 
 impl Translate<f32> for f64 {
     #[inline]
