@@ -5,6 +5,7 @@ use std::fmt;
 
 macro_rules! decl_enum {
     (
+        $(#[doc = $doc:literal])*
         #[repr($ty:ident)]
         $vis:vis enum $name:ident {
             $(
@@ -13,12 +14,14 @@ macro_rules! decl_enum {
             ),* $(,)?
         }
     ) => {
+        $(#[doc = $doc])*
         #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
         #[non_exhaustive]
         #[repr($ty)]
         $vis enum $name {
             $(
                 $(#[$m])*
+                #[allow(missing_docs)]
                 $a = alsa::$b,
             )*
         }
@@ -45,7 +48,31 @@ macro_rules! decl_enum {
     }
 }
 
+/// The direction in which updated hardware parameters is restricted unless the
+/// exact value is available.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(i32)]
+pub enum Direction {
+    /// Accept smaller values.
+    Smaller = -1,
+    /// Accept the nearest value.
+    Nearest = 0,
+    /// Accept greater values.
+    Greater = 1,
+}
+
+impl Direction {
+    pub(super) fn from_value(value: i32) -> Self {
+        match value {
+            -1 => Self::Smaller,
+            0 => Self::Nearest,
+            _ => Self::Greater,
+        }
+    }
+}
+
 decl_enum! {
+    /// Defines the supported format of a stream.
     #[repr(i32)]
     pub enum Format {
         Unknown = SND_PCM_FORMAT_UNKNOWN,
@@ -117,7 +144,11 @@ impl Format {
         unsafe { Ok(errno!(alsa::snd_pcm_format_physical_width(self as c::c_int))? as usize) }
     }
 }
+
 decl_enum! {
+    /// Defines the direction of a stream.
+    ///
+    /// See [Pcm::open][super::Pcm::open].
     #[repr(u32)]
     pub enum Stream {
         /// A capture stream. Corresponds to `SND_PCM_STREAM_CAPTURE`.
@@ -128,22 +159,24 @@ decl_enum! {
 }
 
 decl_enum! {
+    /// Defines how the underlying device is accessed.
     #[repr(u32)]
     pub enum Access {
-        /// mmap access with simple interleaved channels
+        /// MMAP access with simple interleaved channels
         MmapInterleaved = SND_PCM_ACCESS_MMAP_INTERLEAVED,
-        /// mmap access with simple non interleaved channels
+        /// MMAP access with simple non interleaved channels
         MmapNoninterleaved = SND_PCM_ACCESS_MMAP_NONINTERLEAVED,
-        /// mmap access with complex placement
+        /// MMAP access with complex placement
         MmapComplex = SND_PCM_ACCESS_MMAP_COMPLEX,
-        /// snd_pcm_readi/snd_pcm_writei access
+        /// Interleaved read/write access
         ReadWriteInterleaved = SND_PCM_ACCESS_RW_INTERLEAVED,
-        /// snd_pcm_readn/snd_pcm_writen access
+        /// Sequential read/write access
         ReadWriteNoninterleaved = SND_PCM_ACCESS_RW_NONINTERLEAVED,
     }
 }
 
 decl_enum! {
+    /// Defines if timestamps are enabled or not.
     #[repr(u32)]
     pub enum Timestamp {
         /// No timestamp.
@@ -154,6 +187,7 @@ decl_enum! {
 }
 
 decl_enum! {
+    /// Defines the type of timestamp that is available.
     #[repr(u32)]
     pub enum TimestampType {
         /// gettimeofday equivalent

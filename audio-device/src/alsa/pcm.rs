@@ -440,7 +440,8 @@ impl Pcm {
         unsafe { Ok(errno!(alsa::snd_pcm_avail_update(self.handle.as_mut()))? as usize) }
     }
 
-    // Application request to access a portion of direct (mmap) area.
+    /// Application request to access a portion of direct (mmap) area.
+    #[doc(hidden)] // incomplete feature
     pub fn mmap_begin(&mut self, mut frames: c::c_ulong) -> Result<ChannelArea<'_>> {
         unsafe {
             let mut area = mem::MaybeUninit::uninit();

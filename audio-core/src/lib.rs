@@ -4,7 +4,7 @@
 //! shape of any one given audio buffer you can add a dependency directly to
 //! these traits instead of depending on all of the [audio] crate.
 //!
-//! [audio]: https://github.com/udoprog/audio
+//! [audio]: https://docs.rs/audio
 
 #![deny(missing_docs, broken_intra_doc_links)]
 #![allow(clippy::should_implement_trait)]

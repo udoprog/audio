@@ -23,3 +23,7 @@ default-members = [
     "bittle",
     "ste",
 ]
+
+[patch.crates-io]
+audio = {path = "audio"}
+audio-core = {path = "audio-core"}

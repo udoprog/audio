@@ -1,6 +1,6 @@
 [package]
 name = "audio-core"
-version = "0.2.0-alpha.4"
+version = "0.2.0-alpha.3"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
@@ -9,8 +9,8 @@ categories = ["multimedia::audio"]
 repository = "https://github.com/udoprog/audio"
 homepage = "https://github.com/udoprog/audio"
 documentation = "https://docs.rs/audio"
-description = "A library for working with audio buffers"
+description = "The core audio traits"
 readme = "README.md"
 
 [dev-dependencies]
-audio = {version = "0.2.0-alpha.4", path = "../audio"}
+audio = {version = "0.2.0-alpha.3", path = "../audio"}

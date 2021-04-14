@@ -1,29 +1,9 @@
-use crate::alsa::{Access, AccessMask, Error, Format, FormatMask, Result};
+use crate::alsa::{Access, AccessMask, Error, Format, FormatMask, Result, Direction};
 use crate::libc as c;
 use alsa_sys as alsa;
 use std::mem;
 use std::ops;
 use std::ptr;
-
-/// The direction in which updated hardware parameters is restricted unless the
-/// exact value is available.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
-#[repr(i32)]
-pub enum Direction {
-    Smaller = -1,
-    Nearest = 0,
-    Greater = 1,
-}
-
-impl Direction {
-    fn from_value(value: i32) -> Self {
-        match value {
-            -1 => Self::Smaller,
-            0 => Self::Nearest,
-            _ => Self::Greater,
-        }
-    }
-}
 
 /// Collection of current hardware parameters being configured for a
 /// [Pcm][super::Pcm] handle.

@@ -1,6 +1,6 @@
 [package]
 name = "audio-device"
-version = "0.2.0-alpha.4"
+version = "0.1.0-alpha.4"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
@@ -24,22 +24,22 @@ alsa = ["libc", "nix", "alsa-sys"]
 events-driver = ["windows", "windows-sys"]
 
 [dependencies]
-audio-core = {version = "0.2.0-alpha.4", path = "../audio-core"}
+audio-core = {version = "0.2.0-alpha.3", path = "../audio-core"}
 thiserror = "1.0.24"
 rand = "0.8.3"
 ste = {version = "0.1.0-alpha.9", path = "../ste"}
 
 # windows
-windows-sys = {package = "audio-device-windows-sys", version = "0.2.0-alpha.4", path = "../audio-device-windows-sys", optional = true}
+windows-sys = {package = "audio-device-windows-sys", version = "0.1.0-alpha.1", path = "../audio-device-windows-sys", optional = true}
 windows = {version = "0.8.0", default-features = false, optional = true}
 
 # unix
-alsa-sys = {package = "audio-device-alsa-sys", version = "0.2.0-alpha.4", path = "../audio-device-alsa-sys", optional = true}
+alsa-sys = {package = "audio-device-alsa-sys", version = "0.1.0-alpha.1", path = "../audio-device-alsa-sys", optional = true}
 libc = {version = "0.2.93", optional = true}
 nix = {version = "0.20.0", optional = true}
 
 [dev-dependencies]
-audio = {version = "0.2.0-alpha.4", path = "../audio"}
+audio = {version = "0.2.0-alpha.3", path = "../audio"}
 audio-generator = {path = "../audio-generator"}
 anyhow = "1.0"
 tokio = {version = "1.4.0", features = ["full"]}

@@ -57,15 +57,30 @@ macro_rules! errno {
     }};
 }
 
+/// Errors that can be raised by the ALSA layer.
 #[derive(Debug, Error)]
 pub enum Error {
     /// System error.
     #[error("system error: {0}")]
     Sys(Errno),
+    /// Error raised when there's a format mismatch between an underlying stream
+    /// and the type attempting to be used with it.
     #[error("type `{ty}` is not appropriate to use with format `{format}`")]
-    FormatMismatch { ty: &'static str, format: Format },
+    FormatMismatch {
+        /// A description of the type expected.
+        ty: &'static str,
+        /// The format that mismatched.
+        format: Format,
+    },
+    /// Error raised when there's a channel count mismatch between an underlying
+    /// stream and the type attempting to be used with it.
     #[error("mismatch in number of channels in buffer; actual = {actual}, expected = {expected}")]
-    ChannelsMismatch { actual: usize, expected: usize },
+    ChannelsMismatch {
+        /// The actual number of channels.
+        actual: usize,
+        /// The expected number of channels.
+        expected: usize,
+    },
     /// Underlying function call returned an illegal format identifier.
     #[error("bad format identifier ({0})")]
     BadFormat(c::c_int),
@@ -90,7 +105,7 @@ mod pcm;
 pub use self::pcm::Pcm;
 
 mod hardware_parameters;
-pub use self::hardware_parameters::{Direction, HardwareParameters, HardwareParametersMut};
+pub use self::hardware_parameters::{HardwareParameters, HardwareParametersMut};
 
 mod software_parameters;
 pub use self::software_parameters::{SoftwareParameters, SoftwareParametersMut};
@@ -102,7 +117,7 @@ mod access_mask;
 pub use self::access_mask::AccessMask;
 
 mod enums;
-pub use self::enums::{Access, Format, Stream, Timestamp, TimestampType};
+pub use self::enums::{Direction, Access, Format, Stream, Timestamp, TimestampType};
 
 mod channel_area;
 #[doc(hidden)]
