@@ -106,7 +106,6 @@ impl Pcm {
     ///
     /// ```rust,no_run
     /// use audio_device::alsa;
-    /// use std::ffi::CStr;
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
@@ -123,7 +122,6 @@ impl Pcm {
     ///
     /// ```rust,no_run
     /// use audio_device::alsa;
-    /// use std::ffi::CStr;
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
@@ -133,6 +131,48 @@ impl Pcm {
     /// ```
     pub fn hardware_parameters_current(&mut self) -> Result<HardwareParametersCurrent> {
         unsafe { HardwareParametersCurrent::new(&mut self.handle) }
+    }
+
+    /// Get count of poll descriptors for PCM handle.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use audio_device::alsa;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
+    /// let count = pcm.poll_descriptors_count();
+    /// dbg!(count);
+    /// # Ok(()) }
+    /// ```
+    pub fn poll_descriptors_count(&mut self) -> usize {
+        unsafe { alsa::snd_pcm_poll_descriptors_count(self.handle.as_mut()) as usize }
+    }
+
+    /// Get poll descriptors.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use audio_device::alsa;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
+    /// let count = pcm.poll_descriptors_count();
+    /// let mut fds = vec![libc::pollfd { fd: 0, events: 0, revents: 0 }; count];
+    /// let filled = pcm.poll_descriptors(&mut fds[..])?;
+    /// # Ok(()) }
+    /// ```
+    pub fn poll_descriptors(&mut self, fds: &mut [libc::pollfd]) -> Result<usize> {
+        unsafe {
+            let result = errno!(alsa::snd_pcm_poll_descriptors(
+                self.handle.as_mut(),
+                fds.as_mut_ptr(),
+                fds.len() as libc::c_uint
+            ))?;
+            Ok(result as usize)
+        }
     }
 }
 
