@@ -2,5 +2,8 @@
 //! drivers that can be used in combination with audio interfaces.
 
 mod atomic_waker;
-#[cfg(windows)]
-pub mod events;
+
+cfg_events_driver! {
+    pub(crate) mod events;
+    pub use self::events::Events;
+}

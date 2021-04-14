@@ -1,36 +1,48 @@
 [package]
 name = "audio-device"
-version = "0.1.0"
+version = "0.1.0-alpha.2"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
+license = "MIT/Apache-2.0"
+keywords = ["buffer", "audio", "dsp"]
+categories = ["multimedia::audio"]
+repository = "https://github.com/udoprog/audio"
+homepage = "https://github.com/udoprog/audio"
+documentation = "https://docs.rs/audio-device"
+description = "A library for interacting with audio devices"
+readme = "README.md"
 
 autoexamples = false
 
+[package.metadata.docs.rs]
+all-features = true
+
 [features]
 default = []
-wasapi = ["windows", "windows-sys/wasapi"]
-alsa = ["libc", "alsa-sys"]
+wasapi = ["windows", "windows-sys", "windows-sys/wasapi", "events-driver"]
+alsa = ["libc", "nix", "alsa-sys"]
+events-driver = ["windows", "windows-sys"]
 
 [dependencies]
 audio-core = {version = "0.2.0-alpha.3", path = "../audio-core"}
 thiserror = "1.0.24"
 rand = "0.8.3"
-ste = {path = "../ste"}
+ste = {version = "0.1.0-alpha.9", path = "../ste"}
+
+# windows
+windows-sys = {package = "audio-device-windows-sys", version = "0.1.0-alpha.1", path = "../audio-device-windows-sys", optional = true}
+windows = {version = "0.8.0", default-features = false, optional = true}
+
+# unix
+alsa-sys = {package = "audio-device-alsa-sys", version = "0.1.0-alpha.1", path = "../audio-device-alsa-sys", optional = true}
+libc = {version = "0.2.93", optional = true}
+nix = {version = "0.20.0", optional = true}
 
 [dev-dependencies]
 audio = {version = "0.2.0-alpha.3", path = "../audio"}
 audio-generator = {path = "../audio-generator"}
 anyhow = "1.0"
 tokio = {version = "1.4.0", features = ["full"]}
-
-[target.'cfg(windows)'.dependencies]
-windows-sys = {package = "audio-device-windows-sys", path = "../audio-device-windows-sys"}
-windows = {git = "https://github.com/microsoft/windows-rs", default-features = false, optional = true}
-
-[target.'cfg(unix)'.dependencies]
-alsa-sys = {package = "audio-device-alsa-sys", path = "../audio-device-alsa-sys", optional = true}
-libc = {version = "0.2.93", optional = true}
-nix = "0.20.0"
 
 [[example]]
 name = "alsa-list"
@@ -47,3 +59,7 @@ required-features = ["wasapi"]
 [[example]]
 name = "wasapi-async"
 required-features = ["wasapi"]
+
+[[example]]
+name = "events"
+required-features = ["events-driver"]

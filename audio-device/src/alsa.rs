@@ -105,6 +105,7 @@ mod enums;
 pub use self::enums::{Access, Format, Stream, Timestamp, TimestampType};
 
 mod channel_area;
+#[doc(hidden)]
 pub use self::channel_area::ChannelArea;
 
 mod writer;

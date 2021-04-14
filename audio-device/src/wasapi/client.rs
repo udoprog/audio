@@ -1,4 +1,4 @@
-use crate::driver::events::Handle;
+use crate::driver::Events;
 use crate::wasapi::{ClientConfig, Error, InitializedClient, Sample, SampleFormat};
 use crate::windows::{AsyncEvent, Event, RawEvent};
 use std::marker;
@@ -86,13 +86,13 @@ impl Client {
     /// Try to initialize the client with the given configuration.
     pub fn initialize_async<T>(
         &self,
-        handle: &Handle,
+        events: &Events,
         config: ClientConfig,
     ) -> Result<InitializedClient<T, AsyncEvent>, Error>
     where
         T: Sample,
     {
-        self.initialize_inner(config, || handle.event(false))
+        self.initialize_inner(config, || events.event(false))
     }
 
     /// Try to initialize the client with the given configuration.

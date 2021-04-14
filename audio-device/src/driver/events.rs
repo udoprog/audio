@@ -1,5 +1,3 @@
-//! A Windows event executor.
-
 use crate::driver::atomic_waker::AtomicWaker;
 use crate::loom::sync::atomic::{AtomicBool, Ordering};
 use crate::loom::sync::{Arc, Mutex};
@@ -7,13 +5,8 @@ use crate::loom::thread;
 use crate::windows::{AsyncEvent, Event, RawEvent as _};
 use std::io;
 use std::mem;
-use thiserror::Error;
 use windows_sys::Windows::Win32::SystemServices as ss;
 use windows_sys::Windows::Win32::WindowsProgramming as wp;
-
-#[derive(Debug, Error)]
-#[error("background thread panicked")]
-pub struct Panicked(());
 
 /// Data on the waker for a handle.
 pub(crate) struct Waker {
@@ -34,13 +27,23 @@ pub(crate) struct Holders {
     pub(crate) removed: Vec<Event>,
 }
 
-pub struct Handle {
-    thread: Option<thread::JoinHandle<()>>,
-    shared: Arc<Shared>,
+cfg_events_driver! {
+    /// An executor to drive things which are woken up by [windows event
+    /// objects].
+    ///
+    /// This is necessary to use in combination with [AsyncEvent].
+    ///
+    /// [windows event objects]:
+    /// https://docs.microsoft.com/en-us/windows/win32/sync/event-objects
+    pub struct Events {
+        thread: Option<thread::JoinHandle<()>>,
+        shared: Arc<Shared>,
+    }
 }
 
-impl Handle {
-    /// Construct a new events windows driver and return its handle.
+impl Events {
+    /// Construct a new events windows event object driver and return its
+    /// handle.
     pub fn new() -> windows::Result<Self> {
         let shared = Arc::new(Shared {
             running: AtomicBool::new(true),
@@ -84,23 +87,28 @@ impl Handle {
     }
 
     /// Join the current handle.
-    pub fn join(mut self) -> Result<(), Panicked> {
-        self.inner_join()?;
-        Ok(())
+    ///
+    /// # Panics
+    ///
+    /// This panics if the background thread panicked. But this should only ever
+    /// happen if there's a bug.
+    pub fn join(mut self) {
+        self.inner_join();
     }
 
-    fn inner_join(&mut self) -> Result<(), Panicked> {
+    fn inner_join(&mut self) {
         if let Some(thread) = self.thread.take() {
             self.shared.running.store(false, Ordering::Release);
             self.shared.parker.set();
-            return thread.join().map_err(|_| Panicked(()));
-        }
 
-        Ok(())
+            if thread.join().is_err() {
+                panic!("event handler thread panicked");
+            }
+        }
     }
 }
 
-impl Drop for Handle {
+impl Drop for Events {
     fn drop(&mut self) {
         let _ = self.inner_join();
     }

@@ -6,10 +6,7 @@ use std::process;
 fn main() -> io::Result<()> {
     let tokens = windows_macros::generate!(
         Windows::Win32::Audio::*,
-        #[cfg(feature = "wasapi")]
         Windows::Win32::CoreAudio::*,
-        #[cfg(feature = "xaudio2")]
-        Windows::Win32::XAudio2::*,
         Windows::Win32::Multimedia::{
             WAVEFORMATEX,
             WAVEFORMATEXTENSIBLE,

@@ -4,7 +4,7 @@ pub use self::amplitude::Amplitude;
 mod iter;
 pub use self::iter::Iter;
 
-/// The trait for a generator.
+/// The trait for an audio generator.
 pub trait Generator {
     /// The sample that is generated.
     type Sample;

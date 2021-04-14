@@ -1,10 +1,10 @@
 use anyhow::{anyhow, Result};
-use audio_device::driver::events::Handle;
+use audio_device::driver::Events;
 use audio_device::wasapi;
 use audio_generator::{self as gen, Generator as _};
 
 async fn run_output<T>(
-    handle: &Handle,
+    events: &Events,
     client: wasapi::Client,
     mut config: wasapi::ClientConfig,
 ) -> Result<()>
@@ -14,7 +14,7 @@ where
 {
     config.sample_rate = 120000;
 
-    let initialized = client.initialize_async::<T>(handle, config)?;
+    let initialized = client.initialize_async::<T>(events, config)?;
     let mut render_client = initialized.render_client()?;
 
     client.start()?;
@@ -53,7 +53,7 @@ pub async fn main() -> Result<()> {
     let mut line = String::new();
     std::io::stdin().read_line(&mut line)?;
 
-    let handle = Handle::new()?;
+    let events = Events::new()?;
     let audio_thread = ste::Builder::new().prelude(wasapi::audio_prelude).build()?;
 
     audio_thread
@@ -65,10 +65,10 @@ pub async fn main() -> Result<()> {
 
             match config.sample_format {
                 wasapi::SampleFormat::I16 => {
-                    run_output::<i16>(&handle, output, config).await?;
+                    run_output::<i16>(&events, output, config).await?;
                 }
                 wasapi::SampleFormat::F32 => {
-                    run_output::<f32>(&handle, output, config).await?;
+                    run_output::<f32>(&events, output, config).await?;
                 }
             }
 

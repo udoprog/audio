@@ -7,7 +7,7 @@ publish = false
 
 [dependencies]
 anyhow = "1.0"
-windows_macros = {git = "https://github.com/udoprog/windows-rs", branch = "type-constraints"}
-windows_gen = {git = "https://github.com/udoprog/windows-rs", branch = "type-constraints"}
+windows_macros = {version = "0.8.0"}
+windows_gen = {version = "0.8.0"}
 bindgen = "0.58.1"
 pkg-config = "0.3.19"

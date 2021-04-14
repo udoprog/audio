@@ -84,7 +84,7 @@ macro_rules! signed_to_unsigned {
                 value.wrapping_add(<$signed>::MIN) as $unsigned
             }
         }
-    }
+    };
 }
 
 identity!(f32);

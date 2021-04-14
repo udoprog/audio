@@ -73,7 +73,7 @@ unsafe impl Sync for Event {}
 
 /// An asynchronous variant of [Event].
 ///
-/// Constructed through [Handle::event][crate::driver::events::Handle::event]
+/// Constructed through [Handle::event][crate::driver::Events::event]
 pub struct AsyncEvent {
     shared: Arc<Shared>,
     waker: Arc<Waker>,

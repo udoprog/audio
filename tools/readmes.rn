@@ -12,6 +12,16 @@ pub async fn main() {
     let projects = cargo_toml.workspace.members;
 
     for project in projects {
+        let cargo_toml = fs::read_to_string(`${project}/Cargo.toml`).await?;
+        let cargo_toml = toml::from_string(cargo_toml)?;
+
+        if let Some(publish) = cargo_toml.package.get("publish") {
+            if !publish {
+                println(`${project}: skipping (publish = false)`);
+                continue;
+            }
+        }
+
         let status = update_readme(project, "README.md").await?;
         println(`${project}: ${status}`);
     }

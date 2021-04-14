@@ -42,32 +42,32 @@ pub mod Windows {
             clippy::all
         )]
         pub mod Audio {
-            pub const APOERR_ALREADY_INITIALIZED: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2005073919i32 as _);
-            pub const APOERR_ALREADY_UNLOCKED: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2005073914i32 as _);
-            pub const APOERR_APO_LOCKED: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2005073910i32 as _);
-            pub const APOERR_BUFFERS_OVERLAP: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2005073915i32 as _);
-            pub const APOERR_FORMAT_NOT_SUPPORTED: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2005073917i32 as _);
-            pub const APOERR_INVALID_APO_CLSID: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2005073916i32 as _);
-            pub const APOERR_INVALID_COEFFCOUNT: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2005073909i32 as _);
-            pub const APOERR_INVALID_COEFFICIENT: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2005073908i32 as _);
-            pub const APOERR_INVALID_CONNECTION_FORMAT: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2005073911i32 as _);
-            pub const APOERR_INVALID_CURVE_PARAM: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2005073907i32 as _);
-            pub const APOERR_INVALID_OUTPUT_MAXFRAMECOUNT: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2005073912i32 as _);
-            pub const APOERR_NOT_INITIALIZED: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2005073918i32 as _);
-            pub const APOERR_NUM_CONNECTIONS_INVALID: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2005073913i32 as _);
+            pub const APOERR_ALREADY_INITIALIZED: ::windows::HRESULT =
+                ::windows::HRESULT(-2005073919i32 as _);
+            pub const APOERR_ALREADY_UNLOCKED: ::windows::HRESULT =
+                ::windows::HRESULT(-2005073914i32 as _);
+            pub const APOERR_APO_LOCKED: ::windows::HRESULT =
+                ::windows::HRESULT(-2005073910i32 as _);
+            pub const APOERR_BUFFERS_OVERLAP: ::windows::HRESULT =
+                ::windows::HRESULT(-2005073915i32 as _);
+            pub const APOERR_FORMAT_NOT_SUPPORTED: ::windows::HRESULT =
+                ::windows::HRESULT(-2005073917i32 as _);
+            pub const APOERR_INVALID_APO_CLSID: ::windows::HRESULT =
+                ::windows::HRESULT(-2005073916i32 as _);
+            pub const APOERR_INVALID_COEFFCOUNT: ::windows::HRESULT =
+                ::windows::HRESULT(-2005073909i32 as _);
+            pub const APOERR_INVALID_COEFFICIENT: ::windows::HRESULT =
+                ::windows::HRESULT(-2005073908i32 as _);
+            pub const APOERR_INVALID_CONNECTION_FORMAT: ::windows::HRESULT =
+                ::windows::HRESULT(-2005073911i32 as _);
+            pub const APOERR_INVALID_CURVE_PARAM: ::windows::HRESULT =
+                ::windows::HRESULT(-2005073907i32 as _);
+            pub const APOERR_INVALID_OUTPUT_MAXFRAMECOUNT: ::windows::HRESULT =
+                ::windows::HRESULT(-2005073912i32 as _);
+            pub const APOERR_NOT_INITIALIZED: ::windows::HRESULT =
+                ::windows::HRESULT(-2005073918i32 as _);
+            pub const APOERR_NUM_CONNECTIONS_INVALID: ::windows::HRESULT =
+                ::windows::HRESULT(-2005073913i32 as _);
             #[repr(C)]
             #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
             pub struct APOInitBaseStruct {
@@ -119,7 +119,7 @@ pub mod Windows {
                 );
             }
             impl IPropertyStore {
-                pub unsafe fn GetCount(&self, cprops: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetCount(&self, cprops: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(cprops),
@@ -129,7 +129,7 @@ pub mod Windows {
                     &self,
                     iprop: u32,
                     pkey: *mut super::WindowsPropertiesSystem::PROPERTYKEY,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(iprop),
@@ -140,7 +140,7 @@ pub mod Windows {
                     &self,
                     key: *const super::WindowsPropertiesSystem::PROPERTYKEY,
                     pv: *mut super::StructuredStorage::PROPVARIANT,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(key),
@@ -151,14 +151,14 @@ pub mod Windows {
                     &self,
                     key: *const super::WindowsPropertiesSystem::PROPERTYKEY,
                     propvar: *const super::StructuredStorage::PROPVARIANT,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(key),
                         ::std::mem::transmute(propvar),
                     )
                 }
-                pub unsafe fn Commit(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Commit(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(::windows::Abi::abi(self))
                 }
             }
@@ -191,29 +191,29 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     cprops: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     iprop: u32,
                     pkey: *mut super::WindowsPropertiesSystem::PROPERTYKEY,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     key: *const super::WindowsPropertiesSystem::PROPERTYKEY,
                     pv: *mut super::StructuredStorage::PROPVARIANT_abi,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     key: *const super::WindowsPropertiesSystem::PROPERTYKEY,
                     propvar: *const super::StructuredStorage::PROPVARIANT_abi,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
             );
             #[repr(C)]
             #[derive(:: std :: clone :: Clone)]
@@ -420,17 +420,17 @@ pub mod Windows {
                 pub unsafe fn IsCompressedFormat(
                     &self,
                     pfcompressed: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pfcompressed),
                     )
                 }
-                pub unsafe fn IsEqual<'a, T0__: ::windows::IntoParam<'a, IAudioMediaType>>(
+                pub unsafe fn IsEqual<'a>(
                     &self,
-                    piaudiotype: T0__,
+                    piaudiotype: impl ::windows::IntoParam<'a, IAudioMediaType>,
                     pdwflags: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         piaudiotype.into_param().abi(),
@@ -443,7 +443,7 @@ pub mod Windows {
                 pub unsafe fn GetUncompressedAudioFormat(
                     &self,
                     puncompressedaudioformat: *mut UNCOMPRESSEDAUDIOFORMAT,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(puncompressedaudioformat),
@@ -479,18 +479,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pfcompressed: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     piaudiotype: ::windows::RawPtr,
                     pdwflags: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                 )
@@ -498,7 +498,7 @@ pub mod Windows {
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     puncompressedaudioformat: *mut UNCOMPRESSEDAUDIOFORMAT,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(C)]
             #[derive(:: std :: clone :: Clone)]
@@ -4149,15 +4149,12 @@ pub mod Windows {
                 );
             }
             impl IDirectSoundCapture {
-                pub unsafe fn CreateCaptureBuffer<
-                    'a,
-                    T2__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-                >(
+                pub unsafe fn CreateCaptureBuffer<'a>(
                     &self,
                     pcdscbufferdesc: *mut DSCBUFFERDESC,
                     ppdscbuffer: *mut ::std::option::Option<IDirectSoundCaptureBuffer>,
-                    punkouter: T2__,
-                ) -> ::windows::ErrorCode {
+                    punkouter: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdscbufferdesc),
@@ -4165,7 +4162,7 @@ pub mod Windows {
                         punkouter.into_param().abi(),
                     )
                 }
-                pub unsafe fn GetCaps(&self, pdsccaps: *mut DSCCAPS) -> ::windows::ErrorCode {
+                pub unsafe fn GetCaps(&self, pdsccaps: *mut DSCCAPS) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdsccaps),
@@ -4174,7 +4171,7 @@ pub mod Windows {
                 pub unsafe fn Initialize(
                     &self,
                     pcguiddevice: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcguiddevice),
@@ -4210,7 +4207,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -4218,59 +4215,29 @@ pub mod Windows {
                     pcdscbufferdesc: *mut DSCBUFFERDESC,
                     ppdscbuffer: *mut ::windows::RawPtr,
                     punkouter: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsccaps: *mut DSCCAPS,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcguiddevice: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
-            pub unsafe fn DirectSoundCaptureCreate<
-                'a,
-                T2__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-            >(
+            pub unsafe fn DirectSoundCaptureCreate<'a>(
                 pcguiddevice: *mut ::windows::Guid,
                 ppdsc: *mut ::std::option::Option<IDirectSoundCapture>,
-                punkouter: T2__,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "DSOUND")]
-                extern "system" {
-                    pub fn DirectSoundCaptureCreate(
-                        pcguiddevice: *mut ::windows::Guid,
-                        ppdsc: *mut ::windows::RawPtr,
-                        punkouter: ::windows::RawPtr,
-                    ) -> ::windows::ErrorCode;
-                }
-                DirectSoundCaptureCreate(
-                    ::std::mem::transmute(pcguiddevice),
-                    ::std::mem::transmute(ppdsc),
-                    punkouter.into_param().abi(),
-                )
+                punkouter: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
-            pub unsafe fn DirectSoundCaptureCreate8<
-                'a,
-                T2__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-            >(
+            pub unsafe fn DirectSoundCaptureCreate8<'a>(
                 pcguiddevice: *mut ::windows::Guid,
                 ppdsc8: *mut ::std::option::Option<IDirectSoundCapture>,
-                punkouter: T2__,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "DSOUND")]
-                extern "system" {
-                    pub fn DirectSoundCaptureCreate8(
-                        pcguiddevice: *mut ::windows::Guid,
-                        ppdsc8: *mut ::windows::RawPtr,
-                        punkouter: ::windows::RawPtr,
-                    ) -> ::windows::ErrorCode;
-                }
-                DirectSoundCaptureCreate8(
-                    ::std::mem::transmute(pcguiddevice),
-                    ::std::mem::transmute(ppdsc8),
-                    punkouter.into_param().abi(),
-                )
+                punkouter: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
             pub type LPDSENUMCALLBACKA = extern "system" fn(
                 param0: *mut ::windows::Guid,
@@ -4282,18 +4249,8 @@ pub mod Windows {
             pub unsafe fn DirectSoundCaptureEnumerateA(
                 pdsenumcallback: ::std::option::Option<LPDSENUMCALLBACKA>,
                 pcontext: *mut ::std::ffi::c_void,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "DSOUND")]
-                extern "system" {
-                    pub fn DirectSoundCaptureEnumerateA(
-                        pdsenumcallback: ::windows::RawPtr,
-                        pcontext: *mut ::std::ffi::c_void,
-                    ) -> ::windows::ErrorCode;
-                }
-                DirectSoundCaptureEnumerateA(
-                    ::std::mem::transmute(pdsenumcallback),
-                    ::std::mem::transmute(pcontext),
-                )
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
             pub type LPDSENUMCALLBACKW = extern "system" fn(
                 param0: *mut ::windows::Guid,
@@ -4305,18 +4262,8 @@ pub mod Windows {
             pub unsafe fn DirectSoundCaptureEnumerateW(
                 pdsenumcallback: ::std::option::Option<LPDSENUMCALLBACKW>,
                 pcontext: *mut ::std::ffi::c_void,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "DSOUND")]
-                extern "system" {
-                    pub fn DirectSoundCaptureEnumerateW(
-                        pdsenumcallback: ::windows::RawPtr,
-                        pcontext: *mut ::std::ffi::c_void,
-                    ) -> ::windows::ErrorCode;
-                }
-                DirectSoundCaptureEnumerateW(
-                    ::std::mem::transmute(pdsenumcallback),
-                    ::std::mem::transmute(pcontext),
-                )
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
             #[repr(transparent)]
             #[derive(
@@ -4337,15 +4284,12 @@ pub mod Windows {
                 );
             }
             impl IDirectSound {
-                pub unsafe fn CreateSoundBuffer<
-                    'a,
-                    T2__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-                >(
+                pub unsafe fn CreateSoundBuffer<'a>(
                     &self,
                     pcdsbufferdesc: *mut DSBUFFERDESC,
                     ppdsbuffer: *mut ::std::option::Option<IDirectSoundBuffer>,
-                    punkouter: T2__,
-                ) -> ::windows::ErrorCode {
+                    punkouter: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdsbufferdesc),
@@ -4353,56 +4297,47 @@ pub mod Windows {
                         punkouter.into_param().abi(),
                     )
                 }
-                pub unsafe fn GetCaps(&self, pdscaps: *mut DSCAPS) -> ::windows::ErrorCode {
+                pub unsafe fn GetCaps(&self, pdscaps: *mut DSCAPS) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdscaps),
                     )
                 }
-                pub unsafe fn DuplicateSoundBuffer<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IDirectSoundBuffer>,
-                >(
+                pub unsafe fn DuplicateSoundBuffer<'a>(
                     &self,
-                    pdsbufferoriginal: T0__,
+                    pdsbufferoriginal: impl ::windows::IntoParam<'a, IDirectSoundBuffer>,
                     ppdsbufferduplicate: *mut ::std::option::Option<IDirectSoundBuffer>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         pdsbufferoriginal.into_param().abi(),
                         ::std::mem::transmute(ppdsbufferduplicate),
                     )
                 }
-                pub unsafe fn SetCooperativeLevel<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
-                >(
+                pub unsafe fn SetCooperativeLevel<'a>(
                     &self,
-                    hwnd: T0__,
+                    hwnd: impl ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
                     dwlevel: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         hwnd.into_param().abi(),
                         ::std::mem::transmute(dwlevel),
                     )
                 }
-                pub unsafe fn Compact(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Compact(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn GetSpeakerConfig(
                     &self,
                     pdwspeakerconfig: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwspeakerconfig),
                     )
                 }
-                pub unsafe fn SetSpeakerConfig(
-                    &self,
-                    dwspeakerconfig: u32,
-                ) -> ::windows::ErrorCode {
+                pub unsafe fn SetSpeakerConfig(&self, dwspeakerconfig: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwspeakerconfig),
@@ -4411,7 +4346,7 @@ pub mod Windows {
                 pub unsafe fn Initialize(
                     &self,
                     pcguiddevice: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcguiddevice),
@@ -4447,7 +4382,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -4455,56 +4390,41 @@ pub mod Windows {
                     pcdsbufferdesc: *mut DSBUFFERDESC,
                     ppdsbuffer: *mut ::windows::RawPtr,
                     punkouter: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdscaps: *mut DSCAPS,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsbufferoriginal: ::windows::RawPtr,
                     ppdsbufferduplicate: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     hwnd: super::WindowsAndMessaging::HWND,
                     dwlevel: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwspeakerconfig: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwspeakerconfig: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcguiddevice: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
-            pub unsafe fn DirectSoundCreate<
-                'a,
-                T2__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-            >(
+            pub unsafe fn DirectSoundCreate<'a>(
                 pcguiddevice: *mut ::windows::Guid,
                 ppds: *mut ::std::option::Option<IDirectSound>,
-                punkouter: T2__,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "DSOUND")]
-                extern "system" {
-                    pub fn DirectSoundCreate(
-                        pcguiddevice: *mut ::windows::Guid,
-                        ppds: *mut ::windows::RawPtr,
-                        punkouter: ::windows::RawPtr,
-                    ) -> ::windows::ErrorCode;
-                }
-                DirectSoundCreate(
-                    ::std::mem::transmute(pcguiddevice),
-                    ::std::mem::transmute(ppds),
-                    punkouter.into_param().abi(),
-                )
+                punkouter: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
             #[repr(transparent)]
             #[derive(
@@ -4525,15 +4445,12 @@ pub mod Windows {
                 );
             }
             impl IDirectSound8 {
-                pub unsafe fn CreateSoundBuffer<
-                    'a,
-                    T2__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-                >(
+                pub unsafe fn CreateSoundBuffer<'a>(
                     &self,
                     pcdsbufferdesc: *mut DSBUFFERDESC,
                     ppdsbuffer: *mut ::std::option::Option<IDirectSoundBuffer>,
-                    punkouter: T2__,
-                ) -> ::windows::ErrorCode {
+                    punkouter: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdsbufferdesc),
@@ -4541,56 +4458,47 @@ pub mod Windows {
                         punkouter.into_param().abi(),
                     )
                 }
-                pub unsafe fn GetCaps(&self, pdscaps: *mut DSCAPS) -> ::windows::ErrorCode {
+                pub unsafe fn GetCaps(&self, pdscaps: *mut DSCAPS) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdscaps),
                     )
                 }
-                pub unsafe fn DuplicateSoundBuffer<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IDirectSoundBuffer>,
-                >(
+                pub unsafe fn DuplicateSoundBuffer<'a>(
                     &self,
-                    pdsbufferoriginal: T0__,
+                    pdsbufferoriginal: impl ::windows::IntoParam<'a, IDirectSoundBuffer>,
                     ppdsbufferduplicate: *mut ::std::option::Option<IDirectSoundBuffer>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         pdsbufferoriginal.into_param().abi(),
                         ::std::mem::transmute(ppdsbufferduplicate),
                     )
                 }
-                pub unsafe fn SetCooperativeLevel<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
-                >(
+                pub unsafe fn SetCooperativeLevel<'a>(
                     &self,
-                    hwnd: T0__,
+                    hwnd: impl ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
                     dwlevel: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         hwnd.into_param().abi(),
                         ::std::mem::transmute(dwlevel),
                     )
                 }
-                pub unsafe fn Compact(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Compact(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn GetSpeakerConfig(
                     &self,
                     pdwspeakerconfig: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwspeakerconfig),
                     )
                 }
-                pub unsafe fn SetSpeakerConfig(
-                    &self,
-                    dwspeakerconfig: u32,
-                ) -> ::windows::ErrorCode {
+                pub unsafe fn SetSpeakerConfig(&self, dwspeakerconfig: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwspeakerconfig),
@@ -4599,7 +4507,7 @@ pub mod Windows {
                 pub unsafe fn Initialize(
                     &self,
                     pcguiddevice: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcguiddevice),
@@ -4608,7 +4516,7 @@ pub mod Windows {
                 pub unsafe fn VerifyCertification(
                     &self,
                     pdwcertified: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwcertified),
@@ -4666,7 +4574,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -4674,92 +4582,57 @@ pub mod Windows {
                     pcdsbufferdesc: *mut DSBUFFERDESC,
                     ppdsbuffer: *mut ::windows::RawPtr,
                     punkouter: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdscaps: *mut DSCAPS,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsbufferoriginal: ::windows::RawPtr,
                     ppdsbufferduplicate: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     hwnd: super::WindowsAndMessaging::HWND,
                     dwlevel: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwspeakerconfig: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwspeakerconfig: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcguiddevice: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwcertified: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
-            pub unsafe fn DirectSoundCreate8<
-                'a,
-                T2__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-            >(
+            pub unsafe fn DirectSoundCreate8<'a>(
                 pcguiddevice: *mut ::windows::Guid,
                 ppds8: *mut ::std::option::Option<IDirectSound8>,
-                punkouter: T2__,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "DSOUND")]
-                extern "system" {
-                    pub fn DirectSoundCreate8(
-                        pcguiddevice: *mut ::windows::Guid,
-                        ppds8: *mut ::windows::RawPtr,
-                        punkouter: ::windows::RawPtr,
-                    ) -> ::windows::ErrorCode;
-                }
-                DirectSoundCreate8(
-                    ::std::mem::transmute(pcguiddevice),
-                    ::std::mem::transmute(ppds8),
-                    punkouter.into_param().abi(),
-                )
+                punkouter: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
             pub unsafe fn DirectSoundEnumerateA(
                 pdsenumcallback: ::std::option::Option<LPDSENUMCALLBACKA>,
                 pcontext: *mut ::std::ffi::c_void,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "DSOUND")]
-                extern "system" {
-                    pub fn DirectSoundEnumerateA(
-                        pdsenumcallback: ::windows::RawPtr,
-                        pcontext: *mut ::std::ffi::c_void,
-                    ) -> ::windows::ErrorCode;
-                }
-                DirectSoundEnumerateA(
-                    ::std::mem::transmute(pdsenumcallback),
-                    ::std::mem::transmute(pcontext),
-                )
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
             pub unsafe fn DirectSoundEnumerateW(
                 pdsenumcallback: ::std::option::Option<LPDSENUMCALLBACKW>,
                 pcontext: *mut ::std::ffi::c_void,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "DSOUND")]
-                extern "system" {
-                    pub fn DirectSoundEnumerateW(
-                        pdsenumcallback: ::windows::RawPtr,
-                        pcontext: *mut ::std::ffi::c_void,
-                    ) -> ::windows::ErrorCode;
-                }
-                DirectSoundEnumerateW(
-                    ::std::mem::transmute(pdsenumcallback),
-                    ::std::mem::transmute(pcontext),
-                )
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
             #[repr(transparent)]
             #[derive(
@@ -4780,22 +4653,19 @@ pub mod Windows {
                 );
             }
             impl IDirectSoundFullDuplex {
-                pub unsafe fn Initialize<
-                    'a,
-                    T4__: ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
-                >(
+                pub unsafe fn Initialize<'a>(
                     &self,
                     pcaptureguid: *mut ::windows::Guid,
                     prenderguid: *mut ::windows::Guid,
                     lpdscbufferdesc: *mut DSCBUFFERDESC,
                     lpdsbufferdesc: *mut DSBUFFERDESC,
-                    hwnd: T4__,
+                    hwnd: impl ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
                     dwlevel: u32,
                     lplpdirectsoundcapturebuffer8: *mut ::std::option::Option<
                         IDirectSoundCaptureBuffer8,
                     >,
                     lplpdirectsoundbuffer8: *mut ::std::option::Option<IDirectSoundBuffer8>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcaptureguid),
@@ -4838,7 +4708,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -4851,7 +4721,7 @@ pub mod Windows {
                     dwlevel: u32,
                     lplpdirectsoundcapturebuffer8: *mut ::windows::RawPtr,
                     lplpdirectsoundbuffer8: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -4872,7 +4742,7 @@ pub mod Windows {
                 );
             }
             impl IDirectSoundCaptureBuffer {
-                pub unsafe fn GetCaps(&self, pdscbcaps: *mut DSCBCAPS) -> ::windows::ErrorCode {
+                pub unsafe fn GetCaps(&self, pdscbcaps: *mut DSCBCAPS) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdscbcaps),
@@ -4882,7 +4752,7 @@ pub mod Windows {
                     &self,
                     pdwcaptureposition: *mut u32,
                     pdwreadposition: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwcaptureposition),
@@ -4894,7 +4764,7 @@ pub mod Windows {
                     pwfxformat: *mut super::Multimedia::WAVEFORMATEX,
                     dwsizeallocated: u32,
                     pdwsizewritten: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pwfxformat),
@@ -4902,20 +4772,17 @@ pub mod Windows {
                         ::std::mem::transmute(pdwsizewritten),
                     )
                 }
-                pub unsafe fn GetStatus(&self, pdwstatus: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetStatus(&self, pdwstatus: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwstatus),
                     )
                 }
-                pub unsafe fn Initialize<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IDirectSoundCapture>,
-                >(
+                pub unsafe fn Initialize<'a>(
                     &self,
-                    pdirectsoundcapture: T0__,
+                    pdirectsoundcapture: impl ::windows::IntoParam<'a, IDirectSoundCapture>,
                     pcdscbufferdesc: *mut DSCBUFFERDESC,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         pdirectsoundcapture.into_param().abi(),
@@ -4931,7 +4798,7 @@ pub mod Windows {
                     ppvaudioptr2: *mut *mut ::std::ffi::c_void,
                     pdwaudiobytes2: *mut u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwoffset),
@@ -4943,13 +4810,13 @@ pub mod Windows {
                         ::std::mem::transmute(dwflags),
                     )
                 }
-                pub unsafe fn Start(&self, dwflags: u32) -> ::windows::ErrorCode {
+                pub unsafe fn Start(&self, dwflags: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwflags),
                     )
                 }
-                pub unsafe fn Stop(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Stop(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn Unlock(
@@ -4958,7 +4825,7 @@ pub mod Windows {
                     dwaudiobytes1: u32,
                     pvaudioptr2: *mut ::std::ffi::c_void,
                     dwaudiobytes2: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pvaudioptr1),
@@ -4997,33 +4864,33 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdscbcaps: *mut DSCBCAPS,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwcaptureposition: *mut u32,
                     pdwreadposition: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwfxformat: *mut super::Multimedia::WAVEFORMATEX,
                     dwsizeallocated: u32,
                     pdwsizewritten: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwstatus: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdirectsoundcapture: ::windows::RawPtr,
                     pcdscbufferdesc: *mut DSCBUFFERDESC,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwoffset: u32,
@@ -5033,19 +4900,19 @@ pub mod Windows {
                     ppvaudioptr2: *mut *mut ::std::ffi::c_void,
                     pdwaudiobytes2: *mut u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pvaudioptr1: *mut ::std::ffi::c_void,
                     dwaudiobytes1: u32,
                     pvaudioptr2: *mut ::std::ffi::c_void,
                     dwaudiobytes2: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -5066,7 +4933,7 @@ pub mod Windows {
                 );
             }
             impl IDirectSoundCaptureBuffer8 {
-                pub unsafe fn GetCaps(&self, pdscbcaps: *mut DSCBCAPS) -> ::windows::ErrorCode {
+                pub unsafe fn GetCaps(&self, pdscbcaps: *mut DSCBCAPS) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdscbcaps),
@@ -5076,7 +4943,7 @@ pub mod Windows {
                     &self,
                     pdwcaptureposition: *mut u32,
                     pdwreadposition: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwcaptureposition),
@@ -5088,7 +4955,7 @@ pub mod Windows {
                     pwfxformat: *mut super::Multimedia::WAVEFORMATEX,
                     dwsizeallocated: u32,
                     pdwsizewritten: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pwfxformat),
@@ -5096,20 +4963,17 @@ pub mod Windows {
                         ::std::mem::transmute(pdwsizewritten),
                     )
                 }
-                pub unsafe fn GetStatus(&self, pdwstatus: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetStatus(&self, pdwstatus: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwstatus),
                     )
                 }
-                pub unsafe fn Initialize<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IDirectSoundCapture>,
-                >(
+                pub unsafe fn Initialize<'a>(
                     &self,
-                    pdirectsoundcapture: T0__,
+                    pdirectsoundcapture: impl ::windows::IntoParam<'a, IDirectSoundCapture>,
                     pcdscbufferdesc: *mut DSCBUFFERDESC,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         pdirectsoundcapture.into_param().abi(),
@@ -5125,7 +4989,7 @@ pub mod Windows {
                     ppvaudioptr2: *mut *mut ::std::ffi::c_void,
                     pdwaudiobytes2: *mut u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwoffset),
@@ -5137,13 +5001,13 @@ pub mod Windows {
                         ::std::mem::transmute(dwflags),
                     )
                 }
-                pub unsafe fn Start(&self, dwflags: u32) -> ::windows::ErrorCode {
+                pub unsafe fn Start(&self, dwflags: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwflags),
                     )
                 }
-                pub unsafe fn Stop(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Stop(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn Unlock(
@@ -5152,7 +5016,7 @@ pub mod Windows {
                     dwaudiobytes1: u32,
                     pvaudioptr2: *mut ::std::ffi::c_void,
                     dwaudiobytes2: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pvaudioptr1),
@@ -5167,7 +5031,7 @@ pub mod Windows {
                     dwindex: u32,
                     rguidinterface: *const ::windows::Guid,
                     ppobject: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rguidobject),
@@ -5180,7 +5044,7 @@ pub mod Windows {
                     &self,
                     dweffectscount: u32,
                     pdwfxstatus: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dweffectscount),
@@ -5243,33 +5107,33 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdscbcaps: *mut DSCBCAPS,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwcaptureposition: *mut u32,
                     pdwreadposition: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwfxformat: *mut super::Multimedia::WAVEFORMATEX,
                     dwsizeallocated: u32,
                     pdwsizewritten: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwstatus: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdirectsoundcapture: ::windows::RawPtr,
                     pcdscbufferdesc: *mut DSCBUFFERDESC,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwoffset: u32,
@@ -5279,31 +5143,31 @@ pub mod Windows {
                     ppvaudioptr2: *mut *mut ::std::ffi::c_void,
                     pdwaudiobytes2: *mut u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pvaudioptr1: *mut ::std::ffi::c_void,
                     dwaudiobytes1: u32,
                     pvaudioptr2: *mut ::std::ffi::c_void,
                     dwaudiobytes2: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     rguidobject: *const ::windows::Guid,
                     dwindex: u32,
                     rguidinterface: *const ::windows::Guid,
                     ppobject: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dweffectscount: u32,
                     pdwfxstatus: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -5324,7 +5188,7 @@ pub mod Windows {
                 );
             }
             impl IDirectSoundBuffer {
-                pub unsafe fn GetCaps(&self, pdsbuffercaps: *mut DSBCAPS) -> ::windows::ErrorCode {
+                pub unsafe fn GetCaps(&self, pdsbuffercaps: *mut DSBCAPS) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdsbuffercaps),
@@ -5334,7 +5198,7 @@ pub mod Windows {
                     &self,
                     pdwcurrentplaycursor: *mut u32,
                     pdwcurrentwritecursor: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwcurrentplaycursor),
@@ -5346,7 +5210,7 @@ pub mod Windows {
                     pwfxformat: *mut super::Multimedia::WAVEFORMATEX,
                     dwsizeallocated: u32,
                     pdwsizewritten: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pwfxformat),
@@ -5354,35 +5218,35 @@ pub mod Windows {
                         ::std::mem::transmute(pdwsizewritten),
                     )
                 }
-                pub unsafe fn GetVolume(&self, plvolume: *mut i32) -> ::windows::ErrorCode {
+                pub unsafe fn GetVolume(&self, plvolume: *mut i32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(plvolume),
                     )
                 }
-                pub unsafe fn GetPan(&self, plpan: *mut i32) -> ::windows::ErrorCode {
+                pub unsafe fn GetPan(&self, plpan: *mut i32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(plpan),
                     )
                 }
-                pub unsafe fn GetFrequency(&self, pdwfrequency: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetFrequency(&self, pdwfrequency: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwfrequency),
                     )
                 }
-                pub unsafe fn GetStatus(&self, pdwstatus: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetStatus(&self, pdwstatus: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwstatus),
                     )
                 }
-                pub unsafe fn Initialize<'a, T0__: ::windows::IntoParam<'a, IDirectSound>>(
+                pub unsafe fn Initialize<'a>(
                     &self,
-                    pdirectsound: T0__,
+                    pdirectsound: impl ::windows::IntoParam<'a, IDirectSound>,
                     pcdsbufferdesc: *mut DSBUFFERDESC,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         pdirectsound.into_param().abi(),
@@ -5398,7 +5262,7 @@ pub mod Windows {
                     ppvaudioptr2: *mut *mut ::std::ffi::c_void,
                     pdwaudiobytes2: *mut u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwoffset),
@@ -5415,7 +5279,7 @@ pub mod Windows {
                     dwreserved1: u32,
                     dwpriority: u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwreserved1),
@@ -5423,10 +5287,7 @@ pub mod Windows {
                         ::std::mem::transmute(dwflags),
                     )
                 }
-                pub unsafe fn SetCurrentPosition(
-                    &self,
-                    dwnewposition: u32,
-                ) -> ::windows::ErrorCode {
+                pub unsafe fn SetCurrentPosition(&self, dwnewposition: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwnewposition),
@@ -5435,31 +5296,31 @@ pub mod Windows {
                 pub unsafe fn SetFormat(
                     &self,
                     pcfxformat: *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcfxformat),
                     )
                 }
-                pub unsafe fn SetVolume(&self, lvolume: i32) -> ::windows::ErrorCode {
+                pub unsafe fn SetVolume(&self, lvolume: i32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(lvolume),
                     )
                 }
-                pub unsafe fn SetPan(&self, lpan: i32) -> ::windows::ErrorCode {
+                pub unsafe fn SetPan(&self, lpan: i32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).16)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(lpan),
                     )
                 }
-                pub unsafe fn SetFrequency(&self, dwfrequency: u32) -> ::windows::ErrorCode {
+                pub unsafe fn SetFrequency(&self, dwfrequency: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).17)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwfrequency),
                     )
                 }
-                pub unsafe fn Stop(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Stop(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).18)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn Unlock(
@@ -5468,7 +5329,7 @@ pub mod Windows {
                     dwaudiobytes1: u32,
                     pvaudioptr2: *mut ::std::ffi::c_void,
                     dwaudiobytes2: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).19)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pvaudioptr1),
@@ -5477,7 +5338,7 @@ pub mod Windows {
                         ::std::mem::transmute(dwaudiobytes2),
                     )
                 }
-                pub unsafe fn Restore(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Restore(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).20)(::windows::Abi::abi(self))
                 }
             }
@@ -5510,45 +5371,45 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsbuffercaps: *mut DSBCAPS,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwcurrentplaycursor: *mut u32,
                     pdwcurrentwritecursor: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwfxformat: *mut super::Multimedia::WAVEFORMATEX,
                     dwsizeallocated: u32,
                     pdwsizewritten: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     plvolume: *mut i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     plpan: *mut i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwfrequency: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwstatus: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdirectsound: ::windows::RawPtr,
                     pcdsbufferdesc: *mut DSBUFFERDESC,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwoffset: u32,
@@ -5558,42 +5419,42 @@ pub mod Windows {
                     ppvaudioptr2: *mut *mut ::std::ffi::c_void,
                     pdwaudiobytes2: *mut u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwreserved1: u32,
                     dwpriority: u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwnewposition: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcfxformat: *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     lvolume: i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     lpan: i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwfrequency: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pvaudioptr1: *mut ::std::ffi::c_void,
                     dwaudiobytes1: u32,
                     pvaudioptr2: *mut ::std::ffi::c_void,
                     dwaudiobytes2: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -5614,7 +5475,7 @@ pub mod Windows {
                 );
             }
             impl IDirectSoundBuffer8 {
-                pub unsafe fn GetCaps(&self, pdsbuffercaps: *mut DSBCAPS) -> ::windows::ErrorCode {
+                pub unsafe fn GetCaps(&self, pdsbuffercaps: *mut DSBCAPS) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdsbuffercaps),
@@ -5624,7 +5485,7 @@ pub mod Windows {
                     &self,
                     pdwcurrentplaycursor: *mut u32,
                     pdwcurrentwritecursor: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwcurrentplaycursor),
@@ -5636,7 +5497,7 @@ pub mod Windows {
                     pwfxformat: *mut super::Multimedia::WAVEFORMATEX,
                     dwsizeallocated: u32,
                     pdwsizewritten: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pwfxformat),
@@ -5644,35 +5505,35 @@ pub mod Windows {
                         ::std::mem::transmute(pdwsizewritten),
                     )
                 }
-                pub unsafe fn GetVolume(&self, plvolume: *mut i32) -> ::windows::ErrorCode {
+                pub unsafe fn GetVolume(&self, plvolume: *mut i32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(plvolume),
                     )
                 }
-                pub unsafe fn GetPan(&self, plpan: *mut i32) -> ::windows::ErrorCode {
+                pub unsafe fn GetPan(&self, plpan: *mut i32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(plpan),
                     )
                 }
-                pub unsafe fn GetFrequency(&self, pdwfrequency: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetFrequency(&self, pdwfrequency: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwfrequency),
                     )
                 }
-                pub unsafe fn GetStatus(&self, pdwstatus: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetStatus(&self, pdwstatus: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwstatus),
                     )
                 }
-                pub unsafe fn Initialize<'a, T0__: ::windows::IntoParam<'a, IDirectSound>>(
+                pub unsafe fn Initialize<'a>(
                     &self,
-                    pdirectsound: T0__,
+                    pdirectsound: impl ::windows::IntoParam<'a, IDirectSound>,
                     pcdsbufferdesc: *mut DSBUFFERDESC,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         pdirectsound.into_param().abi(),
@@ -5688,7 +5549,7 @@ pub mod Windows {
                     ppvaudioptr2: *mut *mut ::std::ffi::c_void,
                     pdwaudiobytes2: *mut u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwoffset),
@@ -5705,7 +5566,7 @@ pub mod Windows {
                     dwreserved1: u32,
                     dwpriority: u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwreserved1),
@@ -5713,10 +5574,7 @@ pub mod Windows {
                         ::std::mem::transmute(dwflags),
                     )
                 }
-                pub unsafe fn SetCurrentPosition(
-                    &self,
-                    dwnewposition: u32,
-                ) -> ::windows::ErrorCode {
+                pub unsafe fn SetCurrentPosition(&self, dwnewposition: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwnewposition),
@@ -5725,31 +5583,31 @@ pub mod Windows {
                 pub unsafe fn SetFormat(
                     &self,
                     pcfxformat: *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcfxformat),
                     )
                 }
-                pub unsafe fn SetVolume(&self, lvolume: i32) -> ::windows::ErrorCode {
+                pub unsafe fn SetVolume(&self, lvolume: i32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(lvolume),
                     )
                 }
-                pub unsafe fn SetPan(&self, lpan: i32) -> ::windows::ErrorCode {
+                pub unsafe fn SetPan(&self, lpan: i32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).16)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(lpan),
                     )
                 }
-                pub unsafe fn SetFrequency(&self, dwfrequency: u32) -> ::windows::ErrorCode {
+                pub unsafe fn SetFrequency(&self, dwfrequency: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).17)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwfrequency),
                     )
                 }
-                pub unsafe fn Stop(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Stop(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).18)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn Unlock(
@@ -5758,7 +5616,7 @@ pub mod Windows {
                     dwaudiobytes1: u32,
                     pvaudioptr2: *mut ::std::ffi::c_void,
                     dwaudiobytes2: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).19)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pvaudioptr1),
@@ -5767,7 +5625,7 @@ pub mod Windows {
                         ::std::mem::transmute(dwaudiobytes2),
                     )
                 }
-                pub unsafe fn Restore(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Restore(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).20)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn SetFX(
@@ -5775,7 +5633,7 @@ pub mod Windows {
                     dweffectscount: u32,
                     pdsfxdesc: *mut DSEFFECTDESC,
                     pdwresultcodes: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).21)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dweffectscount),
@@ -5788,7 +5646,7 @@ pub mod Windows {
                     dwflags: u32,
                     dweffectscount: u32,
                     pdwresultcodes: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).22)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwflags),
@@ -5802,7 +5660,7 @@ pub mod Windows {
                     dwindex: u32,
                     rguidinterface: *const ::windows::Guid,
                     ppobject: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).23)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rguidobject),
@@ -5863,45 +5721,45 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsbuffercaps: *mut DSBCAPS,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwcurrentplaycursor: *mut u32,
                     pdwcurrentwritecursor: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwfxformat: *mut super::Multimedia::WAVEFORMATEX,
                     dwsizeallocated: u32,
                     pdwsizewritten: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     plvolume: *mut i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     plpan: *mut i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwfrequency: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwstatus: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdirectsound: ::windows::RawPtr,
                     pcdsbufferdesc: *mut DSBUFFERDESC,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwoffset: u32,
@@ -5911,105 +5769,75 @@ pub mod Windows {
                     ppvaudioptr2: *mut *mut ::std::ffi::c_void,
                     pdwaudiobytes2: *mut u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwreserved1: u32,
                     dwpriority: u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwnewposition: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcfxformat: *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     lvolume: i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     lpan: i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwfrequency: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pvaudioptr1: *mut ::std::ffi::c_void,
                     dwaudiobytes1: u32,
                     pvaudioptr2: *mut ::std::ffi::c_void,
                     dwaudiobytes2: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dweffectscount: u32,
                     pdsfxdesc: *mut DSEFFECTDESC,
                     pdwresultcodes: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwflags: u32,
                     dweffectscount: u32,
                     pdwresultcodes: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     rguidobject: *const ::windows::Guid,
                     dwindex: u32,
                     rguidinterface: *const ::windows::Guid,
                     ppobject: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
-            pub unsafe fn DirectSoundFullDuplexCreate<
-                'a,
-                T4__: ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
-                T9__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-            >(
+            pub unsafe fn DirectSoundFullDuplexCreate<'a>(
                 pcguidcapturedevice: *mut ::windows::Guid,
                 pcguidrenderdevice: *mut ::windows::Guid,
                 pcdscbufferdesc: *mut DSCBUFFERDESC,
                 pcdsbufferdesc: *mut DSBUFFERDESC,
-                hwnd: T4__,
+                hwnd: impl ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
                 dwlevel: u32,
                 ppdsfd: *mut ::std::option::Option<IDirectSoundFullDuplex>,
                 ppdscbuffer8: *mut ::std::option::Option<IDirectSoundCaptureBuffer8>,
                 ppdsbuffer8: *mut ::std::option::Option<IDirectSoundBuffer8>,
-                punkouter: T9__,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "DSOUND")]
-                extern "system" {
-                    pub fn DirectSoundFullDuplexCreate(
-                        pcguidcapturedevice: *mut ::windows::Guid,
-                        pcguidrenderdevice: *mut ::windows::Guid,
-                        pcdscbufferdesc: *mut DSCBUFFERDESC,
-                        pcdsbufferdesc: *mut DSBUFFERDESC,
-                        hwnd: super::WindowsAndMessaging::HWND,
-                        dwlevel: u32,
-                        ppdsfd: *mut ::windows::RawPtr,
-                        ppdscbuffer8: *mut ::windows::RawPtr,
-                        ppdsbuffer8: *mut ::windows::RawPtr,
-                        punkouter: ::windows::RawPtr,
-                    ) -> ::windows::ErrorCode;
-                }
-                DirectSoundFullDuplexCreate(
-                    ::std::mem::transmute(pcguidcapturedevice),
-                    ::std::mem::transmute(pcguidrenderdevice),
-                    ::std::mem::transmute(pcdscbufferdesc),
-                    ::std::mem::transmute(pcdsbufferdesc),
-                    hwnd.into_param().abi(),
-                    ::std::mem::transmute(dwlevel),
-                    ::std::mem::transmute(ppdsfd),
-                    ::std::mem::transmute(ppdscbuffer8),
-                    ::std::mem::transmute(ppdsbuffer8),
-                    punkouter.into_param().abi(),
-                )
+                punkouter: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
             #[derive(
                 :: std :: cmp :: PartialEq,
@@ -6040,7 +5868,7 @@ pub mod Windows {
                 pproperties: *mut APO_REG_PROPERTIES,
                 pvrefdata: *mut ::std::ffi::c_void,
             )
-                -> ::windows::ErrorCode;
+                -> ::windows::HRESULT;
             pub const F_INSTRUMENT_DRUMS: u32 = 2147483648u32;
             pub const F_RGN_OPTION_SELFNONEXCLUSIVE: u32 = 1u32;
             pub const F_WAVELINK_PHASE_MASTER: u32 = 1u32;
@@ -6291,13 +6119,10 @@ pub mod Windows {
                 );
             }
             impl IAudioDeviceModulesClient {
-                pub unsafe fn SetAudioDeviceModulesManager<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-                >(
+                pub unsafe fn SetAudioDeviceModulesManager<'a>(
                     &self,
-                    paudiodevicemodulesmanager: T0__,
-                ) -> ::windows::ErrorCode {
+                    paudiodevicemodulesmanager: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         paudiodevicemodulesmanager.into_param().abi(),
@@ -6333,13 +6158,13 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     paudiodevicemodulesmanager: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -6360,10 +6185,10 @@ pub mod Windows {
                 );
             }
             impl IAudioProcessingObject {
-                pub unsafe fn Reset(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Reset(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn GetLatency(&self, ptime: *mut i64) -> ::windows::ErrorCode {
+                pub unsafe fn GetLatency(&self, ptime: *mut i64) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ptime),
@@ -6372,7 +6197,7 @@ pub mod Windows {
                 pub unsafe fn GetRegistrationProperties(
                     &self,
                     ppregprops: *mut *mut APO_REG_PROPERTIES,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppregprops),
@@ -6382,23 +6207,19 @@ pub mod Windows {
                     &self,
                     cbdatasize: u32,
                     pbydata: *mut u8,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(cbdatasize),
                         ::std::mem::transmute(pbydata),
                     )
                 }
-                pub unsafe fn IsInputFormatSupported<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioMediaType>,
-                    T1__: ::windows::IntoParam<'a, IAudioMediaType>,
-                >(
+                pub unsafe fn IsInputFormatSupported<'a>(
                     &self,
-                    poppositeformat: T0__,
-                    prequestedinputformat: T1__,
+                    poppositeformat: impl ::windows::IntoParam<'a, IAudioMediaType>,
+                    prequestedinputformat: impl ::windows::IntoParam<'a, IAudioMediaType>,
                     ppsupportedinputformat: *mut ::std::option::Option<IAudioMediaType>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         poppositeformat.into_param().abi(),
@@ -6406,16 +6227,12 @@ pub mod Windows {
                         ::std::mem::transmute(ppsupportedinputformat),
                     )
                 }
-                pub unsafe fn IsOutputFormatSupported<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioMediaType>,
-                    T1__: ::windows::IntoParam<'a, IAudioMediaType>,
-                >(
+                pub unsafe fn IsOutputFormatSupported<'a>(
                     &self,
-                    poppositeformat: T0__,
-                    prequestedoutputformat: T1__,
+                    poppositeformat: impl ::windows::IntoParam<'a, IAudioMediaType>,
+                    prequestedoutputformat: impl ::windows::IntoParam<'a, IAudioMediaType>,
                     ppsupportedoutputformat: *mut ::std::option::Option<IAudioMediaType>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         poppositeformat.into_param().abi(),
@@ -6426,7 +6243,7 @@ pub mod Windows {
                 pub unsafe fn GetInputChannelCount(
                     &self,
                     pu32channelcount: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pu32channelcount),
@@ -6462,39 +6279,39 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ptime: *mut i64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppregprops: *mut *mut APO_REG_PROPERTIES,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     cbdatasize: u32,
                     pbydata: *mut u8,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     poppositeformat: ::windows::RawPtr,
                     prequestedinputformat: ::windows::RawPtr,
                     ppsupportedinputformat: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     poppositeformat: ::windows::RawPtr,
                     prequestedoutputformat: ::windows::RawPtr,
                     ppsupportedoutputformat: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pu32channelcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -6521,7 +6338,7 @@ pub mod Windows {
                     ppinputconnections: *mut *mut APO_CONNECTION_DESCRIPTOR,
                     u32numoutputconnections: u32,
                     ppoutputconnections: *mut *mut APO_CONNECTION_DESCRIPTOR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(u32numinputconnections),
@@ -6530,7 +6347,7 @@ pub mod Windows {
                         ::std::mem::transmute(ppoutputconnections),
                     )
                 }
-                pub unsafe fn UnlockForProcess(&self) -> ::windows::ErrorCode {
+                pub unsafe fn UnlockForProcess(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(::windows::Abi::abi(self))
                 }
             }
@@ -6563,7 +6380,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -6572,8 +6389,8 @@ pub mod Windows {
                     ppinputconnections: *mut *mut APO_CONNECTION_DESCRIPTOR_abi,
                     u32numoutputconnections: u32,
                     ppoutputconnections: *mut *mut APO_CONNECTION_DESCRIPTOR_abi,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -6636,7 +6453,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(),
@@ -6672,7 +6489,7 @@ pub mod Windows {
                     &self,
                     u32maxoutputframecount: u32,
                     pu32inputframecount: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(u32maxoutputframecount),
@@ -6683,7 +6500,7 @@ pub mod Windows {
                     &self,
                     u32maxinputframecount: u32,
                     pu32outputframecount: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(u32maxinputframecount),
@@ -6720,19 +6537,19 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     u32maxoutputframecount: u32,
                     pu32inputframecount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     u32maxinputframecount: u32,
                     pu32outputframecount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -6782,7 +6599,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
             );
@@ -6805,15 +6622,12 @@ pub mod Windows {
                 );
             }
             impl IAudioSystemEffects2 {
-                pub unsafe fn GetEffectsList<
-                    'a,
-                    T2__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-                >(
+                pub unsafe fn GetEffectsList<'a>(
                     &self,
                     ppeffectsids: *mut *mut ::windows::Guid,
                     pceffects: *mut u32,
-                    event: T2__,
-                ) -> ::windows::ErrorCode {
+                    event: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppeffectsids),
@@ -6873,7 +6687,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -6881,7 +6695,7 @@ pub mod Windows {
                     ppeffectsids: *mut *mut ::windows::Guid,
                     pceffects: *mut u32,
                     event: super::SystemServices::HANDLE,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -6902,7 +6716,7 @@ pub mod Windows {
                 );
             }
             impl IAudioSystemEffectsCustomFormats {
-                pub unsafe fn GetFormatCount(&self, pcformats: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetFormatCount(&self, pcformats: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcformats),
@@ -6912,7 +6726,7 @@ pub mod Windows {
                     &self,
                     nformat: u32,
                     ppformat: *mut ::std::option::Option<IAudioMediaType>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nformat),
@@ -6923,7 +6737,7 @@ pub mod Windows {
                     &self,
                     nformat: u32,
                     ppwstrformatrep: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nformat),
@@ -6960,23 +6774,23 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcformats: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nformat: u32,
                     ppformat: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nformat: u32,
                     ppwstrformatrep: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -7001,22 +6815,19 @@ pub mod Windows {
                     &self,
                     dwindex: u32,
                     pportcaps: *mut DMUS_PORTCAPS,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwindex),
                         ::std::mem::transmute(pportcaps),
                     )
                 }
-                pub unsafe fn CreateMusicBuffer<
-                    'a,
-                    T2__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-                >(
+                pub unsafe fn CreateMusicBuffer<'a>(
                     &self,
                     pbufferdesc: *mut DMUS_BUFFERDESC,
                     ppbuffer: *mut ::std::option::Option<IDirectMusicBuffer>,
-                    punkouter: T2__,
-                ) -> ::windows::ErrorCode {
+                    punkouter: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbufferdesc),
@@ -7024,16 +6835,13 @@ pub mod Windows {
                         punkouter.into_param().abi(),
                     )
                 }
-                pub unsafe fn CreatePort<
-                    'a,
-                    T3__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-                >(
+                pub unsafe fn CreatePort<'a>(
                     &self,
                     rclsidport: *const ::windows::Guid,
                     pportparams: *mut DMUS_PORTPARAMS8,
                     ppport: *mut ::std::option::Option<IDirectMusicPort>,
-                    punkouter: T3__,
-                ) -> ::windows::ErrorCode {
+                    punkouter: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rclsidport),
@@ -7046,7 +6854,7 @@ pub mod Windows {
                     &self,
                     dwindex: u32,
                     lpclockinfo: *mut DMUS_CLOCKINFO8,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwindex),
@@ -7056,19 +6864,16 @@ pub mod Windows {
                 pub unsafe fn SetMasterClock(
                     &self,
                     rguidclock: *const ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rguidclock),
                     )
                 }
-                pub unsafe fn Activate<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn Activate<'a>(
                     &self,
-                    fenable: T0__,
-                ) -> ::windows::ErrorCode {
+                    fenable: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         fenable.into_param().abi(),
@@ -7077,21 +6882,17 @@ pub mod Windows {
                 pub unsafe fn GetDefaultPort(
                     &self,
                     pguidport: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pguidport),
                     )
                 }
-                pub unsafe fn SetDirectSound<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IDirectSound>,
-                    T1__: ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
-                >(
+                pub unsafe fn SetDirectSound<'a>(
                     &self,
-                    pdirectsound: T0__,
-                    hwnd: T1__,
-                ) -> ::windows::ErrorCode {
+                    pdirectsound: impl ::windows::IntoParam<'a, IDirectSound>,
+                    hwnd: impl ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         pdirectsound.into_param().abi(),
@@ -7128,50 +6929,50 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwindex: u32,
                     pportcaps: *mut DMUS_PORTCAPS,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbufferdesc: *mut DMUS_BUFFERDESC,
                     ppbuffer: *mut ::windows::RawPtr,
                     punkouter: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     rclsidport: *const ::windows::Guid,
                     pportparams: *mut DMUS_PORTPARAMS8,
                     ppport: *mut ::windows::RawPtr,
                     punkouter: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwindex: u32,
                     lpclockinfo: *mut DMUS_CLOCKINFO8,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(),
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     rguidclock: *const ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     fenable: super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pguidport: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdirectsound: ::windows::RawPtr,
                     hwnd: super::WindowsAndMessaging::HWND,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -7196,22 +6997,19 @@ pub mod Windows {
                     &self,
                     dwindex: u32,
                     pportcaps: *mut DMUS_PORTCAPS,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwindex),
                         ::std::mem::transmute(pportcaps),
                     )
                 }
-                pub unsafe fn CreateMusicBuffer<
-                    'a,
-                    T2__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-                >(
+                pub unsafe fn CreateMusicBuffer<'a>(
                     &self,
                     pbufferdesc: *mut DMUS_BUFFERDESC,
                     ppbuffer: *mut ::std::option::Option<IDirectMusicBuffer>,
-                    punkouter: T2__,
-                ) -> ::windows::ErrorCode {
+                    punkouter: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbufferdesc),
@@ -7219,16 +7017,13 @@ pub mod Windows {
                         punkouter.into_param().abi(),
                     )
                 }
-                pub unsafe fn CreatePort<
-                    'a,
-                    T3__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-                >(
+                pub unsafe fn CreatePort<'a>(
                     &self,
                     rclsidport: *const ::windows::Guid,
                     pportparams: *mut DMUS_PORTPARAMS8,
                     ppport: *mut ::std::option::Option<IDirectMusicPort>,
-                    punkouter: T3__,
-                ) -> ::windows::ErrorCode {
+                    punkouter: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rclsidport),
@@ -7241,7 +7036,7 @@ pub mod Windows {
                     &self,
                     dwindex: u32,
                     lpclockinfo: *mut DMUS_CLOCKINFO8,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwindex),
@@ -7251,19 +7046,16 @@ pub mod Windows {
                 pub unsafe fn SetMasterClock(
                     &self,
                     rguidclock: *const ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rguidclock),
                     )
                 }
-                pub unsafe fn Activate<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn Activate<'a>(
                     &self,
-                    fenable: T0__,
-                ) -> ::windows::ErrorCode {
+                    fenable: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         fenable.into_param().abi(),
@@ -7272,21 +7064,17 @@ pub mod Windows {
                 pub unsafe fn GetDefaultPort(
                     &self,
                     pguidport: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pguidport),
                     )
                 }
-                pub unsafe fn SetDirectSound<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IDirectSound>,
-                    T1__: ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
-                >(
+                pub unsafe fn SetDirectSound<'a>(
                     &self,
-                    pdirectsound: T0__,
-                    hwnd: T1__,
-                ) -> ::windows::ErrorCode {
+                    pdirectsound: impl ::windows::IntoParam<'a, IDirectSound>,
+                    hwnd: impl ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         pdirectsound.into_param().abi(),
@@ -7345,50 +7133,50 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwindex: u32,
                     pportcaps: *mut DMUS_PORTCAPS,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbufferdesc: *mut DMUS_BUFFERDESC,
                     ppbuffer: *mut ::windows::RawPtr,
                     punkouter: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     rclsidport: *const ::windows::Guid,
                     pportparams: *mut DMUS_PORTPARAMS8,
                     ppport: *mut ::windows::RawPtr,
                     punkouter: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwindex: u32,
                     lpclockinfo: *mut DMUS_CLOCKINFO8,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(),
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     rguidclock: *const ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     fenable: super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pguidport: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdirectsound: ::windows::RawPtr,
                     hwnd: super::WindowsAndMessaging::HWND,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(),
             );
             #[repr(transparent)]
@@ -7410,10 +7198,10 @@ pub mod Windows {
                 );
             }
             impl IDirectMusicBuffer {
-                pub unsafe fn Flush(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Flush(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn TotalTime(&self, prttime: *mut i64) -> ::windows::ErrorCode {
+                pub unsafe fn TotalTime(&self, prttime: *mut i64) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(prttime),
@@ -7424,7 +7212,7 @@ pub mod Windows {
                     rt: i64,
                     dwchannelgroup: u32,
                     dwchannelmessage: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rt),
@@ -7438,7 +7226,7 @@ pub mod Windows {
                     dwchannelgroup: u32,
                     cb: u32,
                     lpb: *mut u8,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rt),
@@ -7447,7 +7235,7 @@ pub mod Windows {
                         ::std::mem::transmute(lpb),
                     )
                 }
-                pub unsafe fn ResetReadPtr(&self) -> ::windows::ErrorCode {
+                pub unsafe fn ResetReadPtr(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn GetNextEvent(
@@ -7456,7 +7244,7 @@ pub mod Windows {
                     pdwchannelgroup: *mut u32,
                     pdwlength: *mut u32,
                     ppdata: *mut *mut u8,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(prt),
@@ -7465,25 +7253,25 @@ pub mod Windows {
                         ::std::mem::transmute(ppdata),
                     )
                 }
-                pub unsafe fn GetRawBufferPtr(&self, ppdata: *mut *mut u8) -> ::windows::ErrorCode {
+                pub unsafe fn GetRawBufferPtr(&self, ppdata: *mut *mut u8) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppdata),
                     )
                 }
-                pub unsafe fn GetStartTime(&self, prt: *mut i64) -> ::windows::ErrorCode {
+                pub unsafe fn GetStartTime(&self, prt: *mut i64) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(prt),
                     )
                 }
-                pub unsafe fn GetUsedBytes(&self, pcb: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetUsedBytes(&self, pcb: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcb),
                     )
                 }
-                pub unsafe fn GetMaxBytes(&self, pcb: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetMaxBytes(&self, pcb: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcb),
@@ -7492,19 +7280,19 @@ pub mod Windows {
                 pub unsafe fn GetBufferFormat(
                     &self,
                     pguidformat: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pguidformat),
                     )
                 }
-                pub unsafe fn SetStartTime(&self, rt: i64) -> ::windows::ErrorCode {
+                pub unsafe fn SetStartTime(&self, rt: i64) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rt),
                     )
                 }
-                pub unsafe fn SetUsedBytes(&self, cb: u32) -> ::windows::ErrorCode {
+                pub unsafe fn SetUsedBytes(&self, cb: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(cb),
@@ -7540,63 +7328,63 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     prttime: *mut i64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     rt: i64,
                     dwchannelgroup: u32,
                     dwchannelmessage: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     rt: i64,
                     dwchannelgroup: u32,
                     cb: u32,
                     lpb: *mut u8,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     prt: *mut i64,
                     pdwchannelgroup: *mut u32,
                     pdwlength: *mut u32,
                     ppdata: *mut *mut u8,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppdata: *mut *mut u8,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     prt: *mut i64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcb: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcb: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pguidformat: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     rt: i64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     cb: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -7621,23 +7409,20 @@ pub mod Windows {
                     &self,
                     dwpatch: u32,
                     ppinstrument: *mut ::std::option::Option<IDirectMusicInstrument>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwpatch),
                         ::std::mem::transmute(ppinstrument),
                     )
                 }
-                pub unsafe fn EnumInstrument<
-                    'a,
-                    T2__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn EnumInstrument<'a>(
                     &self,
                     dwindex: u32,
                     pdwpatch: *mut u32,
-                    pwszname: T2__,
+                    pwszname: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     dwnamelen: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwindex),
@@ -7676,21 +7461,21 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwpatch: u32,
                     ppinstrument: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwindex: u32,
                     pdwpatch: *mut u32,
                     pwszname: super::SystemServices::PWSTR,
                     dwnamelen: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -7715,7 +7500,7 @@ pub mod Windows {
                     &self,
                     ppvbuffer: *mut *mut ::std::ffi::c_void,
                     pdwsize: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppvbuffer),
@@ -7752,14 +7537,14 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppvbuffer: *mut *mut ::std::ffi::c_void,
                     pdwsize: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -7809,7 +7594,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
             );
@@ -7832,13 +7617,13 @@ pub mod Windows {
                 );
             }
             impl IDirectMusicInstrument {
-                pub unsafe fn GetPatch(&self, pdwpatch: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetPatch(&self, pdwpatch: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwpatch),
                     )
                 }
-                pub unsafe fn SetPatch(&self, dwpatch: u32) -> ::windows::ErrorCode {
+                pub unsafe fn SetPatch(&self, dwpatch: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwpatch),
@@ -7874,17 +7659,17 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwpatch: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwpatch: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -7905,48 +7690,42 @@ pub mod Windows {
                 );
             }
             impl IDirectMusicPort {
-                pub unsafe fn PlayBuffer<'a, T0__: ::windows::IntoParam<'a, IDirectMusicBuffer>>(
+                pub unsafe fn PlayBuffer<'a>(
                     &self,
-                    pbuffer: T0__,
-                ) -> ::windows::ErrorCode {
+                    pbuffer: impl ::windows::IntoParam<'a, IDirectMusicBuffer>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         pbuffer.into_param().abi(),
                     )
                 }
-                pub unsafe fn SetReadNotificationHandle<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-                >(
+                pub unsafe fn SetReadNotificationHandle<'a>(
                     &self,
-                    hevent: T0__,
-                ) -> ::windows::ErrorCode {
+                    hevent: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         hevent.into_param().abi(),
                     )
                 }
-                pub unsafe fn Read<'a, T0__: ::windows::IntoParam<'a, IDirectMusicBuffer>>(
+                pub unsafe fn Read<'a>(
                     &self,
-                    pbuffer: T0__,
-                ) -> ::windows::ErrorCode {
+                    pbuffer: impl ::windows::IntoParam<'a, IDirectMusicBuffer>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         pbuffer.into_param().abi(),
                     )
                 }
-                pub unsafe fn DownloadInstrument<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IDirectMusicInstrument>,
-                >(
+                pub unsafe fn DownloadInstrument<'a>(
                     &self,
-                    pinstrument: T0__,
+                    pinstrument: impl ::windows::IntoParam<'a, IDirectMusicInstrument>,
                     ppdownloadedinstrument: *mut ::std::option::Option<
                         IDirectMusicDownloadedInstrument,
                     >,
                     pnoteranges: *mut DMUS_NOTERANGE,
                     dwnumnoteranges: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         pinstrument.into_param().abi(),
@@ -7955,13 +7734,13 @@ pub mod Windows {
                         ::std::mem::transmute(dwnumnoteranges),
                     )
                 }
-                pub unsafe fn UnloadInstrument<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IDirectMusicDownloadedInstrument>,
-                >(
+                pub unsafe fn UnloadInstrument<'a>(
                     &self,
-                    pdownloadedinstrument: T0__,
-                ) -> ::windows::ErrorCode {
+                    pdownloadedinstrument: impl ::windows::IntoParam<
+                        'a,
+                        IDirectMusicDownloadedInstrument,
+                    >,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         pdownloadedinstrument.into_param().abi(),
@@ -7970,19 +7749,16 @@ pub mod Windows {
                 pub unsafe fn GetRunningStats(
                     &self,
                     pstats: *mut DMUS_SYNTHSTATS,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pstats),
                     )
                 }
-                pub unsafe fn Compact(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Compact(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn GetCaps(
-                    &self,
-                    pportcaps: *mut DMUS_PORTCAPS,
-                ) -> ::windows::ErrorCode {
+                pub unsafe fn GetCaps(&self, pportcaps: *mut DMUS_PORTCAPS) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pportcaps),
@@ -7991,7 +7767,7 @@ pub mod Windows {
                 pub unsafe fn SetNumChannelGroups(
                     &self,
                     dwchannelgroups: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwchannelgroups),
@@ -8000,19 +7776,16 @@ pub mod Windows {
                 pub unsafe fn GetNumChannelGroups(
                     &self,
                     pdwchannelgroups: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwchannelgroups),
                     )
                 }
-                pub unsafe fn Activate<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn Activate<'a>(
                     &self,
-                    factive: T0__,
-                ) -> ::windows::ErrorCode {
+                    factive: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         factive.into_param().abi(),
@@ -8023,7 +7796,7 @@ pub mod Windows {
                     dwchannelgroup: u32,
                     dwchannel: u32,
                     dwpriority: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).16)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwchannelgroup),
@@ -8036,7 +7809,7 @@ pub mod Windows {
                     dwchannelgroup: u32,
                     dwchannel: u32,
                     pdwpriority: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).17)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwchannelgroup),
@@ -8044,15 +7817,11 @@ pub mod Windows {
                         ::std::mem::transmute(pdwpriority),
                     )
                 }
-                pub unsafe fn SetDirectSound<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IDirectSound>,
-                    T1__: ::windows::IntoParam<'a, IDirectSoundBuffer>,
-                >(
+                pub unsafe fn SetDirectSound<'a>(
                     &self,
-                    pdirectsound: T0__,
-                    pdirectsoundbuffer: T1__,
-                ) -> ::windows::ErrorCode {
+                    pdirectsound: impl ::windows::IntoParam<'a, IDirectSound>,
+                    pdirectsoundbuffer: impl ::windows::IntoParam<'a, IDirectSoundBuffer>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).18)(
                         ::windows::Abi::abi(self),
                         pdirectsound.into_param().abi(),
@@ -8064,7 +7833,7 @@ pub mod Windows {
                     pwaveformatex: *mut super::Multimedia::WAVEFORMATEX,
                     pdwwaveformatexsize: *mut u32,
                     pdwbuffersize: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).19)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pwaveformatex),
@@ -8102,78 +7871,78 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbuffer: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     hevent: super::SystemServices::HANDLE,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbuffer: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pinstrument: ::windows::RawPtr,
                     ppdownloadedinstrument: *mut ::windows::RawPtr,
                     pnoteranges: *mut DMUS_NOTERANGE,
                     dwnumnoteranges: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdownloadedinstrument: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(),
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pstats: *mut DMUS_SYNTHSTATS,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pportcaps: *mut DMUS_PORTCAPS,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(),
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwchannelgroups: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwchannelgroups: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     factive: super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwchannelgroup: u32,
                     dwchannel: u32,
                     dwpriority: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwchannelgroup: u32,
                     dwchannel: u32,
                     pdwpriority: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdirectsound: ::windows::RawPtr,
                     pdirectsoundbuffer: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwaveformatex: *mut super::Multimedia::WAVEFORMATEX,
                     pdwwaveformatexsize: *mut u32,
                     pdwbuffersize: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -8198,7 +7967,7 @@ pub mod Windows {
                     &self,
                     dwdlid: u32,
                     ppidmdownload: *mut ::std::option::Option<IDirectMusicDownload>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwdlid),
@@ -8209,7 +7978,7 @@ pub mod Windows {
                     &self,
                     dwsize: u32,
                     ppidmdownload: *mut ::std::option::Option<IDirectMusicDownload>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwsize),
@@ -8220,32 +7989,32 @@ pub mod Windows {
                     &self,
                     pdwstartdlid: *mut u32,
                     dwcount: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwstartdlid),
                         ::std::mem::transmute(dwcount),
                     )
                 }
-                pub unsafe fn GetAppend(&self, pdwappend: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetAppend(&self, pdwappend: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwappend),
                     )
                 }
-                pub unsafe fn Download<'a, T0__: ::windows::IntoParam<'a, IDirectMusicDownload>>(
+                pub unsafe fn Download<'a>(
                     &self,
-                    pidmdownload: T0__,
-                ) -> ::windows::ErrorCode {
+                    pidmdownload: impl ::windows::IntoParam<'a, IDirectMusicDownload>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         pidmdownload.into_param().abi(),
                     )
                 }
-                pub unsafe fn Unload<'a, T0__: ::windows::IntoParam<'a, IDirectMusicDownload>>(
+                pub unsafe fn Unload<'a>(
                     &self,
-                    pidmdownload: T0__,
-                ) -> ::windows::ErrorCode {
+                    pidmdownload: impl ::windows::IntoParam<'a, IDirectMusicDownload>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         pidmdownload.into_param().abi(),
@@ -8281,36 +8050,36 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwdlid: u32,
                     ppidmdownload: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwsize: u32,
                     ppidmdownload: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwstartdlid: *mut u32,
                     dwcount: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwappend: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pidmdownload: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pidmdownload: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -8334,16 +8103,16 @@ pub mod Windows {
                 pub unsafe fn Open(
                     &self,
                     pportparams: *mut DMUS_PORTPARAMS8,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pportparams),
                     )
                 }
-                pub unsafe fn Close(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Close(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn SetNumChannelGroups(&self, dwgroups: u32) -> ::windows::ErrorCode {
+                pub unsafe fn SetNumChannelGroups(&self, dwgroups: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwgroups),
@@ -8354,7 +8123,7 @@ pub mod Windows {
                     phdownload: *mut super::SystemServices::HANDLE,
                     pvdata: *mut ::std::ffi::c_void,
                     pbfree: *mut i32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(phdownload),
@@ -8362,16 +8131,12 @@ pub mod Windows {
                         ::std::mem::transmute(pbfree),
                     )
                 }
-                pub unsafe fn Unload<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-                    T2__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-                >(
+                pub unsafe fn Unload<'a>(
                     &self,
-                    hdownload: T0__,
-                    lpfreehandle : * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut :: windows :: ErrorCode,
-                    huserdata: T2__,
-                ) -> ::windows::ErrorCode {
+                    hdownload: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
+                    lpfreehandle : * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut :: windows :: HRESULT,
+                    huserdata: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         hdownload.into_param().abi(),
@@ -8384,7 +8149,7 @@ pub mod Windows {
                     rt: i64,
                     pbbuffer: *mut u8,
                     cbbuffer: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rt),
@@ -8395,40 +8160,31 @@ pub mod Windows {
                 pub unsafe fn GetRunningStats(
                     &self,
                     pstats: *mut DMUS_SYNTHSTATS,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pstats),
                     )
                 }
-                pub unsafe fn GetPortCaps(
-                    &self,
-                    pcaps: *mut DMUS_PORTCAPS,
-                ) -> ::windows::ErrorCode {
+                pub unsafe fn GetPortCaps(&self, pcaps: *mut DMUS_PORTCAPS) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcaps),
                     )
                 }
-                pub unsafe fn Activate<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn Activate<'a>(
                     &self,
-                    fenable: T0__,
-                ) -> ::windows::ErrorCode {
+                    fenable: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         fenable.into_param().abi(),
                     )
                 }
-                pub unsafe fn SetSynthSink<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IDirectMusicSynthSink>,
-                >(
+                pub unsafe fn SetSynthSink<'a>(
                     &self,
-                    psynthsink: T0__,
-                ) -> ::windows::ErrorCode {
+                    psynthsink: impl ::windows::IntoParam<'a, IDirectMusicSynthSink>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         psynthsink.into_param().abi(),
@@ -8439,7 +8195,7 @@ pub mod Windows {
                     pbuffer: *mut i16,
                     dwlength: u32,
                     llposition: i64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbuffer),
@@ -8452,7 +8208,7 @@ pub mod Windows {
                     dwchannelgroup: u32,
                     dwchannel: u32,
                     dwpriority: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).16)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwchannelgroup),
@@ -8465,7 +8221,7 @@ pub mod Windows {
                     dwchannelgroup: u32,
                     dwchannel: u32,
                     pdwpriority: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).17)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwchannelgroup),
@@ -8477,14 +8233,14 @@ pub mod Windows {
                     &self,
                     pwaveformatex: *mut super::Multimedia::WAVEFORMATEX,
                     pdwwaveformatexsize: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).18)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pwaveformatex),
                         ::std::mem::transmute(pdwwaveformatexsize),
                     )
                 }
-                pub unsafe fn GetAppend(&self, pdwappend: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetAppend(&self, pdwappend: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).19)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwappend),
@@ -8515,7 +8271,7 @@ pub mod Windows {
             }
             #[repr(C)]
             #[doc(hidden)]
-            pub struct IDirectMusicSynth_abi ( pub unsafe extern "system" fn ( this : :: windows :: RawPtr , iid : & :: windows :: Guid , interface : * mut :: windows :: RawPtr ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr ) -> u32 , pub unsafe extern "system" fn ( this : :: windows :: RawPtr ) -> u32 , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pportparams : * mut DMUS_PORTPARAMS8 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwgroups : u32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , phdownload : * mut super :: SystemServices :: HANDLE , pvdata : * mut :: std :: ffi :: c_void , pbfree : * mut i32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , hdownload : super :: SystemServices :: HANDLE , lpfreehandle : * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut :: windows :: ErrorCode , huserdata : super :: SystemServices :: HANDLE , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , rt : i64 , pbbuffer : * mut u8 , cbbuffer : u32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pstats : * mut DMUS_SYNTHSTATS , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pcaps : * mut DMUS_PORTCAPS , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( ) , pub unsafe extern "system" fn ( ) , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , fenable : super :: SystemServices :: BOOL , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , psynthsink : :: windows :: RawPtr , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pbuffer : * mut i16 , dwlength : u32 , llposition : i64 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwchannelgroup : u32 , dwchannel : u32 , dwpriority : u32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwchannelgroup : u32 , dwchannel : u32 , pdwpriority : * mut u32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pwaveformatex : * mut super :: Multimedia :: WAVEFORMATEX , pdwwaveformatexsize : * mut u32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pdwappend : * mut u32 , ) -> :: windows :: ErrorCode , ) ;
+            pub struct IDirectMusicSynth_abi ( pub unsafe extern "system" fn ( this : :: windows :: RawPtr , iid : & :: windows :: Guid , interface : * mut :: windows :: RawPtr ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr ) -> u32 , pub unsafe extern "system" fn ( this : :: windows :: RawPtr ) -> u32 , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pportparams : * mut DMUS_PORTPARAMS8 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwgroups : u32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , phdownload : * mut super :: SystemServices :: HANDLE , pvdata : * mut :: std :: ffi :: c_void , pbfree : * mut i32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , hdownload : super :: SystemServices :: HANDLE , lpfreehandle : * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut :: windows :: HRESULT , huserdata : super :: SystemServices :: HANDLE , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , rt : i64 , pbbuffer : * mut u8 , cbbuffer : u32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pstats : * mut DMUS_SYNTHSTATS , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pcaps : * mut DMUS_PORTCAPS , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( ) , pub unsafe extern "system" fn ( ) , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , fenable : super :: SystemServices :: BOOL , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , psynthsink : :: windows :: RawPtr , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pbuffer : * mut i16 , dwlength : u32 , llposition : i64 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwchannelgroup : u32 , dwchannel : u32 , dwpriority : u32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwchannelgroup : u32 , dwchannel : u32 , pdwpriority : * mut u32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pwaveformatex : * mut super :: Multimedia :: WAVEFORMATEX , pdwwaveformatexsize : * mut u32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pdwappend : * mut u32 , ) -> :: windows :: HRESULT , ) ;
             #[repr(transparent)]
             #[derive(
                 :: std :: cmp :: PartialEq,
@@ -8538,16 +8294,16 @@ pub mod Windows {
                 pub unsafe fn Open(
                     &self,
                     pportparams: *mut DMUS_PORTPARAMS8,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pportparams),
                     )
                 }
-                pub unsafe fn Close(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Close(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn SetNumChannelGroups(&self, dwgroups: u32) -> ::windows::ErrorCode {
+                pub unsafe fn SetNumChannelGroups(&self, dwgroups: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwgroups),
@@ -8558,7 +8314,7 @@ pub mod Windows {
                     phdownload: *mut super::SystemServices::HANDLE,
                     pvdata: *mut ::std::ffi::c_void,
                     pbfree: *mut i32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(phdownload),
@@ -8566,16 +8322,12 @@ pub mod Windows {
                         ::std::mem::transmute(pbfree),
                     )
                 }
-                pub unsafe fn Unload<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-                    T2__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-                >(
+                pub unsafe fn Unload<'a>(
                     &self,
-                    hdownload: T0__,
-                    lpfreehandle : * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut :: windows :: ErrorCode,
-                    huserdata: T2__,
-                ) -> ::windows::ErrorCode {
+                    hdownload: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
+                    lpfreehandle : * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut :: windows :: HRESULT,
+                    huserdata: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         hdownload.into_param().abi(),
@@ -8588,7 +8340,7 @@ pub mod Windows {
                     rt: i64,
                     pbbuffer: *mut u8,
                     cbbuffer: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rt),
@@ -8599,40 +8351,31 @@ pub mod Windows {
                 pub unsafe fn GetRunningStats(
                     &self,
                     pstats: *mut DMUS_SYNTHSTATS,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pstats),
                     )
                 }
-                pub unsafe fn GetPortCaps(
-                    &self,
-                    pcaps: *mut DMUS_PORTCAPS,
-                ) -> ::windows::ErrorCode {
+                pub unsafe fn GetPortCaps(&self, pcaps: *mut DMUS_PORTCAPS) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcaps),
                     )
                 }
-                pub unsafe fn Activate<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn Activate<'a>(
                     &self,
-                    fenable: T0__,
-                ) -> ::windows::ErrorCode {
+                    fenable: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         fenable.into_param().abi(),
                     )
                 }
-                pub unsafe fn SetSynthSink<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IDirectMusicSynthSink>,
-                >(
+                pub unsafe fn SetSynthSink<'a>(
                     &self,
-                    psynthsink: T0__,
-                ) -> ::windows::ErrorCode {
+                    psynthsink: impl ::windows::IntoParam<'a, IDirectMusicSynthSink>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         psynthsink.into_param().abi(),
@@ -8643,7 +8386,7 @@ pub mod Windows {
                     pbuffer: *mut i16,
                     dwlength: u32,
                     llposition: i64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbuffer),
@@ -8656,7 +8399,7 @@ pub mod Windows {
                     dwchannelgroup: u32,
                     dwchannel: u32,
                     dwpriority: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).16)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwchannelgroup),
@@ -8669,7 +8412,7 @@ pub mod Windows {
                     dwchannelgroup: u32,
                     dwchannel: u32,
                     pdwpriority: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).17)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwchannelgroup),
@@ -8681,14 +8424,14 @@ pub mod Windows {
                     &self,
                     pwaveformatex: *mut super::Multimedia::WAVEFORMATEX,
                     pdwwaveformatexsize: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).18)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pwaveformatex),
                         ::std::mem::transmute(pdwwaveformatexsize),
                     )
                 }
-                pub unsafe fn GetAppend(&self, pdwappend: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetAppend(&self, pdwappend: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).19)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwappend),
@@ -8706,7 +8449,7 @@ pub mod Windows {
                     stvoicestart: u64,
                     stloopstart: u64,
                     stloopend: u64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).20)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rt),
@@ -8721,7 +8464,7 @@ pub mod Windows {
                         ::std::mem::transmute(stloopend),
                     )
                 }
-                pub unsafe fn StopVoice(&self, rt: i64, dwvoiceid: u32) -> ::windows::ErrorCode {
+                pub unsafe fn StopVoice(&self, rt: i64, dwvoiceid: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).21)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rt),
@@ -8733,7 +8476,7 @@ pub mod Windows {
                     dwvoice: *mut u32,
                     cbvoice: u32,
                     dwvoicestate: *mut DMUS_VOICE_STATE,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).22)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwvoice),
@@ -8745,7 +8488,7 @@ pub mod Windows {
                     &self,
                     dwdownloadid: u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).23)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwdownloadid),
@@ -8758,7 +8501,7 @@ pub mod Windows {
                     dwchannel: u32,
                     pdwbuses: *mut u32,
                     cbuses: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).24)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwchannelgroup),
@@ -8814,7 +8557,7 @@ pub mod Windows {
             }
             #[repr(C)]
             #[doc(hidden)]
-            pub struct IDirectMusicSynth8_abi ( pub unsafe extern "system" fn ( this : :: windows :: RawPtr , iid : & :: windows :: Guid , interface : * mut :: windows :: RawPtr ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr ) -> u32 , pub unsafe extern "system" fn ( this : :: windows :: RawPtr ) -> u32 , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pportparams : * mut DMUS_PORTPARAMS8 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwgroups : u32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , phdownload : * mut super :: SystemServices :: HANDLE , pvdata : * mut :: std :: ffi :: c_void , pbfree : * mut i32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , hdownload : super :: SystemServices :: HANDLE , lpfreehandle : * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut :: windows :: ErrorCode , huserdata : super :: SystemServices :: HANDLE , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , rt : i64 , pbbuffer : * mut u8 , cbbuffer : u32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pstats : * mut DMUS_SYNTHSTATS , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pcaps : * mut DMUS_PORTCAPS , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( ) , pub unsafe extern "system" fn ( ) , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , fenable : super :: SystemServices :: BOOL , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , psynthsink : :: windows :: RawPtr , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pbuffer : * mut i16 , dwlength : u32 , llposition : i64 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwchannelgroup : u32 , dwchannel : u32 , dwpriority : u32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwchannelgroup : u32 , dwchannel : u32 , pdwpriority : * mut u32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pwaveformatex : * mut super :: Multimedia :: WAVEFORMATEX , pdwwaveformatexsize : * mut u32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pdwappend : * mut u32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , rt : i64 , dwvoiceid : u32 , dwchannelgroup : u32 , dwchannel : u32 , dwdlid : u32 , prpitch : i32 , vrvolume : i32 , stvoicestart : u64 , stloopstart : u64 , stloopend : u64 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , rt : i64 , dwvoiceid : u32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwvoice : * mut u32 , cbvoice : u32 , dwvoicestate : * mut DMUS_VOICE_STATE , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwdownloadid : u32 , dwflags : u32 , ) -> :: windows :: ErrorCode , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwchannelgroup : u32 , dwchannel : u32 , pdwbuses : * mut u32 , cbuses : u32 , ) -> :: windows :: ErrorCode , ) ;
+            pub struct IDirectMusicSynth8_abi ( pub unsafe extern "system" fn ( this : :: windows :: RawPtr , iid : & :: windows :: Guid , interface : * mut :: windows :: RawPtr ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr ) -> u32 , pub unsafe extern "system" fn ( this : :: windows :: RawPtr ) -> u32 , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pportparams : * mut DMUS_PORTPARAMS8 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwgroups : u32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , phdownload : * mut super :: SystemServices :: HANDLE , pvdata : * mut :: std :: ffi :: c_void , pbfree : * mut i32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , hdownload : super :: SystemServices :: HANDLE , lpfreehandle : * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut * mut :: windows :: HRESULT , huserdata : super :: SystemServices :: HANDLE , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , rt : i64 , pbbuffer : * mut u8 , cbbuffer : u32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pstats : * mut DMUS_SYNTHSTATS , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pcaps : * mut DMUS_PORTCAPS , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( ) , pub unsafe extern "system" fn ( ) , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , fenable : super :: SystemServices :: BOOL , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , psynthsink : :: windows :: RawPtr , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pbuffer : * mut i16 , dwlength : u32 , llposition : i64 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwchannelgroup : u32 , dwchannel : u32 , dwpriority : u32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwchannelgroup : u32 , dwchannel : u32 , pdwpriority : * mut u32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pwaveformatex : * mut super :: Multimedia :: WAVEFORMATEX , pdwwaveformatexsize : * mut u32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , pdwappend : * mut u32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , rt : i64 , dwvoiceid : u32 , dwchannelgroup : u32 , dwchannel : u32 , dwdlid : u32 , prpitch : i32 , vrvolume : i32 , stvoicestart : u64 , stloopstart : u64 , stloopend : u64 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , rt : i64 , dwvoiceid : u32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwvoice : * mut u32 , cbvoice : u32 , dwvoicestate : * mut DMUS_VOICE_STATE , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwdownloadid : u32 , dwflags : u32 , ) -> :: windows :: HRESULT , pub unsafe extern "system" fn ( this : :: windows :: RawPtr , dwchannelgroup : u32 , dwchannel : u32 , pdwbuses : * mut u32 , cbuses : u32 , ) -> :: windows :: HRESULT , ) ;
             #[repr(transparent)]
             #[derive(
                 :: std :: cmp :: PartialEq,
@@ -8834,22 +8577,19 @@ pub mod Windows {
                 );
             }
             impl IDirectMusicSynthSink {
-                pub unsafe fn Init<'a, T0__: ::windows::IntoParam<'a, IDirectMusicSynth>>(
+                pub unsafe fn Init<'a>(
                     &self,
-                    psynth: T0__,
-                ) -> ::windows::ErrorCode {
+                    psynth: impl ::windows::IntoParam<'a, IDirectMusicSynth>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         psynth.into_param().abi(),
                     )
                 }
-                pub unsafe fn Activate<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn Activate<'a>(
                     &self,
-                    fenable: T0__,
-                ) -> ::windows::ErrorCode {
+                    fenable: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         fenable.into_param().abi(),
@@ -8859,7 +8599,7 @@ pub mod Windows {
                     &self,
                     llsampletime: i64,
                     prftime: *mut i64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(llsampletime),
@@ -8870,22 +8610,18 @@ pub mod Windows {
                     &self,
                     rftime: i64,
                     pllsampletime: *mut i64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(rftime),
                         ::std::mem::transmute(pllsampletime),
                     )
                 }
-                pub unsafe fn SetDirectSound<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IDirectSound>,
-                    T1__: ::windows::IntoParam<'a, IDirectSoundBuffer>,
-                >(
+                pub unsafe fn SetDirectSound<'a>(
                     &self,
-                    pdirectsound: T0__,
-                    pdirectsoundbuffer: T1__,
-                ) -> ::windows::ErrorCode {
+                    pdirectsound: impl ::windows::IntoParam<'a, IDirectSound>,
+                    pdirectsoundbuffer: impl ::windows::IntoParam<'a, IDirectSoundBuffer>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         pdirectsound.into_param().abi(),
@@ -8895,7 +8631,7 @@ pub mod Windows {
                 pub unsafe fn GetDesiredBufferSize(
                     &self,
                     pdwbuffersizeinsamples: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwbuffersizeinsamples),
@@ -8931,38 +8667,38 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     psynth: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(),
                 pub unsafe extern "system" fn(),
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     fenable: super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     llsampletime: i64,
                     prftime: *mut i64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     rftime: i64,
                     pllsampletime: *mut i64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdirectsound: ::windows::RawPtr,
                     pdirectsoundbuffer: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwbuffersizeinsamples: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -8983,14 +8719,14 @@ pub mod Windows {
                 );
             }
             impl IDirectMusicThru {
-                pub unsafe fn ThruChannel<'a, T4__: ::windows::IntoParam<'a, IDirectMusicPort>>(
+                pub unsafe fn ThruChannel<'a>(
                     &self,
                     dwsourcechannelgroup: u32,
                     dwsourcechannel: u32,
                     dwdestinationchannelgroup: u32,
                     dwdestinationchannel: u32,
-                    pdestinationport: T4__,
-                ) -> ::windows::ErrorCode {
+                    pdestinationport: impl ::windows::IntoParam<'a, IDirectMusicPort>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwsourcechannelgroup),
@@ -9030,7 +8766,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -9040,7 +8776,7 @@ pub mod Windows {
                     dwdestinationchannelgroup: u32,
                     dwdestinationchannel: u32,
                     pdestinationport: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -9064,7 +8800,7 @@ pub mod Windows {
                 pub unsafe fn GetAllParameters(
                     &self,
                     pds3dbuffer: *mut DS3DBUFFER,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pds3dbuffer),
@@ -9074,7 +8810,7 @@ pub mod Windows {
                     &self,
                     pdwinsideconeangle: *mut u32,
                     pdwoutsideconeangle: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwinsideconeangle),
@@ -9084,7 +8820,7 @@ pub mod Windows {
                 pub unsafe fn GetConeOrientation(
                     &self,
                     pvorientation: *mut super::Direct3D9::D3DVECTOR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pvorientation),
@@ -9093,7 +8829,7 @@ pub mod Windows {
                 pub unsafe fn GetConeOutsideVolume(
                     &self,
                     plconeoutsidevolume: *mut i32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(plconeoutsidevolume),
@@ -9102,7 +8838,7 @@ pub mod Windows {
                 pub unsafe fn GetMaxDistance(
                     &self,
                     pflmaxdistance: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pflmaxdistance),
@@ -9111,13 +8847,13 @@ pub mod Windows {
                 pub unsafe fn GetMinDistance(
                     &self,
                     pflmindistance: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pflmindistance),
                     )
                 }
-                pub unsafe fn GetMode(&self, pdwmode: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetMode(&self, pdwmode: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwmode),
@@ -9126,7 +8862,7 @@ pub mod Windows {
                 pub unsafe fn GetPosition(
                     &self,
                     pvposition: *mut super::Direct3D9::D3DVECTOR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pvposition),
@@ -9135,7 +8871,7 @@ pub mod Windows {
                 pub unsafe fn GetVelocity(
                     &self,
                     pvvelocity: *mut super::Direct3D9::D3DVECTOR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pvvelocity),
@@ -9145,7 +8881,7 @@ pub mod Windows {
                     &self,
                     pcds3dbuffer: *mut DS3DBUFFER,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcds3dbuffer),
@@ -9157,7 +8893,7 @@ pub mod Windows {
                     dwinsideconeangle: u32,
                     dwoutsideconeangle: u32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwinsideconeangle),
@@ -9171,7 +8907,7 @@ pub mod Windows {
                     y: f32,
                     z: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(x),
@@ -9184,7 +8920,7 @@ pub mod Windows {
                     &self,
                     lconeoutsidevolume: i32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(lconeoutsidevolume),
@@ -9195,7 +8931,7 @@ pub mod Windows {
                     &self,
                     flmaxdistance: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).16)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(flmaxdistance),
@@ -9206,14 +8942,14 @@ pub mod Windows {
                     &self,
                     flmindistance: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).17)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(flmindistance),
                         ::std::mem::transmute(dwapply),
                     )
                 }
-                pub unsafe fn SetMode(&self, dwmode: u32, dwapply: u32) -> ::windows::ErrorCode {
+                pub unsafe fn SetMode(&self, dwmode: u32, dwapply: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).18)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwmode),
@@ -9226,7 +8962,7 @@ pub mod Windows {
                     y: f32,
                     z: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).19)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(x),
@@ -9241,7 +8977,7 @@ pub mod Windows {
                     y: f32,
                     z: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).20)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(x),
@@ -9280,98 +9016,98 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pds3dbuffer: *mut DS3DBUFFER,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwinsideconeangle: *mut u32,
                     pdwoutsideconeangle: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pvorientation: *mut super::Direct3D9::D3DVECTOR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     plconeoutsidevolume: *mut i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pflmaxdistance: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pflmindistance: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwmode: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pvposition: *mut super::Direct3D9::D3DVECTOR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pvvelocity: *mut super::Direct3D9::D3DVECTOR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcds3dbuffer: *mut DS3DBUFFER,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwinsideconeangle: u32,
                     dwoutsideconeangle: u32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     x: f32,
                     y: f32,
                     z: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     lconeoutsidevolume: i32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     flmaxdistance: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     flmindistance: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwmode: u32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     x: f32,
                     y: f32,
                     z: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     x: f32,
                     y: f32,
                     z: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -9395,7 +9131,7 @@ pub mod Windows {
                 pub unsafe fn GetAllParameters(
                     &self,
                     plistener: *mut DS3DLISTENER,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(plistener),
@@ -9404,7 +9140,7 @@ pub mod Windows {
                 pub unsafe fn GetDistanceFactor(
                     &self,
                     pfldistancefactor: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pfldistancefactor),
@@ -9413,7 +9149,7 @@ pub mod Windows {
                 pub unsafe fn GetDopplerFactor(
                     &self,
                     pfldopplerfactor: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pfldopplerfactor),
@@ -9423,7 +9159,7 @@ pub mod Windows {
                     &self,
                     pvorientfront: *mut super::Direct3D9::D3DVECTOR,
                     pvorienttop: *mut super::Direct3D9::D3DVECTOR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pvorientfront),
@@ -9433,7 +9169,7 @@ pub mod Windows {
                 pub unsafe fn GetPosition(
                     &self,
                     pvposition: *mut super::Direct3D9::D3DVECTOR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pvposition),
@@ -9442,7 +9178,7 @@ pub mod Windows {
                 pub unsafe fn GetRolloffFactor(
                     &self,
                     pflrollofffactor: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pflrollofffactor),
@@ -9451,7 +9187,7 @@ pub mod Windows {
                 pub unsafe fn GetVelocity(
                     &self,
                     pvvelocity: *mut super::Direct3D9::D3DVECTOR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pvvelocity),
@@ -9461,7 +9197,7 @@ pub mod Windows {
                     &self,
                     pclistener: *mut DS3DLISTENER,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pclistener),
@@ -9472,7 +9208,7 @@ pub mod Windows {
                     &self,
                     fldistancefactor: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(fldistancefactor),
@@ -9483,7 +9219,7 @@ pub mod Windows {
                     &self,
                     fldopplerfactor: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(fldopplerfactor),
@@ -9499,7 +9235,7 @@ pub mod Windows {
                     ytop: f32,
                     ztop: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(xfront),
@@ -9517,7 +9253,7 @@ pub mod Windows {
                     y: f32,
                     z: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(x),
@@ -9530,7 +9266,7 @@ pub mod Windows {
                     &self,
                     flrollofffactor: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(flrollofffactor),
@@ -9543,7 +9279,7 @@ pub mod Windows {
                     y: f32,
                     z: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).16)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(x),
@@ -9552,7 +9288,7 @@ pub mod Windows {
                         ::std::mem::transmute(dwapply),
                     )
                 }
-                pub unsafe fn CommitDeferredSettings(&self) -> ::windows::ErrorCode {
+                pub unsafe fn CommitDeferredSettings(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).17)(::windows::Abi::abi(self))
                 }
             }
@@ -9585,53 +9321,53 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     plistener: *mut DS3DLISTENER,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pfldistancefactor: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pfldopplerfactor: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pvorientfront: *mut super::Direct3D9::D3DVECTOR,
                     pvorienttop: *mut super::Direct3D9::D3DVECTOR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pvposition: *mut super::Direct3D9::D3DVECTOR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pflrollofffactor: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pvvelocity: *mut super::Direct3D9::D3DVECTOR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pclistener: *mut DS3DLISTENER,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     fldistancefactor: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     fldopplerfactor: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     xfront: f32,
@@ -9641,27 +9377,27 @@ pub mod Windows {
                     ytop: f32,
                     ztop: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     x: f32,
                     y: f32,
                     z: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     flrollofffactor: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     x: f32,
                     y: f32,
                     z: f32,
                     dwapply: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -9685,7 +9421,7 @@ pub mod Windows {
                 pub unsafe fn SetAllParameters(
                     &self,
                     pdscfxaec: *mut DSCFXAec,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdscfxaec),
@@ -9694,19 +9430,19 @@ pub mod Windows {
                 pub unsafe fn GetAllParameters(
                     &self,
                     pdscfxaec: *mut DSCFXAec,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdscfxaec),
                     )
                 }
-                pub unsafe fn GetStatus(&self, pdwstatus: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetStatus(&self, pdwstatus: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwstatus),
                     )
                 }
-                pub unsafe fn Reset(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Reset(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(::windows::Abi::abi(self))
                 }
             }
@@ -9739,22 +9475,22 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdscfxaec: *mut DSCFXAec,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdscfxaec: *mut DSCFXAec,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwstatus: *mut u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -9778,7 +9514,7 @@ pub mod Windows {
                 pub unsafe fn SetAllParameters(
                     &self,
                     pcdscfxnoisesuppress: *mut DSCFXNoiseSuppress,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdscfxnoisesuppress),
@@ -9787,13 +9523,13 @@ pub mod Windows {
                 pub unsafe fn GetAllParameters(
                     &self,
                     pdscfxnoisesuppress: *mut DSCFXNoiseSuppress,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdscfxnoisesuppress),
                     )
                 }
-                pub unsafe fn Reset(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Reset(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(::windows::Abi::abi(self))
                 }
             }
@@ -9826,18 +9562,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcdscfxnoisesuppress: *mut DSCFXNoiseSuppress,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdscfxnoisesuppress: *mut DSCFXNoiseSuppress,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -9861,7 +9597,7 @@ pub mod Windows {
                 pub unsafe fn SetAllParameters(
                     &self,
                     pcdsfxchorus: *mut DSFXChorus,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdsfxchorus),
@@ -9870,7 +9606,7 @@ pub mod Windows {
                 pub unsafe fn GetAllParameters(
                     &self,
                     pdsfxchorus: *mut DSFXChorus,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdsfxchorus),
@@ -9906,17 +9642,17 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcdsfxchorus: *mut DSFXChorus,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsfxchorus: *mut DSFXChorus,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -9940,7 +9676,7 @@ pub mod Windows {
                 pub unsafe fn SetAllParameters(
                     &self,
                     pcdsfxcompressor: *mut DSFXCompressor,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdsfxcompressor),
@@ -9949,7 +9685,7 @@ pub mod Windows {
                 pub unsafe fn GetAllParameters(
                     &self,
                     pdsfxcompressor: *mut DSFXCompressor,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdsfxcompressor),
@@ -9985,17 +9721,17 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcdsfxcompressor: *mut DSFXCompressor,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsfxcompressor: *mut DSFXCompressor,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -10019,7 +9755,7 @@ pub mod Windows {
                 pub unsafe fn SetAllParameters(
                     &self,
                     pcdsfxdistortion: *mut DSFXDistortion,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdsfxdistortion),
@@ -10028,7 +9764,7 @@ pub mod Windows {
                 pub unsafe fn GetAllParameters(
                     &self,
                     pdsfxdistortion: *mut DSFXDistortion,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdsfxdistortion),
@@ -10064,17 +9800,17 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcdsfxdistortion: *mut DSFXDistortion,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsfxdistortion: *mut DSFXDistortion,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -10098,7 +9834,7 @@ pub mod Windows {
                 pub unsafe fn SetAllParameters(
                     &self,
                     pcdsfxecho: *mut DSFXEcho,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdsfxecho),
@@ -10107,7 +9843,7 @@ pub mod Windows {
                 pub unsafe fn GetAllParameters(
                     &self,
                     pdsfxecho: *mut DSFXEcho,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdsfxecho),
@@ -10143,17 +9879,17 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcdsfxecho: *mut DSFXEcho,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsfxecho: *mut DSFXEcho,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -10177,7 +9913,7 @@ pub mod Windows {
                 pub unsafe fn SetAllParameters(
                     &self,
                     pcdsfxflanger: *mut DSFXFlanger,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdsfxflanger),
@@ -10186,7 +9922,7 @@ pub mod Windows {
                 pub unsafe fn GetAllParameters(
                     &self,
                     pdsfxflanger: *mut DSFXFlanger,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdsfxflanger),
@@ -10222,17 +9958,17 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcdsfxflanger: *mut DSFXFlanger,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsfxflanger: *mut DSFXFlanger,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -10256,7 +9992,7 @@ pub mod Windows {
                 pub unsafe fn SetAllParameters(
                     &self,
                     pcdsfxgargle: *mut DSFXGargle,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdsfxgargle),
@@ -10265,7 +10001,7 @@ pub mod Windows {
                 pub unsafe fn GetAllParameters(
                     &self,
                     pdsfxgargle: *mut DSFXGargle,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdsfxgargle),
@@ -10301,17 +10037,17 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcdsfxgargle: *mut DSFXGargle,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsfxgargle: *mut DSFXGargle,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -10335,7 +10071,7 @@ pub mod Windows {
                 pub unsafe fn SetAllParameters(
                     &self,
                     pcdsfxi3dl2reverb: *mut DSFXI3DL2Reverb,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdsfxi3dl2reverb),
@@ -10344,31 +10080,31 @@ pub mod Windows {
                 pub unsafe fn GetAllParameters(
                     &self,
                     pdsfxi3dl2reverb: *mut DSFXI3DL2Reverb,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdsfxi3dl2reverb),
                     )
                 }
-                pub unsafe fn SetPreset(&self, dwpreset: u32) -> ::windows::ErrorCode {
+                pub unsafe fn SetPreset(&self, dwpreset: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwpreset),
                     )
                 }
-                pub unsafe fn GetPreset(&self, pdwpreset: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetPreset(&self, pdwpreset: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwpreset),
                     )
                 }
-                pub unsafe fn SetQuality(&self, lquality: i32) -> ::windows::ErrorCode {
+                pub unsafe fn SetQuality(&self, lquality: i32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(lquality),
                     )
                 }
-                pub unsafe fn GetQuality(&self, plquality: *mut i32) -> ::windows::ErrorCode {
+                pub unsafe fn GetQuality(&self, plquality: *mut i32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(plquality),
@@ -10404,33 +10140,33 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcdsfxi3dl2reverb: *mut DSFXI3DL2Reverb,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsfxi3dl2reverb: *mut DSFXI3DL2Reverb,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwpreset: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwpreset: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     lquality: i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     plquality: *mut i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -10454,7 +10190,7 @@ pub mod Windows {
                 pub unsafe fn SetAllParameters(
                     &self,
                     pcdsfxparameq: *mut DSFXParamEq,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdsfxparameq),
@@ -10463,7 +10199,7 @@ pub mod Windows {
                 pub unsafe fn GetAllParameters(
                     &self,
                     pdsfxparameq: *mut DSFXParamEq,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdsfxparameq),
@@ -10499,17 +10235,17 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcdsfxparameq: *mut DSFXParamEq,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsfxparameq: *mut DSFXParamEq,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -10533,7 +10269,7 @@ pub mod Windows {
                 pub unsafe fn SetAllParameters(
                     &self,
                     pcdsfxwavesreverb: *mut DSFXWavesReverb,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdsfxwavesreverb),
@@ -10542,7 +10278,7 @@ pub mod Windows {
                 pub unsafe fn GetAllParameters(
                     &self,
                     pdsfxwavesreverb: *mut DSFXWavesReverb,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdsfxwavesreverb),
@@ -10578,17 +10314,17 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcdsfxwavesreverb: *mut DSFXWavesReverb,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdsfxwavesreverb: *mut DSFXWavesReverb,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -10613,7 +10349,7 @@ pub mod Windows {
                     &self,
                     dwpositionnotifies: u32,
                     pcpositionnotifies: *mut DSBPOSITIONNOTIFY,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwpositionnotifies),
@@ -10650,14 +10386,14 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwpositionnotifies: u32,
                     pcpositionnotifies: *mut DSBPOSITIONNOTIFY,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(C)]
             #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
@@ -11027,39 +10763,17 @@ pub mod Windows {
             clippy::all
         )]
         pub mod Automation {
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn SysAllocStringLen<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-            >(
-                strin: T0__,
+            pub unsafe fn SysAllocStringLen<'a>(
+                strin: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                 ui: u32,
             ) -> BSTR {
-                #[link(name = "OLEAUT32")]
-                extern "system" {
-                    pub fn SysAllocStringLen(strin: super::SystemServices::PWSTR, ui: u32) -> BSTR;
-                }
-                SysAllocStringLen(strin.into_param().abi(), ::std::mem::transmute(ui))
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn SysStringLen<'a, T0__: ::windows::IntoParam<'a, BSTR>>(
-                pbstr: T0__,
-            ) -> u32 {
-                #[link(name = "OLEAUT32")]
-                extern "system" {
-                    pub fn SysStringLen(pbstr: BSTR_abi) -> u32;
-                }
-                SysStringLen(pbstr.into_param().abi())
+            pub unsafe fn SysStringLen<'a>(pbstr: impl ::windows::IntoParam<'a, BSTR>) -> u32 {
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn SysFreeString<'a, T0__: ::windows::IntoParam<'a, BSTR>>(
-                bstrstring: T0__,
-            ) {
-                #[link(name = "OLEAUT32")]
-                extern "system" {
-                    pub fn SysFreeString(bstrstring: BSTR_abi);
-                }
-                SysFreeString(bstrstring.into_param().abi())
+            pub unsafe fn SysFreeString<'a>(bstrstring: impl ::windows::IntoParam<'a, BSTR>) {
+                panic!("Unsupported target OS");
             }
             #[repr(C)]
             #[derive(:: std :: clone :: Clone, :: std :: cmp :: Eq)]
@@ -11195,7 +10909,7 @@ pub mod Windows {
                     ::windows::Guid::from_values(132096, 0, 0, [192, 0, 0, 0, 0, 0, 0, 70]);
             }
             impl IDispatch {
-                pub unsafe fn GetTypeInfoCount(&self, pctinfo: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetTypeInfoCount(&self, pctinfo: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pctinfo),
@@ -11208,7 +10922,7 @@ pub mod Windows {
                     cnames: u32,
                     lcid: u32,
                     rgdispid: *mut i32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(riid),
@@ -11248,13 +10962,13 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pctinfo: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(),
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
@@ -11263,7 +10977,7 @@ pub mod Windows {
                     cnames: u32,
                     lcid: u32,
                     rgdispid: *mut i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(),
             );
             #[repr(C)]
@@ -11359,37 +11073,16 @@ pub mod Windows {
         )]
         pub mod Com {
             pub unsafe fn CoTaskMemAlloc(cb: usize) -> *mut ::std::ffi::c_void {
-                #[link(name = "OLE32")]
-                extern "system" {
-                    pub fn CoTaskMemAlloc(cb: usize) -> *mut ::std::ffi::c_void;
-                }
-                CoTaskMemAlloc(::std::mem::transmute(cb))
+                panic!("Unsupported target OS");
             }
             pub unsafe fn CoTaskMemFree(pv: *mut ::std::ffi::c_void) {
-                #[link(name = "OLE32")]
-                extern "system" {
-                    pub fn CoTaskMemFree(pv: *mut ::std::ffi::c_void);
-                }
-                CoTaskMemFree(::std::mem::transmute(pv))
+                panic!("Unsupported target OS");
             }
-            pub unsafe fn CLSIDFromProgID<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-            >(
-                lpszprogid: T0__,
+            pub unsafe fn CLSIDFromProgID<'a>(
+                lpszprogid: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                 lpclsid: *mut ::windows::Guid,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "OLE32")]
-                extern "system" {
-                    pub fn CLSIDFromProgID(
-                        lpszprogid: super::SystemServices::PWSTR,
-                        lpclsid: *mut ::windows::Guid,
-                    ) -> ::windows::ErrorCode;
-                }
-                CLSIDFromProgID(
-                    lpszprogid.into_param().abi(),
-                    ::std::mem::transmute(lpclsid),
-                )
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
             #[derive(
                 :: std :: cmp :: PartialEq,
@@ -11440,18 +11133,8 @@ pub mod Windows {
             pub unsafe fn CoInitializeEx(
                 pvreserved: *mut ::std::ffi::c_void,
                 dwcoinit: COINIT,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "OLE32")]
-                extern "system" {
-                    pub fn CoInitializeEx(
-                        pvreserved: *mut ::std::ffi::c_void,
-                        dwcoinit: COINIT,
-                    ) -> ::windows::ErrorCode;
-                }
-                CoInitializeEx(
-                    ::std::mem::transmute(pvreserved),
-                    ::std::mem::transmute(dwcoinit),
-                )
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
             #[derive(
                 :: std :: cmp :: PartialEq,
@@ -11524,33 +11207,14 @@ pub mod Windows {
                     self.0.bitand_assign(rhs.0)
                 }
             }
-            pub unsafe fn CoCreateInstance<
-                'a,
-                T1__: ::windows::IntoParam<'a, ::windows::IUnknown>,
-            >(
+            pub unsafe fn CoCreateInstance<'a>(
                 rclsid: *const ::windows::Guid,
-                punkouter: T1__,
+                punkouter: impl ::windows::IntoParam<'a, ::windows::IUnknown>,
                 dwclscontext: CLSCTX,
                 riid: *const ::windows::Guid,
                 ppv: *mut *mut ::std::ffi::c_void,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "OLE32")]
-                extern "system" {
-                    pub fn CoCreateInstance(
-                        rclsid: *const ::windows::Guid,
-                        punkouter: ::windows::RawPtr,
-                        dwclscontext: CLSCTX,
-                        riid: *const ::windows::Guid,
-                        ppv: *mut *mut ::std::ffi::c_void,
-                    ) -> ::windows::ErrorCode;
-                }
-                CoCreateInstance(
-                    ::std::mem::transmute(rclsid),
-                    punkouter.into_param().abi(),
-                    ::std::mem::transmute(dwclscontext),
-                    ::std::mem::transmute(riid),
-                    ::std::mem::transmute(ppv),
-                )
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
         }
         #[allow(
@@ -11582,7 +11246,7 @@ pub mod Windows {
                 );
             }
             impl IMMDeviceCollection {
-                pub unsafe fn GetCount(&self, pcdevices: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetCount(&self, pcdevices: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcdevices),
@@ -11592,7 +11256,7 @@ pub mod Windows {
                     &self,
                     ndevice: u32,
                     ppdevice: *mut ::std::option::Option<IMMDevice>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ndevice),
@@ -11629,18 +11293,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcdevices: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ndevice: u32,
                     ppdevice: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(C)]
             #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
@@ -12344,13 +12008,13 @@ pub mod Windows {
                 );
             }
             impl IActivateAudioInterfaceCompletionHandler {
-                pub unsafe fn ActivateCompleted<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IActivateAudioInterfaceAsyncOperation>,
-                >(
+                pub unsafe fn ActivateCompleted<'a>(
                     &self,
-                    activateoperation: T0__,
-                ) -> ::windows::ErrorCode {
+                    activateoperation: impl ::windows::IntoParam<
+                        'a,
+                        IActivateAudioInterfaceAsyncOperation,
+                    >,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         activateoperation.into_param().abi(),
@@ -12390,13 +12054,13 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     activateoperation: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -12419,9 +12083,9 @@ pub mod Windows {
             impl IActivateAudioInterfaceAsyncOperation {
                 pub unsafe fn GetActivateResult(
                     &self,
-                    activateresult: *mut ::windows::ErrorCode,
+                    activateresult: *mut ::windows::HRESULT,
                     activatedinterface: *mut ::std::option::Option<::windows::IUnknown>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(activateresult),
@@ -12460,46 +12124,28 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
-                    activateresult: *mut ::windows::ErrorCode,
+                    activateresult: *mut ::windows::HRESULT,
                     activatedinterface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn ActivateAudioInterfaceAsync<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                T3__: ::windows::IntoParam<'a, IActivateAudioInterfaceCompletionHandler>,
-            >(
-                deviceinterfacepath: T0__,
+            pub unsafe fn ActivateAudioInterfaceAsync<'a>(
+                deviceinterfacepath: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                 riid: *const ::windows::Guid,
                 activationparams: *mut super::StructuredStorage::PROPVARIANT,
-                completionhandler: T3__,
+                completionhandler: impl ::windows::IntoParam<
+                    'a,
+                    IActivateAudioInterfaceCompletionHandler,
+                >,
                 activationoperation: *mut ::std::option::Option<
                     IActivateAudioInterfaceAsyncOperation,
                 >,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "MMDevAPI")]
-                extern "system" {
-                    pub fn ActivateAudioInterfaceAsync(
-                        deviceinterfacepath: super::SystemServices::PWSTR,
-                        riid: *const ::windows::Guid,
-                        activationparams: *mut super::StructuredStorage::PROPVARIANT_abi,
-                        completionhandler: ::windows::RawPtr,
-                        activationoperation: *mut ::windows::RawPtr,
-                    ) -> ::windows::ErrorCode;
-                }
-                ActivateAudioInterfaceAsync(
-                    deviceinterfacepath.into_param().abi(),
-                    ::std::mem::transmute(riid),
-                    ::std::mem::transmute(activationparams),
-                    completionhandler.into_param().abi(),
-                    ::std::mem::transmute(activationoperation),
-                )
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
             pub struct Apis {}
             impl Apis {}
@@ -12604,7 +12250,7 @@ pub mod Windows {
                     dwclsctx: u32,
                     pactivationparams: *mut super::StructuredStorage::PROPVARIANT,
                     ppinterface: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(iid),
@@ -12617,7 +12263,7 @@ pub mod Windows {
                     &self,
                     stgmaccess: u32,
                     ppproperties: *mut ::std::option::Option<super::Audio::IPropertyStore>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(stgmaccess),
@@ -12627,13 +12273,13 @@ pub mod Windows {
                 pub unsafe fn GetId(
                     &self,
                     ppstrid: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppstrid),
                     )
                 }
-                pub unsafe fn GetState(&self, pdwstate: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetState(&self, pdwstate: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwstate),
@@ -12669,7 +12315,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -12678,20 +12324,20 @@ pub mod Windows {
                     dwclsctx: u32,
                     pactivationparams: *mut super::StructuredStorage::PROPVARIANT_abi,
                     ppinterface: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     stgmaccess: u32,
                     ppproperties: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppstrid: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwstate: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(C)]
             #[derive(:: std :: clone :: Clone)]
@@ -13724,20 +13370,17 @@ pub mod Windows {
                     &self,
                     pambisonicsparams: *const AMBISONICS_PARAMS,
                     cbambisonicsparams: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pambisonicsparams),
                         ::std::mem::transmute(cbambisonicsparams),
                     )
                 }
-                pub unsafe fn SetHeadTracking<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn SetHeadTracking<'a>(
                     &self,
-                    benableheadtracking: T0__,
-                ) -> ::windows::ErrorCode {
+                    benableheadtracking: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         benableheadtracking.into_param().abi(),
@@ -13746,7 +13389,7 @@ pub mod Windows {
                 pub unsafe fn GetHeadTracking(
                     &self,
                     pbenableheadtracking: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbenableheadtracking),
@@ -13758,7 +13401,7 @@ pub mod Windows {
                     y: f32,
                     z: f32,
                     w: f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(x),
@@ -13797,29 +13440,29 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pambisonicsparams: *const AMBISONICS_PARAMS,
                     cbambisonicsparams: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     benableheadtracking: super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbenableheadtracking: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     x: f32,
                     y: f32,
                     z: f32,
                     w: f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -13843,20 +13486,17 @@ pub mod Windows {
                 pub unsafe fn GetEnabled(
                     &self,
                     pbenabled: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbenabled),
                     )
                 }
-                pub unsafe fn SetEnabled<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn SetEnabled<'a>(
                     &self,
-                    benable: T0__,
+                    benable: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         benable.into_param().abi(),
@@ -13893,18 +13533,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbenabled: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     benable: super::SystemServices::BOOL,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -13925,7 +13565,7 @@ pub mod Windows {
                 );
             }
             impl IPerChannelDbLevel {
-                pub unsafe fn GetChannelCount(&self, pcchannels: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetChannelCount(&self, pcchannels: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcchannels),
@@ -13937,7 +13577,7 @@ pub mod Windows {
                     pfminleveldb: *mut f32,
                     pfmaxleveldb: *mut f32,
                     pfstepping: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -13950,7 +13590,7 @@ pub mod Windows {
                     &self,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -13962,7 +13602,7 @@ pub mod Windows {
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -13974,7 +13614,7 @@ pub mod Windows {
                     &self,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(fleveldb),
@@ -13986,7 +13626,7 @@ pub mod Windows {
                     alevelsdb: *mut f32,
                     cchannels: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(alevelsdb),
@@ -14024,42 +13664,42 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcchannels: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pfminleveldb: *mut f32,
                     pfmaxleveldb: *mut f32,
                     pfstepping: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     alevelsdb: *mut f32,
                     cchannels: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -14080,7 +13720,7 @@ pub mod Windows {
                 );
             }
             impl IAudioBass {
-                pub unsafe fn GetChannelCount(&self, pcchannels: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetChannelCount(&self, pcchannels: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcchannels),
@@ -14092,7 +13732,7 @@ pub mod Windows {
                     pfminleveldb: *mut f32,
                     pfmaxleveldb: *mut f32,
                     pfstepping: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -14105,7 +13745,7 @@ pub mod Windows {
                     &self,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -14117,7 +13757,7 @@ pub mod Windows {
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -14129,7 +13769,7 @@ pub mod Windows {
                     &self,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(fleveldb),
@@ -14141,7 +13781,7 @@ pub mod Windows {
                     alevelsdb: *mut f32,
                     cchannels: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(alevelsdb),
@@ -14201,42 +13841,42 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcchannels: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pfminleveldb: *mut f32,
                     pfmaxleveldb: *mut f32,
                     pfstepping: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     alevelsdb: *mut f32,
                     cchannels: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -14264,7 +13904,7 @@ pub mod Windows {
                     pdwflags: *mut u32,
                     pu64deviceposition: *mut u64,
                     pu64qpcposition: *mut u64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppdata),
@@ -14274,7 +13914,7 @@ pub mod Windows {
                         ::std::mem::transmute(pu64qpcposition),
                     )
                 }
-                pub unsafe fn ReleaseBuffer(&self, numframesread: u32) -> ::windows::ErrorCode {
+                pub unsafe fn ReleaseBuffer(&self, numframesread: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(numframesread),
@@ -14283,7 +13923,7 @@ pub mod Windows {
                 pub unsafe fn GetNextPacketSize(
                     &self,
                     pnumframesinnextpacket: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnumframesinnextpacket),
@@ -14319,7 +13959,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -14329,15 +13969,15 @@ pub mod Windows {
                     pdwflags: *mut u32,
                     pu64deviceposition: *mut u64,
                     pu64qpcposition: *mut u64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     numframesread: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnumframesinnextpacket: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -14362,14 +14002,14 @@ pub mod Windows {
                     &self,
                     dwconfig: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwconfig),
                         ::std::mem::transmute(pguideventcontext),
                     )
                 }
-                pub unsafe fn GetChannelConfig(&self, pdwconfig: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetChannelConfig(&self, pdwconfig: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwconfig),
@@ -14405,18 +14045,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwconfig: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwconfig: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -14445,7 +14085,7 @@ pub mod Windows {
                     hnsperiodicity: i64,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     audiosessionguid: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(sharemode),
@@ -14459,16 +14099,13 @@ pub mod Windows {
                 pub unsafe fn GetBufferSize(
                     &self,
                     pnumbufferframes: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnumbufferframes),
                     )
                 }
-                pub unsafe fn GetStreamLatency(
-                    &self,
-                    phnslatency: *mut i64,
-                ) -> ::windows::ErrorCode {
+                pub unsafe fn GetStreamLatency(&self, phnslatency: *mut i64) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(phnslatency),
@@ -14477,7 +14114,7 @@ pub mod Windows {
                 pub unsafe fn GetCurrentPadding(
                     &self,
                     pnumpaddingframes: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnumpaddingframes),
@@ -14488,7 +14125,7 @@ pub mod Windows {
                     sharemode: AUDCLNT_SHAREMODE,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     ppclosestmatch: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(sharemode),
@@ -14499,7 +14136,7 @@ pub mod Windows {
                 pub unsafe fn GetMixFormat(
                     &self,
                     ppdeviceformat: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppdeviceformat),
@@ -14509,29 +14146,26 @@ pub mod Windows {
                     &self,
                     phnsdefaultdeviceperiod: *mut i64,
                     phnsminimumdeviceperiod: *mut i64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(phnsdefaultdeviceperiod),
                         ::std::mem::transmute(phnsminimumdeviceperiod),
                     )
                 }
-                pub unsafe fn Start(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Start(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Stop(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Stop(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Reset(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Reset(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn SetEventHandle<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-                >(
+                pub unsafe fn SetEventHandle<'a>(
                     &self,
-                    eventhandle: T0__,
-                ) -> ::windows::ErrorCode {
+                    eventhandle: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         eventhandle.into_param().abi(),
@@ -14541,7 +14175,7 @@ pub mod Windows {
                     &self,
                     riid: *const ::windows::Guid,
                     ppv: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(riid),
@@ -14578,7 +14212,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -14589,46 +14223,46 @@ pub mod Windows {
                     hnsperiodicity: i64,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     audiosessionguid: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnumbufferframes: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     phnslatency: *mut i64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnumpaddingframes: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     sharemode: AUDCLNT_SHAREMODE,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     ppclosestmatch: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppdeviceformat: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     phnsdefaultdeviceperiod: *mut i64,
                     phnsminimumdeviceperiod: *mut i64,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     eventhandle: super::SystemServices::HANDLE,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     riid: *const ::windows::Guid,
                     ppv: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -14657,7 +14291,7 @@ pub mod Windows {
                     hnsperiodicity: i64,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     audiosessionguid: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(sharemode),
@@ -14671,16 +14305,13 @@ pub mod Windows {
                 pub unsafe fn GetBufferSize(
                     &self,
                     pnumbufferframes: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnumbufferframes),
                     )
                 }
-                pub unsafe fn GetStreamLatency(
-                    &self,
-                    phnslatency: *mut i64,
-                ) -> ::windows::ErrorCode {
+                pub unsafe fn GetStreamLatency(&self, phnslatency: *mut i64) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(phnslatency),
@@ -14689,7 +14320,7 @@ pub mod Windows {
                 pub unsafe fn GetCurrentPadding(
                     &self,
                     pnumpaddingframes: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnumpaddingframes),
@@ -14700,7 +14331,7 @@ pub mod Windows {
                     sharemode: AUDCLNT_SHAREMODE,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     ppclosestmatch: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(sharemode),
@@ -14711,7 +14342,7 @@ pub mod Windows {
                 pub unsafe fn GetMixFormat(
                     &self,
                     ppdeviceformat: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppdeviceformat),
@@ -14721,29 +14352,26 @@ pub mod Windows {
                     &self,
                     phnsdefaultdeviceperiod: *mut i64,
                     phnsminimumdeviceperiod: *mut i64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(phnsdefaultdeviceperiod),
                         ::std::mem::transmute(phnsminimumdeviceperiod),
                     )
                 }
-                pub unsafe fn Start(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Start(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Stop(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Stop(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Reset(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Reset(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn SetEventHandle<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-                >(
+                pub unsafe fn SetEventHandle<'a>(
                     &self,
-                    eventhandle: T0__,
-                ) -> ::windows::ErrorCode {
+                    eventhandle: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         eventhandle.into_param().abi(),
@@ -14753,7 +14381,7 @@ pub mod Windows {
                     &self,
                     riid: *const ::windows::Guid,
                     ppv: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(riid),
@@ -14764,7 +14392,7 @@ pub mod Windows {
                     &self,
                     category: AUDIO_STREAM_CATEGORY,
                     pboffloadcapable: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(category),
@@ -14774,22 +14402,19 @@ pub mod Windows {
                 pub unsafe fn SetClientProperties(
                     &self,
                     pproperties: *const AudioClientProperties,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).16)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pproperties),
                     )
                 }
-                pub unsafe fn GetBufferSizeLimits<
-                    'a,
-                    T1__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn GetBufferSizeLimits<'a>(
                     &self,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
-                    beventdriven: T1__,
+                    beventdriven: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
                     phnsminbufferduration: *mut i64,
                     phnsmaxbufferduration: *mut i64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).17)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pformat),
@@ -14850,7 +14475,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -14861,62 +14486,62 @@ pub mod Windows {
                     hnsperiodicity: i64,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     audiosessionguid: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnumbufferframes: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     phnslatency: *mut i64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnumpaddingframes: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     sharemode: AUDCLNT_SHAREMODE,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     ppclosestmatch: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppdeviceformat: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     phnsdefaultdeviceperiod: *mut i64,
                     phnsminimumdeviceperiod: *mut i64,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     eventhandle: super::SystemServices::HANDLE,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     riid: *const ::windows::Guid,
                     ppv: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     category: AUDIO_STREAM_CATEGORY,
                     pboffloadcapable: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pproperties: *const AudioClientProperties,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     beventdriven: super::SystemServices::BOOL,
                     phnsminbufferduration: *mut i64,
                     phnsmaxbufferduration: *mut i64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -14945,7 +14570,7 @@ pub mod Windows {
                     hnsperiodicity: i64,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     audiosessionguid: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(sharemode),
@@ -14959,16 +14584,13 @@ pub mod Windows {
                 pub unsafe fn GetBufferSize(
                     &self,
                     pnumbufferframes: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnumbufferframes),
                     )
                 }
-                pub unsafe fn GetStreamLatency(
-                    &self,
-                    phnslatency: *mut i64,
-                ) -> ::windows::ErrorCode {
+                pub unsafe fn GetStreamLatency(&self, phnslatency: *mut i64) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(phnslatency),
@@ -14977,7 +14599,7 @@ pub mod Windows {
                 pub unsafe fn GetCurrentPadding(
                     &self,
                     pnumpaddingframes: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnumpaddingframes),
@@ -14988,7 +14610,7 @@ pub mod Windows {
                     sharemode: AUDCLNT_SHAREMODE,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     ppclosestmatch: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(sharemode),
@@ -14999,7 +14621,7 @@ pub mod Windows {
                 pub unsafe fn GetMixFormat(
                     &self,
                     ppdeviceformat: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppdeviceformat),
@@ -15009,29 +14631,26 @@ pub mod Windows {
                     &self,
                     phnsdefaultdeviceperiod: *mut i64,
                     phnsminimumdeviceperiod: *mut i64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(phnsdefaultdeviceperiod),
                         ::std::mem::transmute(phnsminimumdeviceperiod),
                     )
                 }
-                pub unsafe fn Start(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Start(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Stop(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Stop(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Reset(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Reset(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn SetEventHandle<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-                >(
+                pub unsafe fn SetEventHandle<'a>(
                     &self,
-                    eventhandle: T0__,
-                ) -> ::windows::ErrorCode {
+                    eventhandle: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         eventhandle.into_param().abi(),
@@ -15041,7 +14660,7 @@ pub mod Windows {
                     &self,
                     riid: *const ::windows::Guid,
                     ppv: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(riid),
@@ -15052,7 +14671,7 @@ pub mod Windows {
                     &self,
                     category: AUDIO_STREAM_CATEGORY,
                     pboffloadcapable: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(category),
@@ -15062,22 +14681,19 @@ pub mod Windows {
                 pub unsafe fn SetClientProperties(
                     &self,
                     pproperties: *const AudioClientProperties,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).16)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pproperties),
                     )
                 }
-                pub unsafe fn GetBufferSizeLimits<
-                    'a,
-                    T1__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn GetBufferSizeLimits<'a>(
                     &self,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
-                    beventdriven: T1__,
+                    beventdriven: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
                     phnsminbufferduration: *mut i64,
                     phnsmaxbufferduration: *mut i64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).17)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pformat),
@@ -15093,7 +14709,7 @@ pub mod Windows {
                     pfundamentalperiodinframes: *mut u32,
                     pminperiodinframes: *mut u32,
                     pmaxperiodinframes: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).18)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pformat),
@@ -15107,7 +14723,7 @@ pub mod Windows {
                     &self,
                     ppformat: *mut *mut super::Multimedia::WAVEFORMATEX,
                     pcurrentperiodinframes: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).19)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppformat),
@@ -15120,7 +14736,7 @@ pub mod Windows {
                     periodinframes: u32,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     audiosessionguid: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).20)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(streamflags),
@@ -15203,7 +14819,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -15214,62 +14830,62 @@ pub mod Windows {
                     hnsperiodicity: i64,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     audiosessionguid: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnumbufferframes: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     phnslatency: *mut i64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnumpaddingframes: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     sharemode: AUDCLNT_SHAREMODE,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     ppclosestmatch: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppdeviceformat: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     phnsdefaultdeviceperiod: *mut i64,
                     phnsminimumdeviceperiod: *mut i64,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     eventhandle: super::SystemServices::HANDLE,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     riid: *const ::windows::Guid,
                     ppv: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     category: AUDIO_STREAM_CATEGORY,
                     pboffloadcapable: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pproperties: *const AudioClientProperties,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     beventdriven: super::SystemServices::BOOL,
                     phnsminbufferduration: *mut i64,
                     phnsmaxbufferduration: *mut i64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
@@ -15277,19 +14893,19 @@ pub mod Windows {
                     pfundamentalperiodinframes: *mut u32,
                     pminperiodinframes: *mut u32,
                     pmaxperiodinframes: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppformat: *mut *mut super::Multimedia::WAVEFORMATEX,
                     pcurrentperiodinframes: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     streamflags: u32,
                     periodinframes: u32,
                     pformat: *const super::Multimedia::WAVEFORMATEX,
                     audiosessionguid: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -15310,7 +14926,7 @@ pub mod Windows {
                 );
             }
             impl IAudioClock {
-                pub unsafe fn GetFrequency(&self, pu64frequency: *mut u64) -> ::windows::ErrorCode {
+                pub unsafe fn GetFrequency(&self, pu64frequency: *mut u64) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pu64frequency),
@@ -15320,7 +14936,7 @@ pub mod Windows {
                     &self,
                     pu64position: *mut u64,
                     pu64qpcposition: *mut u64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pu64position),
@@ -15330,7 +14946,7 @@ pub mod Windows {
                 pub unsafe fn GetCharacteristics(
                     &self,
                     pdwcharacteristics: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwcharacteristics),
@@ -15366,22 +14982,22 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pu64frequency: *mut u64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pu64position: *mut u64,
                     pu64qpcposition: *mut u64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwcharacteristics: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -15406,7 +15022,7 @@ pub mod Windows {
                     &self,
                     deviceposition: *mut u64,
                     qpcposition: *mut u64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(deviceposition),
@@ -15443,14 +15059,14 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     deviceposition: *mut u64,
                     qpcposition: *mut u64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -15471,7 +15087,7 @@ pub mod Windows {
                 );
             }
             impl IAudioClockAdjustment {
-                pub unsafe fn SetSampleRate(&self, flsamplerate: f32) -> ::windows::ErrorCode {
+                pub unsafe fn SetSampleRate(&self, flsamplerate: f32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(flsamplerate),
@@ -15507,13 +15123,13 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     flsamplerate: f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -15534,7 +15150,7 @@ pub mod Windows {
                 );
             }
             impl IAudioEndpointFormatControl {
-                pub unsafe fn ResetToDefault(&self, resetflags: u32) -> ::windows::ErrorCode {
+                pub unsafe fn ResetToDefault(&self, resetflags: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(resetflags),
@@ -15570,13 +15186,13 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     resetflags: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -15630,7 +15246,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -15660,7 +15276,7 @@ pub mod Windows {
                 pub unsafe fn GetMeterChannelCount(
                     &self,
                     pu32channelcount: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pu32channelcount),
@@ -15670,7 +15286,7 @@ pub mod Windows {
                     &self,
                     u32channelcount: u32,
                     pf32peakvalues: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(u32channelcount),
@@ -15707,18 +15323,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pu32channelcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     u32channelcount: u32,
                     pf32peakvalues: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -15739,13 +15355,13 @@ pub mod Windows {
                 );
             }
             impl IAudioEndpointOffloadStreamMute {
-                pub unsafe fn SetMute(&self, bmuted: u8) -> ::windows::ErrorCode {
+                pub unsafe fn SetMute(&self, bmuted: u8) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(bmuted),
                     )
                 }
-                pub unsafe fn GetMute(&self, pbmuted: *mut u8) -> ::windows::ErrorCode {
+                pub unsafe fn GetMute(&self, pbmuted: *mut u8) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbmuted),
@@ -15781,17 +15397,17 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     bmuted: u8,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbmuted: *mut u8,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -15815,7 +15431,7 @@ pub mod Windows {
                 pub unsafe fn GetVolumeChannelCount(
                     &self,
                     pu32channelcount: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pu32channelcount),
@@ -15827,7 +15443,7 @@ pub mod Windows {
                     pf32volumes: *mut f32,
                     u32curvetype: AUDIO_CURVE_TYPE,
                     pcurveduration: *mut i64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(u32channelcount),
@@ -15840,7 +15456,7 @@ pub mod Windows {
                     &self,
                     u32channelcount: u32,
                     pf32volumes: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(u32channelcount),
@@ -15877,25 +15493,25 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pu32channelcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     u32channelcount: u32,
                     pf32volumes: *mut f32,
                     u32curvetype: AUDIO_CURVE_TYPE,
                     pcurveduration: *mut i64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     u32channelcount: u32,
                     pf32volumes: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -15916,25 +15532,19 @@ pub mod Windows {
                 );
             }
             impl IAudioEndpointVolume {
-                pub unsafe fn RegisterControlChangeNotify<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioEndpointVolumeCallback>,
-                >(
+                pub unsafe fn RegisterControlChangeNotify<'a>(
                     &self,
-                    pnotify: T0__,
-                ) -> ::windows::ErrorCode {
+                    pnotify: impl ::windows::IntoParam<'a, IAudioEndpointVolumeCallback>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         pnotify.into_param().abi(),
                     )
                 }
-                pub unsafe fn UnregisterControlChangeNotify<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioEndpointVolumeCallback>,
-                >(
+                pub unsafe fn UnregisterControlChangeNotify<'a>(
                     &self,
-                    pnotify: T0__,
-                ) -> ::windows::ErrorCode {
+                    pnotify: impl ::windows::IntoParam<'a, IAudioEndpointVolumeCallback>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         pnotify.into_param().abi(),
@@ -15943,7 +15553,7 @@ pub mod Windows {
                 pub unsafe fn GetChannelCount(
                     &self,
                     pnchannelcount: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnchannelcount),
@@ -15953,7 +15563,7 @@ pub mod Windows {
                     &self,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(fleveldb),
@@ -15964,7 +15574,7 @@ pub mod Windows {
                     &self,
                     flevel: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(flevel),
@@ -15974,7 +15584,7 @@ pub mod Windows {
                 pub unsafe fn GetMasterVolumeLevel(
                     &self,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pfleveldb),
@@ -15983,7 +15593,7 @@ pub mod Windows {
                 pub unsafe fn GetMasterVolumeLevelScalar(
                     &self,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pflevel),
@@ -15994,7 +15604,7 @@ pub mod Windows {
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -16007,7 +15617,7 @@ pub mod Windows {
                     nchannel: u32,
                     flevel: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -16019,7 +15629,7 @@ pub mod Windows {
                     &self,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -16030,21 +15640,18 @@ pub mod Windows {
                     &self,
                     nchannel: u32,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
                         ::std::mem::transmute(pflevel),
                     )
                 }
-                pub unsafe fn SetMute<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn SetMute<'a>(
                     &self,
-                    bmute: T0__,
+                    bmute: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         bmute.into_param().abi(),
@@ -16054,7 +15661,7 @@ pub mod Windows {
                 pub unsafe fn GetMute(
                     &self,
                     pbmute: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbmute),
@@ -16064,7 +15671,7 @@ pub mod Windows {
                     &self,
                     pnstep: *mut u32,
                     pnstepcount: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).16)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnstep),
@@ -16074,7 +15681,7 @@ pub mod Windows {
                 pub unsafe fn VolumeStepUp(
                     &self,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).17)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pguideventcontext),
@@ -16083,7 +15690,7 @@ pub mod Windows {
                 pub unsafe fn VolumeStepDown(
                     &self,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).18)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pguideventcontext),
@@ -16092,7 +15699,7 @@ pub mod Windows {
                 pub unsafe fn QueryHardwareSupport(
                     &self,
                     pdwhardwaresupportmask: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).19)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwhardwaresupportmask),
@@ -16103,7 +15710,7 @@ pub mod Windows {
                     pflvolumemindb: *mut f32,
                     pflvolumemaxdb: *mut f32,
                     pflvolumeincrementdb: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).20)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pflvolumemindb),
@@ -16141,93 +15748,93 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnotify: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnotify: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnchannelcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     flevel: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     flevel: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     bmute: super::SystemServices::BOOL,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbmute: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnstep: *mut u32,
                     pnstepcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwhardwaresupportmask: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pflvolumemindb: *mut f32,
                     pflvolumemaxdb: *mut f32,
                     pflvolumeincrementdb: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -16251,7 +15858,7 @@ pub mod Windows {
                 pub unsafe fn OnNotify(
                     &self,
                     pnotify: *mut AUDIO_VOLUME_NOTIFICATION_DATA,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnotify),
@@ -16287,13 +15894,13 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnotify: *mut AUDIO_VOLUME_NOTIFICATION_DATA,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -16314,25 +15921,19 @@ pub mod Windows {
                 );
             }
             impl IAudioEndpointVolumeEx {
-                pub unsafe fn RegisterControlChangeNotify<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioEndpointVolumeCallback>,
-                >(
+                pub unsafe fn RegisterControlChangeNotify<'a>(
                     &self,
-                    pnotify: T0__,
-                ) -> ::windows::ErrorCode {
+                    pnotify: impl ::windows::IntoParam<'a, IAudioEndpointVolumeCallback>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         pnotify.into_param().abi(),
                     )
                 }
-                pub unsafe fn UnregisterControlChangeNotify<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioEndpointVolumeCallback>,
-                >(
+                pub unsafe fn UnregisterControlChangeNotify<'a>(
                     &self,
-                    pnotify: T0__,
-                ) -> ::windows::ErrorCode {
+                    pnotify: impl ::windows::IntoParam<'a, IAudioEndpointVolumeCallback>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         pnotify.into_param().abi(),
@@ -16341,7 +15942,7 @@ pub mod Windows {
                 pub unsafe fn GetChannelCount(
                     &self,
                     pnchannelcount: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnchannelcount),
@@ -16351,7 +15952,7 @@ pub mod Windows {
                     &self,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(fleveldb),
@@ -16362,7 +15963,7 @@ pub mod Windows {
                     &self,
                     flevel: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(flevel),
@@ -16372,7 +15973,7 @@ pub mod Windows {
                 pub unsafe fn GetMasterVolumeLevel(
                     &self,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pfleveldb),
@@ -16381,7 +15982,7 @@ pub mod Windows {
                 pub unsafe fn GetMasterVolumeLevelScalar(
                     &self,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pflevel),
@@ -16392,7 +15993,7 @@ pub mod Windows {
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -16405,7 +16006,7 @@ pub mod Windows {
                     nchannel: u32,
                     flevel: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -16417,7 +16018,7 @@ pub mod Windows {
                     &self,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -16428,21 +16029,18 @@ pub mod Windows {
                     &self,
                     nchannel: u32,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
                         ::std::mem::transmute(pflevel),
                     )
                 }
-                pub unsafe fn SetMute<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn SetMute<'a>(
                     &self,
-                    bmute: T0__,
+                    bmute: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         bmute.into_param().abi(),
@@ -16452,7 +16050,7 @@ pub mod Windows {
                 pub unsafe fn GetMute(
                     &self,
                     pbmute: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbmute),
@@ -16462,7 +16060,7 @@ pub mod Windows {
                     &self,
                     pnstep: *mut u32,
                     pnstepcount: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).16)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnstep),
@@ -16472,7 +16070,7 @@ pub mod Windows {
                 pub unsafe fn VolumeStepUp(
                     &self,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).17)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pguideventcontext),
@@ -16481,7 +16079,7 @@ pub mod Windows {
                 pub unsafe fn VolumeStepDown(
                     &self,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).18)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pguideventcontext),
@@ -16490,7 +16088,7 @@ pub mod Windows {
                 pub unsafe fn QueryHardwareSupport(
                     &self,
                     pdwhardwaresupportmask: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).19)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwhardwaresupportmask),
@@ -16501,7 +16099,7 @@ pub mod Windows {
                     pflvolumemindb: *mut f32,
                     pflvolumemaxdb: *mut f32,
                     pflvolumeincrementdb: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).20)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pflvolumemindb),
@@ -16515,7 +16113,7 @@ pub mod Windows {
                     pflvolumemindb: *mut f32,
                     pflvolumemaxdb: *mut f32,
                     pflvolumeincrementdb: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).21)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ichannel),
@@ -16578,100 +16176,100 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnotify: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnotify: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnchannelcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     flevel: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     flevel: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     bmute: super::SystemServices::BOOL,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbmute: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnstep: *mut u32,
                     pnstepcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwhardwaresupportmask: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pflvolumemindb: *mut f32,
                     pflvolumemaxdb: *mut f32,
                     pflvolumeincrementdb: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ichannel: u32,
                     pflvolumemindb: *mut f32,
                     pflvolumemaxdb: *mut f32,
                     pflvolumeincrementdb: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -16692,7 +16290,7 @@ pub mod Windows {
                 );
             }
             impl IAudioFormatEnumerator {
-                pub unsafe fn GetCount(&self, count: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetCount(&self, count: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(count),
@@ -16702,7 +16300,7 @@ pub mod Windows {
                     &self,
                     index: u32,
                     format: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(index),
@@ -16739,18 +16337,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     count: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     index: u32,
                     format: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -16771,7 +16369,7 @@ pub mod Windows {
                 );
             }
             impl IAudioInputSelector {
-                pub unsafe fn GetSelection(&self, pnidselected: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetSelection(&self, pnidselected: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnidselected),
@@ -16781,7 +16379,7 @@ pub mod Windows {
                     &self,
                     nidselect: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nidselect),
@@ -16818,18 +16416,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnidselected: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nidselect: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -16850,13 +16448,10 @@ pub mod Windows {
                 );
             }
             impl IAudioLfxControl {
-                pub unsafe fn SetLocalEffectsState<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn SetLocalEffectsState<'a>(
                     &self,
-                    benabled: T0__,
-                ) -> ::windows::ErrorCode {
+                    benabled: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         benabled.into_param().abi(),
@@ -16865,7 +16460,7 @@ pub mod Windows {
                 pub unsafe fn GetLocalEffectsState(
                     &self,
                     pbenabled: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbenabled),
@@ -16901,17 +16496,17 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     benabled: super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbenabled: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -16935,20 +16530,17 @@ pub mod Windows {
                 pub unsafe fn GetEnabled(
                     &self,
                     pbenabled: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbenabled),
                     )
                 }
-                pub unsafe fn SetEnabled<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn SetEnabled<'a>(
                     &self,
-                    benable: T0__,
+                    benable: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         benable.into_param().abi(),
@@ -16985,18 +16577,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbenabled: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     benable: super::SystemServices::BOOL,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -17017,7 +16609,7 @@ pub mod Windows {
                 );
             }
             impl IAudioMeterInformation {
-                pub unsafe fn GetPeakValue(&self, pfpeak: *mut f32) -> ::windows::ErrorCode {
+                pub unsafe fn GetPeakValue(&self, pfpeak: *mut f32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pfpeak),
@@ -17026,7 +16618,7 @@ pub mod Windows {
                 pub unsafe fn GetMeteringChannelCount(
                     &self,
                     pnchannelcount: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnchannelcount),
@@ -17036,7 +16628,7 @@ pub mod Windows {
                     &self,
                     u32channelcount: u32,
                     afpeakvalues: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(u32channelcount),
@@ -17046,7 +16638,7 @@ pub mod Windows {
                 pub unsafe fn QueryHardwareSupport(
                     &self,
                     pdwhardwaresupportmask: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwhardwaresupportmask),
@@ -17082,26 +16674,26 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pfpeak: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnchannelcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     u32channelcount: u32,
                     afpeakvalues: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwhardwaresupportmask: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -17122,7 +16714,7 @@ pub mod Windows {
                 );
             }
             impl IAudioMidrange {
-                pub unsafe fn GetChannelCount(&self, pcchannels: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetChannelCount(&self, pcchannels: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcchannels),
@@ -17134,7 +16726,7 @@ pub mod Windows {
                     pfminleveldb: *mut f32,
                     pfmaxleveldb: *mut f32,
                     pfstepping: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -17147,7 +16739,7 @@ pub mod Windows {
                     &self,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -17159,7 +16751,7 @@ pub mod Windows {
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -17171,7 +16763,7 @@ pub mod Windows {
                     &self,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(fleveldb),
@@ -17183,7 +16775,7 @@ pub mod Windows {
                     alevelsdb: *mut f32,
                     cchannels: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(alevelsdb),
@@ -17243,42 +16835,42 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcchannels: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pfminleveldb: *mut f32,
                     pfmaxleveldb: *mut f32,
                     pfstepping: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     alevelsdb: *mut f32,
                     cchannels: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -17299,14 +16891,11 @@ pub mod Windows {
                 );
             }
             impl IAudioMute {
-                pub unsafe fn SetMute<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn SetMute<'a>(
                     &self,
-                    bmuted: T0__,
+                    bmuted: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         bmuted.into_param().abi(),
@@ -17316,7 +16905,7 @@ pub mod Windows {
                 pub unsafe fn GetMute(
                     &self,
                     pbmuted: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbmuted),
@@ -17352,18 +16941,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     bmuted: super::SystemServices::BOOL,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbmuted: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -17384,7 +16973,7 @@ pub mod Windows {
                 );
             }
             impl IAudioOutputSelector {
-                pub unsafe fn GetSelection(&self, pnidselected: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetSelection(&self, pnidselected: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnidselected),
@@ -17394,7 +16983,7 @@ pub mod Windows {
                     &self,
                     nidselect: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nidselect),
@@ -17431,18 +17020,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnidselected: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nidselect: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -17463,7 +17052,7 @@ pub mod Windows {
                 );
             }
             impl IAudioPeakMeter {
-                pub unsafe fn GetChannelCount(&self, pcchannels: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetChannelCount(&self, pcchannels: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcchannels),
@@ -17473,7 +17062,7 @@ pub mod Windows {
                     &self,
                     nchannel: u32,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -17510,18 +17099,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcchannels: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -17546,7 +17135,7 @@ pub mod Windows {
                     &self,
                     numframesrequested: u32,
                     ppdata: *mut *mut u8,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(numframesrequested),
@@ -17557,7 +17146,7 @@ pub mod Windows {
                     &self,
                     numframeswritten: u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(numframeswritten),
@@ -17594,19 +17183,19 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     numframesrequested: u32,
                     ppdata: *mut *mut u8,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     numframeswritten: u32,
                     dwflags: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -17630,7 +17219,7 @@ pub mod Windows {
                 pub unsafe fn GetState(
                     &self,
                     pretval: *mut AudioSessionState,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pretval),
@@ -17639,20 +17228,17 @@ pub mod Windows {
                 pub unsafe fn GetDisplayName(
                     &self,
                     pretval: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pretval),
                     )
                 }
-                pub unsafe fn SetDisplayName<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn SetDisplayName<'a>(
                     &self,
-                    value: T0__,
+                    value: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         value.into_param().abi(),
@@ -17662,20 +17248,17 @@ pub mod Windows {
                 pub unsafe fn GetIconPath(
                     &self,
                     pretval: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pretval),
                     )
                 }
-                pub unsafe fn SetIconPath<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn SetIconPath<'a>(
                     &self,
-                    value: T0__,
+                    value: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         value.into_param().abi(),
@@ -17685,7 +17268,7 @@ pub mod Windows {
                 pub unsafe fn GetGroupingParam(
                     &self,
                     pretval: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pretval),
@@ -17695,32 +17278,26 @@ pub mod Windows {
                     &self,
                     r#override: *mut ::windows::Guid,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(r#override),
                         ::std::mem::transmute(eventcontext),
                     )
                 }
-                pub unsafe fn RegisterAudioSessionNotification<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioSessionEvents>,
-                >(
+                pub unsafe fn RegisterAudioSessionNotification<'a>(
                     &self,
-                    newnotifications: T0__,
-                ) -> ::windows::ErrorCode {
+                    newnotifications: impl ::windows::IntoParam<'a, IAudioSessionEvents>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         newnotifications.into_param().abi(),
                     )
                 }
-                pub unsafe fn UnregisterAudioSessionNotification<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioSessionEvents>,
-                >(
+                pub unsafe fn UnregisterAudioSessionNotification<'a>(
                     &self,
-                    newnotifications: T0__,
-                ) -> ::windows::ErrorCode {
+                    newnotifications: impl ::windows::IntoParam<'a, IAudioSessionEvents>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         newnotifications.into_param().abi(),
@@ -17756,48 +17333,48 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pretval: *mut AudioSessionState,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pretval: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     value: super::SystemServices::PWSTR,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pretval: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     value: super::SystemServices::PWSTR,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pretval: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     r#override: *mut ::windows::Guid,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     newnotifications: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     newnotifications: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -17821,7 +17398,7 @@ pub mod Windows {
                 pub unsafe fn GetState(
                     &self,
                     pretval: *mut AudioSessionState,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pretval),
@@ -17830,20 +17407,17 @@ pub mod Windows {
                 pub unsafe fn GetDisplayName(
                     &self,
                     pretval: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pretval),
                     )
                 }
-                pub unsafe fn SetDisplayName<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn SetDisplayName<'a>(
                     &self,
-                    value: T0__,
+                    value: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         value.into_param().abi(),
@@ -17853,20 +17427,17 @@ pub mod Windows {
                 pub unsafe fn GetIconPath(
                     &self,
                     pretval: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pretval),
                     )
                 }
-                pub unsafe fn SetIconPath<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn SetIconPath<'a>(
                     &self,
-                    value: T0__,
+                    value: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         value.into_param().abi(),
@@ -17876,7 +17447,7 @@ pub mod Windows {
                 pub unsafe fn GetGroupingParam(
                     &self,
                     pretval: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pretval),
@@ -17886,32 +17457,26 @@ pub mod Windows {
                     &self,
                     r#override: *mut ::windows::Guid,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(r#override),
                         ::std::mem::transmute(eventcontext),
                     )
                 }
-                pub unsafe fn RegisterAudioSessionNotification<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioSessionEvents>,
-                >(
+                pub unsafe fn RegisterAudioSessionNotification<'a>(
                     &self,
-                    newnotifications: T0__,
-                ) -> ::windows::ErrorCode {
+                    newnotifications: impl ::windows::IntoParam<'a, IAudioSessionEvents>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         newnotifications.into_param().abi(),
                     )
                 }
-                pub unsafe fn UnregisterAudioSessionNotification<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioSessionEvents>,
-                >(
+                pub unsafe fn UnregisterAudioSessionNotification<'a>(
                     &self,
-                    newnotifications: T0__,
-                ) -> ::windows::ErrorCode {
+                    newnotifications: impl ::windows::IntoParam<'a, IAudioSessionEvents>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         newnotifications.into_param().abi(),
@@ -17920,7 +17485,7 @@ pub mod Windows {
                 pub unsafe fn GetSessionIdentifier(
                     &self,
                     pretval: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pretval),
@@ -17929,28 +17494,25 @@ pub mod Windows {
                 pub unsafe fn GetSessionInstanceIdentifier(
                     &self,
                     pretval: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pretval),
                     )
                 }
-                pub unsafe fn GetProcessId(&self, pretval: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetProcessId(&self, pretval: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pretval),
                     )
                 }
-                pub unsafe fn IsSystemSoundsSession(&self) -> ::windows::ErrorCode {
+                pub unsafe fn IsSystemSoundsSession(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn SetDuckingPreference<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn SetDuckingPreference<'a>(
                     &self,
-                    optout: T0__,
-                ) -> ::windows::ErrorCode {
+                    optout: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).16)(
                         ::windows::Abi::abi(self),
                         optout.into_param().abi(),
@@ -18010,65 +17572,65 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pretval: *mut AudioSessionState,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pretval: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     value: super::SystemServices::PWSTR,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pretval: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     value: super::SystemServices::PWSTR,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pretval: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     r#override: *mut ::windows::Guid,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     newnotifications: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     newnotifications: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pretval: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pretval: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pretval: *mut u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     optout: super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -18089,7 +17651,7 @@ pub mod Windows {
                 );
             }
             impl IAudioSessionEnumerator {
-                pub unsafe fn GetCount(&self, sessioncount: *mut i32) -> ::windows::ErrorCode {
+                pub unsafe fn GetCount(&self, sessioncount: *mut i32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(sessioncount),
@@ -18099,7 +17661,7 @@ pub mod Windows {
                     &self,
                     sessioncount: i32,
                     session: *mut ::std::option::Option<IAudioSessionControl>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(sessioncount),
@@ -18136,18 +17698,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     sessioncount: *mut i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     sessioncount: i32,
                     session: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -18168,43 +17730,34 @@ pub mod Windows {
                 );
             }
             impl IAudioSessionEvents {
-                pub unsafe fn OnDisplayNameChanged<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn OnDisplayNameChanged<'a>(
                     &self,
-                    newdisplayname: T0__,
+                    newdisplayname: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         newdisplayname.into_param().abi(),
                         ::std::mem::transmute(eventcontext),
                     )
                 }
-                pub unsafe fn OnIconPathChanged<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn OnIconPathChanged<'a>(
                     &self,
-                    newiconpath: T0__,
+                    newiconpath: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         newiconpath.into_param().abi(),
                         ::std::mem::transmute(eventcontext),
                     )
                 }
-                pub unsafe fn OnSimpleVolumeChanged<
-                    'a,
-                    T1__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn OnSimpleVolumeChanged<'a>(
                     &self,
                     newvolume: f32,
-                    newmute: T1__,
+                    newmute: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(newvolume),
@@ -18218,7 +17771,7 @@ pub mod Windows {
                     newchannelvolumearray: *mut f32,
                     changedchannel: u32,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(channelcount),
@@ -18231,7 +17784,7 @@ pub mod Windows {
                     &self,
                     newgroupingparam: *mut ::windows::Guid,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(newgroupingparam),
@@ -18241,7 +17794,7 @@ pub mod Windows {
                 pub unsafe fn OnStateChanged(
                     &self,
                     newstate: AudioSessionState,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(newstate),
@@ -18250,7 +17803,7 @@ pub mod Windows {
                 pub unsafe fn OnSessionDisconnected(
                     &self,
                     disconnectreason: AudioSessionDisconnectReason,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(disconnectreason),
@@ -18286,45 +17839,45 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     newdisplayname: super::SystemServices::PWSTR,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     newiconpath: super::SystemServices::PWSTR,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     newvolume: f32,
                     newmute: super::SystemServices::BOOL,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     channelcount: u32,
                     newchannelvolumearray: *mut f32,
                     changedchannel: u32,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     newgroupingparam: *mut ::windows::Guid,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     newstate: AudioSessionState,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     disconnectreason: AudioSessionDisconnectReason,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -18350,7 +17903,7 @@ pub mod Windows {
                     audiosessionguid: *mut ::windows::Guid,
                     streamflags: u32,
                     sessioncontrol: *mut ::std::option::Option<IAudioSessionControl>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(audiosessionguid),
@@ -18363,7 +17916,7 @@ pub mod Windows {
                     audiosessionguid: *mut ::windows::Guid,
                     streamflags: u32,
                     audiovolume: *mut ::std::option::Option<ISimpleAudioVolume>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(audiosessionguid),
@@ -18401,7 +17954,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -18409,13 +17962,13 @@ pub mod Windows {
                     audiosessionguid: *mut ::windows::Guid,
                     streamflags: u32,
                     sessioncontrol: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     audiosessionguid: *mut ::windows::Guid,
                     streamflags: u32,
                     audiovolume: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -18441,7 +17994,7 @@ pub mod Windows {
                     audiosessionguid: *mut ::windows::Guid,
                     streamflags: u32,
                     sessioncontrol: *mut ::std::option::Option<IAudioSessionControl>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(audiosessionguid),
@@ -18454,7 +18007,7 @@ pub mod Windows {
                     audiosessionguid: *mut ::windows::Guid,
                     streamflags: u32,
                     audiovolume: *mut ::std::option::Option<ISimpleAudioVolume>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(audiosessionguid),
@@ -18465,58 +18018,45 @@ pub mod Windows {
                 pub unsafe fn GetSessionEnumerator(
                     &self,
                     sessionenum: *mut ::std::option::Option<IAudioSessionEnumerator>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(sessionenum),
                     )
                 }
-                pub unsafe fn RegisterSessionNotification<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioSessionNotification>,
-                >(
+                pub unsafe fn RegisterSessionNotification<'a>(
                     &self,
-                    sessionnotification: T0__,
-                ) -> ::windows::ErrorCode {
+                    sessionnotification: impl ::windows::IntoParam<'a, IAudioSessionNotification>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         sessionnotification.into_param().abi(),
                     )
                 }
-                pub unsafe fn UnregisterSessionNotification<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioSessionNotification>,
-                >(
+                pub unsafe fn UnregisterSessionNotification<'a>(
                     &self,
-                    sessionnotification: T0__,
-                ) -> ::windows::ErrorCode {
+                    sessionnotification: impl ::windows::IntoParam<'a, IAudioSessionNotification>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         sessionnotification.into_param().abi(),
                     )
                 }
-                pub unsafe fn RegisterDuckNotification<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                    T1__: ::windows::IntoParam<'a, IAudioVolumeDuckNotification>,
-                >(
+                pub unsafe fn RegisterDuckNotification<'a>(
                     &self,
-                    sessionid: T0__,
-                    ducknotification: T1__,
-                ) -> ::windows::ErrorCode {
+                    sessionid: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
+                    ducknotification: impl ::windows::IntoParam<'a, IAudioVolumeDuckNotification>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         sessionid.into_param().abi(),
                         ducknotification.into_param().abi(),
                     )
                 }
-                pub unsafe fn UnregisterDuckNotification<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioVolumeDuckNotification>,
-                >(
+                pub unsafe fn UnregisterDuckNotification<'a>(
                     &self,
-                    ducknotification: T0__,
-                ) -> ::windows::ErrorCode {
+                    ducknotification: impl ::windows::IntoParam<'a, IAudioVolumeDuckNotification>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ducknotification.into_param().abi(),
@@ -18576,7 +18116,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -18584,34 +18124,34 @@ pub mod Windows {
                     audiosessionguid: *mut ::windows::Guid,
                     streamflags: u32,
                     sessioncontrol: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     audiosessionguid: *mut ::windows::Guid,
                     streamflags: u32,
                     audiovolume: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     sessionenum: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     sessionnotification: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     sessionnotification: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     sessionid: super::SystemServices::PWSTR,
                     ducknotification: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ducknotification: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -18632,13 +18172,10 @@ pub mod Windows {
                 );
             }
             impl IAudioSessionNotification {
-                pub unsafe fn OnSessionCreated<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IAudioSessionControl>,
-                >(
+                pub unsafe fn OnSessionCreated<'a>(
                     &self,
-                    newsession: T0__,
-                ) -> ::windows::ErrorCode {
+                    newsession: impl ::windows::IntoParam<'a, IAudioSessionControl>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         newsession.into_param().abi(),
@@ -18674,13 +18211,13 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     newsession: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -18701,7 +18238,7 @@ pub mod Windows {
                 );
             }
             impl IAudioStreamVolume {
-                pub unsafe fn GetChannelCount(&self, pdwcount: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetChannelCount(&self, pdwcount: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwcount),
@@ -18711,7 +18248,7 @@ pub mod Windows {
                     &self,
                     dwindex: u32,
                     flevel: f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwindex),
@@ -18722,7 +18259,7 @@ pub mod Windows {
                     &self,
                     dwindex: u32,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwindex),
@@ -18733,7 +18270,7 @@ pub mod Windows {
                     &self,
                     dwcount: u32,
                     pfvolumes: *const f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwcount),
@@ -18744,7 +18281,7 @@ pub mod Windows {
                     &self,
                     dwcount: u32,
                     pfvolumes: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwcount),
@@ -18781,33 +18318,33 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwindex: u32,
                     flevel: f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwindex: u32,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwcount: u32,
                     pfvolumes: *const f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwcount: u32,
                     pfvolumes: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -18828,7 +18365,7 @@ pub mod Windows {
                 );
             }
             impl IAudioTreble {
-                pub unsafe fn GetChannelCount(&self, pcchannels: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetChannelCount(&self, pcchannels: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcchannels),
@@ -18840,7 +18377,7 @@ pub mod Windows {
                     pfminleveldb: *mut f32,
                     pfmaxleveldb: *mut f32,
                     pfstepping: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -18853,7 +18390,7 @@ pub mod Windows {
                     &self,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -18865,7 +18402,7 @@ pub mod Windows {
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -18877,7 +18414,7 @@ pub mod Windows {
                     &self,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(fleveldb),
@@ -18889,7 +18426,7 @@ pub mod Windows {
                     alevelsdb: *mut f32,
                     cchannels: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(alevelsdb),
@@ -18949,42 +18486,42 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcchannels: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pfminleveldb: *mut f32,
                     pfmaxleveldb: *mut f32,
                     pfstepping: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     alevelsdb: *mut f32,
                     cchannels: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -19005,27 +18542,21 @@ pub mod Windows {
                 );
             }
             impl IAudioVolumeDuckNotification {
-                pub unsafe fn OnVolumeDuckNotification<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn OnVolumeDuckNotification<'a>(
                     &self,
-                    sessionid: T0__,
+                    sessionid: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     countcommunicationsessions: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         sessionid.into_param().abi(),
                         ::std::mem::transmute(countcommunicationsessions),
                     )
                 }
-                pub unsafe fn OnVolumeUnduckNotification<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn OnVolumeUnduckNotification<'a>(
                     &self,
-                    sessionid: T0__,
-                ) -> ::windows::ErrorCode {
+                    sessionid: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         sessionid.into_param().abi(),
@@ -19061,18 +18592,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     sessionid: super::SystemServices::PWSTR,
                     countcommunicationsessions: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     sessionid: super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -19093,7 +18624,7 @@ pub mod Windows {
                 );
             }
             impl IAudioVolumeLevel {
-                pub unsafe fn GetChannelCount(&self, pcchannels: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetChannelCount(&self, pcchannels: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcchannels),
@@ -19105,7 +18636,7 @@ pub mod Windows {
                     pfminleveldb: *mut f32,
                     pfmaxleveldb: *mut f32,
                     pfstepping: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -19118,7 +18649,7 @@ pub mod Windows {
                     &self,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -19130,7 +18661,7 @@ pub mod Windows {
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nchannel),
@@ -19142,7 +18673,7 @@ pub mod Windows {
                     &self,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(fleveldb),
@@ -19154,7 +18685,7 @@ pub mod Windows {
                     alevelsdb: *mut f32,
                     cchannels: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(alevelsdb),
@@ -19214,42 +18745,42 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcchannels: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pfminleveldb: *mut f32,
                     pfmaxleveldb: *mut f32,
                     pfstepping: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     pfleveldb: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nchannel: u32,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     fleveldb: f32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     alevelsdb: *mut f32,
                     cchannels: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -19270,7 +18801,7 @@ pub mod Windows {
                 );
             }
             impl IChannelAudioVolume {
-                pub unsafe fn GetChannelCount(&self, pdwcount: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetChannelCount(&self, pdwcount: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdwcount),
@@ -19281,7 +18812,7 @@ pub mod Windows {
                     dwindex: u32,
                     flevel: f32,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwindex),
@@ -19293,7 +18824,7 @@ pub mod Windows {
                     &self,
                     dwindex: u32,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwindex),
@@ -19305,7 +18836,7 @@ pub mod Windows {
                     dwcount: u32,
                     pfvolumes: *const f32,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwcount),
@@ -19317,7 +18848,7 @@ pub mod Windows {
                     &self,
                     dwcount: u32,
                     pfvolumes: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwcount),
@@ -19354,35 +18885,35 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdwcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwindex: u32,
                     flevel: f32,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwindex: u32,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwcount: u32,
                     pfvolumes: *const f32,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwcount: u32,
                     pfvolumes: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -19403,34 +18934,34 @@ pub mod Windows {
                 );
             }
             impl IConnector {
-                pub unsafe fn GetType(&self, ptype: *mut ConnectorType) -> ::windows::ErrorCode {
+                pub unsafe fn GetType(&self, ptype: *mut ConnectorType) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ptype),
                     )
                 }
-                pub unsafe fn GetDataFlow(&self, pflow: *mut DataFlow) -> ::windows::ErrorCode {
+                pub unsafe fn GetDataFlow(&self, pflow: *mut DataFlow) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pflow),
                     )
                 }
-                pub unsafe fn ConnectTo<'a, T0__: ::windows::IntoParam<'a, IConnector>>(
+                pub unsafe fn ConnectTo<'a>(
                     &self,
-                    pconnectto: T0__,
-                ) -> ::windows::ErrorCode {
+                    pconnectto: impl ::windows::IntoParam<'a, IConnector>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         pconnectto.into_param().abi(),
                     )
                 }
-                pub unsafe fn Disconnect(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Disconnect(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn IsConnected(
                     &self,
                     pbconnected: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbconnected),
@@ -19439,7 +18970,7 @@ pub mod Windows {
                 pub unsafe fn GetConnectedTo(
                     &self,
                     ppconto: *mut ::std::option::Option<IConnector>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppconto),
@@ -19448,7 +18979,7 @@ pub mod Windows {
                 pub unsafe fn GetConnectorIdConnectedTo(
                     &self,
                     ppwstrconnectorid: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppwstrconnectorid),
@@ -19457,7 +18988,7 @@ pub mod Windows {
                 pub unsafe fn GetDeviceIdConnectedTo(
                     &self,
                     ppwstrdeviceid: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppwstrdeviceid),
@@ -19493,38 +19024,38 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ptype: *mut ConnectorType,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pflow: *mut DataFlow,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pconnectto: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbconnected: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppconto: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppwstrconnectorid: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppwstrdeviceid: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -19549,7 +19080,7 @@ pub mod Windows {
                     &self,
                     dwsenderprocessid: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwsenderprocessid),
@@ -19586,14 +19117,14 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwsenderprocessid: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -19617,13 +19148,13 @@ pub mod Windows {
                 pub unsafe fn GetName(
                     &self,
                     ppwstrname: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppwstrname),
                     )
                 }
-                pub unsafe fn GetIID(&self, piid: *mut ::windows::Guid) -> ::windows::ErrorCode {
+                pub unsafe fn GetIID(&self, piid: *mut ::windows::Guid) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(piid),
@@ -19659,17 +19190,17 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppwstrname: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     piid: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -19690,7 +19221,7 @@ pub mod Windows {
                 );
             }
             impl IDeviceSpecificProperty {
-                pub unsafe fn GetType(&self, pvtype: *mut u16) -> ::windows::ErrorCode {
+                pub unsafe fn GetType(&self, pvtype: *mut u16) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pvtype),
@@ -19700,7 +19231,7 @@ pub mod Windows {
                     &self,
                     pvvalue: *mut ::std::ffi::c_void,
                     pcbvalue: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pvvalue),
@@ -19712,7 +19243,7 @@ pub mod Windows {
                     pvvalue: *mut ::std::ffi::c_void,
                     cbvalue: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pvvalue),
@@ -19725,7 +19256,7 @@ pub mod Windows {
                     plmin: *mut i32,
                     plmax: *mut i32,
                     plstepping: *mut i32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(plmin),
@@ -19763,30 +19294,30 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pvtype: *mut u16,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pvvalue: *mut ::std::ffi::c_void,
                     pcbvalue: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pvvalue: *mut ::std::ffi::c_void,
                     cbvalue: u32,
                     pguideventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     plmin: *mut i32,
                     plmax: *mut i32,
                     plstepping: *mut i32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -19807,7 +19338,7 @@ pub mod Windows {
                 );
             }
             impl IDeviceTopology {
-                pub unsafe fn GetConnectorCount(&self, pcount: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetConnectorCount(&self, pcount: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcount),
@@ -19817,14 +19348,14 @@ pub mod Windows {
                     &self,
                     nindex: u32,
                     ppconnector: *mut ::std::option::Option<IConnector>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nindex),
                         ::std::mem::transmute(ppconnector),
                     )
                 }
-                pub unsafe fn GetSubunitCount(&self, pcount: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetSubunitCount(&self, pcount: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcount),
@@ -19834,7 +19365,7 @@ pub mod Windows {
                     &self,
                     nindex: u32,
                     ppsubunit: *mut ::std::option::Option<ISubunit>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nindex),
@@ -19845,7 +19376,7 @@ pub mod Windows {
                     &self,
                     nid: u32,
                     pppart: *mut ::std::option::Option<IPart>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nid),
@@ -19855,24 +19386,19 @@ pub mod Windows {
                 pub unsafe fn GetDeviceId(
                     &self,
                     ppwstrdeviceid: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppwstrdeviceid),
                     )
                 }
-                pub unsafe fn GetSignalPath<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IPart>,
-                    T1__: ::windows::IntoParam<'a, IPart>,
-                    T2__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn GetSignalPath<'a>(
                     &self,
-                    pipartfrom: T0__,
-                    pipartto: T1__,
-                    brejectmixedpaths: T2__,
+                    pipartfrom: impl ::windows::IntoParam<'a, IPart>,
+                    pipartto: impl ::windows::IntoParam<'a, IPart>,
+                    brejectmixedpaths: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
                     ppparts: *mut ::std::option::Option<IPartsList>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         pipartfrom.into_param().abi(),
@@ -19911,43 +19437,43 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nindex: u32,
                     ppconnector: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nindex: u32,
                     ppsubunit: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nid: u32,
                     pppart: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppwstrdeviceid: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pipartfrom: ::windows::RawPtr,
                     pipartto: ::windows::RawPtr,
                     brejectmixedpaths: super::SystemServices::BOOL,
                     ppparts: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -19968,15 +19494,12 @@ pub mod Windows {
                 );
             }
             impl IHardwareAudioEngineBase {
-                pub unsafe fn GetAvailableOffloadConnectorCount<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn GetAvailableOffloadConnectorCount<'a>(
                     &self,
-                    _pwstrdeviceid: T0__,
+                    _pwstrdeviceid: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     _uconnectorid: u32,
                     _pavailableconnectorinstancecount: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         _pwstrdeviceid.into_param().abi(),
@@ -19984,16 +19507,12 @@ pub mod Windows {
                         ::std::mem::transmute(_pavailableconnectorinstancecount),
                     )
                 }
-                pub unsafe fn GetEngineFormat<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IMMDevice>,
-                    T1__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn GetEngineFormat<'a>(
                     &self,
-                    pdevice: T0__,
-                    _brequestdeviceformat: T1__,
+                    pdevice: impl ::windows::IntoParam<'a, IMMDevice>,
+                    _brequestdeviceformat: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
                     _ppwfxformat: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         pdevice.into_param().abi(),
@@ -20001,40 +19520,33 @@ pub mod Windows {
                         ::std::mem::transmute(_ppwfxformat),
                     )
                 }
-                pub unsafe fn SetEngineDeviceFormat<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IMMDevice>,
-                >(
+                pub unsafe fn SetEngineDeviceFormat<'a>(
                     &self,
-                    pdevice: T0__,
+                    pdevice: impl ::windows::IntoParam<'a, IMMDevice>,
                     _pwfxformat: *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         pdevice.into_param().abi(),
                         ::std::mem::transmute(_pwfxformat),
                     )
                 }
-                pub unsafe fn SetGfxState<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IMMDevice>,
-                    T1__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn SetGfxState<'a>(
                     &self,
-                    pdevice: T0__,
-                    _benable: T1__,
-                ) -> ::windows::ErrorCode {
+                    pdevice: impl ::windows::IntoParam<'a, IMMDevice>,
+                    _benable: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         pdevice.into_param().abi(),
                         _benable.into_param().abi(),
                     )
                 }
-                pub unsafe fn GetGfxState<'a, T0__: ::windows::IntoParam<'a, IMMDevice>>(
+                pub unsafe fn GetGfxState<'a>(
                     &self,
-                    pdevice: T0__,
+                    pdevice: impl ::windows::IntoParam<'a, IMMDevice>,
                     _pbenable: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         pdevice.into_param().abi(),
@@ -20071,7 +19583,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -20079,28 +19591,28 @@ pub mod Windows {
                     _pwstrdeviceid: super::SystemServices::PWSTR,
                     _uconnectorid: u32,
                     _pavailableconnectorinstancecount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdevice: ::windows::RawPtr,
                     _brequestdeviceformat: super::SystemServices::BOOL,
                     _ppwfxformat: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdevice: ::windows::RawPtr,
                     _pwfxformat: *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdevice: ::windows::RawPtr,
                     _benable: super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdevice: ::windows::RawPtr,
                     _pbenable: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -20126,7 +19638,7 @@ pub mod Windows {
                     pksformat: *mut KSDATAFORMAT,
                     cbformat: u32,
                     pbsupported: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pksformat),
@@ -20137,7 +19649,7 @@ pub mod Windows {
                 pub unsafe fn GetDevicePreferredFormat(
                     &self,
                     ppksformat: *mut *mut KSDATAFORMAT,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppksformat),
@@ -20173,7 +19685,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -20181,11 +19693,11 @@ pub mod Windows {
                     pksformat: *mut KSDATAFORMAT,
                     cbformat: u32,
                     pbsupported: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppksformat: *mut *mut KSDATAFORMAT,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -20209,7 +19721,7 @@ pub mod Windows {
                 pub unsafe fn GetJackContainerId(
                     &self,
                     pjackcontainerid: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pjackcontainerid),
@@ -20245,13 +19757,13 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pjackcontainerid: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -20272,7 +19784,7 @@ pub mod Windows {
                 );
             }
             impl IKsJackDescription {
-                pub unsafe fn GetJackCount(&self, pcjacks: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetJackCount(&self, pcjacks: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcjacks),
@@ -20282,7 +19794,7 @@ pub mod Windows {
                     &self,
                     njack: u32,
                     pdescription: *mut KSJACK_DESCRIPTION,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(njack),
@@ -20319,18 +19831,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcjacks: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     njack: u32,
                     pdescription: *mut KSJACK_DESCRIPTION,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -20351,7 +19863,7 @@ pub mod Windows {
                 );
             }
             impl IKsJackDescription2 {
-                pub unsafe fn GetJackCount(&self, pcjacks: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetJackCount(&self, pcjacks: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcjacks),
@@ -20361,7 +19873,7 @@ pub mod Windows {
                     &self,
                     njack: u32,
                     pdescription2: *mut KSJACK_DESCRIPTION2,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(njack),
@@ -20398,18 +19910,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcjacks: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     njack: u32,
                     pdescription2: *mut KSJACK_DESCRIPTION2,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -20433,7 +19945,7 @@ pub mod Windows {
                 pub unsafe fn GetJackSinkInformation(
                     &self,
                     pjacksinkinformation: *mut KSJACK_SINK_INFORMATION,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pjacksinkinformation),
@@ -20469,13 +19981,13 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pjacksinkinformation: *mut KSJACK_SINK_INFORMATION,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -20496,13 +20008,13 @@ pub mod Windows {
                 );
             }
             impl IMMDeviceActivator {
-                pub unsafe fn Activate<'a, T1__: ::windows::IntoParam<'a, IMMDevice>>(
+                pub unsafe fn Activate<'a>(
                     &self,
                     iid: *const ::windows::Guid,
-                    pdevice: T1__,
+                    pdevice: impl ::windows::IntoParam<'a, IMMDevice>,
                     pactivationparams: *mut super::StructuredStorage::PROPVARIANT,
                     ppinterface: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(iid),
@@ -20541,7 +20053,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -20550,7 +20062,7 @@ pub mod Windows {
                     pdevice: ::windows::RawPtr,
                     pactivationparams: *mut super::StructuredStorage::PROPVARIANT_abi,
                     ppinterface: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -20576,7 +20088,7 @@ pub mod Windows {
                     dataflow: EDataFlow,
                     dwstatemask: u32,
                     ppdevices: *mut ::std::option::Option<IMMDeviceCollection>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dataflow),
@@ -20589,7 +20101,7 @@ pub mod Windows {
                     dataflow: EDataFlow,
                     role: ERole,
                     ppendpoint: *mut ::std::option::Option<IMMDevice>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dataflow),
@@ -20597,39 +20109,30 @@ pub mod Windows {
                         ::std::mem::transmute(ppendpoint),
                     )
                 }
-                pub unsafe fn GetDevice<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn GetDevice<'a>(
                     &self,
-                    pwstrid: T0__,
+                    pwstrid: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     ppdevice: *mut ::std::option::Option<IMMDevice>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         pwstrid.into_param().abi(),
                         ::std::mem::transmute(ppdevice),
                     )
                 }
-                pub unsafe fn RegisterEndpointNotificationCallback<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IMMNotificationClient>,
-                >(
+                pub unsafe fn RegisterEndpointNotificationCallback<'a>(
                     &self,
-                    pclient: T0__,
-                ) -> ::windows::ErrorCode {
+                    pclient: impl ::windows::IntoParam<'a, IMMNotificationClient>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         pclient.into_param().abi(),
                     )
                 }
-                pub unsafe fn UnregisterEndpointNotificationCallback<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IMMNotificationClient>,
-                >(
+                pub unsafe fn UnregisterEndpointNotificationCallback<'a>(
                     &self,
-                    pclient: T0__,
-                ) -> ::windows::ErrorCode {
+                    pclient: impl ::windows::IntoParam<'a, IMMNotificationClient>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         pclient.into_param().abi(),
@@ -20665,7 +20168,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -20673,26 +20176,26 @@ pub mod Windows {
                     dataflow: EDataFlow,
                     dwstatemask: u32,
                     ppdevices: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dataflow: EDataFlow,
                     role: ERole,
                     ppendpoint: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwstrid: super::SystemServices::PWSTR,
                     ppdevice: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pclient: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pclient: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -20713,10 +20216,7 @@ pub mod Windows {
                 );
             }
             impl IMMEndpoint {
-                pub unsafe fn GetDataFlow(
-                    &self,
-                    pdataflow: *mut EDataFlow,
-                ) -> ::windows::ErrorCode {
+                pub unsafe fn GetDataFlow(&self, pdataflow: *mut EDataFlow) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pdataflow),
@@ -20752,13 +20252,13 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pdataflow: *mut EDataFlow,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -20779,53 +20279,41 @@ pub mod Windows {
                 );
             }
             impl IMMNotificationClient {
-                pub unsafe fn OnDeviceStateChanged<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn OnDeviceStateChanged<'a>(
                     &self,
-                    pwstrdeviceid: T0__,
+                    pwstrdeviceid: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     dwnewstate: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         pwstrdeviceid.into_param().abi(),
                         ::std::mem::transmute(dwnewstate),
                     )
                 }
-                pub unsafe fn OnDeviceAdded<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn OnDeviceAdded<'a>(
                     &self,
-                    pwstrdeviceid: T0__,
-                ) -> ::windows::ErrorCode {
+                    pwstrdeviceid: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         pwstrdeviceid.into_param().abi(),
                     )
                 }
-                pub unsafe fn OnDeviceRemoved<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn OnDeviceRemoved<'a>(
                     &self,
-                    pwstrdeviceid: T0__,
-                ) -> ::windows::ErrorCode {
+                    pwstrdeviceid: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         pwstrdeviceid.into_param().abi(),
                     )
                 }
-                pub unsafe fn OnDefaultDeviceChanged<
-                    'a,
-                    T2__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn OnDefaultDeviceChanged<'a>(
                     &self,
                     flow: EDataFlow,
                     role: ERole,
-                    pwstrdefaultdeviceid: T2__,
-                ) -> ::windows::ErrorCode {
+                    pwstrdefaultdeviceid: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(flow),
@@ -20833,15 +20321,11 @@ pub mod Windows {
                         pwstrdefaultdeviceid.into_param().abi(),
                     )
                 }
-                pub unsafe fn OnPropertyValueChanged<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                    T1__: ::windows::IntoParam<'a, super::WindowsPropertiesSystem::PROPERTYKEY>,
-                >(
+                pub unsafe fn OnPropertyValueChanged<'a>(
                     &self,
-                    pwstrdeviceid: T0__,
-                    key: T1__,
-                ) -> ::windows::ErrorCode {
+                    pwstrdeviceid: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
+                    key: impl ::windows::IntoParam<'a, super::WindowsPropertiesSystem::PROPERTYKEY>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         pwstrdeviceid.into_param().abi(),
@@ -20878,33 +20362,33 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwstrdeviceid: super::SystemServices::PWSTR,
                     dwnewstate: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwstrdeviceid: super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwstrdeviceid: super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     flow: EDataFlow,
                     role: ERole,
                     pwstrdefaultdeviceid: super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwstrdeviceid: super::SystemServices::PWSTR,
                     key: super::WindowsPropertiesSystem::PROPERTYKEY,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(C)]
             #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
@@ -21000,13 +20484,13 @@ pub mod Windows {
                 pub unsafe fn GetName(
                     &self,
                     ppwstrname: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppwstrname),
                     )
                 }
-                pub unsafe fn GetLocalId(&self, pnid: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetLocalId(&self, pnid: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pnid),
@@ -21015,13 +20499,13 @@ pub mod Windows {
                 pub unsafe fn GetGlobalId(
                     &self,
                     ppwstrglobalid: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppwstrglobalid),
                     )
                 }
-                pub unsafe fn GetPartType(&self, pparttype: *mut PartType) -> ::windows::ErrorCode {
+                pub unsafe fn GetPartType(&self, pparttype: *mut PartType) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pparttype),
@@ -21030,7 +20514,7 @@ pub mod Windows {
                 pub unsafe fn GetSubType(
                     &self,
                     psubtype: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(psubtype),
@@ -21039,7 +20523,7 @@ pub mod Windows {
                 pub unsafe fn GetControlInterfaceCount(
                     &self,
                     pcount: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcount),
@@ -21049,7 +20533,7 @@ pub mod Windows {
                     &self,
                     nindex: u32,
                     ppinterfacedesc: *mut ::std::option::Option<IControlInterface>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nindex),
@@ -21059,7 +20543,7 @@ pub mod Windows {
                 pub unsafe fn EnumPartsIncoming(
                     &self,
                     ppparts: *mut ::std::option::Option<IPartsList>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppparts),
@@ -21068,7 +20552,7 @@ pub mod Windows {
                 pub unsafe fn EnumPartsOutgoing(
                     &self,
                     ppparts: *mut ::std::option::Option<IPartsList>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppparts),
@@ -21077,7 +20561,7 @@ pub mod Windows {
                 pub unsafe fn GetTopologyObject(
                     &self,
                     pptopology: *mut ::std::option::Option<IDeviceTopology>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pptopology),
@@ -21088,7 +20572,7 @@ pub mod Windows {
                     dwclscontext: u32,
                     refiid: *const ::windows::Guid,
                     ppvobject: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(dwclscontext),
@@ -21096,27 +20580,21 @@ pub mod Windows {
                         ::std::mem::transmute(ppvobject),
                     )
                 }
-                pub unsafe fn RegisterControlChangeCallback<
-                    'a,
-                    T1__: ::windows::IntoParam<'a, IControlChangeNotify>,
-                >(
+                pub unsafe fn RegisterControlChangeCallback<'a>(
                     &self,
                     riid: *const ::windows::Guid,
-                    pnotify: T1__,
-                ) -> ::windows::ErrorCode {
+                    pnotify: impl ::windows::IntoParam<'a, IControlChangeNotify>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(riid),
                         pnotify.into_param().abi(),
                     )
                 }
-                pub unsafe fn UnregisterControlChangeCallback<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IControlChangeNotify>,
-                >(
+                pub unsafe fn UnregisterControlChangeCallback<'a>(
                     &self,
-                    pnotify: T0__,
-                ) -> ::windows::ErrorCode {
+                    pnotify: impl ::windows::IntoParam<'a, IControlChangeNotify>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         pnotify.into_param().abi(),
@@ -21152,65 +20630,65 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppwstrname: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnid: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppwstrglobalid: *mut super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pparttype: *mut PartType,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     psubtype: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nindex: u32,
                     ppinterfacedesc: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppparts: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppparts: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pptopology: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     dwclscontext: u32,
                     refiid: *const ::windows::Guid,
                     ppvobject: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     riid: *const ::windows::Guid,
                     pnotify: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pnotify: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -21231,7 +20709,7 @@ pub mod Windows {
                 );
             }
             impl IPartsList {
-                pub unsafe fn GetCount(&self, pcount: *mut u32) -> ::windows::ErrorCode {
+                pub unsafe fn GetCount(&self, pcount: *mut u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pcount),
@@ -21241,7 +20719,7 @@ pub mod Windows {
                     &self,
                     nindex: u32,
                     pppart: *mut ::std::option::Option<IPart>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(nindex),
@@ -21278,18 +20756,18 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pcount: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     nindex: u32,
                     pppart: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -21314,27 +20792,24 @@ pub mod Windows {
                     &self,
                     flevel: f32,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(flevel),
                         ::std::mem::transmute(eventcontext),
                     )
                 }
-                pub unsafe fn GetMasterVolume(&self, pflevel: *mut f32) -> ::windows::ErrorCode {
+                pub unsafe fn GetMasterVolume(&self, pflevel: *mut f32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pflevel),
                     )
                 }
-                pub unsafe fn SetMute<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
+                pub unsafe fn SetMute<'a>(
                     &self,
-                    bmute: T0__,
+                    bmute: impl ::windows::IntoParam<'a, super::SystemServices::BOOL>,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         bmute.into_param().abi(),
@@ -21344,7 +20819,7 @@ pub mod Windows {
                 pub unsafe fn GetMute(
                     &self,
                     pbmute: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pbmute),
@@ -21380,27 +20855,27 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     flevel: f32,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pflevel: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     bmute: super::SystemServices::BOOL,
                     eventcontext: *mut ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pbmute: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -21427,7 +20902,7 @@ pub mod Windows {
                     x: *mut f32,
                     y: *mut f32,
                     z: *mut f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(r#type),
@@ -21439,7 +20914,7 @@ pub mod Windows {
                 pub unsafe fn GetNativeStaticObjectTypeMask(
                     &self,
                     mask: *mut AudioObjectType,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(mask),
@@ -21448,7 +20923,7 @@ pub mod Windows {
                 pub unsafe fn GetMaxDynamicObjectCount(
                     &self,
                     value: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(value),
@@ -21457,7 +20932,7 @@ pub mod Windows {
                 pub unsafe fn GetSupportedAudioObjectFormatEnumerator(
                     &self,
                     enumerator: *mut ::std::option::Option<IAudioFormatEnumerator>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(enumerator),
@@ -21467,7 +20942,7 @@ pub mod Windows {
                     &self,
                     objectformat: *const super::Multimedia::WAVEFORMATEX,
                     framecountperbuffer: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(objectformat),
@@ -21477,7 +20952,7 @@ pub mod Windows {
                 pub unsafe fn IsAudioObjectFormatSupported(
                     &self,
                     objectformat: *const super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(objectformat),
@@ -21487,7 +20962,7 @@ pub mod Windows {
                     &self,
                     streamuuid: *const ::windows::Guid,
                     auxiliaryinfo: *const super::StructuredStorage::PROPVARIANT,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(streamuuid),
@@ -21499,7 +20974,7 @@ pub mod Windows {
                     activationparams: *const super::StructuredStorage::PROPVARIANT,
                     riid: *const ::windows::Guid,
                     stream: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(activationparams),
@@ -21537,7 +21012,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -21546,39 +21021,39 @@ pub mod Windows {
                     x: *mut f32,
                     y: *mut f32,
                     z: *mut f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     mask: *mut AudioObjectType,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     value: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     enumerator: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     objectformat: *const super::Multimedia::WAVEFORMATEX,
                     framecountperbuffer: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     objectformat: *const super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     streamuuid: *const ::windows::Guid,
                     auxiliaryinfo: *const super::StructuredStorage::PROPVARIANT_abi,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     activationparams: *const super::StructuredStorage::PROPVARIANT_abi,
                     riid: *const ::windows::Guid,
                     stream: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -21607,7 +21082,7 @@ pub mod Windows {
                         ISpatialAudioMetadataItemsBuffer,
                     >,
                     metadataitems: *mut ::std::option::Option<ISpatialAudioMetadataItems>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(maxitemcount),
@@ -21620,7 +21095,7 @@ pub mod Windows {
                     &self,
                     maxitemcount: u16,
                     bufferlength: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(maxitemcount),
@@ -21631,7 +21106,7 @@ pub mod Windows {
                     &self,
                     overflowmode: SpatialAudioMetadataWriterOverflowMode,
                     metadatawriter: *mut ::std::option::Option<ISpatialAudioMetadataWriter>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(overflowmode),
@@ -21641,7 +21116,7 @@ pub mod Windows {
                 pub unsafe fn ActivateSpatialAudioMetadataCopier(
                     &self,
                     metadatacopier: *mut ::std::option::Option<ISpatialAudioMetadataCopier>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(metadatacopier),
@@ -21650,7 +21125,7 @@ pub mod Windows {
                 pub unsafe fn ActivateSpatialAudioMetadataReader(
                     &self,
                     metadatareader: *mut ::std::option::Option<ISpatialAudioMetadataReader>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(metadatareader),
@@ -21686,7 +21161,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -21695,25 +21170,25 @@ pub mod Windows {
                     framecount: u16,
                     metadataitemsbuffer: *mut ::windows::RawPtr,
                     metadataitems: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     maxitemcount: u16,
                     bufferlength: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     overflowmode: SpatialAudioMetadataWriterOverflowMode,
                     metadatawriter: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     metadatacopier: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     metadatareader: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -21734,28 +21209,22 @@ pub mod Windows {
                 );
             }
             impl ISpatialAudioMetadataCopier {
-                pub unsafe fn Open<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, ISpatialAudioMetadataItems>,
-                >(
+                pub unsafe fn Open<'a>(
                     &self,
-                    metadataitems: T0__,
-                ) -> ::windows::ErrorCode {
+                    metadataitems: impl ::windows::IntoParam<'a, ISpatialAudioMetadataItems>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         metadataitems.into_param().abi(),
                     )
                 }
-                pub unsafe fn CopyMetadataForFrames<
-                    'a,
-                    T2__: ::windows::IntoParam<'a, ISpatialAudioMetadataItems>,
-                >(
+                pub unsafe fn CopyMetadataForFrames<'a>(
                     &self,
                     copyframecount: u16,
                     copymode: SpatialAudioMetadataCopyMode,
-                    dstmetadataitems: T2__,
+                    dstmetadataitems: impl ::windows::IntoParam<'a, ISpatialAudioMetadataItems>,
                     itemscopied: *mut u16,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(copyframecount),
@@ -21764,7 +21233,7 @@ pub mod Windows {
                         ::std::mem::transmute(itemscopied),
                     )
                 }
-                pub unsafe fn Close(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Close(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(::windows::Abi::abi(self))
                 }
             }
@@ -21797,21 +21266,21 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     metadataitems: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     copyframecount: u16,
                     copymode: SpatialAudioMetadataCopyMode,
                     dstmetadataitems: ::windows::RawPtr,
                     itemscopied: *mut u16,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -21832,22 +21301,19 @@ pub mod Windows {
                 );
             }
             impl ISpatialAudioMetadataItems {
-                pub unsafe fn GetFrameCount(&self, framecount: *mut u16) -> ::windows::ErrorCode {
+                pub unsafe fn GetFrameCount(&self, framecount: *mut u16) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(framecount),
                     )
                 }
-                pub unsafe fn GetItemCount(&self, itemcount: *mut u16) -> ::windows::ErrorCode {
+                pub unsafe fn GetItemCount(&self, itemcount: *mut u16) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(itemcount),
                     )
                 }
-                pub unsafe fn GetMaxItemCount(
-                    &self,
-                    maxitemcount: *mut u16,
-                ) -> ::windows::ErrorCode {
+                pub unsafe fn GetMaxItemCount(&self, maxitemcount: *mut u16) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(maxitemcount),
@@ -21856,7 +21322,7 @@ pub mod Windows {
                 pub unsafe fn GetMaxValueBufferLength(
                     &self,
                     maxvaluebufferlength: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(maxvaluebufferlength),
@@ -21865,7 +21331,7 @@ pub mod Windows {
                 pub unsafe fn GetInfo(
                     &self,
                     info: *mut SpatialAudioMetadataItemsInfo,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(info),
@@ -21901,29 +21367,29 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     framecount: *mut u16,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     itemcount: *mut u16,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     maxitemcount: *mut u16,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     maxvaluebufferlength: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     info: *mut SpatialAudioMetadataItemsInfo,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -21948,7 +21414,7 @@ pub mod Windows {
                     &self,
                     buffer: *mut u8,
                     bufferlength: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(buffer),
@@ -21959,14 +21425,14 @@ pub mod Windows {
                     &self,
                     buffer: *mut u8,
                     bufferlength: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(buffer),
                         ::std::mem::transmute(bufferlength),
                     )
                 }
-                pub unsafe fn DetachBuffer(&self) -> ::windows::ErrorCode {
+                pub unsafe fn DetachBuffer(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(::windows::Abi::abi(self))
                 }
             }
@@ -21999,20 +21465,20 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     buffer: *mut u8,
                     bufferlength: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     buffer: *mut u8,
                     bufferlength: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -22033,13 +21499,10 @@ pub mod Windows {
                 );
             }
             impl ISpatialAudioMetadataReader {
-                pub unsafe fn Open<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, ISpatialAudioMetadataItems>,
-                >(
+                pub unsafe fn Open<'a>(
                     &self,
-                    metadataitems: T0__,
-                ) -> ::windows::ErrorCode {
+                    metadataitems: impl ::windows::IntoParam<'a, ISpatialAudioMetadataItems>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         metadataitems.into_param().abi(),
@@ -22049,7 +21512,7 @@ pub mod Windows {
                     &self,
                     commandcount: *mut u8,
                     frameoffset: *mut u16,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(commandcount),
@@ -22062,7 +21525,7 @@ pub mod Windows {
                     valuebuffer: *mut ::std::ffi::c_void,
                     maxvaluebufferlength: u32,
                     valuebufferlength: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(commandid),
@@ -22071,7 +21534,7 @@ pub mod Windows {
                         ::std::mem::transmute(valuebufferlength),
                     )
                 }
-                pub unsafe fn Close(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Close(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(::windows::Abi::abi(self))
                 }
             }
@@ -22104,26 +21567,26 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     metadataitems: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     commandcount: *mut u8,
                     frameoffset: *mut u16,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     commandid: *mut u8,
                     valuebuffer: *mut ::std::ffi::c_void,
                     maxvaluebufferlength: u32,
                     valuebufferlength: *mut u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -22144,19 +21607,16 @@ pub mod Windows {
                 );
             }
             impl ISpatialAudioMetadataWriter {
-                pub unsafe fn Open<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, ISpatialAudioMetadataItems>,
-                >(
+                pub unsafe fn Open<'a>(
                     &self,
-                    metadataitems: T0__,
-                ) -> ::windows::ErrorCode {
+                    metadataitems: impl ::windows::IntoParam<'a, ISpatialAudioMetadataItems>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         metadataitems.into_param().abi(),
                     )
                 }
-                pub unsafe fn WriteNextItem(&self, frameoffset: u16) -> ::windows::ErrorCode {
+                pub unsafe fn WriteNextItem(&self, frameoffset: u16) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(frameoffset),
@@ -22167,7 +21627,7 @@ pub mod Windows {
                     commandid: u8,
                     valuebuffer: *const ::std::ffi::c_void,
                     valuebufferlength: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(commandid),
@@ -22175,7 +21635,7 @@ pub mod Windows {
                         ::std::mem::transmute(valuebufferlength),
                     )
                 }
-                pub unsafe fn Close(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Close(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(::windows::Abi::abi(self))
                 }
             }
@@ -22208,24 +21668,24 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     metadataitems: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     frameoffset: u16,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     commandid: u8,
                     valuebuffer: *const ::std::ffi::c_void,
                     valuebufferlength: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -22250,14 +21710,14 @@ pub mod Windows {
                     &self,
                     buffer: *mut *mut u8,
                     bufferlength: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(buffer),
                         ::std::mem::transmute(bufferlength),
                     )
                 }
-                pub unsafe fn SetEndOfStream(&self, framecount: u32) -> ::windows::ErrorCode {
+                pub unsafe fn SetEndOfStream(&self, framecount: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(framecount),
@@ -22266,7 +21726,7 @@ pub mod Windows {
                 pub unsafe fn IsActive(
                     &self,
                     isactive: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(isactive),
@@ -22275,7 +21735,7 @@ pub mod Windows {
                 pub unsafe fn GetAudioObjectType(
                     &self,
                     audioobjecttype: *mut AudioObjectType,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(audioobjecttype),
@@ -22311,26 +21771,26 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     buffer: *mut *mut u8,
                     bufferlength: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     framecount: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     isactive: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     audioobjecttype: *mut AudioObjectType,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -22355,14 +21815,14 @@ pub mod Windows {
                     &self,
                     buffer: *mut *mut u8,
                     bufferlength: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(buffer),
                         ::std::mem::transmute(bufferlength),
                     )
                 }
-                pub unsafe fn SetEndOfStream(&self, framecount: u32) -> ::windows::ErrorCode {
+                pub unsafe fn SetEndOfStream(&self, framecount: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(framecount),
@@ -22371,7 +21831,7 @@ pub mod Windows {
                 pub unsafe fn IsActive(
                     &self,
                     isactive: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(isactive),
@@ -22380,13 +21840,13 @@ pub mod Windows {
                 pub unsafe fn GetAudioObjectType(
                     &self,
                     audioobjecttype: *mut AudioObjectType,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(audioobjecttype),
                     )
                 }
-                pub unsafe fn SetPosition(&self, x: f32, y: f32, z: f32) -> ::windows::ErrorCode {
+                pub unsafe fn SetPosition(&self, x: f32, y: f32, z: f32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(x),
@@ -22394,7 +21854,7 @@ pub mod Windows {
                         ::std::mem::transmute(z),
                     )
                 }
-                pub unsafe fn SetVolume(&self, volume: f32) -> ::windows::ErrorCode {
+                pub unsafe fn SetVolume(&self, volume: f32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(volume),
@@ -22454,36 +21914,36 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     buffer: *mut *mut u8,
                     bufferlength: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     framecount: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     isactive: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     audioobjecttype: *mut AudioObjectType,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     x: f32,
                     y: f32,
                     z: f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     volume: f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -22508,14 +21968,14 @@ pub mod Windows {
                     &self,
                     buffer: *mut *mut u8,
                     bufferlength: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(buffer),
                         ::std::mem::transmute(bufferlength),
                     )
                 }
-                pub unsafe fn SetEndOfStream(&self, framecount: u32) -> ::windows::ErrorCode {
+                pub unsafe fn SetEndOfStream(&self, framecount: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(framecount),
@@ -22524,7 +21984,7 @@ pub mod Windows {
                 pub unsafe fn IsActive(
                     &self,
                     isactive: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(isactive),
@@ -22533,13 +21993,13 @@ pub mod Windows {
                 pub unsafe fn GetAudioObjectType(
                     &self,
                     audioobjecttype: *mut AudioObjectType,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(audioobjecttype),
                     )
                 }
-                pub unsafe fn SetPosition(&self, x: f32, y: f32, z: f32) -> ::windows::ErrorCode {
+                pub unsafe fn SetPosition(&self, x: f32, y: f32, z: f32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(x),
@@ -22547,7 +22007,7 @@ pub mod Windows {
                         ::std::mem::transmute(z),
                     )
                 }
-                pub unsafe fn SetGain(&self, gain: f32) -> ::windows::ErrorCode {
+                pub unsafe fn SetGain(&self, gain: f32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(gain),
@@ -22556,7 +22016,7 @@ pub mod Windows {
                 pub unsafe fn SetOrientation(
                     &self,
                     orientation: *const *const f32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(orientation),
@@ -22565,7 +22025,7 @@ pub mod Windows {
                 pub unsafe fn SetEnvironment(
                     &self,
                     environment: SpatialAudioHrtfEnvironmentType,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(environment),
@@ -22574,7 +22034,7 @@ pub mod Windows {
                 pub unsafe fn SetDistanceDecay(
                     &self,
                     distancedecay: *mut SpatialAudioHrtfDistanceDecay,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(distancedecay),
@@ -22583,7 +22043,7 @@ pub mod Windows {
                 pub unsafe fn SetDirectivity(
                     &self,
                     directivity: *mut SpatialAudioHrtfDirectivityUnion,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(directivity),
@@ -22643,52 +22103,52 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     buffer: *mut *mut u8,
                     bufferlength: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     framecount: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     isactive: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     audioobjecttype: *mut AudioObjectType,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     x: f32,
                     y: f32,
                     z: f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     gain: f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     orientation: *const *const f32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     environment: SpatialAudioHrtfEnvironmentType,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     distancedecay: *mut SpatialAudioHrtfDistanceDecay,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     directivity: *mut SpatialAudioHrtfDirectivityUnion,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -22713,14 +22173,14 @@ pub mod Windows {
                     &self,
                     buffer: *mut *mut u8,
                     bufferlength: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(buffer),
                         ::std::mem::transmute(bufferlength),
                     )
                 }
-                pub unsafe fn SetEndOfStream(&self, framecount: u32) -> ::windows::ErrorCode {
+                pub unsafe fn SetEndOfStream(&self, framecount: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(framecount),
@@ -22729,7 +22189,7 @@ pub mod Windows {
                 pub unsafe fn IsActive(
                     &self,
                     isactive: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(isactive),
@@ -22738,7 +22198,7 @@ pub mod Windows {
                 pub unsafe fn GetAudioObjectType(
                     &self,
                     audioobjecttype: *mut AudioObjectType,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(audioobjecttype),
@@ -22749,7 +22209,7 @@ pub mod Windows {
                     commandid: u8,
                     valuebuffer: *mut ::std::ffi::c_void,
                     valuebufferlength: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(commandid),
@@ -22817,32 +22277,32 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     buffer: *mut *mut u8,
                     bufferlength: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     framecount: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     isactive: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     audioobjecttype: *mut AudioObjectType,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     commandid: u8,
                     valuebuffer: *mut ::std::ffi::c_void,
                     valuebufferlength: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -22867,14 +22327,14 @@ pub mod Windows {
                     &self,
                     buffer: *mut *mut u8,
                     bufferlength: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(buffer),
                         ::std::mem::transmute(bufferlength),
                     )
                 }
-                pub unsafe fn SetEndOfStream(&self, framecount: u32) -> ::windows::ErrorCode {
+                pub unsafe fn SetEndOfStream(&self, framecount: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(framecount),
@@ -22883,7 +22343,7 @@ pub mod Windows {
                 pub unsafe fn IsActive(
                     &self,
                     isactive: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(isactive),
@@ -22892,7 +22352,7 @@ pub mod Windows {
                 pub unsafe fn GetAudioObjectType(
                     &self,
                     audioobjecttype: *mut AudioObjectType,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(audioobjecttype),
@@ -22901,7 +22361,7 @@ pub mod Windows {
                 pub unsafe fn GetSpatialAudioMetadataItems(
                     &self,
                     metadataitems: *mut ::std::option::Option<ISpatialAudioMetadataItems>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(metadataitems),
@@ -22963,30 +22423,30 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     buffer: *mut *mut u8,
                     bufferlength: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     framecount: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     isactive: *mut super::SystemServices::BOOL,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     audioobjecttype: *mut AudioObjectType,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     metadataitems: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -23010,7 +22470,7 @@ pub mod Windows {
                 pub unsafe fn GetAvailableDynamicObjectCount(
                     &self,
                     value: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(value),
@@ -23020,34 +22480,34 @@ pub mod Windows {
                     &self,
                     riid: *const ::windows::Guid,
                     service: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(riid),
                         ::std::mem::transmute(service),
                     )
                 }
-                pub unsafe fn Start(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Start(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Stop(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Stop(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Reset(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Reset(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn BeginUpdatingAudioObjects(
                     &self,
                     availabledynamicobjectcount: *mut u32,
                     framecountperbuffer: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(availabledynamicobjectcount),
                         ::std::mem::transmute(framecountperbuffer),
                     )
                 }
-                pub unsafe fn EndUpdatingAudioObjects(&self) -> ::windows::ErrorCode {
+                pub unsafe fn EndUpdatingAudioObjects(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(::windows::Abi::abi(self))
                 }
             }
@@ -23080,27 +22540,27 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     value: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     riid: *const ::windows::Guid,
                     service: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     availabledynamicobjectcount: *mut u32,
                     framecountperbuffer: *mut u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -23124,7 +22584,7 @@ pub mod Windows {
                 pub unsafe fn GetAvailableDynamicObjectCount(
                     &self,
                     value: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(value),
@@ -23134,41 +22594,41 @@ pub mod Windows {
                     &self,
                     riid: *const ::windows::Guid,
                     service: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(riid),
                         ::std::mem::transmute(service),
                     )
                 }
-                pub unsafe fn Start(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Start(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Stop(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Stop(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Reset(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Reset(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn BeginUpdatingAudioObjects(
                     &self,
                     availabledynamicobjectcount: *mut u32,
                     framecountperbuffer: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(availabledynamicobjectcount),
                         ::std::mem::transmute(framecountperbuffer),
                     )
                 }
-                pub unsafe fn EndUpdatingAudioObjects(&self) -> ::windows::ErrorCode {
+                pub unsafe fn EndUpdatingAudioObjects(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn ActivateSpatialAudioObject(
                     &self,
                     r#type: AudioObjectType,
                     audioobject: *mut ::std::option::Option<ISpatialAudioObject>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(r#type),
@@ -23237,32 +22697,32 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     value: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     riid: *const ::windows::Guid,
                     service: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     availabledynamicobjectcount: *mut u32,
                     framecountperbuffer: *mut u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     r#type: AudioObjectType,
                     audioobject: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -23286,7 +22746,7 @@ pub mod Windows {
                 pub unsafe fn GetAvailableDynamicObjectCount(
                     &self,
                     value: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(value),
@@ -23296,41 +22756,41 @@ pub mod Windows {
                     &self,
                     riid: *const ::windows::Guid,
                     service: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(riid),
                         ::std::mem::transmute(service),
                     )
                 }
-                pub unsafe fn Start(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Start(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Stop(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Stop(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Reset(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Reset(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn BeginUpdatingAudioObjects(
                     &self,
                     availabledynamicobjectcount: *mut u32,
                     framecountperbuffer: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(availabledynamicobjectcount),
                         ::std::mem::transmute(framecountperbuffer),
                     )
                 }
-                pub unsafe fn EndUpdatingAudioObjects(&self) -> ::windows::ErrorCode {
+                pub unsafe fn EndUpdatingAudioObjects(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn ActivateSpatialAudioObjectForHrtf(
                     &self,
                     r#type: AudioObjectType,
                     audioobject: *mut ::std::option::Option<ISpatialAudioObjectForHrtf>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(r#type),
@@ -23403,32 +22863,32 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     value: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     riid: *const ::windows::Guid,
                     service: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     availabledynamicobjectcount: *mut u32,
                     framecountperbuffer: *mut u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     r#type: AudioObjectType,
                     audioobject: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -23452,7 +22912,7 @@ pub mod Windows {
                 pub unsafe fn GetAvailableDynamicObjectCount(
                     &self,
                     value: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(value),
@@ -23462,41 +22922,41 @@ pub mod Windows {
                     &self,
                     riid: *const ::windows::Guid,
                     service: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(riid),
                         ::std::mem::transmute(service),
                     )
                 }
-                pub unsafe fn Start(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Start(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Stop(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Stop(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn Reset(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Reset(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn BeginUpdatingAudioObjects(
                     &self,
                     availabledynamicobjectcount: *mut u32,
                     framecountperbuffer: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(availabledynamicobjectcount),
                         ::std::mem::transmute(framecountperbuffer),
                     )
                 }
-                pub unsafe fn EndUpdatingAudioObjects(&self) -> ::windows::ErrorCode {
+                pub unsafe fn EndUpdatingAudioObjects(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn ActivateSpatialAudioObjectForMetadataCommands(
                     &self,
                     r#type: AudioObjectType,
                     audioobject: *mut ::std::option::Option<ISpatialAudioObjectForMetadataCommands>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(r#type),
@@ -23507,7 +22967,7 @@ pub mod Windows {
                     &self,
                     r#type: AudioObjectType,
                     audioobject: *mut ::std::option::Option<ISpatialAudioObjectForMetadataItems>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(r#type),
@@ -23582,37 +23042,37 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     value: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     riid: *const ::windows::Guid,
                     service: *mut *mut ::std::ffi::c_void,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     availabledynamicobjectcount: *mut u32,
                     framecountperbuffer: *mut u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     r#type: AudioObjectType,
                     audioobject: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     r#type: AudioObjectType,
                     audioobject: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -23633,15 +23093,12 @@ pub mod Windows {
                 );
             }
             impl ISpatialAudioObjectRenderStreamNotify {
-                pub unsafe fn OnAvailableDynamicObjectCountChange<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, ISpatialAudioObjectRenderStreamBase>,
-                >(
+                pub unsafe fn OnAvailableDynamicObjectCountChange<'a>(
                     &self,
-                    sender: T0__,
+                    sender: impl ::windows::IntoParam<'a, ISpatialAudioObjectRenderStreamBase>,
                     hnscompliancedeadlinetime: i64,
                     availabledynamicobjectcountchange: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         sender.into_param().abi(),
@@ -23681,7 +23138,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -23689,7 +23146,7 @@ pub mod Windows {
                     sender: ::windows::RawPtr,
                     hnscompliancedeadlinetime: i64,
                     availabledynamicobjectcountchange: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -23739,7 +23196,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
             );
@@ -40148,201 +39605,65 @@ pub mod Windows {
             pub const KS_iPALETTE_COLORS: u32 = 256u32;
             pub const KS_iRED: u32 = 0u32;
             pub const KS_iTRUECOLOR: u32 = 16u32;
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn KsCreateAllocator<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-            >(
-                connectionhandle: T0__,
+            pub unsafe fn KsCreateAllocator<'a>(
+                connectionhandle: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
                 allocatorframing: *mut KSALLOCATOR_FRAMING,
                 allocatorhandle: *mut super::SystemServices::HANDLE,
             ) -> u32 {
-                #[link(name = "ksuser")]
-                extern "system" {
-                    pub fn KsCreateAllocator(
-                        connectionhandle: super::SystemServices::HANDLE,
-                        allocatorframing: *mut KSALLOCATOR_FRAMING,
-                        allocatorhandle: *mut super::SystemServices::HANDLE,
-                    ) -> u32;
-                }
-                KsCreateAllocator(
-                    connectionhandle.into_param().abi(),
-                    ::std::mem::transmute(allocatorframing),
-                    ::std::mem::transmute(allocatorhandle),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn KsCreateAllocator2<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-            >(
-                connectionhandle: T0__,
+            pub unsafe fn KsCreateAllocator2<'a>(
+                connectionhandle: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
                 allocatorframing: *mut KSALLOCATOR_FRAMING,
                 allocatorhandle: *mut super::SystemServices::HANDLE,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "ksuser")]
-                extern "system" {
-                    pub fn KsCreateAllocator2(
-                        connectionhandle: super::SystemServices::HANDLE,
-                        allocatorframing: *mut KSALLOCATOR_FRAMING,
-                        allocatorhandle: *mut super::SystemServices::HANDLE,
-                    ) -> ::windows::ErrorCode;
-                }
-                KsCreateAllocator2(
-                    connectionhandle.into_param().abi(),
-                    ::std::mem::transmute(allocatorframing),
-                    ::std::mem::transmute(allocatorhandle),
-                )
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn KsCreateClock<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-            >(
-                connectionhandle: T0__,
+            pub unsafe fn KsCreateClock<'a>(
+                connectionhandle: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
                 clockcreate: *mut KSCLOCK_CREATE,
                 clockhandle: *mut super::SystemServices::HANDLE,
             ) -> u32 {
-                #[link(name = "ksuser")]
-                extern "system" {
-                    pub fn KsCreateClock(
-                        connectionhandle: super::SystemServices::HANDLE,
-                        clockcreate: *mut KSCLOCK_CREATE,
-                        clockhandle: *mut super::SystemServices::HANDLE,
-                    ) -> u32;
-                }
-                KsCreateClock(
-                    connectionhandle.into_param().abi(),
-                    ::std::mem::transmute(clockcreate),
-                    ::std::mem::transmute(clockhandle),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn KsCreateClock2<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-            >(
-                connectionhandle: T0__,
+            pub unsafe fn KsCreateClock2<'a>(
+                connectionhandle: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
                 clockcreate: *mut KSCLOCK_CREATE,
                 clockhandle: *mut super::SystemServices::HANDLE,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "ksuser")]
-                extern "system" {
-                    pub fn KsCreateClock2(
-                        connectionhandle: super::SystemServices::HANDLE,
-                        clockcreate: *mut KSCLOCK_CREATE,
-                        clockhandle: *mut super::SystemServices::HANDLE,
-                    ) -> ::windows::ErrorCode;
-                }
-                KsCreateClock2(
-                    connectionhandle.into_param().abi(),
-                    ::std::mem::transmute(clockcreate),
-                    ::std::mem::transmute(clockhandle),
-                )
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn KsCreatePin<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-            >(
-                filterhandle: T0__,
+            pub unsafe fn KsCreatePin<'a>(
+                filterhandle: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
                 connect: *mut KSPIN_CONNECT,
                 desiredaccess: u32,
                 connectionhandle: *mut super::SystemServices::HANDLE,
             ) -> u32 {
-                #[link(name = "ksuser")]
-                extern "system" {
-                    pub fn KsCreatePin(
-                        filterhandle: super::SystemServices::HANDLE,
-                        connect: *mut KSPIN_CONNECT,
-                        desiredaccess: u32,
-                        connectionhandle: *mut super::SystemServices::HANDLE,
-                    ) -> u32;
-                }
-                KsCreatePin(
-                    filterhandle.into_param().abi(),
-                    ::std::mem::transmute(connect),
-                    ::std::mem::transmute(desiredaccess),
-                    ::std::mem::transmute(connectionhandle),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn KsCreatePin2<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-            >(
-                filterhandle: T0__,
+            pub unsafe fn KsCreatePin2<'a>(
+                filterhandle: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
                 connect: *mut KSPIN_CONNECT,
                 desiredaccess: u32,
                 connectionhandle: *mut super::SystemServices::HANDLE,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "ksuser")]
-                extern "system" {
-                    pub fn KsCreatePin2(
-                        filterhandle: super::SystemServices::HANDLE,
-                        connect: *mut KSPIN_CONNECT,
-                        desiredaccess: u32,
-                        connectionhandle: *mut super::SystemServices::HANDLE,
-                    ) -> ::windows::ErrorCode;
-                }
-                KsCreatePin2(
-                    filterhandle.into_param().abi(),
-                    ::std::mem::transmute(connect),
-                    ::std::mem::transmute(desiredaccess),
-                    ::std::mem::transmute(connectionhandle),
-                )
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn KsCreateTopologyNode<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-            >(
-                parenthandle: T0__,
+            pub unsafe fn KsCreateTopologyNode<'a>(
+                parenthandle: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
                 nodecreate: *mut KSNODE_CREATE,
                 desiredaccess: u32,
                 nodehandle: *mut super::SystemServices::HANDLE,
             ) -> u32 {
-                #[link(name = "ksuser")]
-                extern "system" {
-                    pub fn KsCreateTopologyNode(
-                        parenthandle: super::SystemServices::HANDLE,
-                        nodecreate: *mut KSNODE_CREATE,
-                        desiredaccess: u32,
-                        nodehandle: *mut super::SystemServices::HANDLE,
-                    ) -> u32;
-                }
-                KsCreateTopologyNode(
-                    parenthandle.into_param().abi(),
-                    ::std::mem::transmute(nodecreate),
-                    ::std::mem::transmute(desiredaccess),
-                    ::std::mem::transmute(nodehandle),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn KsCreateTopologyNode2<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-            >(
-                parenthandle: T0__,
+            pub unsafe fn KsCreateTopologyNode2<'a>(
+                parenthandle: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
                 nodecreate: *mut KSNODE_CREATE,
                 desiredaccess: u32,
                 nodehandle: *mut super::SystemServices::HANDLE,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "ksuser")]
-                extern "system" {
-                    pub fn KsCreateTopologyNode2(
-                        parenthandle: super::SystemServices::HANDLE,
-                        nodecreate: *mut KSNODE_CREATE,
-                        desiredaccess: u32,
-                        nodehandle: *mut super::SystemServices::HANDLE,
-                    ) -> ::windows::ErrorCode;
-                }
-                KsCreateTopologyNode2(
-                    parenthandle.into_param().abi(),
-                    ::std::mem::transmute(nodecreate),
-                    ::std::mem::transmute(desiredaccess),
-                    ::std::mem::transmute(nodehandle),
-                )
+            ) -> ::windows::HRESULT {
+                panic!("Unsupported target OS");
             }
             #[repr(C)]
             #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
@@ -42713,344 +42034,118 @@ pub mod Windows {
             unsafe impl ::windows::Abi for _AUDCLNT_BUFFERFLAGS {
                 type Abi = Self;
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn mciDriverNotify<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-            >(
-                hwndcallback: T0__,
+            pub unsafe fn mciDriverNotify<'a>(
+                hwndcallback: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
                 wdeviceid: u32,
                 ustatus: u32,
             ) -> super::SystemServices::BOOL {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciDriverNotify(
-                        hwndcallback: super::SystemServices::HANDLE,
-                        wdeviceid: u32,
-                        ustatus: u32,
-                    ) -> super::SystemServices::BOOL;
-                }
-                mciDriverNotify(
-                    hwndcallback.into_param().abi(),
-                    ::std::mem::transmute(wdeviceid),
-                    ::std::mem::transmute(ustatus),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
             pub unsafe fn mciDriverYield(wdeviceid: u32) -> u32 {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciDriverYield(wdeviceid: u32) -> u32;
-                }
-                mciDriverYield(::std::mem::transmute(wdeviceid))
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
             pub unsafe fn mciFreeCommandResource(wtable: u32) -> super::SystemServices::BOOL {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciFreeCommandResource(wtable: u32) -> super::SystemServices::BOOL;
-                }
-                mciFreeCommandResource(::std::mem::transmute(wtable))
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetCreatorTask(mciid: u32) -> HTASK {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciGetCreatorTask(mciid: u32) -> HTASK;
-                }
-                mciGetCreatorTask(::std::mem::transmute(mciid))
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn mciGetDeviceIDA<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::PSTR>,
-            >(
-                pszdevice: T0__,
+            pub unsafe fn mciGetDeviceIDA<'a>(
+                pszdevice: impl ::windows::IntoParam<'a, super::SystemServices::PSTR>,
             ) -> u32 {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciGetDeviceIDA(pszdevice: super::SystemServices::PSTR) -> u32;
-                }
-                mciGetDeviceIDA(pszdevice.into_param().abi())
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn mciGetDeviceIDFromElementIDA<
-                'a,
-                T1__: ::windows::IntoParam<'a, super::SystemServices::PSTR>,
-            >(
+            pub unsafe fn mciGetDeviceIDFromElementIDA<'a>(
                 dwelementid: u32,
-                lpstrtype: T1__,
+                lpstrtype: impl ::windows::IntoParam<'a, super::SystemServices::PSTR>,
             ) -> u32 {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciGetDeviceIDFromElementIDA(
-                        dwelementid: u32,
-                        lpstrtype: super::SystemServices::PSTR,
-                    ) -> u32;
-                }
-                mciGetDeviceIDFromElementIDA(
-                    ::std::mem::transmute(dwelementid),
-                    lpstrtype.into_param().abi(),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn mciGetDeviceIDFromElementIDW<
-                'a,
-                T1__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-            >(
+            pub unsafe fn mciGetDeviceIDFromElementIDW<'a>(
                 dwelementid: u32,
-                lpstrtype: T1__,
+                lpstrtype: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
             ) -> u32 {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciGetDeviceIDFromElementIDW(
-                        dwelementid: u32,
-                        lpstrtype: super::SystemServices::PWSTR,
-                    ) -> u32;
-                }
-                mciGetDeviceIDFromElementIDW(
-                    ::std::mem::transmute(dwelementid),
-                    lpstrtype.into_param().abi(),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn mciGetDeviceIDW<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-            >(
-                pszdevice: T0__,
+            pub unsafe fn mciGetDeviceIDW<'a>(
+                pszdevice: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
             ) -> u32 {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciGetDeviceIDW(pszdevice: super::SystemServices::PWSTR) -> u32;
-                }
-                mciGetDeviceIDW(pszdevice.into_param().abi())
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetDriverData(wdeviceid: u32) -> usize {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciGetDriverData(wdeviceid: u32) -> usize;
-                }
-                mciGetDriverData(::std::mem::transmute(wdeviceid))
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetErrorStringA(
                 mcierr: u32,
                 psztext: super::SystemServices::PSTR,
                 cchtext: u32,
             ) -> super::SystemServices::BOOL {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciGetErrorStringA(
-                        mcierr: u32,
-                        psztext: super::SystemServices::PSTR,
-                        cchtext: u32,
-                    ) -> super::SystemServices::BOOL;
-                }
-                mciGetErrorStringA(
-                    ::std::mem::transmute(mcierr),
-                    ::std::mem::transmute(psztext),
-                    ::std::mem::transmute(cchtext),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetErrorStringW(
                 mcierr: u32,
                 psztext: super::SystemServices::PWSTR,
                 cchtext: u32,
             ) -> super::SystemServices::BOOL {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciGetErrorStringW(
-                        mcierr: u32,
-                        psztext: super::SystemServices::PWSTR,
-                        cchtext: u32,
-                    ) -> super::SystemServices::BOOL;
-                }
-                mciGetErrorStringW(
-                    ::std::mem::transmute(mcierr),
-                    ::std::mem::transmute(psztext),
-                    ::std::mem::transmute(cchtext),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
             pub unsafe fn mciGetYieldProc(
                 mciid: u32,
                 pdwyielddata: *mut u32,
             ) -> ::std::option::Option<YIELDPROC> {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciGetYieldProc(
-                        mciid: u32,
-                        pdwyielddata: *mut u32,
-                    ) -> ::std::option::Option<YIELDPROC>;
-                }
-                mciGetYieldProc(
-                    ::std::mem::transmute(mciid),
-                    ::std::mem::transmute(pdwyielddata),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn mciLoadCommandResource<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-                T1__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-            >(
-                hinstance: T0__,
-                lpresname: T1__,
+            pub unsafe fn mciLoadCommandResource<'a>(
+                hinstance: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
+                lpresname: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                 wtype: u32,
             ) -> u32 {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciLoadCommandResource(
-                        hinstance: super::SystemServices::HANDLE,
-                        lpresname: super::SystemServices::PWSTR,
-                        wtype: u32,
-                    ) -> u32;
-                }
-                mciLoadCommandResource(
-                    hinstance.into_param().abi(),
-                    lpresname.into_param().abi(),
-                    ::std::mem::transmute(wtype),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
             pub unsafe fn mciSendCommandA(
                 mciid: u32,
                 umsg: u32,
                 dwparam1: usize,
                 dwparam2: usize,
             ) -> u32 {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciSendCommandA(
-                        mciid: u32,
-                        umsg: u32,
-                        dwparam1: usize,
-                        dwparam2: usize,
-                    ) -> u32;
-                }
-                mciSendCommandA(
-                    ::std::mem::transmute(mciid),
-                    ::std::mem::transmute(umsg),
-                    ::std::mem::transmute(dwparam1),
-                    ::std::mem::transmute(dwparam2),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
             pub unsafe fn mciSendCommandW(
                 mciid: u32,
                 umsg: u32,
                 dwparam1: usize,
                 dwparam2: usize,
             ) -> u32 {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciSendCommandW(
-                        mciid: u32,
-                        umsg: u32,
-                        dwparam1: usize,
-                        dwparam2: usize,
-                    ) -> u32;
-                }
-                mciSendCommandW(
-                    ::std::mem::transmute(mciid),
-                    ::std::mem::transmute(umsg),
-                    ::std::mem::transmute(dwparam1),
-                    ::std::mem::transmute(dwparam2),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn mciSendStringA<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::PSTR>,
-                T3__: ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
-            >(
-                lpstrcommand: T0__,
+            pub unsafe fn mciSendStringA<'a>(
+                lpstrcommand: impl ::windows::IntoParam<'a, super::SystemServices::PSTR>,
                 lpstrreturnstring: super::SystemServices::PSTR,
                 ureturnlength: u32,
-                hwndcallback: T3__,
+                hwndcallback: impl ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
             ) -> u32 {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciSendStringA(
-                        lpstrcommand: super::SystemServices::PSTR,
-                        lpstrreturnstring: super::SystemServices::PSTR,
-                        ureturnlength: u32,
-                        hwndcallback: super::WindowsAndMessaging::HWND,
-                    ) -> u32;
-                }
-                mciSendStringA(
-                    lpstrcommand.into_param().abi(),
-                    ::std::mem::transmute(lpstrreturnstring),
-                    ::std::mem::transmute(ureturnlength),
-                    hwndcallback.into_param().abi(),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn mciSendStringW<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                T3__: ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
-            >(
-                lpstrcommand: T0__,
+            pub unsafe fn mciSendStringW<'a>(
+                lpstrcommand: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                 lpstrreturnstring: super::SystemServices::PWSTR,
                 ureturnlength: u32,
-                hwndcallback: T3__,
+                hwndcallback: impl ::windows::IntoParam<'a, super::WindowsAndMessaging::HWND>,
             ) -> u32 {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciSendStringW(
-                        lpstrcommand: super::SystemServices::PWSTR,
-                        lpstrreturnstring: super::SystemServices::PWSTR,
-                        ureturnlength: u32,
-                        hwndcallback: super::WindowsAndMessaging::HWND,
-                    ) -> u32;
-                }
-                mciSendStringW(
-                    lpstrcommand.into_param().abi(),
-                    ::std::mem::transmute(lpstrreturnstring),
-                    ::std::mem::transmute(ureturnlength),
-                    hwndcallback.into_param().abi(),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
             pub unsafe fn mciSetDriverData(
                 wdeviceid: u32,
                 dwdata: usize,
             ) -> super::SystemServices::BOOL {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciSetDriverData(
-                        wdeviceid: u32,
-                        dwdata: usize,
-                    ) -> super::SystemServices::BOOL;
-                }
-                mciSetDriverData(
-                    ::std::mem::transmute(wdeviceid),
-                    ::std::mem::transmute(dwdata),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
             pub unsafe fn mciSetYieldProc(
                 mciid: u32,
                 fpyieldproc: ::std::option::Option<YIELDPROC>,
                 dwyielddata: u32,
             ) -> super::SystemServices::BOOL {
-                #[link(name = "WINMM")]
-                extern "system" {
-                    pub fn mciSetYieldProc(
-                        mciid: u32,
-                        fpyieldproc: ::windows::RawPtr,
-                        dwyielddata: u32,
-                    ) -> super::SystemServices::BOOL;
-                }
-                mciSetYieldProc(
-                    ::std::mem::transmute(mciid),
-                    ::std::mem::transmute(fpyieldproc),
-                    ::std::mem::transmute(dwyielddata),
-                )
+                panic!("Unsupported target OS");
             }
         }
         #[allow(
@@ -43504,7 +42599,7 @@ pub mod Windows {
                     pv: *mut ::std::ffi::c_void,
                     cb: u32,
                     pcbread: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pv),
@@ -43517,7 +42612,7 @@ pub mod Windows {
                     pv: *const ::std::ffi::c_void,
                     cb: u32,
                     pcbwritten: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pv),
@@ -43555,7 +42650,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -43563,13 +42658,13 @@ pub mod Windows {
                     pv: *mut ::std::ffi::c_void,
                     cb: u32,
                     pcbread: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pv: *const ::std::ffi::c_void,
                     cb: u32,
                     pcbwritten: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -43591,7 +42686,7 @@ pub mod Windows {
                     pv: *mut ::std::ffi::c_void,
                     cb: u32,
                     pcbread: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pv),
@@ -43604,7 +42699,7 @@ pub mod Windows {
                     pv: *const ::std::ffi::c_void,
                     cb: u32,
                     pcbwritten: *mut u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(pv),
@@ -43612,19 +42707,19 @@ pub mod Windows {
                         ::std::mem::transmute(pcbwritten),
                     )
                 }
-                pub unsafe fn SetSize(&self, libnewsize: u64) -> ::windows::ErrorCode {
+                pub unsafe fn SetSize(&self, libnewsize: u64) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(libnewsize),
                     )
                 }
-                pub unsafe fn CopyTo<'a, T0__: ::windows::IntoParam<'a, IStream>>(
+                pub unsafe fn CopyTo<'a>(
                     &self,
-                    pstm: T0__,
+                    pstm: impl ::windows::IntoParam<'a, IStream>,
                     cb: u64,
                     pcbread: *mut u64,
                     pcbwritten: *mut u64,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         pstm.into_param().abi(),
@@ -43633,13 +42728,13 @@ pub mod Windows {
                         ::std::mem::transmute(pcbwritten),
                     )
                 }
-                pub unsafe fn Commit(&self, grfcommitflags: u32) -> ::windows::ErrorCode {
+                pub unsafe fn Commit(&self, grfcommitflags: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(grfcommitflags),
                     )
                 }
-                pub unsafe fn Revert(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Revert(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(::windows::Abi::abi(self))
                 }
                 pub unsafe fn LockRegion(
@@ -43647,7 +42742,7 @@ pub mod Windows {
                     liboffset: u64,
                     cb: u64,
                     dwlocktype: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(liboffset),
@@ -43660,7 +42755,7 @@ pub mod Windows {
                     liboffset: u64,
                     cb: u64,
                     dwlocktype: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).11)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(liboffset),
@@ -43671,7 +42766,7 @@ pub mod Windows {
                 pub unsafe fn Clone(
                     &self,
                     ppstm: *mut ::std::option::Option<IStream>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ppstm),
@@ -43729,7 +42824,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -43737,47 +42832,47 @@ pub mod Windows {
                     pv: *mut ::std::ffi::c_void,
                     cb: u32,
                     pcbread: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pv: *const ::std::ffi::c_void,
                     cb: u32,
                     pcbwritten: *mut u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(),
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     libnewsize: u64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pstm: ::windows::RawPtr,
                     cb: u64,
                     pcbread: *mut u64,
                     pcbwritten: *mut u64,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     grfcommitflags: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     liboffset: u64,
                     cb: u64,
                     dwlocktype: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     liboffset: u64,
                     cb: u64,
                     dwlocktype: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(),
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ppstm: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
             );
             #[repr(transparent)]
             #[derive(
@@ -43794,17 +42889,14 @@ pub mod Windows {
                     ::windows::Guid::from_values(11, 0, 0, [192, 0, 0, 0, 0, 0, 0, 70]);
             }
             impl IStorage {
-                pub unsafe fn CreateStream<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn CreateStream<'a>(
                     &self,
-                    pwcsname: T0__,
+                    pwcsname: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     grfmode: u32,
                     reserved1: u32,
                     reserved2: u32,
                     ppstm: *mut ::std::option::Option<IStream>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).3)(
                         ::windows::Abi::abi(self),
                         pwcsname.into_param().abi(),
@@ -43814,17 +42906,14 @@ pub mod Windows {
                         ::std::mem::transmute(ppstm),
                     )
                 }
-                pub unsafe fn OpenStream<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn OpenStream<'a>(
                     &self,
-                    pwcsname: T0__,
+                    pwcsname: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     reserved1: *mut ::std::ffi::c_void,
                     grfmode: u32,
                     reserved2: u32,
                     ppstm: *mut ::std::option::Option<IStream>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).4)(
                         ::windows::Abi::abi(self),
                         pwcsname.into_param().abi(),
@@ -43834,17 +42923,14 @@ pub mod Windows {
                         ::std::mem::transmute(ppstm),
                     )
                 }
-                pub unsafe fn CreateStorage<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn CreateStorage<'a>(
                     &self,
-                    pwcsname: T0__,
+                    pwcsname: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     grfmode: u32,
                     reserved1: u32,
                     reserved2: u32,
                     ppstg: *mut ::std::option::Option<IStorage>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).5)(
                         ::windows::Abi::abi(self),
                         pwcsname.into_param().abi(),
@@ -43854,19 +42940,15 @@ pub mod Windows {
                         ::std::mem::transmute(ppstg),
                     )
                 }
-                pub unsafe fn OpenStorage<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                    T1__: ::windows::IntoParam<'a, IStorage>,
-                >(
+                pub unsafe fn OpenStorage<'a>(
                     &self,
-                    pwcsname: T0__,
-                    pstgpriority: T1__,
+                    pwcsname: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
+                    pstgpriority: impl ::windows::IntoParam<'a, IStorage>,
                     grfmode: u32,
                     snbexclude: *mut *mut u16,
                     reserved: u32,
                     ppstg: *mut ::std::option::Option<IStorage>,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).6)(
                         ::windows::Abi::abi(self),
                         pwcsname.into_param().abi(),
@@ -43877,13 +42959,13 @@ pub mod Windows {
                         ::std::mem::transmute(ppstg),
                     )
                 }
-                pub unsafe fn CopyTo<'a, T3__: ::windows::IntoParam<'a, IStorage>>(
+                pub unsafe fn CopyTo<'a>(
                     &self,
                     ciidexclude: u32,
                     rgiidexclude: *const ::windows::Guid,
                     snbexclude: *mut *mut u16,
-                    pstgdest: T3__,
-                ) -> ::windows::ErrorCode {
+                    pstgdest: impl ::windows::IntoParam<'a, IStorage>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).7)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(ciidexclude),
@@ -43892,18 +42974,13 @@ pub mod Windows {
                         pstgdest.into_param().abi(),
                     )
                 }
-                pub unsafe fn MoveElementTo<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                    T1__: ::windows::IntoParam<'a, IStorage>,
-                    T2__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn MoveElementTo<'a>(
                     &self,
-                    pwcsname: T0__,
-                    pstgdest: T1__,
-                    pwcsnewname: T2__,
+                    pwcsname: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
+                    pstgdest: impl ::windows::IntoParam<'a, IStorage>,
+                    pwcsnewname: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     grfflags: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).8)(
                         ::windows::Abi::abi(self),
                         pwcsname.into_param().abi(),
@@ -43912,52 +42989,42 @@ pub mod Windows {
                         ::std::mem::transmute(grfflags),
                     )
                 }
-                pub unsafe fn Commit(&self, grfcommitflags: u32) -> ::windows::ErrorCode {
+                pub unsafe fn Commit(&self, grfcommitflags: u32) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).9)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(grfcommitflags),
                     )
                 }
-                pub unsafe fn Revert(&self) -> ::windows::ErrorCode {
+                pub unsafe fn Revert(&self) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).10)(::windows::Abi::abi(self))
                 }
-                pub unsafe fn DestroyElement<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn DestroyElement<'a>(
                     &self,
-                    pwcsname: T0__,
-                ) -> ::windows::ErrorCode {
+                    pwcsname: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).12)(
                         ::windows::Abi::abi(self),
                         pwcsname.into_param().abi(),
                     )
                 }
-                pub unsafe fn RenameElement<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                    T1__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn RenameElement<'a>(
                     &self,
-                    pwcsoldname: T0__,
-                    pwcsnewname: T1__,
-                ) -> ::windows::ErrorCode {
+                    pwcsoldname: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
+                    pwcsnewname: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).13)(
                         ::windows::Abi::abi(self),
                         pwcsoldname.into_param().abi(),
                         pwcsnewname.into_param().abi(),
                     )
                 }
-                pub unsafe fn SetElementTimes<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
+                pub unsafe fn SetElementTimes<'a>(
                     &self,
-                    pwcsname: T0__,
+                    pwcsname: impl ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
                     pctime: *const super::WindowsProgramming::FILETIME,
                     patime: *const super::WindowsProgramming::FILETIME,
                     pmtime: *const super::WindowsProgramming::FILETIME,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).14)(
                         ::windows::Abi::abi(self),
                         pwcsname.into_param().abi(),
@@ -43966,10 +43033,7 @@ pub mod Windows {
                         ::std::mem::transmute(pmtime),
                     )
                 }
-                pub unsafe fn SetClass(
-                    &self,
-                    clsid: *const ::windows::Guid,
-                ) -> ::windows::ErrorCode {
+                pub unsafe fn SetClass(&self, clsid: *const ::windows::Guid) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).15)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(clsid),
@@ -43979,7 +43043,7 @@ pub mod Windows {
                     &self,
                     grfstatebits: u32,
                     grfmask: u32,
-                ) -> ::windows::ErrorCode {
+                ) -> ::windows::HRESULT {
                     (::windows::Interface::vtable(self).16)(
                         ::windows::Abi::abi(self),
                         ::std::mem::transmute(grfstatebits),
@@ -44016,7 +43080,7 @@ pub mod Windows {
                     this: ::windows::RawPtr,
                     iid: &::windows::Guid,
                     interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
                 pub  unsafe extern "system" fn(
@@ -44026,7 +43090,7 @@ pub mod Windows {
                     reserved1: u32,
                     reserved2: u32,
                     ppstm: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwcsname: super::SystemServices::PWSTR,
@@ -44034,7 +43098,7 @@ pub mod Windows {
                     grfmode: u32,
                     reserved2: u32,
                     ppstm: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwcsname: super::SystemServices::PWSTR,
@@ -44042,7 +43106,7 @@ pub mod Windows {
                     reserved1: u32,
                     reserved2: u32,
                     ppstg: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwcsname: super::SystemServices::PWSTR,
@@ -44051,52 +43115,52 @@ pub mod Windows {
                     snbexclude: *mut *mut u16,
                     reserved: u32,
                     ppstg: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     ciidexclude: u32,
                     rgiidexclude: *const ::windows::Guid,
                     snbexclude: *mut *mut u16,
                     pstgdest: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwcsname: super::SystemServices::PWSTR,
                     pstgdest: ::windows::RawPtr,
                     pwcsnewname: super::SystemServices::PWSTR,
                     grfflags: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     grfcommitflags: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
+                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(),
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwcsname: super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwcsoldname: super::SystemServices::PWSTR,
                     pwcsnewname: super::SystemServices::PWSTR,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     pwcsname: super::SystemServices::PWSTR,
                     pctime: *const super::WindowsProgramming::FILETIME,
                     patime: *const super::WindowsProgramming::FILETIME,
                     pmtime: *const super::WindowsProgramming::FILETIME,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     clsid: *const ::windows::Guid,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub  unsafe extern "system" fn(
                     this: ::windows::RawPtr,
                     grfstatebits: u32,
                     grfmask: u32,
-                ) -> ::windows::ErrorCode,
+                ) -> ::windows::HRESULT,
                 pub unsafe extern "system" fn(),
             );
             #[repr(C)]
@@ -45082,7 +44146,7 @@ pub mod Windows {
                     if self.as_bool() {
                         Ok(())
                     } else {
-                        Err(::windows::ErrorCode::from_thread().into())
+                        Err(::windows::HRESULT::from_thread().into())
                     }
                 }
                 #[inline]
@@ -45539,54 +44603,20 @@ pub mod Windows {
             unsafe impl ::windows::Abi for SECURITY_ATTRIBUTES {
                 type Abi = Self;
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn CreateEventA<
-                'a,
-                T1__: ::windows::IntoParam<'a, BOOL>,
-                T2__: ::windows::IntoParam<'a, BOOL>,
-                T3__: ::windows::IntoParam<'a, PSTR>,
-            >(
+            pub unsafe fn CreateEventA<'a>(
                 lpeventattributes: *mut SECURITY_ATTRIBUTES,
-                bmanualreset: T1__,
-                binitialstate: T2__,
-                lpname: T3__,
+                bmanualreset: impl ::windows::IntoParam<'a, BOOL>,
+                binitialstate: impl ::windows::IntoParam<'a, BOOL>,
+                lpname: impl ::windows::IntoParam<'a, PSTR>,
             ) -> HANDLE {
-                #[link(name = "KERNEL32")]
-                extern "system" {
-                    pub fn CreateEventA(
-                        lpeventattributes: *mut SECURITY_ATTRIBUTES,
-                        bmanualreset: BOOL,
-                        binitialstate: BOOL,
-                        lpname: PSTR,
-                    ) -> HANDLE;
-                }
-                CreateEventA(
-                    ::std::mem::transmute(lpeventattributes),
-                    bmanualreset.into_param().abi(),
-                    binitialstate.into_param().abi(),
-                    lpname.into_param().abi(),
-                )
+                panic!("Unsupported target OS");
             }
             pub const INVALID_HANDLE_VALUE: HANDLE = HANDLE(-1i32 as _);
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn ResetEvent<'a, T0__: ::windows::IntoParam<'a, HANDLE>>(
-                hevent: T0__,
-            ) -> BOOL {
-                #[link(name = "KERNEL32")]
-                extern "system" {
-                    pub fn ResetEvent(hevent: HANDLE) -> BOOL;
-                }
-                ResetEvent(hevent.into_param().abi())
+            pub unsafe fn ResetEvent<'a>(hevent: impl ::windows::IntoParam<'a, HANDLE>) -> BOOL {
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn SetEvent<'a, T0__: ::windows::IntoParam<'a, HANDLE>>(
-                hevent: T0__,
-            ) -> BOOL {
-                #[link(name = "KERNEL32")]
-                extern "system" {
-                    pub fn SetEvent(hevent: HANDLE) -> BOOL;
-                }
-                SetEvent(hevent.into_param().abi())
+            pub unsafe fn SetEvent<'a>(hevent: impl ::windows::IntoParam<'a, HANDLE>) -> BOOL {
+                panic!("Unsupported target OS");
             }
             #[derive(
                 :: std :: cmp :: PartialEq,
@@ -45636,49 +44666,23 @@ pub mod Windows {
                     self.0.bitand_assign(rhs.0)
                 }
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn WaitForSingleObject<'a, T0__: ::windows::IntoParam<'a, HANDLE>>(
-                hhandle: T0__,
+            pub unsafe fn WaitForSingleObject<'a>(
+                hhandle: impl ::windows::IntoParam<'a, HANDLE>,
                 dwmilliseconds: u32,
             ) -> WAIT_RETURN_CAUSE {
-                #[link(name = "KERNEL32")]
-                extern "system" {
-                    pub fn WaitForSingleObject(
-                        hhandle: HANDLE,
-                        dwmilliseconds: u32,
-                    ) -> WAIT_RETURN_CAUSE;
-                }
-                WaitForSingleObject(
-                    hhandle.into_param().abi(),
-                    ::std::mem::transmute(dwmilliseconds),
-                )
+                panic!("Unsupported target OS");
             }
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn WaitForMultipleObjects<'a, T2__: ::windows::IntoParam<'a, BOOL>>(
+            pub unsafe fn WaitForMultipleObjects<'a>(
                 ncount: u32,
                 lphandles: *const HANDLE,
-                bwaitall: T2__,
+                bwaitall: impl ::windows::IntoParam<'a, BOOL>,
                 dwmilliseconds: u32,
             ) -> WAIT_RETURN_CAUSE {
-                #[link(name = "KERNEL32")]
-                extern "system" {
-                    pub fn WaitForMultipleObjects(
-                        ncount: u32,
-                        lphandles: *const HANDLE,
-                        bwaitall: BOOL,
-                        dwmilliseconds: u32,
-                    ) -> WAIT_RETURN_CAUSE;
-                }
-                WaitForMultipleObjects(
-                    ::std::mem::transmute(ncount),
-                    ::std::mem::transmute(lphandles),
-                    bwaitall.into_param().abi(),
-                    ::std::mem::transmute(dwmilliseconds),
-                )
+                panic!("Unsupported target OS");
             }
             pub const FALSE: BOOL = BOOL(0i32 as _);
             pub const TRUE: BOOL = BOOL(1i32 as _);
-            pub const S_FALSE: ::windows::ErrorCode = ::windows::ErrorCode(1i32 as _);
+            pub const S_FALSE: ::windows::HRESULT = ::windows::HRESULT(1i32 as _);
         }
         #[allow(
             unused_variables,
@@ -45796,11 +44800,7 @@ pub mod Windows {
                 type Abi = Self;
             }
             pub unsafe fn GetForegroundWindow() -> HWND {
-                #[link(name = "USER32")]
-                extern "system" {
-                    pub fn GetForegroundWindow() -> HWND;
-                }
-                GetForegroundWindow()
+                panic!("Unsupported target OS");
             }
         }
         #[allow(
@@ -45847,20 +44847,10 @@ pub mod Windows {
                 type Abi = Self;
             }
             pub const INFINITE: u32 = 4294967295u32;
-            #[cfg(feature = "wasapi")]
-            pub unsafe fn CloseHandle<
-                'a,
-                T0__: ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
-            >(
-                hobject: T0__,
+            pub unsafe fn CloseHandle<'a>(
+                hobject: impl ::windows::IntoParam<'a, super::SystemServices::HANDLE>,
             ) -> super::SystemServices::BOOL {
-                #[link(name = "KERNEL32")]
-                extern "system" {
-                    pub fn CloseHandle(
-                        hobject: super::SystemServices::HANDLE,
-                    ) -> super::SystemServices::BOOL;
-                }
-                CloseHandle(hobject.into_param().abi())
+                panic!("Unsupported target OS");
             }
         }
         #[allow(
@@ -45904,3414 +44894,6 @@ pub mod Windows {
             impl ::std::cmp::Eq for PROPERTYKEY {}
             unsafe impl ::windows::Abi for PROPERTYKEY {
                 type Abi = Self;
-            }
-        }
-        #[allow(
-            unused_variables,
-            non_upper_case_globals,
-            non_snake_case,
-            unused_unsafe,
-            non_camel_case_types,
-            dead_code,
-            clippy::all
-        )]
-        pub mod XAudio2 {
-            pub struct Apis {}
-            impl Apis {}
-            impl ::windows::RuntimeName for Apis {
-                const NAME: &'static str = "Windows.Win32.XAudio2.Apis";
-            }
-            pub const AudioReverb: ::windows::Guid = ::windows::Guid::from_values(
-                3261283094,
-                18203,
-                17560,
-                [184, 197, 79, 9, 89, 226, 236, 9],
-            );
-            pub const AudioVolumeMeter: ::windows::Guid = ::windows::Guid::from_values(
-                1338224998,
-                38698,
-                16591,
-                [188, 55, 125, 176, 61, 178, 251, 163],
-            );
-            #[cfg(feature = "xaudio2")]
-            pub unsafe fn CreateAudioReverb(
-                ppapo: *mut ::std::option::Option<::windows::IUnknown>,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "XAudio2_9")]
-                extern "system" {
-                    pub fn CreateAudioReverb(ppapo: *mut ::windows::RawPtr)
-                        -> ::windows::ErrorCode;
-                }
-                CreateAudioReverb(::std::mem::transmute(ppapo))
-            }
-            #[cfg(feature = "xaudio2")]
-            pub unsafe fn CreateAudioVolumeMeter(
-                ppapo: *mut ::std::option::Option<::windows::IUnknown>,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "XAudio2_9")]
-                extern "system" {
-                    pub fn CreateAudioVolumeMeter(
-                        ppapo: *mut ::windows::RawPtr,
-                    ) -> ::windows::ErrorCode;
-                }
-                CreateAudioVolumeMeter(::std::mem::transmute(ppapo))
-            }
-            #[cfg(feature = "xaudio2")]
-            pub unsafe fn CreateFX(
-                clsid: *const ::windows::Guid,
-                peffect: *mut ::std::option::Option<::windows::IUnknown>,
-                pinitdat: *const ::std::ffi::c_void,
-                initdatabytesize: u32,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "XAudio2_9")]
-                extern "system" {
-                    pub fn CreateFX(
-                        clsid: *const ::windows::Guid,
-                        peffect: *mut ::windows::RawPtr,
-                        pinitdat: *const ::std::ffi::c_void,
-                        initdatabytesize: u32,
-                    ) -> ::windows::ErrorCode;
-                }
-                CreateFX(
-                    ::std::mem::transmute(clsid),
-                    ::std::mem::transmute(peffect),
-                    ::std::mem::transmute(pinitdat),
-                    ::std::mem::transmute(initdatabytesize),
-                )
-            }
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: marker :: Copy,
-                :: std :: clone :: Clone,
-                :: std :: default :: Default,
-                :: std :: fmt :: Debug,
-            )]
-            #[repr(transparent)]
-            pub struct HrtfDistanceDecayType(pub i32);
-            impl HrtfDistanceDecayType {
-                pub const NaturalDecay: Self = Self(0i32);
-                pub const CustomDecay: Self = Self(1i32);
-            }
-            impl ::std::convert::From<i32> for HrtfDistanceDecayType {
-                fn from(value: i32) -> Self {
-                    Self(value)
-                }
-            }
-            unsafe impl ::windows::Abi for HrtfDistanceDecayType {
-                type Abi = Self;
-            }
-            #[repr(C)]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct HrtfDistanceDecay {
-                pub r#type: HrtfDistanceDecayType,
-                pub maxGain: f32,
-                pub minGain: f32,
-                pub unityGainDistance: f32,
-                pub cutoffDistance: f32,
-            }
-            impl HrtfDistanceDecay {}
-            impl ::std::default::Default for HrtfDistanceDecay {
-                fn default() -> Self {
-                    Self {
-                        r#type: ::std::default::Default::default(),
-                        maxGain: 0.0,
-                        minGain: 0.0,
-                        unityGainDistance: 0.0,
-                        cutoffDistance: 0.0,
-                    }
-                }
-            }
-            impl ::std::fmt::Debug for HrtfDistanceDecay {
-                fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                    fmt.debug_struct("HrtfDistanceDecay")
-                        .field("r#type", &format_args!("{:?}", self.r#type))
-                        .field("maxGain", &format_args!("{:?}", self.maxGain))
-                        .field("minGain", &format_args!("{:?}", self.minGain))
-                        .field(
-                            "unityGainDistance",
-                            &format_args!("{:?}", self.unityGainDistance),
-                        )
-                        .field("cutoffDistance", &format_args!("{:?}", self.cutoffDistance))
-                        .finish()
-                }
-            }
-            impl ::std::cmp::PartialEq for HrtfDistanceDecay {
-                fn eq(&self, other: &Self) -> bool {
-                    self.r#type == other.r#type
-                        && self.maxGain == other.maxGain
-                        && self.minGain == other.minGain
-                        && self.unityGainDistance == other.unityGainDistance
-                        && self.cutoffDistance == other.cutoffDistance
-                }
-            }
-            impl ::std::cmp::Eq for HrtfDistanceDecay {}
-            unsafe impl ::windows::Abi for HrtfDistanceDecay {
-                type Abi = Self;
-            }
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: marker :: Copy,
-                :: std :: clone :: Clone,
-                :: std :: default :: Default,
-                :: std :: fmt :: Debug,
-            )]
-            #[repr(transparent)]
-            pub struct HrtfDirectivityType(pub i32);
-            impl HrtfDirectivityType {
-                pub const OmniDirectional: Self = Self(0i32);
-                pub const Cardioid: Self = Self(1i32);
-                pub const Cone: Self = Self(2i32);
-            }
-            impl ::std::convert::From<i32> for HrtfDirectivityType {
-                fn from(value: i32) -> Self {
-                    Self(value)
-                }
-            }
-            unsafe impl ::windows::Abi for HrtfDirectivityType {
-                type Abi = Self;
-            }
-            #[repr(C)]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct HrtfDirectivity {
-                pub r#type: HrtfDirectivityType,
-                pub scaling: f32,
-            }
-            impl HrtfDirectivity {}
-            impl ::std::default::Default for HrtfDirectivity {
-                fn default() -> Self {
-                    Self {
-                        r#type: ::std::default::Default::default(),
-                        scaling: 0.0,
-                    }
-                }
-            }
-            impl ::std::fmt::Debug for HrtfDirectivity {
-                fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                    fmt.debug_struct("HrtfDirectivity")
-                        .field("r#type", &format_args!("{:?}", self.r#type))
-                        .field("scaling", &format_args!("{:?}", self.scaling))
-                        .finish()
-                }
-            }
-            impl ::std::cmp::PartialEq for HrtfDirectivity {
-                fn eq(&self, other: &Self) -> bool {
-                    self.r#type == other.r#type && self.scaling == other.scaling
-                }
-            }
-            impl ::std::cmp::Eq for HrtfDirectivity {}
-            unsafe impl ::windows::Abi for HrtfDirectivity {
-                type Abi = Self;
-            }
-            #[repr(C)]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct HrtfApoInit {
-                pub distanceDecay: *mut HrtfDistanceDecay,
-                pub directivity: *mut HrtfDirectivity,
-            }
-            impl HrtfApoInit {}
-            impl ::std::default::Default for HrtfApoInit {
-                fn default() -> Self {
-                    Self {
-                        distanceDecay: ::std::ptr::null_mut(),
-                        directivity: ::std::ptr::null_mut(),
-                    }
-                }
-            }
-            impl ::std::fmt::Debug for HrtfApoInit {
-                fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                    fmt.debug_struct("HrtfApoInit")
-                        .field("distanceDecay", &format_args!("{:?}", self.distanceDecay))
-                        .field("directivity", &format_args!("{:?}", self.directivity))
-                        .finish()
-                }
-            }
-            impl ::std::cmp::PartialEq for HrtfApoInit {
-                fn eq(&self, other: &Self) -> bool {
-                    self.distanceDecay == other.distanceDecay
-                        && self.directivity == other.directivity
-                }
-            }
-            impl ::std::cmp::Eq for HrtfApoInit {}
-            unsafe impl ::windows::Abi for HrtfApoInit {
-                type Abi = Self;
-            }
-            #[repr(transparent)]
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: clone :: Clone,
-                :: std :: fmt :: Debug,
-            )]
-            pub struct IXAPO(::windows::IUnknown);
-            impl IXAPO {}
-            unsafe impl ::windows::Interface for IXAPO {
-                type Vtable = IXAPO_abi;
-                const IID: ::windows::Guid = ::windows::Guid::from_values(
-                    2752559492,
-                    38969,
-                    18457,
-                    [160, 190, 40, 86, 174, 107, 58, 219],
-                );
-            }
-            impl IXAPO {
-                pub unsafe fn GetRegistrationProperties(
-                    &self,
-                    ppregistrationproperties: *mut *mut XAPO_REGISTRATION_PROPERTIES,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).3)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(ppregistrationproperties),
-                    )
-                }
-                pub unsafe fn IsInputFormatSupported(
-                    &self,
-                    poutputformat: *const super::Multimedia::WAVEFORMATEX,
-                    prequestedinputformat: *const super::Multimedia::WAVEFORMATEX,
-                    ppsupportedinputformat: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).4)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(poutputformat),
-                        ::std::mem::transmute(prequestedinputformat),
-                        ::std::mem::transmute(ppsupportedinputformat),
-                    )
-                }
-                pub unsafe fn IsOutputFormatSupported(
-                    &self,
-                    pinputformat: *const super::Multimedia::WAVEFORMATEX,
-                    prequestedoutputformat: *const super::Multimedia::WAVEFORMATEX,
-                    ppsupportedoutputformat: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).5)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pinputformat),
-                        ::std::mem::transmute(prequestedoutputformat),
-                        ::std::mem::transmute(ppsupportedoutputformat),
-                    )
-                }
-                pub unsafe fn Initialize(
-                    &self,
-                    pdata: *const ::std::ffi::c_void,
-                    databytesize: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).6)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pdata),
-                        ::std::mem::transmute(databytesize),
-                    )
-                }
-                pub unsafe fn Reset(&self) {
-                    (::windows::Interface::vtable(self).7)(::windows::Abi::abi(self))
-                }
-                pub unsafe fn LockForProcess(
-                    &self,
-                    inputlockedparametercount: u32,
-                    pinputlockedparameters: *const XAPO_LOCKFORPROCESS_PARAMETERS,
-                    outputlockedparametercount: u32,
-                    poutputlockedparameters: *const XAPO_LOCKFORPROCESS_PARAMETERS,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).8)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(inputlockedparametercount),
-                        ::std::mem::transmute(pinputlockedparameters),
-                        ::std::mem::transmute(outputlockedparametercount),
-                        ::std::mem::transmute(poutputlockedparameters),
-                    )
-                }
-                pub unsafe fn UnlockForProcess(&self) {
-                    (::windows::Interface::vtable(self).9)(::windows::Abi::abi(self))
-                }
-                pub unsafe fn Process<
-                    'a,
-                    T4__: ::windows::IntoParam<'a, super::SystemServices::BOOL>,
-                >(
-                    &self,
-                    inputprocessparametercount: u32,
-                    pinputprocessparameters: *const XAPO_PROCESS_BUFFER_PARAMETERS,
-                    outputprocessparametercount: u32,
-                    poutputprocessparameters: *mut XAPO_PROCESS_BUFFER_PARAMETERS,
-                    isenabled: T4__,
-                ) {
-                    (::windows::Interface::vtable(self).10)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(inputprocessparametercount),
-                        ::std::mem::transmute(pinputprocessparameters),
-                        ::std::mem::transmute(outputprocessparametercount),
-                        ::std::mem::transmute(poutputprocessparameters),
-                        isenabled.into_param().abi(),
-                    )
-                }
-                pub unsafe fn CalcInputFrames(&self, outputframecount: u32) -> u32 {
-                    (::windows::Interface::vtable(self).11)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(outputframecount),
-                    )
-                }
-                pub unsafe fn CalcOutputFrames(&self, inputframecount: u32) -> u32 {
-                    (::windows::Interface::vtable(self).12)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(inputframecount),
-                    )
-                }
-            }
-            impl ::std::convert::From<IXAPO> for ::windows::IUnknown {
-                fn from(value: IXAPO) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAPO> for ::windows::IUnknown {
-                fn from(value: &IXAPO) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for IXAPO {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for &'a IXAPO {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            #[repr(C)]
-            #[doc(hidden)]
-            pub struct IXAPO_abi(
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    iid: &::windows::Guid,
-                    interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    ppregistrationproperties: *mut *mut XAPO_REGISTRATION_PROPERTIES,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    poutputformat: *const super::Multimedia::WAVEFORMATEX,
-                    prequestedinputformat: *const super::Multimedia::WAVEFORMATEX,
-                    ppsupportedinputformat: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pinputformat: *const super::Multimedia::WAVEFORMATEX,
-                    prequestedoutputformat: *const super::Multimedia::WAVEFORMATEX,
-                    ppsupportedoutputformat: *mut *mut super::Multimedia::WAVEFORMATEX,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdata: *const ::std::ffi::c_void,
-                    databytesize: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    inputlockedparametercount: u32,
-                    pinputlockedparameters: *const XAPO_LOCKFORPROCESS_PARAMETERS,
-                    outputlockedparametercount: u32,
-                    poutputlockedparameters: *const XAPO_LOCKFORPROCESS_PARAMETERS,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    inputprocessparametercount: u32,
-                    pinputprocessparameters: *const XAPO_PROCESS_BUFFER_PARAMETERS,
-                    outputprocessparametercount: u32,
-                    poutputprocessparameters: *mut XAPO_PROCESS_BUFFER_PARAMETERS,
-                    isenabled: super::SystemServices::BOOL,
-                ),
-                pub unsafe extern "system" fn(this: ::windows::RawPtr, outputframecount: u32) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr, inputframecount: u32) -> u32,
-            );
-            #[cfg(feature = "xaudio2")]
-            pub unsafe fn CreateHrtfApo(
-                init: *const HrtfApoInit,
-                xapo: *mut ::std::option::Option<IXAPO>,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "HrtfApo")]
-                extern "system" {
-                    pub fn CreateHrtfApo(
-                        init: *const HrtfApoInit,
-                        xapo: *mut ::windows::RawPtr,
-                    ) -> ::windows::ErrorCode;
-                }
-                CreateHrtfApo(::std::mem::transmute(init), ::std::mem::transmute(xapo))
-            }
-            pub const FACILITY_XAUDIO2: u32 = 2198u32;
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct FXECHO_INITDATA {
-                pub MaxDelay: f32,
-            }
-            impl FXECHO_INITDATA {}
-            unsafe impl ::windows::Abi for FXECHO_INITDATA {
-                type Abi = Self;
-            }
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct FXECHO_PARAMETERS {
-                pub WetDryMix: f32,
-                pub Feedback: f32,
-                pub Delay: f32,
-            }
-            impl FXECHO_PARAMETERS {}
-            unsafe impl ::windows::Abi for FXECHO_PARAMETERS {
-                type Abi = Self;
-            }
-            pub const FXEQ: ::windows::Guid = ::windows::Guid::from_values(
-                4125102359,
-                54980,
-                18522,
-                [163, 245, 105, 81, 150, 243, 219, 250],
-            );
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct FXEQ_PARAMETERS {
-                pub FrequencyCenter0: f32,
-                pub Gain0: f32,
-                pub Bandwidth0: f32,
-                pub FrequencyCenter1: f32,
-                pub Gain1: f32,
-                pub Bandwidth1: f32,
-                pub FrequencyCenter2: f32,
-                pub Gain2: f32,
-                pub Bandwidth2: f32,
-                pub FrequencyCenter3: f32,
-                pub Gain3: f32,
-                pub Bandwidth3: f32,
-            }
-            impl FXEQ_PARAMETERS {}
-            unsafe impl ::windows::Abi for FXEQ_PARAMETERS {
-                type Abi = Self;
-            }
-            pub const FXEcho: ::windows::Guid = ::windows::Guid::from_values(
-                1345967936,
-                63286,
-                17562,
-                [132, 211, 165, 98, 2, 85, 123, 135],
-            );
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct FXMASTERINGLIMITER_PARAMETERS {
-                pub Release: u32,
-                pub Loudness: u32,
-            }
-            impl FXMASTERINGLIMITER_PARAMETERS {}
-            unsafe impl ::windows::Abi for FXMASTERINGLIMITER_PARAMETERS {
-                type Abi = Self;
-            }
-            pub const FXMasteringLimiter: ::windows::Guid = ::windows::Guid::from_values(
-                3289610518,
-                11233,
-                18173,
-                [133, 153, 68, 21, 54, 244, 152, 86],
-            );
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct FXREVERB_PARAMETERS {
-                pub Diffusion: f32,
-                pub RoomSize: f32,
-            }
-            impl FXREVERB_PARAMETERS {}
-            unsafe impl ::windows::Abi for FXREVERB_PARAMETERS {
-                type Abi = Self;
-            }
-            pub const FXReverb: ::windows::Guid = ::windows::Guid::from_values(
-                2107296342,
-                52072,
-                18439,
-                [182, 50, 177, 55, 53, 46, 133, 150],
-            );
-            pub const HRTF_DEFAULT_UNITY_GAIN_DISTANCE: f32 = 1f32;
-            pub const HRTF_MAX_GAIN_LIMIT: f32 = 12f32;
-            pub const HRTF_MIN_GAIN_LIMIT: f32 = -96f32;
-            pub const HRTF_MIN_UNITY_GAIN_DISTANCE: f32 = 0.05f32;
-            #[repr(C)]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct HrtfDirectivityCardioid {
-                pub directivity: HrtfDirectivity,
-                pub order: f32,
-            }
-            impl HrtfDirectivityCardioid {}
-            impl ::std::default::Default for HrtfDirectivityCardioid {
-                fn default() -> Self {
-                    Self {
-                        directivity: ::std::default::Default::default(),
-                        order: 0.0,
-                    }
-                }
-            }
-            impl ::std::fmt::Debug for HrtfDirectivityCardioid {
-                fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                    fmt.debug_struct("HrtfDirectivityCardioid")
-                        .field("directivity", &format_args!("{:?}", self.directivity))
-                        .field("order", &format_args!("{:?}", self.order))
-                        .finish()
-                }
-            }
-            impl ::std::cmp::PartialEq for HrtfDirectivityCardioid {
-                fn eq(&self, other: &Self) -> bool {
-                    self.directivity == other.directivity && self.order == other.order
-                }
-            }
-            impl ::std::cmp::Eq for HrtfDirectivityCardioid {}
-            unsafe impl ::windows::Abi for HrtfDirectivityCardioid {
-                type Abi = Self;
-            }
-            #[repr(C)]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct HrtfDirectivityCone {
-                pub directivity: HrtfDirectivity,
-                pub innerAngle: f32,
-                pub outerAngle: f32,
-            }
-            impl HrtfDirectivityCone {}
-            impl ::std::default::Default for HrtfDirectivityCone {
-                fn default() -> Self {
-                    Self {
-                        directivity: ::std::default::Default::default(),
-                        innerAngle: 0.0,
-                        outerAngle: 0.0,
-                    }
-                }
-            }
-            impl ::std::fmt::Debug for HrtfDirectivityCone {
-                fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                    fmt.debug_struct("HrtfDirectivityCone")
-                        .field("directivity", &format_args!("{:?}", self.directivity))
-                        .field("innerAngle", &format_args!("{:?}", self.innerAngle))
-                        .field("outerAngle", &format_args!("{:?}", self.outerAngle))
-                        .finish()
-                }
-            }
-            impl ::std::cmp::PartialEq for HrtfDirectivityCone {
-                fn eq(&self, other: &Self) -> bool {
-                    self.directivity == other.directivity
-                        && self.innerAngle == other.innerAngle
-                        && self.outerAngle == other.outerAngle
-                }
-            }
-            impl ::std::cmp::Eq for HrtfDirectivityCone {}
-            unsafe impl ::windows::Abi for HrtfDirectivityCone {
-                type Abi = Self;
-            }
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: marker :: Copy,
-                :: std :: clone :: Clone,
-                :: std :: default :: Default,
-                :: std :: fmt :: Debug,
-            )]
-            #[repr(transparent)]
-            pub struct HrtfEnvironment(pub i32);
-            impl HrtfEnvironment {
-                pub const Small: Self = Self(0i32);
-                pub const Medium: Self = Self(1i32);
-                pub const Large: Self = Self(2i32);
-                pub const Outdoors: Self = Self(3i32);
-            }
-            impl ::std::convert::From<i32> for HrtfEnvironment {
-                fn from(value: i32) -> Self {
-                    Self(value)
-                }
-            }
-            unsafe impl ::windows::Abi for HrtfEnvironment {
-                type Abi = Self;
-            }
-            #[repr(C)]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct HrtfOrientation {
-                pub element: [f32; 9],
-            }
-            impl HrtfOrientation {}
-            impl ::std::default::Default for HrtfOrientation {
-                fn default() -> Self {
-                    Self { element: [0.0; 9] }
-                }
-            }
-            impl ::std::fmt::Debug for HrtfOrientation {
-                fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                    fmt.debug_struct("HrtfOrientation")
-                        .field("element", &format_args!("{:?}", self.element))
-                        .finish()
-                }
-            }
-            impl ::std::cmp::PartialEq for HrtfOrientation {
-                fn eq(&self, other: &Self) -> bool {
-                    self.element == other.element
-                }
-            }
-            impl ::std::cmp::Eq for HrtfOrientation {}
-            unsafe impl ::windows::Abi for HrtfOrientation {
-                type Abi = Self;
-            }
-            #[repr(C)]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct HrtfPosition {
-                pub x: f32,
-                pub y: f32,
-                pub z: f32,
-            }
-            impl HrtfPosition {}
-            impl ::std::default::Default for HrtfPosition {
-                fn default() -> Self {
-                    Self {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    }
-                }
-            }
-            impl ::std::fmt::Debug for HrtfPosition {
-                fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                    fmt.debug_struct("HrtfPosition")
-                        .field("x", &format_args!("{:?}", self.x))
-                        .field("y", &format_args!("{:?}", self.y))
-                        .field("z", &format_args!("{:?}", self.z))
-                        .finish()
-                }
-            }
-            impl ::std::cmp::PartialEq for HrtfPosition {
-                fn eq(&self, other: &Self) -> bool {
-                    self.x == other.x && self.y == other.y && self.z == other.z
-                }
-            }
-            impl ::std::cmp::Eq for HrtfPosition {}
-            unsafe impl ::windows::Abi for HrtfPosition {
-                type Abi = Self;
-            }
-            #[repr(transparent)]
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: clone :: Clone,
-                :: std :: fmt :: Debug,
-            )]
-            pub struct IXAPOHrtfParameters(::windows::IUnknown);
-            impl IXAPOHrtfParameters {}
-            unsafe impl ::windows::Interface for IXAPOHrtfParameters {
-                type Vtable = IXAPOHrtfParameters_abi;
-                const IID: ::windows::Guid = ::windows::Guid::from_values(
-                    364105062,
-                    59870,
-                    17508,
-                    [182, 230, 43, 195, 207, 99, 212, 85],
-                );
-            }
-            impl IXAPOHrtfParameters {
-                pub unsafe fn SetSourcePosition(
-                    &self,
-                    position: *const HrtfPosition,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).3)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(position),
-                    )
-                }
-                pub unsafe fn SetSourceOrientation(
-                    &self,
-                    orientation: *const HrtfOrientation,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).4)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(orientation),
-                    )
-                }
-                pub unsafe fn SetSourceGain(&self, gain: f32) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).5)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(gain),
-                    )
-                }
-                pub unsafe fn SetEnvironment(
-                    &self,
-                    environment: HrtfEnvironment,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).6)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(environment),
-                    )
-                }
-            }
-            impl ::std::convert::From<IXAPOHrtfParameters> for ::windows::IUnknown {
-                fn from(value: IXAPOHrtfParameters) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAPOHrtfParameters> for ::windows::IUnknown {
-                fn from(value: &IXAPOHrtfParameters) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for IXAPOHrtfParameters {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for &'a IXAPOHrtfParameters {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            #[repr(C)]
-            #[doc(hidden)]
-            pub struct IXAPOHrtfParameters_abi(
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    iid: &::windows::Guid,
-                    interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    position: *const HrtfPosition,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    orientation: *const HrtfOrientation,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    gain: f32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    environment: HrtfEnvironment,
-                ) -> ::windows::ErrorCode,
-            );
-            #[repr(transparent)]
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: clone :: Clone,
-                :: std :: fmt :: Debug,
-            )]
-            pub struct IXAPOParameters(::windows::IUnknown);
-            impl IXAPOParameters {}
-            unsafe impl ::windows::Interface for IXAPOParameters {
-                type Vtable = IXAPOParameters_abi;
-                const IID: ::windows::Guid = ::windows::Guid::from_values(
-                    651779174,
-                    33010,
-                    18842,
-                    [173, 84, 90, 231, 240, 28, 109, 152],
-                );
-            }
-            impl IXAPOParameters {
-                pub unsafe fn SetParameters(
-                    &self,
-                    pparameters: *const ::std::ffi::c_void,
-                    parameterbytesize: u32,
-                ) {
-                    (::windows::Interface::vtable(self).3)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(parameterbytesize),
-                    )
-                }
-                pub unsafe fn GetParameters(
-                    &self,
-                    pparameters: *mut ::std::ffi::c_void,
-                    parameterbytesize: u32,
-                ) {
-                    (::windows::Interface::vtable(self).4)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(parameterbytesize),
-                    )
-                }
-            }
-            impl ::std::convert::From<IXAPOParameters> for ::windows::IUnknown {
-                fn from(value: IXAPOParameters) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAPOParameters> for ::windows::IUnknown {
-                fn from(value: &IXAPOParameters) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for IXAPOParameters {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for &'a IXAPOParameters {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            #[repr(C)]
-            #[doc(hidden)]
-            pub struct IXAPOParameters_abi(
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    iid: &::windows::Guid,
-                    interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pparameters: *const ::std::ffi::c_void,
-                    parameterbytesize: u32,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pparameters: *mut ::std::ffi::c_void,
-                    parameterbytesize: u32,
-                ),
-            );
-            #[repr(transparent)]
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: clone :: Clone,
-                :: std :: fmt :: Debug,
-            )]
-            pub struct IXAudio2(::windows::IUnknown);
-            impl IXAudio2 {}
-            unsafe impl ::windows::Interface for IXAudio2 {
-                type Vtable = IXAudio2_abi;
-                const IID: ::windows::Guid = ::windows::Guid::from_values(
-                    721609679,
-                    11787,
-                    20163,
-                    [190, 69, 27, 42, 63, 231, 33, 13],
-                );
-            }
-            impl IXAudio2 {
-                pub unsafe fn RegisterForCallbacks<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IXAudio2EngineCallback>,
-                >(
-                    &self,
-                    pcallback: T0__,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).3)(
-                        ::windows::Abi::abi(self),
-                        pcallback.into_param().abi(),
-                    )
-                }
-                pub unsafe fn UnregisterForCallbacks<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IXAudio2EngineCallback>,
-                >(
-                    &self,
-                    pcallback: T0__,
-                ) {
-                    (::windows::Interface::vtable(self).4)(
-                        ::windows::Abi::abi(self),
-                        pcallback.into_param().abi(),
-                    )
-                }
-                pub unsafe fn CreateSourceVoice<
-                    'a,
-                    T4__: ::windows::IntoParam<'a, IXAudio2VoiceCallback>,
-                >(
-                    &self,
-                    ppsourcevoice: *mut ::std::option::Option<IXAudio2SourceVoice>,
-                    psourceformat: *const super::Multimedia::WAVEFORMATEX,
-                    flags: u32,
-                    maxfrequencyratio: f32,
-                    pcallback: T4__,
-                    psendlist: *const XAUDIO2_VOICE_SENDS,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).5)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(ppsourcevoice),
-                        ::std::mem::transmute(psourceformat),
-                        ::std::mem::transmute(flags),
-                        ::std::mem::transmute(maxfrequencyratio),
-                        pcallback.into_param().abi(),
-                        ::std::mem::transmute(psendlist),
-                        ::std::mem::transmute(peffectchain),
-                    )
-                }
-                pub unsafe fn CreateSubmixVoice(
-                    &self,
-                    ppsubmixvoice: *mut ::std::option::Option<IXAudio2SubmixVoice>,
-                    inputchannels: u32,
-                    inputsamplerate: u32,
-                    flags: u32,
-                    processingstage: u32,
-                    psendlist: *const XAUDIO2_VOICE_SENDS,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).6)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(ppsubmixvoice),
-                        ::std::mem::transmute(inputchannels),
-                        ::std::mem::transmute(inputsamplerate),
-                        ::std::mem::transmute(flags),
-                        ::std::mem::transmute(processingstage),
-                        ::std::mem::transmute(psendlist),
-                        ::std::mem::transmute(peffectchain),
-                    )
-                }
-                pub unsafe fn CreateMasteringVoice<
-                    'a,
-                    T4__: ::windows::IntoParam<'a, super::SystemServices::PWSTR>,
-                >(
-                    &self,
-                    ppmasteringvoice: *mut ::std::option::Option<IXAudio2MasteringVoice>,
-                    inputchannels: u32,
-                    inputsamplerate: u32,
-                    flags: u32,
-                    szdeviceid: T4__,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                    streamcategory: super::CoreAudio::AUDIO_STREAM_CATEGORY,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).7)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(ppmasteringvoice),
-                        ::std::mem::transmute(inputchannels),
-                        ::std::mem::transmute(inputsamplerate),
-                        ::std::mem::transmute(flags),
-                        szdeviceid.into_param().abi(),
-                        ::std::mem::transmute(peffectchain),
-                        ::std::mem::transmute(streamcategory),
-                    )
-                }
-                pub unsafe fn StartEngine(&self) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).8)(::windows::Abi::abi(self))
-                }
-                pub unsafe fn StopEngine(&self) {
-                    (::windows::Interface::vtable(self).9)(::windows::Abi::abi(self))
-                }
-                pub unsafe fn CommitChanges(&self, operationset: u32) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).10)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetPerformanceData(&self, pperfdata: *mut XAUDIO2_PERFORMANCE_DATA) {
-                    (::windows::Interface::vtable(self).11)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pperfdata),
-                    )
-                }
-                pub unsafe fn SetDebugConfiguration(
-                    &self,
-                    pdebugconfiguration: *const XAUDIO2_DEBUG_CONFIGURATION,
-                    preserved: *mut ::std::ffi::c_void,
-                ) {
-                    (::windows::Interface::vtable(self).12)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pdebugconfiguration),
-                        ::std::mem::transmute(preserved),
-                    )
-                }
-            }
-            impl ::std::convert::From<IXAudio2> for ::windows::IUnknown {
-                fn from(value: IXAudio2) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAudio2> for ::windows::IUnknown {
-                fn from(value: &IXAudio2) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for IXAudio2 {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for &'a IXAudio2 {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            #[repr(C)]
-            #[doc(hidden)]
-            pub struct IXAudio2_abi(
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    iid: &::windows::Guid,
-                    interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pcallback: ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr, pcallback: ::windows::RawPtr),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    ppsourcevoice: *mut ::windows::RawPtr,
-                    psourceformat: *const super::Multimedia::WAVEFORMATEX,
-                    flags: u32,
-                    maxfrequencyratio: f32,
-                    pcallback: ::windows::RawPtr,
-                    psendlist: *const XAUDIO2_VOICE_SENDS,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    ppsubmixvoice: *mut ::windows::RawPtr,
-                    inputchannels: u32,
-                    inputsamplerate: u32,
-                    flags: u32,
-                    processingstage: u32,
-                    psendlist: *const XAUDIO2_VOICE_SENDS,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    ppmasteringvoice: *mut ::windows::RawPtr,
-                    inputchannels: u32,
-                    inputsamplerate: u32,
-                    flags: u32,
-                    szdeviceid: super::SystemServices::PWSTR,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                    streamcategory: super::CoreAudio::AUDIO_STREAM_CATEGORY,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pperfdata: *mut XAUDIO2_PERFORMANCE_DATA,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdebugconfiguration: *const XAUDIO2_DEBUG_CONFIGURATION,
-                    preserved: *mut ::std::ffi::c_void,
-                ),
-            );
-            #[repr(transparent)]
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: clone :: Clone,
-                :: std :: fmt :: Debug,
-            )]
-            pub struct IXAudio2EngineCallback(::windows::IUnknown);
-            impl IXAudio2EngineCallback {}
-            unsafe impl ::windows::Interface for IXAudio2EngineCallback {
-                type Vtable = IXAudio2EngineCallback_abi;
-                const IID: ::windows::Guid = ::windows::Guid::zeroed();
-            }
-            impl IXAudio2EngineCallback {
-                pub unsafe fn OnProcessingPassStart(&self) {
-                    (::windows::Interface::vtable(self).3)(::windows::Abi::abi(self))
-                }
-                pub unsafe fn OnProcessingPassEnd(&self) {
-                    (::windows::Interface::vtable(self).4)(::windows::Abi::abi(self))
-                }
-                pub unsafe fn OnCriticalError(&self, error: ::windows::ErrorCode) {
-                    (::windows::Interface::vtable(self).5)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(error),
-                    )
-                }
-            }
-            impl ::std::convert::From<IXAudio2EngineCallback> for ::windows::IUnknown {
-                fn from(value: IXAudio2EngineCallback) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAudio2EngineCallback> for ::windows::IUnknown {
-                fn from(value: &IXAudio2EngineCallback) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for IXAudio2EngineCallback {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for &'a IXAudio2EngineCallback {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            #[repr(C)]
-            #[doc(hidden)]
-            pub struct IXAudio2EngineCallback_abi(
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    iid: &::windows::Guid,
-                    interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr),
-                pub unsafe extern "system" fn(this: ::windows::RawPtr),
-                pub unsafe extern "system" fn(this: ::windows::RawPtr, error: ::windows::ErrorCode),
-            );
-            #[repr(transparent)]
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: clone :: Clone,
-                :: std :: fmt :: Debug,
-            )]
-            pub struct IXAudio2Extension(::windows::IUnknown);
-            impl IXAudio2Extension {}
-            unsafe impl ::windows::Interface for IXAudio2Extension {
-                type Vtable = IXAudio2Extension_abi;
-                const IID: ::windows::Guid = ::windows::Guid::from_values(
-                    2225875387,
-                    54809,
-                    17618,
-                    [177, 151, 228, 172, 247, 223, 62, 214],
-                );
-            }
-            impl IXAudio2Extension {
-                pub unsafe fn GetProcessingQuantum(
-                    &self,
-                    quantumnumerator: *mut u32,
-                    quantumdenominator: *mut u32,
-                ) {
-                    (::windows::Interface::vtable(self).3)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(quantumnumerator),
-                        ::std::mem::transmute(quantumdenominator),
-                    )
-                }
-                pub unsafe fn GetProcessor(&self, processor: *mut u32) {
-                    (::windows::Interface::vtable(self).4)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(processor),
-                    )
-                }
-            }
-            impl ::std::convert::From<IXAudio2Extension> for ::windows::IUnknown {
-                fn from(value: IXAudio2Extension) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAudio2Extension> for ::windows::IUnknown {
-                fn from(value: &IXAudio2Extension) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for IXAudio2Extension {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for &'a IXAudio2Extension {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            #[repr(C)]
-            #[doc(hidden)]
-            pub struct IXAudio2Extension_abi(
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    iid: &::windows::Guid,
-                    interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    quantumnumerator: *mut u32,
-                    quantumdenominator: *mut u32,
-                ),
-                pub unsafe extern "system" fn(this: ::windows::RawPtr, processor: *mut u32),
-            );
-            #[repr(transparent)]
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: clone :: Clone,
-                :: std :: fmt :: Debug,
-            )]
-            pub struct IXAudio2Voice(::windows::IUnknown);
-            impl IXAudio2Voice {}
-            unsafe impl ::windows::Interface for IXAudio2Voice {
-                type Vtable = IXAudio2Voice_abi;
-                const IID: ::windows::Guid = ::windows::Guid::zeroed();
-            }
-            impl IXAudio2Voice {
-                pub unsafe fn GetVoiceDetails(&self, pvoicedetails: *mut XAUDIO2_VOICE_DETAILS) {
-                    (::windows::Interface::vtable(self).3)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pvoicedetails),
-                    )
-                }
-                pub unsafe fn SetOutputVoices(
-                    &self,
-                    psendlist: *const XAUDIO2_VOICE_SENDS,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).4)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(psendlist),
-                    )
-                }
-                pub unsafe fn SetEffectChain(
-                    &self,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).5)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(peffectchain),
-                    )
-                }
-                pub unsafe fn EnableEffect(
-                    &self,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).6)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn DisableEffect(
-                    &self,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).7)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetEffectState(
-                    &self,
-                    effectindex: u32,
-                    penabled: *mut super::SystemServices::BOOL,
-                ) {
-                    (::windows::Interface::vtable(self).8)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(penabled),
-                    )
-                }
-                pub unsafe fn SetEffectParameters(
-                    &self,
-                    effectindex: u32,
-                    pparameters: *const ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).9)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(parametersbytesize),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetEffectParameters(
-                    &self,
-                    effectindex: u32,
-                    pparameters: *mut ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).10)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(parametersbytesize),
-                    )
-                }
-                pub unsafe fn SetFilterParameters(
-                    &self,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).11)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetFilterParameters(
-                    &self,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ) {
-                    (::windows::Interface::vtable(self).12)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pparameters),
-                    )
-                }
-                pub unsafe fn SetOutputFilterParameters<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IXAudio2Voice>,
-                >(
-                    &self,
-                    pdestinationvoice: T0__,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).13)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetOutputFilterParameters<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IXAudio2Voice>,
-                >(
-                    &self,
-                    pdestinationvoice: T0__,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ) {
-                    (::windows::Interface::vtable(self).14)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(pparameters),
-                    )
-                }
-                pub unsafe fn SetVolume(
-                    &self,
-                    volume: f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).15)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(volume),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetVolume(&self, pvolume: *mut f32) {
-                    (::windows::Interface::vtable(self).16)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pvolume),
-                    )
-                }
-                pub unsafe fn SetChannelVolumes(
-                    &self,
-                    channels: u32,
-                    pvolumes: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).17)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(channels),
-                        ::std::mem::transmute(pvolumes),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetChannelVolumes(&self, channels: u32, pvolumes: *mut f32) {
-                    (::windows::Interface::vtable(self).18)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(channels),
-                        ::std::mem::transmute(pvolumes),
-                    )
-                }
-                pub unsafe fn SetOutputMatrix<'a, T0__: ::windows::IntoParam<'a, IXAudio2Voice>>(
-                    &self,
-                    pdestinationvoice: T0__,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).19)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(sourcechannels),
-                        ::std::mem::transmute(destinationchannels),
-                        ::std::mem::transmute(plevelmatrix),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetOutputMatrix<'a, T0__: ::windows::IntoParam<'a, IXAudio2Voice>>(
-                    &self,
-                    pdestinationvoice: T0__,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *mut f32,
-                ) {
-                    (::windows::Interface::vtable(self).20)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(sourcechannels),
-                        ::std::mem::transmute(destinationchannels),
-                        ::std::mem::transmute(plevelmatrix),
-                    )
-                }
-                pub unsafe fn DestroyVoice(&self) {
-                    (::windows::Interface::vtable(self).21)(::windows::Abi::abi(self))
-                }
-            }
-            impl ::std::convert::From<IXAudio2Voice> for ::windows::IUnknown {
-                fn from(value: IXAudio2Voice) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAudio2Voice> for ::windows::IUnknown {
-                fn from(value: &IXAudio2Voice) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for IXAudio2Voice {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for &'a IXAudio2Voice {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            #[repr(C)]
-            #[doc(hidden)]
-            pub struct IXAudio2Voice_abi(
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    iid: &::windows::Guid,
-                    interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pvoicedetails: *mut XAUDIO2_VOICE_DETAILS,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    psendlist: *const XAUDIO2_VOICE_SENDS,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    penabled: *mut super::SystemServices::BOOL,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    pparameters: *const ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    pparameters: *mut ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    volume: f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr, pvolume: *mut f32),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    channels: u32,
-                    pvolumes: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    channels: u32,
-                    pvolumes: *mut f32,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *mut f32,
-                ),
-                pub unsafe extern "system" fn(this: ::windows::RawPtr),
-            );
-            #[repr(transparent)]
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: clone :: Clone,
-                :: std :: fmt :: Debug,
-            )]
-            pub struct IXAudio2MasteringVoice(::windows::IUnknown);
-            impl IXAudio2MasteringVoice {}
-            unsafe impl ::windows::Interface for IXAudio2MasteringVoice {
-                type Vtable = IXAudio2MasteringVoice_abi;
-                const IID: ::windows::Guid = ::windows::Guid::zeroed();
-            }
-            impl IXAudio2MasteringVoice {
-                pub unsafe fn GetVoiceDetails(&self, pvoicedetails: *mut XAUDIO2_VOICE_DETAILS) {
-                    (::windows::Interface::vtable(self).3)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pvoicedetails),
-                    )
-                }
-                pub unsafe fn SetOutputVoices(
-                    &self,
-                    psendlist: *const XAUDIO2_VOICE_SENDS,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).4)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(psendlist),
-                    )
-                }
-                pub unsafe fn SetEffectChain(
-                    &self,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).5)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(peffectchain),
-                    )
-                }
-                pub unsafe fn EnableEffect(
-                    &self,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).6)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn DisableEffect(
-                    &self,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).7)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetEffectState(
-                    &self,
-                    effectindex: u32,
-                    penabled: *mut super::SystemServices::BOOL,
-                ) {
-                    (::windows::Interface::vtable(self).8)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(penabled),
-                    )
-                }
-                pub unsafe fn SetEffectParameters(
-                    &self,
-                    effectindex: u32,
-                    pparameters: *const ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).9)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(parametersbytesize),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetEffectParameters(
-                    &self,
-                    effectindex: u32,
-                    pparameters: *mut ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).10)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(parametersbytesize),
-                    )
-                }
-                pub unsafe fn SetFilterParameters(
-                    &self,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).11)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetFilterParameters(
-                    &self,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ) {
-                    (::windows::Interface::vtable(self).12)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pparameters),
-                    )
-                }
-                pub unsafe fn SetOutputFilterParameters<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IXAudio2Voice>,
-                >(
-                    &self,
-                    pdestinationvoice: T0__,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).13)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetOutputFilterParameters<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IXAudio2Voice>,
-                >(
-                    &self,
-                    pdestinationvoice: T0__,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ) {
-                    (::windows::Interface::vtable(self).14)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(pparameters),
-                    )
-                }
-                pub unsafe fn SetVolume(
-                    &self,
-                    volume: f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).15)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(volume),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetVolume(&self, pvolume: *mut f32) {
-                    (::windows::Interface::vtable(self).16)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pvolume),
-                    )
-                }
-                pub unsafe fn SetChannelVolumes(
-                    &self,
-                    channels: u32,
-                    pvolumes: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).17)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(channels),
-                        ::std::mem::transmute(pvolumes),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetChannelVolumes(&self, channels: u32, pvolumes: *mut f32) {
-                    (::windows::Interface::vtable(self).18)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(channels),
-                        ::std::mem::transmute(pvolumes),
-                    )
-                }
-                pub unsafe fn SetOutputMatrix<'a, T0__: ::windows::IntoParam<'a, IXAudio2Voice>>(
-                    &self,
-                    pdestinationvoice: T0__,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).19)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(sourcechannels),
-                        ::std::mem::transmute(destinationchannels),
-                        ::std::mem::transmute(plevelmatrix),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetOutputMatrix<'a, T0__: ::windows::IntoParam<'a, IXAudio2Voice>>(
-                    &self,
-                    pdestinationvoice: T0__,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *mut f32,
-                ) {
-                    (::windows::Interface::vtable(self).20)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(sourcechannels),
-                        ::std::mem::transmute(destinationchannels),
-                        ::std::mem::transmute(plevelmatrix),
-                    )
-                }
-                pub unsafe fn DestroyVoice(&self) {
-                    (::windows::Interface::vtable(self).21)(::windows::Abi::abi(self))
-                }
-                pub unsafe fn GetChannelMask(
-                    &self,
-                    pchannelmask: *mut u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).22)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pchannelmask),
-                    )
-                }
-            }
-            impl ::std::convert::From<IXAudio2MasteringVoice> for ::windows::IUnknown {
-                fn from(value: IXAudio2MasteringVoice) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAudio2MasteringVoice> for ::windows::IUnknown {
-                fn from(value: &IXAudio2MasteringVoice) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for IXAudio2MasteringVoice {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for &'a IXAudio2MasteringVoice {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            impl ::std::convert::From<IXAudio2MasteringVoice> for IXAudio2Voice {
-                fn from(value: IXAudio2MasteringVoice) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAudio2MasteringVoice> for IXAudio2Voice {
-                fn from(value: &IXAudio2MasteringVoice) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, IXAudio2Voice> for IXAudio2MasteringVoice {
-                fn into_param(self) -> ::windows::Param<'a, IXAudio2Voice> {
-                    ::windows::Param::Owned(::std::convert::Into::<IXAudio2Voice>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, IXAudio2Voice> for &'a IXAudio2MasteringVoice {
-                fn into_param(self) -> ::windows::Param<'a, IXAudio2Voice> {
-                    ::windows::Param::Owned(::std::convert::Into::<IXAudio2Voice>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            #[repr(C)]
-            #[doc(hidden)]
-            pub struct IXAudio2MasteringVoice_abi(
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    iid: &::windows::Guid,
-                    interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pvoicedetails: *mut XAUDIO2_VOICE_DETAILS,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    psendlist: *const XAUDIO2_VOICE_SENDS,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    penabled: *mut super::SystemServices::BOOL,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    pparameters: *const ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    pparameters: *mut ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    volume: f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr, pvolume: *mut f32),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    channels: u32,
-                    pvolumes: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    channels: u32,
-                    pvolumes: *mut f32,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *mut f32,
-                ),
-                pub unsafe extern "system" fn(this: ::windows::RawPtr),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pchannelmask: *mut u32,
-                ) -> ::windows::ErrorCode,
-            );
-            #[repr(transparent)]
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: clone :: Clone,
-                :: std :: fmt :: Debug,
-            )]
-            pub struct IXAudio2SourceVoice(::windows::IUnknown);
-            impl IXAudio2SourceVoice {}
-            unsafe impl ::windows::Interface for IXAudio2SourceVoice {
-                type Vtable = IXAudio2SourceVoice_abi;
-                const IID: ::windows::Guid = ::windows::Guid::zeroed();
-            }
-            impl IXAudio2SourceVoice {
-                pub unsafe fn GetVoiceDetails(&self, pvoicedetails: *mut XAUDIO2_VOICE_DETAILS) {
-                    (::windows::Interface::vtable(self).3)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pvoicedetails),
-                    )
-                }
-                pub unsafe fn SetOutputVoices(
-                    &self,
-                    psendlist: *const XAUDIO2_VOICE_SENDS,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).4)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(psendlist),
-                    )
-                }
-                pub unsafe fn SetEffectChain(
-                    &self,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).5)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(peffectchain),
-                    )
-                }
-                pub unsafe fn EnableEffect(
-                    &self,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).6)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn DisableEffect(
-                    &self,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).7)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetEffectState(
-                    &self,
-                    effectindex: u32,
-                    penabled: *mut super::SystemServices::BOOL,
-                ) {
-                    (::windows::Interface::vtable(self).8)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(penabled),
-                    )
-                }
-                pub unsafe fn SetEffectParameters(
-                    &self,
-                    effectindex: u32,
-                    pparameters: *const ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).9)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(parametersbytesize),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetEffectParameters(
-                    &self,
-                    effectindex: u32,
-                    pparameters: *mut ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).10)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(parametersbytesize),
-                    )
-                }
-                pub unsafe fn SetFilterParameters(
-                    &self,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).11)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetFilterParameters(
-                    &self,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ) {
-                    (::windows::Interface::vtable(self).12)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pparameters),
-                    )
-                }
-                pub unsafe fn SetOutputFilterParameters<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IXAudio2Voice>,
-                >(
-                    &self,
-                    pdestinationvoice: T0__,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).13)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetOutputFilterParameters<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IXAudio2Voice>,
-                >(
-                    &self,
-                    pdestinationvoice: T0__,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ) {
-                    (::windows::Interface::vtable(self).14)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(pparameters),
-                    )
-                }
-                pub unsafe fn SetVolume(
-                    &self,
-                    volume: f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).15)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(volume),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetVolume(&self, pvolume: *mut f32) {
-                    (::windows::Interface::vtable(self).16)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pvolume),
-                    )
-                }
-                pub unsafe fn SetChannelVolumes(
-                    &self,
-                    channels: u32,
-                    pvolumes: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).17)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(channels),
-                        ::std::mem::transmute(pvolumes),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetChannelVolumes(&self, channels: u32, pvolumes: *mut f32) {
-                    (::windows::Interface::vtable(self).18)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(channels),
-                        ::std::mem::transmute(pvolumes),
-                    )
-                }
-                pub unsafe fn SetOutputMatrix<'a, T0__: ::windows::IntoParam<'a, IXAudio2Voice>>(
-                    &self,
-                    pdestinationvoice: T0__,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).19)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(sourcechannels),
-                        ::std::mem::transmute(destinationchannels),
-                        ::std::mem::transmute(plevelmatrix),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetOutputMatrix<'a, T0__: ::windows::IntoParam<'a, IXAudio2Voice>>(
-                    &self,
-                    pdestinationvoice: T0__,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *mut f32,
-                ) {
-                    (::windows::Interface::vtable(self).20)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(sourcechannels),
-                        ::std::mem::transmute(destinationchannels),
-                        ::std::mem::transmute(plevelmatrix),
-                    )
-                }
-                pub unsafe fn DestroyVoice(&self) {
-                    (::windows::Interface::vtable(self).21)(::windows::Abi::abi(self))
-                }
-                pub unsafe fn Start(&self, flags: u32, operationset: u32) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).22)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(flags),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn Stop(&self, flags: u32, operationset: u32) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).23)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(flags),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn SubmitSourceBuffer(
-                    &self,
-                    pbuffer: *const XAUDIO2_BUFFER,
-                    pbufferwma: *const XAUDIO2_BUFFER_WMA,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).24)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pbuffer),
-                        ::std::mem::transmute(pbufferwma),
-                    )
-                }
-                pub unsafe fn FlushSourceBuffers(&self) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).25)(::windows::Abi::abi(self))
-                }
-                pub unsafe fn Discontinuity(&self) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).26)(::windows::Abi::abi(self))
-                }
-                pub unsafe fn ExitLoop(&self, operationset: u32) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).27)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetState(&self, pvoicestate: *mut XAUDIO2_VOICE_STATE, flags: u32) {
-                    (::windows::Interface::vtable(self).28)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pvoicestate),
-                        ::std::mem::transmute(flags),
-                    )
-                }
-                pub unsafe fn SetFrequencyRatio(
-                    &self,
-                    ratio: f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).29)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(ratio),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetFrequencyRatio(&self, pratio: *mut f32) {
-                    (::windows::Interface::vtable(self).30)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pratio),
-                    )
-                }
-                pub unsafe fn SetSourceSampleRate(
-                    &self,
-                    newsourcesamplerate: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).31)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(newsourcesamplerate),
-                    )
-                }
-            }
-            impl ::std::convert::From<IXAudio2SourceVoice> for ::windows::IUnknown {
-                fn from(value: IXAudio2SourceVoice) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAudio2SourceVoice> for ::windows::IUnknown {
-                fn from(value: &IXAudio2SourceVoice) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for IXAudio2SourceVoice {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for &'a IXAudio2SourceVoice {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            impl ::std::convert::From<IXAudio2SourceVoice> for IXAudio2Voice {
-                fn from(value: IXAudio2SourceVoice) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAudio2SourceVoice> for IXAudio2Voice {
-                fn from(value: &IXAudio2SourceVoice) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, IXAudio2Voice> for IXAudio2SourceVoice {
-                fn into_param(self) -> ::windows::Param<'a, IXAudio2Voice> {
-                    ::windows::Param::Owned(::std::convert::Into::<IXAudio2Voice>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, IXAudio2Voice> for &'a IXAudio2SourceVoice {
-                fn into_param(self) -> ::windows::Param<'a, IXAudio2Voice> {
-                    ::windows::Param::Owned(::std::convert::Into::<IXAudio2Voice>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            #[repr(C)]
-            #[doc(hidden)]
-            pub struct IXAudio2SourceVoice_abi(
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    iid: &::windows::Guid,
-                    interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pvoicedetails: *mut XAUDIO2_VOICE_DETAILS,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    psendlist: *const XAUDIO2_VOICE_SENDS,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    penabled: *mut super::SystemServices::BOOL,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    pparameters: *const ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    pparameters: *mut ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    volume: f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr, pvolume: *mut f32),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    channels: u32,
-                    pvolumes: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    channels: u32,
-                    pvolumes: *mut f32,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *mut f32,
-                ),
-                pub unsafe extern "system" fn(this: ::windows::RawPtr),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    flags: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    flags: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pbuffer: *const XAUDIO2_BUFFER,
-                    pbufferwma: *const XAUDIO2_BUFFER_WMA,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pvoicestate: *mut XAUDIO2_VOICE_STATE,
-                    flags: u32,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    ratio: f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr, pratio: *mut f32),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    newsourcesamplerate: u32,
-                ) -> ::windows::ErrorCode,
-            );
-            #[repr(transparent)]
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: clone :: Clone,
-                :: std :: fmt :: Debug,
-            )]
-            pub struct IXAudio2SubmixVoice(::windows::IUnknown);
-            impl IXAudio2SubmixVoice {}
-            unsafe impl ::windows::Interface for IXAudio2SubmixVoice {
-                type Vtable = IXAudio2SubmixVoice_abi;
-                const IID: ::windows::Guid = ::windows::Guid::zeroed();
-            }
-            impl IXAudio2SubmixVoice {
-                pub unsafe fn GetVoiceDetails(&self, pvoicedetails: *mut XAUDIO2_VOICE_DETAILS) {
-                    (::windows::Interface::vtable(self).3)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pvoicedetails),
-                    )
-                }
-                pub unsafe fn SetOutputVoices(
-                    &self,
-                    psendlist: *const XAUDIO2_VOICE_SENDS,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).4)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(psendlist),
-                    )
-                }
-                pub unsafe fn SetEffectChain(
-                    &self,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).5)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(peffectchain),
-                    )
-                }
-                pub unsafe fn EnableEffect(
-                    &self,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).6)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn DisableEffect(
-                    &self,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).7)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetEffectState(
-                    &self,
-                    effectindex: u32,
-                    penabled: *mut super::SystemServices::BOOL,
-                ) {
-                    (::windows::Interface::vtable(self).8)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(penabled),
-                    )
-                }
-                pub unsafe fn SetEffectParameters(
-                    &self,
-                    effectindex: u32,
-                    pparameters: *const ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).9)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(parametersbytesize),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetEffectParameters(
-                    &self,
-                    effectindex: u32,
-                    pparameters: *mut ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).10)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(effectindex),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(parametersbytesize),
-                    )
-                }
-                pub unsafe fn SetFilterParameters(
-                    &self,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).11)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetFilterParameters(
-                    &self,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ) {
-                    (::windows::Interface::vtable(self).12)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pparameters),
-                    )
-                }
-                pub unsafe fn SetOutputFilterParameters<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IXAudio2Voice>,
-                >(
-                    &self,
-                    pdestinationvoice: T0__,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).13)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(pparameters),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetOutputFilterParameters<
-                    'a,
-                    T0__: ::windows::IntoParam<'a, IXAudio2Voice>,
-                >(
-                    &self,
-                    pdestinationvoice: T0__,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ) {
-                    (::windows::Interface::vtable(self).14)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(pparameters),
-                    )
-                }
-                pub unsafe fn SetVolume(
-                    &self,
-                    volume: f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).15)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(volume),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetVolume(&self, pvolume: *mut f32) {
-                    (::windows::Interface::vtable(self).16)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pvolume),
-                    )
-                }
-                pub unsafe fn SetChannelVolumes(
-                    &self,
-                    channels: u32,
-                    pvolumes: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).17)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(channels),
-                        ::std::mem::transmute(pvolumes),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetChannelVolumes(&self, channels: u32, pvolumes: *mut f32) {
-                    (::windows::Interface::vtable(self).18)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(channels),
-                        ::std::mem::transmute(pvolumes),
-                    )
-                }
-                pub unsafe fn SetOutputMatrix<'a, T0__: ::windows::IntoParam<'a, IXAudio2Voice>>(
-                    &self,
-                    pdestinationvoice: T0__,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode {
-                    (::windows::Interface::vtable(self).19)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(sourcechannels),
-                        ::std::mem::transmute(destinationchannels),
-                        ::std::mem::transmute(plevelmatrix),
-                        ::std::mem::transmute(operationset),
-                    )
-                }
-                pub unsafe fn GetOutputMatrix<'a, T0__: ::windows::IntoParam<'a, IXAudio2Voice>>(
-                    &self,
-                    pdestinationvoice: T0__,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *mut f32,
-                ) {
-                    (::windows::Interface::vtable(self).20)(
-                        ::windows::Abi::abi(self),
-                        pdestinationvoice.into_param().abi(),
-                        ::std::mem::transmute(sourcechannels),
-                        ::std::mem::transmute(destinationchannels),
-                        ::std::mem::transmute(plevelmatrix),
-                    )
-                }
-                pub unsafe fn DestroyVoice(&self) {
-                    (::windows::Interface::vtable(self).21)(::windows::Abi::abi(self))
-                }
-            }
-            impl ::std::convert::From<IXAudio2SubmixVoice> for ::windows::IUnknown {
-                fn from(value: IXAudio2SubmixVoice) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAudio2SubmixVoice> for ::windows::IUnknown {
-                fn from(value: &IXAudio2SubmixVoice) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for IXAudio2SubmixVoice {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for &'a IXAudio2SubmixVoice {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            impl ::std::convert::From<IXAudio2SubmixVoice> for IXAudio2Voice {
-                fn from(value: IXAudio2SubmixVoice) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAudio2SubmixVoice> for IXAudio2Voice {
-                fn from(value: &IXAudio2SubmixVoice) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, IXAudio2Voice> for IXAudio2SubmixVoice {
-                fn into_param(self) -> ::windows::Param<'a, IXAudio2Voice> {
-                    ::windows::Param::Owned(::std::convert::Into::<IXAudio2Voice>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, IXAudio2Voice> for &'a IXAudio2SubmixVoice {
-                fn into_param(self) -> ::windows::Param<'a, IXAudio2Voice> {
-                    ::windows::Param::Owned(::std::convert::Into::<IXAudio2Voice>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            #[repr(C)]
-            #[doc(hidden)]
-            pub struct IXAudio2SubmixVoice_abi(
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    iid: &::windows::Guid,
-                    interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pvoicedetails: *mut XAUDIO2_VOICE_DETAILS,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    psendlist: *const XAUDIO2_VOICE_SENDS,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    peffectchain: *const XAUDIO2_EFFECT_CHAIN,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    penabled: *mut super::SystemServices::BOOL,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    pparameters: *const ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    effectindex: u32,
-                    pparameters: *mut ::std::ffi::c_void,
-                    parametersbytesize: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    pparameters: *const XAUDIO2_FILTER_PARAMETERS,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    pparameters: *mut XAUDIO2_FILTER_PARAMETERS,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    volume: f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr, pvolume: *mut f32),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    channels: u32,
-                    pvolumes: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    channels: u32,
-                    pvolumes: *mut f32,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *const f32,
-                    operationset: u32,
-                ) -> ::windows::ErrorCode,
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pdestinationvoice: ::windows::RawPtr,
-                    sourcechannels: u32,
-                    destinationchannels: u32,
-                    plevelmatrix: *mut f32,
-                ),
-                pub unsafe extern "system" fn(this: ::windows::RawPtr),
-            );
-            #[repr(transparent)]
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: clone :: Clone,
-                :: std :: fmt :: Debug,
-            )]
-            pub struct IXAudio2VoiceCallback(::windows::IUnknown);
-            impl IXAudio2VoiceCallback {}
-            unsafe impl ::windows::Interface for IXAudio2VoiceCallback {
-                type Vtable = IXAudio2VoiceCallback_abi;
-                const IID: ::windows::Guid = ::windows::Guid::zeroed();
-            }
-            impl IXAudio2VoiceCallback {
-                pub unsafe fn OnVoiceProcessingPassStart(&self, bytesrequired: u32) {
-                    (::windows::Interface::vtable(self).3)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(bytesrequired),
-                    )
-                }
-                pub unsafe fn OnVoiceProcessingPassEnd(&self) {
-                    (::windows::Interface::vtable(self).4)(::windows::Abi::abi(self))
-                }
-                pub unsafe fn OnStreamEnd(&self) {
-                    (::windows::Interface::vtable(self).5)(::windows::Abi::abi(self))
-                }
-                pub unsafe fn OnBufferStart(&self, pbuffercontext: *mut ::std::ffi::c_void) {
-                    (::windows::Interface::vtable(self).6)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pbuffercontext),
-                    )
-                }
-                pub unsafe fn OnBufferEnd(&self, pbuffercontext: *mut ::std::ffi::c_void) {
-                    (::windows::Interface::vtable(self).7)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pbuffercontext),
-                    )
-                }
-                pub unsafe fn OnLoopEnd(&self, pbuffercontext: *mut ::std::ffi::c_void) {
-                    (::windows::Interface::vtable(self).8)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pbuffercontext),
-                    )
-                }
-                pub unsafe fn OnVoiceError(
-                    &self,
-                    pbuffercontext: *mut ::std::ffi::c_void,
-                    error: ::windows::ErrorCode,
-                ) {
-                    (::windows::Interface::vtable(self).9)(
-                        ::windows::Abi::abi(self),
-                        ::std::mem::transmute(pbuffercontext),
-                        ::std::mem::transmute(error),
-                    )
-                }
-            }
-            impl ::std::convert::From<IXAudio2VoiceCallback> for ::windows::IUnknown {
-                fn from(value: IXAudio2VoiceCallback) -> Self {
-                    unsafe { ::std::mem::transmute(value) }
-                }
-            }
-            impl ::std::convert::From<&IXAudio2VoiceCallback> for ::windows::IUnknown {
-                fn from(value: &IXAudio2VoiceCallback) -> Self {
-                    ::std::convert::From::from(::std::clone::Clone::clone(value))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for IXAudio2VoiceCallback {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(self))
-                }
-            }
-            impl<'a> ::windows::IntoParam<'a, ::windows::IUnknown> for &'a IXAudio2VoiceCallback {
-                fn into_param(self) -> ::windows::Param<'a, ::windows::IUnknown> {
-                    ::windows::Param::Owned(::std::convert::Into::<::windows::IUnknown>::into(
-                        ::std::clone::Clone::clone(self),
-                    ))
-                }
-            }
-            #[repr(C)]
-            #[doc(hidden)]
-            pub struct IXAudio2VoiceCallback_abi(
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    iid: &::windows::Guid,
-                    interface: *mut ::windows::RawPtr,
-                ) -> ::windows::ErrorCode,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr) -> u32,
-                pub unsafe extern "system" fn(this: ::windows::RawPtr, bytesrequired: u32),
-                pub unsafe extern "system" fn(this: ::windows::RawPtr),
-                pub unsafe extern "system" fn(this: ::windows::RawPtr),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pbuffercontext: *mut ::std::ffi::c_void,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pbuffercontext: *mut ::std::ffi::c_void,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pbuffercontext: *mut ::std::ffi::c_void,
-                ),
-                pub  unsafe extern "system" fn(
-                    this: ::windows::RawPtr,
-                    pbuffercontext: *mut ::std::ffi::c_void,
-                    error: ::windows::ErrorCode,
-                ),
-            );
-            pub const Processor1: u32 = 1u32;
-            pub const Processor10: u32 = 512u32;
-            pub const Processor11: u32 = 1024u32;
-            pub const Processor12: u32 = 2048u32;
-            pub const Processor13: u32 = 4096u32;
-            pub const Processor14: u32 = 8192u32;
-            pub const Processor15: u32 = 16384u32;
-            pub const Processor16: u32 = 32768u32;
-            pub const Processor17: u32 = 65536u32;
-            pub const Processor18: u32 = 131072u32;
-            pub const Processor19: u32 = 262144u32;
-            pub const Processor2: u32 = 2u32;
-            pub const Processor20: u32 = 524288u32;
-            pub const Processor21: u32 = 1048576u32;
-            pub const Processor22: u32 = 2097152u32;
-            pub const Processor23: u32 = 4194304u32;
-            pub const Processor24: u32 = 8388608u32;
-            pub const Processor25: u32 = 16777216u32;
-            pub const Processor26: u32 = 33554432u32;
-            pub const Processor27: u32 = 67108864u32;
-            pub const Processor28: u32 = 134217728u32;
-            pub const Processor29: u32 = 268435456u32;
-            pub const Processor3: u32 = 4u32;
-            pub const Processor30: u32 = 536870912u32;
-            pub const Processor31: u32 = 1073741824u32;
-            pub const Processor32: u32 = 2147483648u32;
-            pub const Processor4: u32 = 8u32;
-            pub const Processor5: u32 = 16u32;
-            pub const Processor6: u32 = 32u32;
-            pub const Processor7: u32 = 64u32;
-            pub const Processor8: u32 = 128u32;
-            pub const Processor9: u32 = 256u32;
-            pub const X3DAUDIO_2PI: f32 = 6.2831855f32;
-            pub const X3DAUDIO_CALCULATE_DELAY: u32 = 2u32;
-            pub const X3DAUDIO_CALCULATE_DOPPLER: u32 = 32u32;
-            pub const X3DAUDIO_CALCULATE_EMITTER_ANGLE: u32 = 64u32;
-            pub const X3DAUDIO_CALCULATE_LPF_DIRECT: u32 = 4u32;
-            pub const X3DAUDIO_CALCULATE_LPF_REVERB: u32 = 8u32;
-            pub const X3DAUDIO_CALCULATE_MATRIX: u32 = 1u32;
-            pub const X3DAUDIO_CALCULATE_REDIRECT_TO_LFE: u32 = 131072u32;
-            pub const X3DAUDIO_CALCULATE_REVERB: u32 = 16u32;
-            pub const X3DAUDIO_CALCULATE_ZEROCENTER: u32 = 65536u32;
-            pub const X3DAUDIO_HANDLE_BYTESIZE: u32 = 20u32;
-            pub const X3DAUDIO_PI: f32 = 3.1415927f32;
-            pub const X3DAUDIO_SPEED_OF_SOUND: f32 = 343.5f32;
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: marker :: Copy,
-                :: std :: clone :: Clone,
-                :: std :: default :: Default,
-                :: std :: fmt :: Debug,
-            )]
-            #[repr(transparent)]
-            pub struct XAPO_BUFFER_FLAGS(pub i32);
-            impl XAPO_BUFFER_FLAGS {
-                pub const XAPO_BUFFER_SILENT: Self = Self(0i32);
-                pub const XAPO_BUFFER_VALID: Self = Self(1i32);
-            }
-            impl ::std::convert::From<i32> for XAPO_BUFFER_FLAGS {
-                fn from(value: i32) -> Self {
-                    Self(value)
-                }
-            }
-            unsafe impl ::windows::Abi for XAPO_BUFFER_FLAGS {
-                type Abi = Self;
-            }
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAPO_LOCKFORPROCESS_PARAMETERS {
-                pub pFormat: *mut super::Multimedia::WAVEFORMATEX,
-                pub MaxFrameCount: u32,
-            }
-            impl XAPO_LOCKFORPROCESS_PARAMETERS {}
-            unsafe impl ::windows::Abi for XAPO_LOCKFORPROCESS_PARAMETERS {
-                type Abi = Self;
-            }
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAPO_PROCESS_BUFFER_PARAMETERS {
-                pub pBuffer: *mut ::std::ffi::c_void,
-                pub BufferFlags: XAPO_BUFFER_FLAGS,
-                pub ValidFrameCount: u32,
-            }
-            impl XAPO_PROCESS_BUFFER_PARAMETERS {}
-            unsafe impl ::windows::Abi for XAPO_PROCESS_BUFFER_PARAMETERS {
-                type Abi = Self;
-            }
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAPO_REGISTRATION_PROPERTIES {
-                pub clsid: ::windows::Guid,
-                pub FriendlyName: [u16; 256],
-                pub CopyrightInfo: [u16; 256],
-                pub MajorVersion: u32,
-                pub MinorVersion: u32,
-                pub Flags: u32,
-                pub MinInputBufferCount: u32,
-                pub MaxInputBufferCount: u32,
-                pub MinOutputBufferCount: u32,
-                pub MaxOutputBufferCount: u32,
-            }
-            impl XAPO_REGISTRATION_PROPERTIES {}
-            unsafe impl ::windows::Abi for XAPO_REGISTRATION_PROPERTIES {
-                type Abi = Self;
-            }
-            pub const XAUDIO2FX_REVERB_DEFAULT_7POINT1_REAR_DELAY: u32 = 20u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_7POINT1_SIDE_DELAY: u32 = 5u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_DECAY_TIME: f32 = 1f32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_DENSITY: f32 = 100f32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_DISABLE_LATE_FIELD: u32 = 0u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_EARLY_DIFFUSION: u32 = 8u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_HIGH_EQ_CUTOFF: u32 = 4u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_HIGH_EQ_GAIN: u32 = 8u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_LATE_DIFFUSION: u32 = 8u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_LOW_EQ_CUTOFF: u32 = 4u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_LOW_EQ_GAIN: u32 = 8u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_POSITION: u32 = 6u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_POSITION_MATRIX: u32 = 27u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_REAR_DELAY: u32 = 5u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_REFLECTIONS_DELAY: u32 = 5u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_REFLECTIONS_GAIN: f32 = 0f32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_REVERB_DELAY: u32 = 5u32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_REVERB_GAIN: f32 = 0f32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_ROOM_FILTER_FREQ: f32 = 5000f32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_ROOM_FILTER_HF: f32 = 0f32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_ROOM_FILTER_MAIN: f32 = 0f32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_ROOM_SIZE: f32 = 100f32;
-            pub const XAUDIO2FX_REVERB_DEFAULT_WET_DRY_MIX: f32 = 100f32;
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2FX_REVERB_I3DL2_PARAMETERS {
-                pub WetDryMix: f32,
-                pub Room: i32,
-                pub RoomHF: i32,
-                pub RoomRolloffFactor: f32,
-                pub DecayTime: f32,
-                pub DecayHFRatio: f32,
-                pub Reflections: i32,
-                pub ReflectionsDelay: f32,
-                pub Reverb: i32,
-                pub ReverbDelay: f32,
-                pub Diffusion: f32,
-                pub Density: f32,
-                pub HFReference: f32,
-            }
-            impl XAUDIO2FX_REVERB_I3DL2_PARAMETERS {}
-            unsafe impl ::windows::Abi for XAUDIO2FX_REVERB_I3DL2_PARAMETERS {
-                type Abi = Self;
-            }
-            pub const XAUDIO2FX_REVERB_MAX_7POINT1_REAR_DELAY: u32 = 20u32;
-            pub const XAUDIO2FX_REVERB_MAX_7POINT1_SIDE_DELAY: u32 = 5u32;
-            pub const XAUDIO2FX_REVERB_MAX_DENSITY: f32 = 100f32;
-            pub const XAUDIO2FX_REVERB_MAX_DIFFUSION: u32 = 15u32;
-            pub const XAUDIO2FX_REVERB_MAX_FRAMERATE: u32 = 48000u32;
-            pub const XAUDIO2FX_REVERB_MAX_HIGH_EQ_CUTOFF: u32 = 14u32;
-            pub const XAUDIO2FX_REVERB_MAX_HIGH_EQ_GAIN: u32 = 8u32;
-            pub const XAUDIO2FX_REVERB_MAX_LOW_EQ_CUTOFF: u32 = 9u32;
-            pub const XAUDIO2FX_REVERB_MAX_LOW_EQ_GAIN: u32 = 12u32;
-            pub const XAUDIO2FX_REVERB_MAX_POSITION: u32 = 30u32;
-            pub const XAUDIO2FX_REVERB_MAX_REAR_DELAY: u32 = 5u32;
-            pub const XAUDIO2FX_REVERB_MAX_REFLECTIONS_DELAY: u32 = 300u32;
-            pub const XAUDIO2FX_REVERB_MAX_REFLECTIONS_GAIN: f32 = 20f32;
-            pub const XAUDIO2FX_REVERB_MAX_REVERB_DELAY: u32 = 85u32;
-            pub const XAUDIO2FX_REVERB_MAX_REVERB_GAIN: f32 = 20f32;
-            pub const XAUDIO2FX_REVERB_MAX_ROOM_FILTER_FREQ: f32 = 20000f32;
-            pub const XAUDIO2FX_REVERB_MAX_ROOM_FILTER_HF: f32 = 0f32;
-            pub const XAUDIO2FX_REVERB_MAX_ROOM_FILTER_MAIN: f32 = 0f32;
-            pub const XAUDIO2FX_REVERB_MAX_ROOM_SIZE: f32 = 100f32;
-            pub const XAUDIO2FX_REVERB_MAX_WET_DRY_MIX: f32 = 100f32;
-            pub const XAUDIO2FX_REVERB_MIN_7POINT1_REAR_DELAY: u32 = 0u32;
-            pub const XAUDIO2FX_REVERB_MIN_7POINT1_SIDE_DELAY: u32 = 0u32;
-            pub const XAUDIO2FX_REVERB_MIN_DECAY_TIME: f32 = 0.1f32;
-            pub const XAUDIO2FX_REVERB_MIN_DENSITY: f32 = 0f32;
-            pub const XAUDIO2FX_REVERB_MIN_DIFFUSION: u32 = 0u32;
-            pub const XAUDIO2FX_REVERB_MIN_FRAMERATE: u32 = 20000u32;
-            pub const XAUDIO2FX_REVERB_MIN_HIGH_EQ_CUTOFF: u32 = 0u32;
-            pub const XAUDIO2FX_REVERB_MIN_HIGH_EQ_GAIN: u32 = 0u32;
-            pub const XAUDIO2FX_REVERB_MIN_LOW_EQ_CUTOFF: u32 = 0u32;
-            pub const XAUDIO2FX_REVERB_MIN_LOW_EQ_GAIN: u32 = 0u32;
-            pub const XAUDIO2FX_REVERB_MIN_POSITION: u32 = 0u32;
-            pub const XAUDIO2FX_REVERB_MIN_REAR_DELAY: u32 = 0u32;
-            pub const XAUDIO2FX_REVERB_MIN_REFLECTIONS_DELAY: u32 = 0u32;
-            pub const XAUDIO2FX_REVERB_MIN_REFLECTIONS_GAIN: f32 = -100f32;
-            pub const XAUDIO2FX_REVERB_MIN_REVERB_DELAY: u32 = 0u32;
-            pub const XAUDIO2FX_REVERB_MIN_REVERB_GAIN: f32 = -100f32;
-            pub const XAUDIO2FX_REVERB_MIN_ROOM_FILTER_FREQ: f32 = 20f32;
-            pub const XAUDIO2FX_REVERB_MIN_ROOM_FILTER_HF: f32 = -100f32;
-            pub const XAUDIO2FX_REVERB_MIN_ROOM_FILTER_MAIN: f32 = -100f32;
-            pub const XAUDIO2FX_REVERB_MIN_ROOM_SIZE: f32 = 0f32;
-            pub const XAUDIO2FX_REVERB_MIN_WET_DRY_MIX: f32 = 0f32;
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2FX_REVERB_PARAMETERS {
-                pub WetDryMix: f32,
-                pub ReflectionsDelay: u32,
-                pub ReverbDelay: u8,
-                pub RearDelay: u8,
-                pub SideDelay: u8,
-                pub PositionLeft: u8,
-                pub PositionRight: u8,
-                pub PositionMatrixLeft: u8,
-                pub PositionMatrixRight: u8,
-                pub EarlyDiffusion: u8,
-                pub LateDiffusion: u8,
-                pub LowEQGain: u8,
-                pub LowEQCutoff: u8,
-                pub HighEQGain: u8,
-                pub HighEQCutoff: u8,
-                pub RoomFilterFreq: f32,
-                pub RoomFilterMain: f32,
-                pub RoomFilterHF: f32,
-                pub ReflectionsGain: f32,
-                pub ReverbGain: f32,
-                pub DecayTime: f32,
-                pub Density: f32,
-                pub RoomSize: f32,
-                pub DisableLateField: super::SystemServices::BOOL,
-            }
-            impl XAUDIO2FX_REVERB_PARAMETERS {}
-            unsafe impl ::windows::Abi for XAUDIO2FX_REVERB_PARAMETERS {
-                type Abi = Self;
-            }
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2FX_VOLUMEMETER_LEVELS {
-                pub pPeakLevels: *mut f32,
-                pub pRMSLevels: *mut f32,
-                pub ChannelCount: u32,
-            }
-            impl XAUDIO2FX_VOLUMEMETER_LEVELS {}
-            unsafe impl ::windows::Abi for XAUDIO2FX_VOLUMEMETER_LEVELS {
-                type Abi = Self;
-            }
-            pub const XAUDIO2_1024_QUANTUM: u32 = 32768u32;
-            pub const XAUDIO2_ANY_PROCESSOR: u32 = 4294967295u32;
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2_BUFFER {
-                pub Flags: u32,
-                pub AudioBytes: u32,
-                pub pAudioData: *mut u8,
-                pub PlayBegin: u32,
-                pub PlayLength: u32,
-                pub LoopBegin: u32,
-                pub LoopLength: u32,
-                pub LoopCount: u32,
-                pub pContext: *mut ::std::ffi::c_void,
-            }
-            impl XAUDIO2_BUFFER {}
-            unsafe impl ::windows::Abi for XAUDIO2_BUFFER {
-                type Abi = Self;
-            }
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2_BUFFER_WMA {
-                pub pDecodedPacketCumulativeBytes: *mut u32,
-                pub PacketCount: u32,
-            }
-            impl XAUDIO2_BUFFER_WMA {}
-            unsafe impl ::windows::Abi for XAUDIO2_BUFFER_WMA {
-                type Abi = Self;
-            }
-            pub const XAUDIO2_COMMIT_ALL: u32 = 0u32;
-            pub const XAUDIO2_COMMIT_NOW: u32 = 0u32;
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2_DEBUG_CONFIGURATION {
-                pub TraceMask: u32,
-                pub BreakMask: u32,
-                pub LogThreadID: super::SystemServices::BOOL,
-                pub LogFileline: super::SystemServices::BOOL,
-                pub LogFunctionName: super::SystemServices::BOOL,
-                pub LogTiming: super::SystemServices::BOOL,
-            }
-            impl XAUDIO2_DEBUG_CONFIGURATION {}
-            unsafe impl ::windows::Abi for XAUDIO2_DEBUG_CONFIGURATION {
-                type Abi = Self;
-            }
-            pub const XAUDIO2_DEBUG_ENGINE: u32 = 1u32;
-            pub const XAUDIO2_DEFAULT_CHANNELS: u32 = 0u32;
-            pub const XAUDIO2_DEFAULT_FILTER_ONEOVERQ: f32 = 1f32;
-            pub const XAUDIO2_DEFAULT_FREQ_RATIO: f32 = 2f32;
-            pub const XAUDIO2_DEFAULT_SAMPLERATE: u32 = 0u32;
-            #[repr(C, packed(1))]
-            pub struct XAUDIO2_EFFECT_DESCRIPTOR {
-                pub pEffect: ::std::option::Option<::windows::IUnknown>,
-                pub InitialState: super::SystemServices::BOOL,
-                pub OutputChannels: u32,
-            }
-            impl XAUDIO2_EFFECT_DESCRIPTOR {}
-            #[repr(C, packed(1))]
-            #[doc(hidden)]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2_EFFECT_DESCRIPTOR_abi {
-                pub pEffect: ::windows::RawPtr,
-                pub InitialState: super::SystemServices::BOOL,
-                pub OutputChannels: u32,
-            }
-            unsafe impl ::windows::Abi for XAUDIO2_EFFECT_DESCRIPTOR {
-                type Abi = XAUDIO2_EFFECT_DESCRIPTOR_abi;
-            }
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2_EFFECT_CHAIN {
-                pub EffectCount: u32,
-                pub pEffectDescriptors: *mut XAUDIO2_EFFECT_DESCRIPTOR,
-            }
-            impl XAUDIO2_EFFECT_CHAIN {}
-            unsafe impl ::windows::Abi for XAUDIO2_EFFECT_CHAIN {
-                type Abi = Self;
-            }
-            pub const XAUDIO2_END_OF_STREAM: u32 = 64u32;
-            pub const XAUDIO2_E_DEVICE_INVALIDATED: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2003435516i32 as _);
-            pub const XAUDIO2_E_INVALID_CALL: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2003435519i32 as _);
-            pub const XAUDIO2_E_XAPO_CREATION_FAILED: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2003435517i32 as _);
-            pub const XAUDIO2_E_XMA_DECODER_ERROR: ::windows::ErrorCode =
-                ::windows::ErrorCode(-2003435518i32 as _);
-            #[derive(
-                :: std :: cmp :: PartialEq,
-                :: std :: cmp :: Eq,
-                :: std :: marker :: Copy,
-                :: std :: clone :: Clone,
-                :: std :: default :: Default,
-                :: std :: fmt :: Debug,
-            )]
-            #[repr(transparent)]
-            pub struct XAUDIO2_FILTER_TYPE(pub i32);
-            impl XAUDIO2_FILTER_TYPE {
-                pub const LowPassFilter: Self = Self(0i32);
-                pub const BandPassFilter: Self = Self(1i32);
-                pub const HighPassFilter: Self = Self(2i32);
-                pub const NotchFilter: Self = Self(3i32);
-                pub const LowPassOnePoleFilter: Self = Self(4i32);
-                pub const HighPassOnePoleFilter: Self = Self(5i32);
-            }
-            impl ::std::convert::From<i32> for XAUDIO2_FILTER_TYPE {
-                fn from(value: i32) -> Self {
-                    Self(value)
-                }
-            }
-            unsafe impl ::windows::Abi for XAUDIO2_FILTER_TYPE {
-                type Abi = Self;
-            }
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2_FILTER_PARAMETERS {
-                pub Type: XAUDIO2_FILTER_TYPE,
-                pub Frequency: f32,
-                pub OneOverQ: f32,
-            }
-            impl XAUDIO2_FILTER_PARAMETERS {}
-            unsafe impl ::windows::Abi for XAUDIO2_FILTER_PARAMETERS {
-                type Abi = Self;
-            }
-            pub const XAUDIO2_LOG_API_CALLS: u32 = 16u32;
-            pub const XAUDIO2_LOG_DETAIL: u32 = 8u32;
-            pub const XAUDIO2_LOG_ERRORS: u32 = 1u32;
-            pub const XAUDIO2_LOG_FUNC_CALLS: u32 = 32u32;
-            pub const XAUDIO2_LOG_INFO: u32 = 4u32;
-            pub const XAUDIO2_LOG_LOCKS: u32 = 128u32;
-            pub const XAUDIO2_LOG_MEMORY: u32 = 256u32;
-            pub const XAUDIO2_LOG_STREAMING: u32 = 4096u32;
-            pub const XAUDIO2_LOG_TIMING: u32 = 64u32;
-            pub const XAUDIO2_LOG_WARNINGS: u32 = 2u32;
-            pub const XAUDIO2_LOOP_INFINITE: u32 = 255u32;
-            pub const XAUDIO2_MAX_AUDIO_CHANNELS: u32 = 64u32;
-            pub const XAUDIO2_MAX_BUFFERS_SYSTEM: u32 = 2u32;
-            pub const XAUDIO2_MAX_BUFFER_BYTES: u32 = 2147483648u32;
-            pub const XAUDIO2_MAX_FILTER_FREQUENCY: f32 = 1f32;
-            pub const XAUDIO2_MAX_FILTER_ONEOVERQ: f32 = 1.5f32;
-            pub const XAUDIO2_MAX_FREQ_RATIO: f32 = 1024f32;
-            pub const XAUDIO2_MAX_INSTANCES: u32 = 8u32;
-            pub const XAUDIO2_MAX_LOOP_COUNT: u32 = 254u32;
-            pub const XAUDIO2_MAX_QUEUED_BUFFERS: u32 = 64u32;
-            pub const XAUDIO2_MAX_RATIO_TIMES_RATE_XMA_MONO: u32 = 600000u32;
-            pub const XAUDIO2_MAX_RATIO_TIMES_RATE_XMA_MULTICHANNEL: u32 = 300000u32;
-            pub const XAUDIO2_MAX_SAMPLE_RATE: u32 = 200000u32;
-            pub const XAUDIO2_MAX_VOLUME_LEVEL: f32 = 16777216f32;
-            pub const XAUDIO2_MIN_SAMPLE_RATE: u32 = 1000u32;
-            pub const XAUDIO2_NO_LOOP_REGION: u32 = 0u32;
-            pub const XAUDIO2_NO_VIRTUAL_AUDIO_CLIENT: u32 = 65536u32;
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2_PERFORMANCE_DATA {
-                pub AudioCyclesSinceLastQuery: u64,
-                pub TotalCyclesSinceLastQuery: u64,
-                pub MinimumCyclesPerQuantum: u32,
-                pub MaximumCyclesPerQuantum: u32,
-                pub MemoryUsageInBytes: u32,
-                pub CurrentLatencyInSamples: u32,
-                pub GlitchesSinceEngineStarted: u32,
-                pub ActiveSourceVoiceCount: u32,
-                pub TotalSourceVoiceCount: u32,
-                pub ActiveSubmixVoiceCount: u32,
-                pub ActiveResamplerCount: u32,
-                pub ActiveMatrixMixCount: u32,
-                pub ActiveXmaSourceVoices: u32,
-                pub ActiveXmaStreams: u32,
-            }
-            impl XAUDIO2_PERFORMANCE_DATA {}
-            unsafe impl ::windows::Abi for XAUDIO2_PERFORMANCE_DATA {
-                type Abi = Self;
-            }
-            pub const XAUDIO2_PLAY_TAILS: u32 = 32u32;
-            pub const XAUDIO2_QUANTUM_DENOMINATOR: u32 = 100u32;
-            pub const XAUDIO2_QUANTUM_NUMERATOR: u32 = 1u32;
-            #[repr(C, packed(1))]
-            pub struct XAUDIO2_SEND_DESCRIPTOR {
-                pub Flags: u32,
-                pub pOutputVoice: ::std::option::Option<IXAudio2Voice>,
-            }
-            impl XAUDIO2_SEND_DESCRIPTOR {}
-            #[repr(C, packed(1))]
-            #[doc(hidden)]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2_SEND_DESCRIPTOR_abi {
-                pub Flags: u32,
-                pub pOutputVoice: ::windows::RawPtr,
-            }
-            unsafe impl ::windows::Abi for XAUDIO2_SEND_DESCRIPTOR {
-                type Abi = XAUDIO2_SEND_DESCRIPTOR_abi;
-            }
-            pub const XAUDIO2_SEND_USEFILTER: u32 = 128u32;
-            pub const XAUDIO2_STOP_ENGINE_WHEN_IDLE: u32 = 8192u32;
-            pub const XAUDIO2_USE_DEFAULT_PROCESSOR: u32 = 0u32;
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2_VOICE_DETAILS {
-                pub CreationFlags: u32,
-                pub ActiveFlags: u32,
-                pub InputChannels: u32,
-                pub InputSampleRate: u32,
-            }
-            impl XAUDIO2_VOICE_DETAILS {}
-            unsafe impl ::windows::Abi for XAUDIO2_VOICE_DETAILS {
-                type Abi = Self;
-            }
-            pub const XAUDIO2_VOICE_NOPITCH: u32 = 2u32;
-            pub const XAUDIO2_VOICE_NOSAMPLESPLAYED: u32 = 256u32;
-            pub const XAUDIO2_VOICE_NOSRC: u32 = 4u32;
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2_VOICE_SENDS {
-                pub SendCount: u32,
-                pub pSends: *mut XAUDIO2_SEND_DESCRIPTOR,
-            }
-            impl XAUDIO2_VOICE_SENDS {}
-            unsafe impl ::windows::Abi for XAUDIO2_VOICE_SENDS {
-                type Abi = Self;
-            }
-            #[repr(C, packed(1))]
-            #[derive(:: std :: clone :: Clone, :: std :: marker :: Copy)]
-            pub struct XAUDIO2_VOICE_STATE {
-                pub pCurrentBufferContext: *mut ::std::ffi::c_void,
-                pub BuffersQueued: u32,
-                pub SamplesPlayed: u64,
-            }
-            impl XAUDIO2_VOICE_STATE {}
-            unsafe impl ::windows::Abi for XAUDIO2_VOICE_STATE {
-                type Abi = Self;
-            }
-            pub const XAUDIO2_VOICE_USEFILTER: u32 = 8u32;
-            #[cfg(feature = "xaudio2")]
-            pub unsafe fn XAudio2CreateWithVersionInfo(
-                ppxaudio2: *mut ::std::option::Option<IXAudio2>,
-                flags: u32,
-                xaudio2processor: u32,
-                ntddiversion: u32,
-            ) -> ::windows::ErrorCode {
-                #[link(name = "XAudio2_9")]
-                extern "system" {
-                    pub fn XAudio2CreateWithVersionInfo(
-                        ppxaudio2: *mut ::windows::RawPtr,
-                        flags: u32,
-                        xaudio2processor: u32,
-                        ntddiversion: u32,
-                    ) -> ::windows::ErrorCode;
-                }
-                XAudio2CreateWithVersionInfo(
-                    ::std::mem::transmute(ppxaudio2),
-                    ::std::mem::transmute(flags),
-                    ::std::mem::transmute(xaudio2processor),
-                    ::std::mem::transmute(ntddiversion),
-                )
             }
         }
     }
