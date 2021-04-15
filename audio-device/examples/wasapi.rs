@@ -38,6 +38,17 @@ where
     }
 }
 
+fn generate_audio() -> Result<()> {
+    let output =
+        wasapi::default_output_client()?.ok_or_else(|| anyhow!("no default device found"))?;
+    let config = output.default_client_config()?;
+
+    match config.sample_format {
+        wasapi::SampleFormat::I16 => run_output::<i16>(output, config),
+        wasapi::SampleFormat::F32 => run_output::<f32>(output, config),
+    }
+}
+
 pub fn main() -> Result<()> {
     println!("WARNING: This program will generate audio and we do our best to avoid them being too loud.");
     println!("Please make sure your volume is turned down!");
@@ -47,26 +58,8 @@ pub fn main() -> Result<()> {
     let mut line = String::new();
     std::io::stdin().read_line(&mut line)?;
 
-    let audio_thread = ste::Builder::new().prelude(wasapi::audio_prelude).build()?;
-
-    audio_thread.submit(|| {
-        let output = wasapi::default_output_client()?;
-        let output = output.ok_or_else(|| anyhow!("no default device found"))?;
-
-        let config = output.default_client_config()?;
-
-        match config.sample_format {
-            wasapi::SampleFormat::I16 => {
-                run_output::<i16>(output, config)?;
-            }
-            wasapi::SampleFormat::F32 => {
-                run_output::<f32>(output, config)?;
-            }
-        }
-
-        Ok::<(), anyhow::Error>(())
-    })??;
-
-    audio_thread.join()?;
+    let bg = ste::Builder::new().prelude(wasapi::audio_prelude).build()?;
+    bg.submit(generate_audio)?;
+    bg.join();
     Ok(())
 }

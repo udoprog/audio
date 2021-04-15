@@ -86,15 +86,15 @@ where
 /// unsafe impl Sync for Foo {}
 ///
 /// # fn main() -> anyhow::Result<()> {
-/// let thread = ste::Thread::new()?;
+/// let thread = ste::spawn();
 ///
-/// let foo = thread.submit(|| Foo::new())?;
+/// let foo = thread.submit(|| Foo::new());
 ///
 /// assert!(!foo.tag.is_on_thread());
 ///
 /// thread.submit(|| foo.say_hello());
 ///
-/// thread.join()?;
+/// thread.join();
 /// # Ok(()) }
 /// ```
 ///
@@ -107,15 +107,15 @@ where
 /// #     fn say_hello(&self) { self.tag.ensure_on_thread(); }
 /// # }
 /// # fn main() -> anyhow::Result<()> {
-/// let thread = ste::Thread::new()?;
+/// let thread = ste::spawn();
 ///
-/// let foo = thread.submit(|| Foo::new())?;
+/// let foo = thread.submit(|| Foo::new());
 ///
 /// assert!(!foo.tag.is_on_thread());
 ///
 /// foo.say_hello(); // <- oops, this panics!
 ///
-/// thread.join()?;
+/// thread.join();
 /// # Ok(()) }
 /// ```
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]

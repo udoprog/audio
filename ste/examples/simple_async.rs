@@ -9,10 +9,10 @@ async fn main() -> anyhow::Result<()> {
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
             result += 1
         })
-        .await?;
+        .await;
 
     assert_eq!(result, 1u32);
 
-    thread.join()?;
+    thread.join();
     Ok(())
 }

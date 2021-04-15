@@ -16,7 +16,6 @@ readme = "README.md"
 default = ["tokio"]
 
 [dependencies]
-thiserror = "1.0.24"
 tokio = {version = "1.4", features = ["rt"], optional = true}
 
 [dev-dependencies]

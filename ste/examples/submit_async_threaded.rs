@@ -6,7 +6,7 @@ async fn main() -> anyhow::Result<()> {
     for _ in 0..10 {
         let mut threads = Vec::new();
 
-        let thread = Arc::new(ste::Thread::new()?);
+        let thread = Arc::new(ste::spawn());
 
         for n in 0..100 {
             let thread = thread.clone();
@@ -18,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
                     result += n;
                 });
 
-                futures::executor::block_on(future).unwrap();
+                futures::executor::block_on(future);
                 result
             }));
         }
@@ -32,7 +32,7 @@ async fn main() -> anyhow::Result<()> {
         assert_eq!(result, 4950);
 
         let thread = Arc::try_unwrap(thread).map_err(|_| "not unique").unwrap();
-        thread.join()?;
+        thread.join();
     }
 
     Ok(())

@@ -5,7 +5,7 @@ use std::thread;
 #[test]
 fn test_recover_from_panic() -> anyhow::Result<()> {
     for _ in 0..100 {
-        let thread = Arc::new(crate::Thread::new()?);
+        let thread = Arc::new(crate::spawn());
 
         let mut threads = Vec::new();
 
@@ -23,12 +23,11 @@ fn test_recover_from_panic() -> anyhow::Result<()> {
         }
 
         for t in threads {
-            let t = t.join().unwrap();
-            assert!(t.is_err());
+            assert!(t.join().is_err());
         }
 
         let thread = Arc::try_unwrap(thread).map_err(|_| anyhow!("unwrap failed"))?;
-        assert!(thread.join().is_ok());
+        thread.join();
     }
 
     Ok(())
@@ -37,7 +36,7 @@ fn test_recover_from_panic() -> anyhow::Result<()> {
 #[test]
 fn test_threading() -> anyhow::Result<()> {
     for _ in 0..100 {
-        let thread = Arc::new(crate::Thread::new()?);
+        let thread = Arc::new(crate::spawn());
 
         let mut threads = Vec::new();
 
@@ -55,13 +54,13 @@ fn test_threading() -> anyhow::Result<()> {
         let mut result = 0;
 
         for t in threads {
-            result += t.join().unwrap().unwrap();
+            result += t.join().unwrap();
         }
 
         assert_eq!(result, 45);
 
         let thread = Arc::try_unwrap(thread).map_err(|_| anyhow!("unwrap failed"))?;
-        thread.join().unwrap();
+        thread.join();
     }
 
     Ok(())

@@ -7,7 +7,7 @@ use test::Bencher;
 #[bench]
 fn test_on_ste(b: &mut Bencher) {
     b.iter(|| {
-        let thread = ste::Thread::new().unwrap();
+        let thread = ste::spawn().unwrap();
         let mut result = 0;
 
         for n in 0..100 {
@@ -22,7 +22,7 @@ fn test_on_ste(b: &mut Bencher) {
 #[bench]
 fn count_to_1000_ste(b: &mut Bencher) {
     b.iter(|| {
-        let thread = ste::Thread::new().unwrap();
+        let thread = ste::spawn().unwrap();
         let mut total = 0u32;
 
         for n in 0..1000u32 {

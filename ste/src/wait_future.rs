@@ -2,7 +2,6 @@ use crate::misc::RawSend;
 use crate::parker::Parker;
 use crate::tag::{with_tag, Tag};
 use crate::worker::{Entry, Shared};
-use crate::Panicked;
 use std::future::Future;
 use std::pin::Pin;
 use std::ptr;
@@ -25,14 +24,14 @@ impl<'a, F> Future for WaitFuture<'a, F>
 where
     F: Future,
 {
-    type Output = Result<F::Output, Panicked>;
+    type Output = F::Output;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         unsafe {
             let this = Pin::get_unchecked_mut(self.as_mut());
 
             if this.complete {
-                return Poll::Ready(Err(Panicked(())));
+                panic!("task already completed");
             }
 
             let mut task = into_task(
@@ -43,15 +42,15 @@ where
             );
             let entry = Entry::new(&mut task, this.parker);
 
-            this.shared.schedule_in_place(this.parker, entry)?;
+            this.shared.schedule_in_place(this.parker, entry);
 
             if this.complete {
-                return Poll::Ready(Err(Panicked(())));
+                panic!("background thread panicked");
             }
 
             if let Some(output) = this.output.as_mut().take() {
                 this.complete = true;
-                Poll::Ready(Ok(output))
+                Poll::Ready(output)
             } else {
                 Poll::Pending
             }

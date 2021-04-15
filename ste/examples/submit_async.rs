@@ -1,7 +1,7 @@
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    for _ in 0..10 {
-        let thread = ste::Thread::new()?;
+    for _ in 0..10u32 {
+        let thread = ste::spawn();
         let mut result = 0u32;
 
         for n in 0..100 {
@@ -9,18 +9,14 @@ async fn main() -> anyhow::Result<()> {
                 .submit_async(async {
                     result += n;
                 })
-                .await?;
+                .await;
         }
 
         assert_eq!(result, 4950);
-        assert!(thread.join().is_ok());
+        thread.join();
     }
 
-    let thread = ste::Thread::new()?;
-
-    let result = thread.submit_async(async move { panic!("woops") }).await;
-
-    assert!(result.is_err());
-    thread.join()?;
+    let thread = ste::spawn();
+    thread.submit_async(async move { panic!("woops") }).await;
     Ok(())
 }

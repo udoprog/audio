@@ -4,7 +4,7 @@ use std::thread;
 
 fn main() -> anyhow::Result<()> {
     for _ in 0..100 {
-        let thread = Arc::new(ste::Thread::new()?);
+        let thread = Arc::new(ste::spawn());
 
         let mut threads = Vec::new();
 
@@ -22,12 +22,11 @@ fn main() -> anyhow::Result<()> {
         }
 
         for t in threads {
-            let t = t.join().unwrap();
-            assert!(t.is_err());
+            assert!(t.join().is_err());
         }
 
         let thread = Arc::try_unwrap(thread).map_err(|_| anyhow!("unwrap failed"))?;
-        thread.join()?;
+        thread.join();
     }
 
     Ok(())

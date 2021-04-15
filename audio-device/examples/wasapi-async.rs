@@ -43,6 +43,18 @@ where
     }
 }
 
+async fn generate_audio() -> Result<()> {
+    let events = Events::new()?;
+    let output =
+        wasapi::default_output_client()?.ok_or_else(|| anyhow!("no default device found"))?;
+    let config = output.default_client_config()?;
+
+    match config.sample_format {
+        wasapi::SampleFormat::I16 => run_output::<i16>(&events, output, config).await,
+        wasapi::SampleFormat::F32 => run_output::<f32>(&events, output, config).await,
+    }
+}
+
 #[tokio::main]
 pub async fn main() -> Result<()> {
     println!("WARNING: This program will generate audio and we do our best to avoid them being too loud.");
@@ -53,29 +65,8 @@ pub async fn main() -> Result<()> {
     let mut line = String::new();
     std::io::stdin().read_line(&mut line)?;
 
-    let events = Events::new()?;
-    let audio_thread = ste::Builder::new().prelude(wasapi::audio_prelude).build()?;
-
-    audio_thread
-        .submit_async(async {
-            let output = wasapi::default_output_client()?
-                .ok_or_else(|| anyhow!("no default device found"))?;
-
-            let config = output.default_client_config()?;
-
-            match config.sample_format {
-                wasapi::SampleFormat::I16 => {
-                    run_output::<i16>(&events, output, config).await?;
-                }
-                wasapi::SampleFormat::F32 => {
-                    run_output::<f32>(&events, output, config).await?;
-                }
-            }
-
-            Ok::<(), anyhow::Error>(())
-        })
-        .await??;
-
-    audio_thread.join()?;
+    let bg = ste::Builder::new().prelude(wasapi::audio_prelude).build()?;
+    bg.submit_async(generate_audio()).await?;
+    bg.join();
     Ok(())
 }

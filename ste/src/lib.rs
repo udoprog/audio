@@ -19,13 +19,13 @@
 //!
 //! ```rust
 //! # fn main() -> anyhow::Result<()> {
-//! let thread = ste::Thread::new()?;
+//! let thread = ste::spawn();
 //!
 //! let mut n = 10;
-//! thread.submit(|| n += 10)?;
+//! thread.submit(|| n += 10);
 //! assert_eq!(20, n);
 //!
-//! thread.join()?;
+//! thread.join();
 //! # Ok(()) }    
 //! ```
 //!
@@ -63,15 +63,15 @@
 //! }
 //!
 //! # fn main() -> anyhow::Result<()> {
-//! let thread = ste::Thread::new()?;
+//! let thread = ste::spawn();
 //!
-//! let foo = thread.submit(|| Foo::new())?;
+//! let foo = thread.submit(|| Foo::new());
 //!
 //! thread.submit(|| {
 //!     foo.say_hello(); // <- OK!
-//! })?;
+//! });
 //!
-//! thread.join()?;
+//! thread.join();
 //! # Ok(()) }
 //! ```
 //!
@@ -85,13 +85,13 @@
 //! #     fn say_hello(&self) { self.tag.ensure_on_thread(); }
 //! # }
 //! # fn main() -> anyhow::Result<()> {
-//! let thread = ste::Thread::new()?;
+//! let thread = ste::spawn();
 //!
-//! let foo = thread.submit(|| Foo::new())?;
+//! let foo = thread.submit(|| Foo::new());
 //!
 //! foo.say_hello(); // <- Oops, panics!
 //!
-//! thread.join()?;
+//! thread.join();
 //! # Ok(()) }
 //! ```
 //!
@@ -134,7 +134,6 @@
 use std::future::Future;
 use std::io;
 use std::ptr;
-use thiserror::Error;
 
 pub(crate) mod loom;
 use self::loom::thread;
@@ -161,11 +160,19 @@ use self::wait_future::WaitFuture;
 mod misc;
 use self::misc::RawSend;
 
-/// Error raised when we try to interact with a background thread that has
-/// panicked.
-#[derive(Debug, Error)]
-#[error("background thread panicked")]
-pub struct Panicked(());
+/// Construct a default background thread executor.
+///
+/// These both do the same thing, except the builder allows you to catch an OS error:
+///
+/// ```rust
+/// # fn main() -> anyhow::Result<()> {
+/// let thread1 = ste::spawn();
+/// let thread2 = ste::Builder::new().build()?;
+/// # Ok(()) }
+/// ```
+pub fn spawn() -> Thread {
+    Builder::new().build().expect("failed to spawn thread")
+}
 
 /// The handle for a background thread.
 ///
@@ -180,17 +187,20 @@ pub struct Panicked(());
 ///
 /// # Tasks panicking
 ///
-/// If anything on the background thread ends up panicking, any future submitted
-/// tasks will return the [Panicked] error. Joining the thread with
-/// [join][Thread::join] will also report [Panicked].
+/// If anything on the background thread ends up panicking, the panic will be
+/// propagated but also isolated to that one task.
+///
+/// Note that this is only true for unwinding panics. It would not apply to
+/// panics resulting in aborts.
 ///
 /// # Examples
 ///
 /// ```rust
 /// use std::sync::Arc;
+/// use std::panic::{AssertUnwindSafe, catch_unwind};
 ///
 /// # fn main() -> anyhow::Result<()> {
-/// let thread = Arc::new(ste::Thread::new()?);
+/// let thread = Arc::new(ste::spawn());
 /// let mut threads = Vec::new();
 ///
 /// for n in 0..10 {
@@ -204,7 +214,7 @@ pub struct Panicked(());
 /// let mut result = 0;
 ///
 /// for t in threads {
-///     result += t.join().unwrap()?;
+///     result += t.join().unwrap();
 /// }
 ///
 /// assert_eq!(result, (0..10).sum());
@@ -212,14 +222,15 @@ pub struct Panicked(());
 /// // Unwrap the thread.
 /// let thread = Arc::try_unwrap(thread).map_err(|_| "unwrap failed").unwrap();
 ///
-/// let result = thread.submit(|| {
+/// let result = catch_unwind(AssertUnwindSafe(|| thread.submit(|| {
 ///     panic!("Background thread: {:?}", std::thread::current().id());
-/// });
+/// })));
+///
 /// assert!(result.is_err());
 ///
 /// println!("Main thread: {:?}", std::thread::current().id());
 ///
-/// thread.join()?;
+/// thread.join();
 /// # Ok(()) }
 /// ```
 #[must_use = "The thread should be joined with Thread::join once no longer used, \
@@ -238,20 +249,6 @@ unsafe impl Send for Thread {}
 unsafe impl Sync for Thread {}
 
 impl Thread {
-    /// Construct a default background thread executor.
-    ///
-    /// These both do the same thing:
-    ///
-    /// ```rust
-    /// # fn main() -> anyhow::Result<()> {
-    /// let thread1 = ste::Thread::new()?;
-    /// let thread2 = ste::Builder::new().build()?;
-    /// # Ok(()) }
-    /// ```
-    pub fn new() -> io::Result<Self> {
-        Builder::new().build()
-    }
-
     /// Submit a task to run on the background thread.
     ///
     /// The call will block until it has been executed on the thread (or the
@@ -268,34 +265,36 @@ impl Thread {
     ///
     /// ```rust
     /// # fn main() -> anyhow::Result<()> {
-    /// let thread = ste::Thread::new()?;
+    /// let thread = ste::spawn();
     ///
     /// let mut n = 10;
-    /// thread.submit(|| n += 10)?;
+    /// thread.submit(|| n += 10);
     /// assert_eq!(20, n);
     ///
-    /// thread.join()?;
+    /// thread.join();
     /// # Ok(()) }    
     /// ```
     ///
     /// Unwinding panics as isolated on a per-task basis.
     ///
     /// ```rust
+    /// use std::panic::{AssertUnwindSafe, catch_unwind};
+    ///
     /// # #[tokio::main(flavor = "current_thread")]
     /// # async fn main() -> anyhow::Result<()> {
-    /// let thread = ste::Thread::new()?;
+    /// let thread = ste::spawn();
     ///
-    /// let result = thread.submit(|| panic!("woops"));
+    /// let result = catch_unwind(AssertUnwindSafe(|| thread.submit(|| panic!("woops"))));
     /// assert!(result.is_err());
     ///
     /// let mut result = 0;
-    /// thread.submit(|| { result += 1 })?;
+    /// thread.submit(|| { result += 1 });
     /// assert_eq!(result, 1);
     ///
-    /// thread.join()?;
+    /// thread.join();
     /// # Ok(()) }
     /// ```
-    pub fn submit<F, T>(&self, task: F) -> Result<T, Panicked>
+    pub fn submit<F, T>(&self, task: F) -> T
     where
         F: Send + FnOnce() -> T,
         T: Send,
@@ -314,11 +313,11 @@ impl Thread {
             // with a `'static` lifetime.
             self.shared
                 .as_ref()
-                .schedule_in_place(ptr::NonNull::from(&parker), entry)?;
+                .schedule_in_place(ptr::NonNull::from(&parker), entry);
 
             return match storage {
-                Some(result) => Ok(result),
-                None => Err(Panicked(())),
+                Some(result) => result,
+                None => panic!("background thread panicked"),
             };
         }
 
@@ -373,29 +372,24 @@ impl Thread {
     ///     println!("Hello World!");
     /// });
     ///
-    /// thread.join()?;
+    /// thread.join();
     /// # Ok(()) }
     /// ```
     ///
     /// Unwinding panics as isolated on a per-task basis the same was as for
     /// [submit][Thread::submit].
     ///
-    /// ```rust
+    /// ```rust,should_panic
     /// # #[tokio::main(flavor = "current_thread")]
     /// # async fn main() -> anyhow::Result<()> {
-    /// let thread = ste::Thread::new()?;
+    /// let thread = ste::spawn();
     ///
-    /// let result = thread.submit_async(async move { panic!("woops") }).await;
-    /// assert!(result.is_err());
+    /// thread.submit_async(async move { panic!("woops") }).await;
     ///
-    /// let mut result = 0;
-    /// thread.submit_async(async { result += 1 }).await?;
-    /// assert_eq!(result, 1);
-    ///
-    /// thread.join()?;
+    /// // Note: thread will still join correctly without panicking again.
     /// # Ok(()) }
     /// ```
-    pub async fn submit_async<F>(&self, mut future: F) -> Result<F::Output, Panicked>
+    pub async fn submit_async<F>(&self, mut future: F) -> F::Output
     where
         F: Send + Future,
         F::Output: Send,
@@ -435,20 +429,19 @@ impl Thread {
     /// }
     ///
     /// # fn main() -> anyhow::Result<()> {
-    /// let thread = ste::Thread::new()?;
+    /// let thread = ste::spawn();
     ///
     /// let foo = thread.submit(|| Foo(ste::Tag::current_thread()));
     /// thread.drop(foo);
     ///
-    /// thread.join()?;
+    /// thread.join();
     /// # Ok(()) }
     /// ```
-    pub fn drop<T>(&self, value: T) -> Result<(), Panicked>
+    pub fn drop<T>(&self, value: T)
     where
         T: Send,
     {
-        self.submit(move || drop(value))?;
-        Ok(())
+        self.submit(move || drop(value));
     }
 
     /// Join the background thread.
@@ -459,29 +452,27 @@ impl Thread {
     /// let [Thread] drop and this will be performed in the drop handler
     /// instead.
     ///
-    /// Always returns the error [Panicked] if the background thread has
-    /// panicked from a submitted task.
-    ///
     /// # Examples
     ///
     /// ```rust
     /// # fn main() -> anyhow::Result<()> {
-    /// let thread = ste::Thread::new()?;
+    /// let thread = ste::spawn();
     ///
     /// let mut n = 10;
-    /// thread.submit(|| n += 10)?;
+    /// thread.submit(|| n += 10);
     /// assert_eq!(20, n);
     ///
-    /// thread.join()?;
+    /// thread.join();
     /// # Ok(()) }    
     /// ```
-    pub fn join(mut self) -> Result<(), Panicked> {
+    pub fn join(mut self) {
         if let Some(handle) = self.handle.take() {
             unsafe { self.shared.as_ref().outer_join() };
-            return handle.join().map_err(|_| Panicked(()));
-        }
 
-        Ok(())
+            if handle.join().is_err() {
+                panic!("background thread panicked");
+            }
+        }
     }
 
     /// Construct the tag that is associated with the current thread externally
@@ -500,15 +491,15 @@ impl Thread {
     /// }
     ///
     /// # fn main() -> anyhow::Result<()> {
-    /// let thread = ste::Thread::new()?;
+    /// let thread = ste::spawn();
     ///
     /// let foo = Foo(thread.tag());
     ///
     /// thread.submit(|| {
     ///     foo.say_hello();
-    /// })?;
+    /// });
     ///
-    /// thread.join()?;
+    /// thread.join();
     /// # Ok(()) }
     /// ```
     pub fn tag(&self) -> Tag {
@@ -571,7 +562,7 @@ impl Builder {
     ///     println!("Hello World!");
     /// });
     ///
-    /// thread.join()?;
+    /// thread.join();
     /// # Ok(()) }
     /// ```
     #[cfg(feature = "tokio")]
@@ -617,7 +608,7 @@ impl Builder {
     /// ```rust
     /// # fn main() -> anyhow::Result<()> {
     /// let thread = ste::Builder::new().build()?;
-    /// thread.join()?;
+    /// thread.join();
     /// # Ok(()) }
     /// ```
     pub fn build(self) -> io::Result<Thread> {

@@ -20,7 +20,7 @@ the background thread to access variables which are in scope. Like `n`
 below.
 
 ```rust
-let thread = ste::Thread::new()?;
+let thread = ste::spawn();
 
 let mut n = 10;
 thread.submit(|| n += 10)?;
@@ -62,7 +62,7 @@ impl Foo {
     }
 }
 
-let thread = ste::Thread::new()?;
+let thread = ste::spawn();
 
 let foo = thread.submit(|| Foo::new())?;
 
@@ -77,7 +77,7 @@ Using `say_hello` outside of the thread that created it is not fine and will
 panic to prevent racy access:
 
 ```rust
-let thread = ste::Thread::new()?;
+let thread = ste::spawn();
 
 let foo = thread.submit(|| Foo::new())?;
 

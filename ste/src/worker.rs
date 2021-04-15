@@ -4,7 +4,6 @@ use crate::loom::sync::Mutex;
 use crate::loom::thread;
 use crate::parker::Parker;
 use crate::tag::Tag;
-use crate::Panicked;
 use std::mem;
 use std::ptr;
 
@@ -86,17 +85,13 @@ impl Shared {
     /// We're sending the entry to be executed on a remote thread, the caller
     /// must assure that anything being referenced in it is owned by the caller
     /// and will not be dropped or deallocated for the duration of this call.
-    pub(super) unsafe fn schedule_in_place(
-        &self,
-        parker: ptr::NonNull<Parker>,
-        entry: Entry,
-    ) -> Result<(), Panicked> {
+    pub(super) unsafe fn schedule_in_place(&self, parker: ptr::NonNull<Parker>, entry: Entry) {
         let mut node = Node::new(entry);
 
         let first = {
             let _guard = match self.lock_queue() {
                 Some(guard) => guard,
-                None => return Err(Panicked(())),
+                None => panic!("background thread ended"),
             };
 
             self.queue
@@ -117,7 +112,6 @@ impl Shared {
         // no sporadic wakes that can happen because we contrl the state of
         // the submitted task exactly above.
         parker.as_ref().park();
-        Ok(())
     }
 
     /// What should happen when the shared state is joined.
