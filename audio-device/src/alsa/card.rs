@@ -35,7 +35,7 @@ impl Iterator for Cards {
     fn next(&mut self) -> Option<Self::Item> {
         Some(
             if let Err(e) = errno!(unsafe { alsa::snd_card_next(&mut self.index) }) {
-                Err(e)
+                Err(e.into())
             } else {
                 if self.index == -1 {
                     return None;
@@ -111,11 +111,7 @@ impl Card {
     pub fn name(&self) -> Result<CString> {
         unsafe {
             let mut ptr = mem::MaybeUninit::uninit();
-
-            if let Err(e) = errno!(alsa::snd_card_get_name(self.index, ptr.as_mut_ptr())) {
-                return Err(e);
-            }
-
+            errno!(alsa::snd_card_get_name(self.index, ptr.as_mut_ptr()))?;
             let ptr = ptr.assume_init();
             Ok(CString::from_raw(ptr))
         }
@@ -138,11 +134,7 @@ impl Card {
     pub fn long_name(&self) -> Result<CString> {
         unsafe {
             let mut ptr = mem::MaybeUninit::uninit();
-
-            if let Err(e) = errno!(alsa::snd_card_get_longname(self.index, ptr.as_mut_ptr())) {
-                return Err(e);
-            }
-
+            errno!(alsa::snd_card_get_longname(self.index, ptr.as_mut_ptr()))?;
             let ptr = ptr.assume_init();
             Ok(CString::from_raw(ptr))
         }

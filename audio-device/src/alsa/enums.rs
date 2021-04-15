@@ -72,6 +72,33 @@ impl Direction {
 }
 
 decl_enum! {
+    /// The state of the [Pcm][super::Pcm].
+    #[repr(u32)]
+    pub enum State {
+        /// Open.
+        Open = SND_PCM_STATE_OPEN,
+        /// Setup installed.
+        Setup = SND_PCM_STATE_SETUP,
+        /// Ready to start.
+        Prepare = SND_PCM_STATE_PREPARED,
+        /// Running.
+        Running = SND_PCM_STATE_RUNNING,
+        /// Stopped: underrun (playback) or overrun (capture) detected.
+        Xrun = SND_PCM_STATE_XRUN,
+        /// Draining: running (playback) or stopped (capture).
+        Draining = SND_PCM_STATE_DRAINING,
+        /// Paused.
+        Paused = SND_PCM_STATE_PAUSED,
+        /// Hardware is suspended.
+        Suspended = SND_PCM_STATE_SUSPENDED,
+        /// Hardware is disconnected.
+        Disconnected = SND_PCM_STATE_DISCONNECTED,
+        /// Private - used internally in the library - do not use.
+        Private1 = SND_PCM_STATE_PRIVATE1,
+    }
+}
+
+decl_enum! {
     /// Defines the supported format of a stream.
     #[repr(i32)]
     pub enum Format {

@@ -40,15 +40,16 @@ cfg_wasapi! {
     pub mod wasapi;
 }
 
-cfg_any_windows! {
+cfg_windows! {
     pub mod windows;
 }
 
-cfg_any_unix! {
+cfg_unix! {
+    #[macro_use]
     pub mod unix;
 }
 
-cfg_any_unix! {
+cfg_unix! {
     pub mod libc;
 }
 

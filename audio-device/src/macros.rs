@@ -1,10 +1,12 @@
+#![allow(unused)]
+
 /// Macro to use for modules constrained to any windows-specific audio drivers.
-macro_rules! cfg_any_windows {
+macro_rules! cfg_windows {
     ($($item:item)*) => {
         $(
-            #[cfg(any(feature = "wasapi", feature = "events-driver"))]
+            #[cfg(any(feature = "windows"))]
             #[cfg_attr(docsrs, doc(
-                cfg(any(feature = "wasapi", feature = "events-driver")))
+                cfg(any(feature = "windows")))
             )]
             $item
         )*
@@ -12,12 +14,12 @@ macro_rules! cfg_any_windows {
 }
 
 /// Macro to use for modules constrained to any unix-specific audio drivers.
-macro_rules! cfg_any_unix {
+macro_rules! cfg_unix {
     ($($item:item)*) => {
         $(
-            #[cfg(feature = "alsa")]
+            #[cfg(feature = "unix")]
             #[cfg_attr(docsrs, doc(
-                cfg(feature = "alsa")
+                cfg(feature = "unix")
             ))]
             $item
         )*
@@ -30,6 +32,18 @@ macro_rules! cfg_events_driver {
             #[cfg(feature = "events-driver")]
             #[cfg_attr(docsrs, doc(
                 cfg(feature = "events-driver")
+            ))]
+            $item
+        )*
+    }
+}
+
+macro_rules! cfg_poll_driver {
+    ($($item:item)*) => {
+        $(
+            #[cfg(feature = "poll-driver")]
+            #[cfg_attr(docsrs, doc(
+                cfg(feature = "poll-driver")
             ))]
             $item
         )*
@@ -54,6 +68,18 @@ macro_rules! cfg_alsa {
             #[cfg(feature = "alsa")]
             #[cfg_attr(docsrs, doc(
                 cfg(feature = "alsa")
+            ))]
+            $item
+        )*
+    }
+}
+
+macro_rules! cfg_tokio {
+    ($($item:item)*) => {
+        $(
+            #[cfg(feature = "tokio")]
+            #[cfg_attr(docsrs, doc(
+                cfg(feature = "tokio")
             ))]
             $item
         )*

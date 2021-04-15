@@ -28,7 +28,7 @@ impl SoftwareParameters {
             handle.as_mut()
         )) {
             alsa::snd_pcm_sw_params_free(handle.as_mut());
-            return Err(e);
+            return Err(e.into());
         }
 
         Ok(SoftwareParameters { handle })

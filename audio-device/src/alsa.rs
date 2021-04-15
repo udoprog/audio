@@ -2,6 +2,7 @@
 
 use crate::libc as c;
 use crate::unix::errno::Errno;
+use std::io;
 use std::ops;
 use thiserror::Error;
 
@@ -43,26 +44,19 @@ impl ops::Deref for CString {
 unsafe impl Send for CString {}
 unsafe impl Sync for CString {}
 
-macro_rules! errno {
-    ($expr:expr) => {{
-        let result = $expr;
-
-        if result < 0 {
-            Err($crate::alsa::Error::Sys(::nix::errno::Errno::from_i32(
-                -result as i32,
-            )))
-        } else {
-            Ok(result)
-        }
-    }};
-}
-
 /// Errors that can be raised by the ALSA layer.
 #[derive(Debug, Error)]
 pub enum Error {
     /// System error.
     #[error("system error: {0}")]
-    Sys(Errno),
+    Sys(#[from] Errno),
+    /// I/O error.
+    #[error("i/o error: {0}")]
+    Io(
+        #[source]
+        #[from]
+        io::Error,
+    ),
     /// Error raised when there's a format mismatch between an underlying stream
     /// and the type attempting to be used with it.
     #[error("type `{ty}` is not appropriate to use with format `{format}`")]
@@ -93,6 +87,9 @@ pub enum Error {
     /// Underlying function call returned an illegal timestamp type identifier.
     #[error("bad timestamp type identifier ({0})")]
     BadTimestampType(c::c_uint),
+    /// Underlying PCM was not set up for polling.
+    #[error("pcm device is not pollable")]
+    MissingPollFds,
 }
 
 /// Helper result wrapper.
@@ -117,7 +114,7 @@ mod access_mask;
 pub use self::access_mask::AccessMask;
 
 mod enums;
-pub use self::enums::{Direction, Access, Format, Stream, Timestamp, TimestampType};
+pub use self::enums::{Access, Direction, Format, State, Stream, Timestamp, TimestampType};
 
 mod channel_area;
 #[doc(hidden)]
@@ -125,6 +122,11 @@ pub use self::channel_area::ChannelArea;
 
 mod writer;
 pub use self::writer::Writer;
+
+cfg_tokio! {
+    mod async_writer;
+    pub use self::async_writer::AsyncWriter;
+}
 
 mod sample;
 pub use self::sample::Sample;

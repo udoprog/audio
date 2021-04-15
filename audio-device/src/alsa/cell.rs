@@ -1,4 +1,3 @@
-
 /// A runtime-checked container for the given type `T`.
 struct Cell<T> {
     inner: std::cell::RefCell<T>,
@@ -8,7 +7,7 @@ impl<T> Cell<T> {
     /// Construct a new cell.
     fn new(value: T) -> Self {
         Self {
-            inner: std::cell::RefCell::new(value)
+            inner: std::cell::RefCell::new(value),
         }
     }
 

@@ -3,7 +3,7 @@ use crate::libc as c;
 use audio_core as core;
 use std::marker;
 
-/// A sequential type-checked PCM writer.
+/// A interleaved type-checked PCM writer.
 ///
 /// See [Pcm::writer].
 pub struct Writer<'a, T> {
@@ -43,7 +43,7 @@ impl<'a, T> Writer<'a, T> {
 
         unsafe {
             let ptr = buf.as_interleaved().as_ptr() as *const c::c_void;
-            let written = self.pcm.write_interleaved_unchecked(ptr, frames as u64)?;
+            let written = errno!(self.pcm.write_interleaved_unchecked(ptr, frames as u64))?;
             buf.advance(written as usize);
         }
 

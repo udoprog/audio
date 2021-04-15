@@ -1,9 +1,11 @@
+#[cfg(feature = "tokio")]
+use crate::alsa::AsyncWriter;
 use crate::alsa::{
     ChannelArea, Configurator, Error, HardwareParameters, HardwareParametersMut, Result, Sample,
-    SoftwareParameters, SoftwareParametersMut, Stream, Writer,
+    SoftwareParameters, SoftwareParametersMut, State, Stream, Writer,
 };
 use crate::libc as c;
-use crate::unix::poll::{PollFd, PollFlags};
+use crate::unix::poll::PollFlags;
 use alsa_sys as alsa;
 use std::ffi::CStr;
 use std::mem;
@@ -11,6 +13,7 @@ use std::ptr;
 
 /// An opened PCM device.
 pub struct Pcm {
+    pub(super) tag: ste::Tag,
     pub(super) handle: ptr::NonNull<alsa::snd_pcm_t>,
 }
 
@@ -53,6 +56,83 @@ impl Pcm {
         )
     }
 
+    /// Open the given pcm device identified by name in a nonblocking manner.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use audio_device::alsa;
+    /// use std::ffi::CStr;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let name = CStr::from_bytes_with_nul(b"hw:0\0")?;
+    ///
+    /// let pcm = alsa::Pcm::open_nonblocking(name, alsa::Stream::Playback)?;
+    /// # Ok(()) }
+    /// ```
+    pub fn open_nonblocking(name: &CStr, stream: Stream) -> Result<Self> {
+        Self::open_inner(name, stream, alsa::SND_PCM_NONBLOCK)
+    }
+
+    /// Open the default pcm device in a nonblocking mode.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use audio_device::alsa;
+    /// use std::ffi::CStr;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let pcm = alsa::Pcm::open_default_nonblocking(alsa::Stream::Playback)?;
+    /// # Ok(()) }
+    /// ```
+    pub fn open_default_nonblocking(stream: Stream) -> Result<Self> {
+        static DEFAULT: &[u8] = b"default\0";
+        Self::open_nonblocking(
+            unsafe { CStr::from_bytes_with_nul_unchecked(DEFAULT) },
+            stream,
+        )
+    }
+
+    fn open_inner(name: &CStr, stream: Stream, flags: i32) -> Result<Self> {
+        unsafe {
+            let mut handle = mem::MaybeUninit::uninit();
+
+            errno!(alsa::snd_pcm_open(
+                handle.as_mut_ptr(),
+                name.as_ptr(),
+                stream as c::c_uint,
+                flags
+            ))?;
+
+            Ok(Self {
+                tag: ste::Tag::current_thread(),
+                handle: ptr::NonNull::new_unchecked(handle.assume_init()),
+            })
+        }
+    }
+
+    /// Get the state of the PCM.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use audio_device::alsa;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
+    /// dbg!(pcm.state());
+    /// # Ok(()) }
+    /// ```
+    pub fn state(&self) -> State {
+        self.tag.ensure_on_thread();
+
+        unsafe {
+            let state = alsa::snd_pcm_state(self.handle.as_ptr());
+            State::from_value(state).unwrap_or(State::Private1)
+        }
+    }
+
     /// Construct a simple stream [Configurator].
     ///
     /// It will be initialized with a set of default parameters which are
@@ -75,42 +155,8 @@ impl Pcm {
     where
         T: Sample,
     {
+        self.tag.ensure_on_thread();
         Configurator::new(self)
-    }
-
-    /// Open the given pcm device identified by name in a nonblocking manner.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use audio_device::alsa;
-    /// use std::ffi::CStr;
-    ///
-    /// # fn main() -> anyhow::Result<()> {
-    /// let name = CStr::from_bytes_with_nul(b"hw:0\0")?;
-    ///
-    /// let pcm = alsa::Pcm::open_nonblocking(name, alsa::Stream::Playback)?;
-    /// # Ok(()) }
-    /// ```
-    pub fn open_nonblocking(name: &CStr, stream: Stream) -> Result<Self> {
-        Self::open_inner(name, stream, alsa::SND_PCM_NONBLOCK)
-    }
-
-    fn open_inner(name: &CStr, stream: Stream, flags: i32) -> Result<Self> {
-        unsafe {
-            let mut handle = mem::MaybeUninit::uninit();
-
-            errno!(alsa::snd_pcm_open(
-                handle.as_mut_ptr(),
-                name.as_ptr(),
-                stream as c::c_uint,
-                flags
-            ))?;
-
-            Ok(Self {
-                handle: ptr::NonNull::new_unchecked(handle.assume_init()),
-            })
-        }
     }
 
     /// Start a PCM.
@@ -126,6 +172,8 @@ impl Pcm {
     /// # Ok(()) }
     /// ```
     pub fn start(&mut self) -> Result<()> {
+        self.tag.ensure_on_thread();
+
         unsafe {
             errno!(alsa::snd_pcm_start(self.handle.as_mut()))?;
             Ok(())
@@ -145,6 +193,8 @@ impl Pcm {
     /// # Ok(()) }
     /// ```
     pub fn pause(&mut self) -> Result<()> {
+        self.tag.ensure_on_thread();
+
         unsafe {
             errno!(alsa::snd_pcm_pause(self.handle.as_mut(), 1))?;
             Ok(())
@@ -164,6 +214,8 @@ impl Pcm {
     /// # Ok(()) }
     /// ```
     pub fn resume(&mut self) -> Result<()> {
+        self.tag.ensure_on_thread();
+
         unsafe {
             errno!(alsa::snd_pcm_pause(self.handle.as_mut(), 0))?;
             Ok(())
@@ -185,6 +237,8 @@ impl Pcm {
     /// # Ok(()) }
     /// ```
     pub fn hardware_parameters_any(&mut self) -> Result<HardwareParametersMut<'_>> {
+        self.tag.ensure_on_thread();
+
         unsafe { HardwareParametersMut::any(&mut self.handle) }
     }
 
@@ -206,6 +260,8 @@ impl Pcm {
     /// # Ok(()) }
     /// ```
     pub fn hardware_parameters_mut(&mut self) -> Result<HardwareParametersMut<'_>> {
+        self.tag.ensure_on_thread();
+
         unsafe { HardwareParametersMut::current(&mut self.handle) }
     }
 
@@ -223,6 +279,8 @@ impl Pcm {
     /// # Ok(()) }
     /// ```
     pub fn hardware_parameters(&mut self) -> Result<HardwareParameters> {
+        self.tag.ensure_on_thread();
+
         unsafe { HardwareParameters::current(&mut self.handle) }
     }
 
@@ -241,6 +299,8 @@ impl Pcm {
     /// # Ok(()) }
     /// ```
     pub fn software_parameters(&mut self) -> Result<SoftwareParameters> {
+        self.tag.ensure_on_thread();
+
         unsafe { SoftwareParameters::new(&mut self.handle) }
     }
 
@@ -260,6 +320,8 @@ impl Pcm {
     /// # Ok(()) }
     /// ```
     pub fn software_parameters_mut(&mut self) -> Result<SoftwareParametersMut<'_>> {
+        self.tag.ensure_on_thread();
+
         unsafe { SoftwareParametersMut::new(&mut self.handle) }
     }
 
@@ -277,6 +339,8 @@ impl Pcm {
     /// # Ok(()) }
     /// ```
     pub fn poll_descriptors_count(&mut self) -> usize {
+        self.tag.ensure_on_thread();
+
         unsafe { alsa::snd_pcm_poll_descriptors_count(self.handle.as_mut()) as usize }
     }
 
@@ -311,10 +375,12 @@ impl Pcm {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
     ///
     /// let mut fds = Vec::with_capacity(pcm.poll_descriptors_count());
-    /// pcm.poll_descriptors(&mut fds)?;
+    /// pcm.poll_descriptors_vec(&mut fds)?;
     /// # Ok(()) }
     /// ```
-    pub fn poll_descriptors(&mut self, fds: &mut Vec<PollFd>) -> Result<()> {
+    pub fn poll_descriptors_vec(&mut self, fds: &mut Vec<c::pollfd>) -> Result<()> {
+        self.tag.ensure_on_thread();
+
         unsafe {
             let count = self.poll_descriptors_count();
 
@@ -349,13 +415,15 @@ impl Pcm {
     ///
     /// Note: Even if multiple poll descriptors are used (i.e. `fds.len() > 1`),
     /// this function returns only a single event.
-    pub fn poll_descriptors_revents(&mut self, fds: &mut [PollFd]) -> Result<PollFlags> {
+    pub fn poll_descriptors_revents(&mut self, fds: &mut [c::pollfd]) -> Result<PollFlags> {
+        self.tag.ensure_on_thread();
+
         unsafe {
             let mut revents = mem::MaybeUninit::uninit();
             errno!(alsa::snd_pcm_poll_descriptors_revents(
                 self.handle.as_mut(),
                 // NB: PollFd is `#[repr(transparent)]` around pollfd.
-                fds.as_mut_ptr() as *mut c::pollfd,
+                fds.as_mut_ptr(),
                 fds.len() as c::c_uint,
                 revents.as_mut_ptr(),
             ))?;
@@ -376,9 +444,10 @@ impl Pcm {
         &mut self,
         buf: *const c::c_void,
         len: c::c_ulong,
-    ) -> Result<c::c_long> {
-        let written = errno!(alsa::snd_pcm_writei(self.handle.as_mut(), buf, len))?;
-        Ok(written)
+    ) -> c::c_long {
+        self.tag.ensure_on_thread();
+
+        alsa::snd_pcm_writei(self.handle.as_mut(), buf, len)
     }
 
     /// Construct a checked safe writer with the given number of channels and
@@ -405,6 +474,8 @@ impl Pcm {
     where
         T: Sample,
     {
+        self.tag.ensure_on_thread();
+
         let hw = self.hardware_parameters()?;
         let channels = hw.channels()? as usize;
 
@@ -419,6 +490,58 @@ impl Pcm {
         }
 
         unsafe { Ok(Writer::new(self, channels)) }
+    }
+
+    cfg_tokio! {
+        /// Construct a checked safe writer with the given number of channels and
+        /// the specified sample type.
+        ///
+        /// This will error if the type `T` is not appropriate for this device, or
+        /// if the number of channels does not match the number of configured
+        /// channels.
+        ///
+        /// # Examples
+        ///
+        /// ```rust,no_run
+        /// use audio_device::alsa;
+        ///
+        /// # fn main() -> anyhow::Result<()> {
+        /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
+        /// let config = pcm.configure::<i16>().install()?;
+        ///
+        /// let mut writer = pcm.writer::<i16>()?;
+        /// // use writer with the resulting config.
+        /// # Ok(()) }
+        /// ```
+        pub fn async_writer<T>(&mut self) -> Result<AsyncWriter<'_, T>>
+        where
+            T: Sample,
+        {
+            self.tag.ensure_on_thread();
+
+            let hw = self.hardware_parameters()?;
+            let channels = hw.channels()? as usize;
+
+            // NB: here we check that `T` is appropriate for the current format.
+            let format = hw.format()?;
+
+            if !T::test(format) {
+                return Err(Error::FormatMismatch {
+                    ty: T::describe(),
+                    format,
+                });
+            }
+
+            let mut fds = Vec::new();
+            self.poll_descriptors_vec(&mut fds)?;
+
+            if fds.len() != 1 {
+                return Err(Error::MissingPollFds);
+            }
+
+            let fd = fds[0];
+            Ok(unsafe { AsyncWriter::new(self, fd, channels)? })
+        }
     }
 
     /// Return number of frames ready to be read (capture) / written (playback).
@@ -437,12 +560,16 @@ impl Pcm {
     /// # Ok(()) }
     /// ```
     pub fn available_update(&mut self) -> Result<usize> {
+        self.tag.ensure_on_thread();
+
         unsafe { Ok(errno!(alsa::snd_pcm_avail_update(self.handle.as_mut()))? as usize) }
     }
 
     /// Application request to access a portion of direct (mmap) area.
     #[doc(hidden)] // incomplete feature
     pub fn mmap_begin(&mut self, mut frames: c::c_ulong) -> Result<ChannelArea<'_>> {
+        self.tag.ensure_on_thread();
+
         unsafe {
             let mut area = mem::MaybeUninit::uninit();
             let mut offset = mem::MaybeUninit::uninit();
@@ -464,6 +591,10 @@ impl Pcm {
         }
     }
 }
+
+// Safety: [Pcm] is tagged with the thread its created it and is ensured not to
+// leave it.
+unsafe impl Send for Pcm {}
 
 impl Drop for Pcm {
     fn drop(&mut self) {

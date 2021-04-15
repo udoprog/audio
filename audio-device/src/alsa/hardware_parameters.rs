@@ -1,4 +1,4 @@
-use crate::alsa::{Access, AccessMask, Error, Format, FormatMask, Result, Direction};
+use crate::alsa::{Access, AccessMask, Direction, Error, Format, FormatMask, Result};
 use crate::libc as c;
 use alsa_sys as alsa;
 use std::mem;
@@ -27,7 +27,7 @@ impl HardwareParameters {
             handle.as_mut()
         )) {
             alsa::snd_pcm_hw_params_free(handle.as_mut());
-            return Err(e);
+            return Err(e.into());
         }
 
         Ok(HardwareParameters { handle })
@@ -43,7 +43,7 @@ impl HardwareParameters {
 
         if let Err(e) = errno!(alsa::snd_pcm_hw_params_any(pcm.as_ptr(), handle.as_mut())) {
             alsa::snd_pcm_hw_params_free(handle.as_mut());
-            return Err(e);
+            return Err(e.into());
         }
 
         Ok(HardwareParameters { handle })
@@ -640,7 +640,11 @@ impl HardwareParameters {
     /// # Ok(()) }
     /// ```
     pub fn sbits(&self) -> Result<c::c_int> {
-        unsafe { errno!(alsa::snd_pcm_hw_params_get_sbits(self.handle.as_ptr())) }
+        unsafe {
+            Ok(errno!(alsa::snd_pcm_hw_params_get_sbits(
+                self.handle.as_ptr()
+            ))?)
+        }
     }
 
     /// Get hardware FIFO size info from a configuration space.
@@ -658,7 +662,11 @@ impl HardwareParameters {
     /// # Ok(()) }
     /// ```
     pub fn fifo_size(&self) -> Result<c::c_int> {
-        unsafe { errno!(alsa::snd_pcm_hw_params_get_fifo_size(self.handle.as_ptr())) }
+        unsafe {
+            Ok(errno!(alsa::snd_pcm_hw_params_get_fifo_size(
+                self.handle.as_ptr()
+            ))?)
+        }
     }
 
     /// Extract period time from a configuration space.

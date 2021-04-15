@@ -7,3 +7,8 @@ cfg_events_driver! {
     pub(crate) mod events;
     pub use self::events::Events;
 }
+
+cfg_poll_driver! {
+    pub(crate) mod poll;
+    pub use self::poll::Poll;
+}

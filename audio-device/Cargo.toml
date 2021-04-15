@@ -20,15 +20,18 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = []
-wasapi = ["windows", "windows-sys", "windows-sys/wasapi", "events-driver"]
-alsa = ["libc", "nix", "alsa-sys"]
+wasapi = ["windows-sys/wasapi", "events-driver", "poll-driver"]
+alsa = ["poll-driver", "alsa-sys"]
 events-driver = ["windows", "windows-sys"]
+poll-driver = ["unix"]
+unix = ["libc", "nix"]
 
 [dependencies]
 audio-core = {version = "0.2.0-alpha.3", path = "../audio-core"}
 thiserror = "1.0.24"
 rand = "0.8.3"
 ste = {version = "0.1.0-alpha.9", path = "../ste"}
+tokio = {version = "1.5.0", features = ["net"], optional = true}
 
 # windows
 windows-sys = {package = "audio-device-windows-sys", version = "0.1.0-alpha.1", path = "../audio-device-windows-sys", optional = true}
@@ -54,6 +57,10 @@ name = "alsa"
 required-features = ["alsa"]
 
 [[example]]
+name = "alsa-async"
+required-features = ["alsa", "tokio"]
+
+[[example]]
 name = "wasapi"
 required-features = ["wasapi"]
 
@@ -64,3 +71,7 @@ required-features = ["wasapi"]
 [[example]]
 name = "events"
 required-features = ["events-driver"]
+
+[[example]]
+name = "poll"
+required-features = ["poll-driver"]
