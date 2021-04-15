@@ -10,5 +10,5 @@ cfg_events_driver! {
 
 cfg_poll_driver! {
     pub(crate) mod poll;
-    pub use self::poll::Poll;
+    pub use self::poll::{Poll, PollHandle, PollEventsGuard};
 }

@@ -43,7 +43,7 @@ impl<'a, T> Writer<'a, T> {
 
         unsafe {
             let ptr = buf.as_interleaved().as_ptr() as *const c::c_void;
-            let written = errno!(self.pcm.write_interleaved_unchecked(ptr, frames as u64))?;
+            let written = self.pcm.write_interleaved_unchecked(ptr, frames as u64)?;
             buf.advance(written as usize);
         }
 

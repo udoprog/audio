@@ -123,7 +123,7 @@ pub use self::channel_area::ChannelArea;
 mod writer;
 pub use self::writer::Writer;
 
-cfg_tokio! {
+cfg_poll_driver! {
     mod async_writer;
     pub use self::async_writer::AsyncWriter;
 }

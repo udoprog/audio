@@ -73,15 +73,3 @@ macro_rules! cfg_alsa {
         )*
     }
 }
-
-macro_rules! cfg_tokio {
-    ($($item:item)*) => {
-        $(
-            #[cfg(feature = "tokio")]
-            #[cfg_attr(docsrs, doc(
-                cfg(feature = "tokio")
-            ))]
-            $item
-        )*
-    }
-}

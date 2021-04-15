@@ -1,19 +1,18 @@
 use crate::alsa::{Error, Pcm, Result};
+use crate::driver::{Poll, PollHandle};
 use crate::libc as c;
 use crate::unix::errno;
+use crate::unix::poll;
 use audio_core as core;
-use std::io;
 use std::marker;
-use std::os::unix::io::RawFd;
-use tokio::io::unix::AsyncFd;
 
 /// An interleaved type-checked async PCM writer.
 ///
 /// See [Pcm::async_writer].
 pub struct AsyncWriter<'a, T> {
     pcm: &'a mut Pcm,
-    fd: AsyncFd<RawFd>,
-    poll_fd: c::pollfd,
+    poll_handle: PollHandle,
+    pollfd: c::pollfd,
     channels: usize,
     _marker: marker::PhantomData<T>,
 }
@@ -27,13 +26,14 @@ impl<'a, T> AsyncWriter<'a, T> {
     /// appropriate for writing to the given PCM.
     pub(super) unsafe fn new(
         pcm: &'a mut Pcm,
-        poll_fd: c::pollfd,
+        poll: &Poll,
+        pollfd: c::pollfd,
         channels: usize,
-    ) -> io::Result<Self> {
+    ) -> Result<Self> {
         Ok(Self {
             pcm,
-            fd: AsyncFd::new(poll_fd.fd)?,
-            poll_fd,
+            poll_handle: poll.register(pollfd)?,
+            pollfd,
             channels,
             _marker: marker::PhantomData,
         })
@@ -61,25 +61,29 @@ impl<'a, T> AsyncWriter<'a, T> {
                     self.pcm.write_interleaved_unchecked(ptr, frames as u64)
                 };
 
-                if result < 0 {
-                    match errno::Errno::from_i32(-result as i32) {
-                        errno::EWOULDBLOCK => {
-                            let _ = self.fd.readable().await?;
-                            self.poll_fd.revents = c::POLLIN;
-                            dbg!(self.poll_fd);
+                let written = match result {
+                    Ok(written) => written as usize,
+                    Err(Error::Sys(errno::EWOULDBLOCK)) => {
+                        loop {
+                            let guard = self.poll_handle.returned_events().await;
+                            self.pollfd.revents = guard.events();
 
-                            let mut fds = [self.poll_fd];
+                            let mut fds = [self.pollfd];
                             let flags = self.pcm.poll_descriptors_revents(&mut fds)?;
-                            println!("demangled = {:?}", flags);
 
-                            // let _ = self.io.writable().await?;
-                            continue;
+                            if flags == poll::PollFlags::POLLOUT {
+                                break;
+                            }
+
+                            drop(guard);
                         }
-                        errno => return Err(Error::Sys(errno)),
-                    }
-                }
 
-                buf.advance(result as usize);
+                        continue;
+                    }
+                    Err(e) => return Err(e),
+                };
+
+                buf.advance(written);
             }
         }
 

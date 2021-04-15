@@ -1,9 +1,11 @@
-#[cfg(feature = "tokio")]
+#[cfg(feature = "poll-driver")]
 use crate::alsa::AsyncWriter;
 use crate::alsa::{
     ChannelArea, Configurator, Error, HardwareParameters, HardwareParametersMut, Result, Sample,
     SoftwareParameters, SoftwareParametersMut, State, Stream, Writer,
 };
+#[cfg(feature = "poll-driver")]
+use crate::driver::Poll;
 use crate::libc as c;
 use crate::unix::poll::PollFlags;
 use alsa_sys as alsa;
@@ -369,7 +371,6 @@ impl Pcm {
     ///
     /// ```rust,no_run
     /// use audio_device::alsa;
-    /// use audio_device::unix::poll::PollFd;
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
@@ -444,10 +445,13 @@ impl Pcm {
         &mut self,
         buf: *const c::c_void,
         len: c::c_ulong,
-    ) -> c::c_long {
+    ) -> Result<c::c_long> {
         self.tag.ensure_on_thread();
-
-        alsa::snd_pcm_writei(self.handle.as_mut(), buf, len)
+        Ok(errno!(alsa::snd_pcm_writei(
+            self.handle.as_mut(),
+            buf,
+            len
+        ))?)
     }
 
     /// Construct a checked safe writer with the given number of channels and
@@ -492,7 +496,7 @@ impl Pcm {
         unsafe { Ok(Writer::new(self, channels)) }
     }
 
-    cfg_tokio! {
+    cfg_poll_driver! {
         /// Construct a checked safe writer with the given number of channels and
         /// the specified sample type.
         ///
@@ -513,7 +517,7 @@ impl Pcm {
         /// // use writer with the resulting config.
         /// # Ok(()) }
         /// ```
-        pub fn async_writer<T>(&mut self) -> Result<AsyncWriter<'_, T>>
+        pub fn async_writer<T>(&mut self, handle: &Poll) -> Result<AsyncWriter<'_, T>>
         where
             T: Sample,
         {
@@ -540,7 +544,7 @@ impl Pcm {
             }
 
             let fd = fds[0];
-            Ok(unsafe { AsyncWriter::new(self, fd, channels)? })
+            Ok(unsafe { AsyncWriter::new(self, handle, fd, channels)? })
         }
     }
 
@@ -550,7 +554,6 @@ impl Pcm {
     ///
     /// ```rust,no_run
     /// use audio_device::alsa;
-    /// use audio_device::unix::poll::PollFd;
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;

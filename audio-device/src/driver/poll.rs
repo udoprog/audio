@@ -1,4 +1,5 @@
 use crate::driver::atomic_waker::AtomicWaker;
+use crate::libc as c;
 use crate::loom::sync::atomic::{AtomicBool, Ordering};
 use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
@@ -14,56 +15,120 @@ pub enum Error {
 
 pub type Result<T, E = Error> = ::std::result::Result<T, E>;
 
-pub(crate) struct EventFd {
-    fd: libc::c_int,
+/// The token associated with the current waiter.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(transparent)]
+pub struct Token(c::c_int);
+
+/// A guard for the returned events of the poll handler.
+///
+/// Dropping this handle will allow the background thread to poll the handler
+/// again.
+///
+/// Constructed by waiting on [PollHandle::returned_events].
+pub struct PollEventsGuard<'a> {
+    events: c::c_short,
+    shared: &'a Shared,
+    token: Token,
 }
 
-impl EventFd {
-    fn new() -> Result<Self> {
-        unsafe {
-            Ok(Self {
-                fd: errno!(libc::eventfd(0, libc::EFD_NONBLOCK))?,
-            })
-        }
-    }
-
-    /// Add the given number to the eventfd.
-    fn send(&self, v: u64) -> Result<()> {
-        unsafe {
-            let n = v.to_ne_bytes();
-            errno!(libc::write(self.fd, n.as_ptr() as *const libc::c_void, 8))?;
-            Ok(())
-        }
-    }
-
-    /// Read the next value from the eventfd.
-    fn recv(&self) -> Result<u64> {
-        unsafe {
-            let mut bytes = [0u8; 8];
-            let read = errno!(libc::read(
-                self.fd,
-                bytes.as_mut_ptr() as *mut libc::c_void,
-                8
-            ))?;
-
-            assert!(read == 8);
-            Ok(u64::from_ne_bytes(bytes))
-        }
+impl PollEventsGuard<'_> {
+    /// Access the returned events.
+    pub fn events(&self) -> c::c_short {
+        self.events
     }
 }
 
-impl Drop for EventFd {
+impl Drop for PollEventsGuard<'_> {
     fn drop(&mut self) {
-        unsafe {
-            let _ = libc::close(self.fd);
+        self.shared
+            .holders
+            .lock()
+            .unwrap()
+            .released
+            .push(self.token);
+
+        if let Err(e) = self.shared.parker.send(1) {
+            log::error!("failed to unpark background thread: {}", e);
+        }
+    }
+}
+
+/// A handle to a registered poll file descriptor.
+///
+/// Constructed with [Handle::register].
+pub struct PollHandle {
+    shared: Arc<Shared>,
+    waker: Arc<Waker>,
+}
+
+impl PollHandle {
+    /// Wait for events to be triggered on the background driver and return a
+    /// guard to the events.
+    ///
+    /// Once this guard is dropped the driver will be released to register more
+    /// interest.
+    pub async fn returned_events(&self) -> PollEventsGuard<'_> {
+        use std::future::Future;
+        use std::pin::Pin;
+        use std::task::{Context, Poll};
+
+        return ReturnedEvents(self).await;
+
+        struct ReturnedEvents<'a>(&'a PollHandle);
+
+        impl<'a> Future for ReturnedEvents<'a> {
+            type Output = PollEventsGuard<'a>;
+
+            fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+                self.0.waker.waker.register_by_ref(cx.waker());
+
+                if let Some(events) = self.0.waker.returned_events.lock().unwrap().take() {
+                    Poll::Ready(PollEventsGuard {
+                        events,
+                        shared: &*self.0.shared,
+                        token: self.0.waker.token(),
+                    })
+                } else {
+                    Poll::Pending
+                }
+            }
+        }
+    }
+}
+
+impl Drop for PollHandle {
+    fn drop(&mut self) {
+        self.shared
+            .holders
+            .lock()
+            .unwrap()
+            .removed
+            .push(self.waker.token());
+
+        if let Err(e) = self.shared.parker.send(1) {
+            log::error!("failed to unpark background thread: {}", e);
         }
     }
 }
 
 /// Data on the waker for a handle.
 pub(crate) struct Waker {
-    pub(crate) waker: Arc<AtomicWaker>,
-    fd: libc::pollfd,
+    /// The waker to call when waking up the task waiting for events.
+    pub(crate) waker: AtomicWaker,
+    /// The descriptors associated with this waker.
+    descriptor: c::pollfd,
+    /// The last revents decoded. `None` if no events are ready.
+    returned_events: Mutex<Option<c::c_short>>,
+}
+
+impl Waker {
+    /// Get the token associated with this waker.
+    ///
+    /// Note: always the first file descriptor.
+    fn token(&self) -> Token {
+        Token(self.descriptor.fd)
+    }
 }
 
 pub(crate) struct Shared {
@@ -75,7 +140,8 @@ pub(crate) struct Shared {
 #[derive(Default)]
 pub(crate) struct Holders {
     pub(crate) added: Vec<Arc<Waker>>,
-    pub(crate) removed: Vec<libc::pollfd>,
+    pub(crate) released: Vec<Token>,
+    pub(crate) removed: Vec<Token>,
 }
 
 impl Holders {
@@ -84,25 +150,34 @@ impl Holders {
         let mut added = mem::replace(&mut self.added, Vec::new());
 
         for waker in added.drain(..) {
-            driver.files.push(waker.fd);
+            driver.descriptors.push(waker.descriptor);
             wakers.push(waker);
         }
 
         let mut removed = mem::replace(&mut self.removed, Vec::new());
 
-        for pollfd in removed.drain(..) {
-            if let Some(index) = wakers.iter().position(|w| w.fd.fd == pollfd.fd) {
-                driver.files.swap_remove(index + 1);
-                wakers.swap_remove(index);
+        for token in removed.drain(..) {
+            if let Some(n) = wakers.iter().position(|w| w.token() == token) {
+                // NB: n == 0 is the fd used for waking up.
+                driver.descriptors.swap_remove(n + 1);
+                wakers.swap_remove(n);
             }
+        }
 
-            unsafe {
-                errno!(libc::close(pollfd.fd))?;
+        let mut released = mem::replace(&mut self.released, Vec::new());
+
+        for r in released.drain(..) {
+            for (n, w) in wakers.iter().enumerate() {
+                if w.token() == r {
+                    // NB: n == 0 is the fd used for waking up.
+                    driver.descriptors[n + 1].fd = w.descriptor.fd;
+                }
             }
         }
 
         self.added = added;
         self.removed = removed;
+        self.released = released;
         Ok(())
     }
 }
@@ -138,21 +213,14 @@ impl Poll {
         Ok(handle)
     }
 
-    /// Test out.
-    pub fn test(&self) -> Result<()> {
-        self.shared.parker.send(1)?;
-        Ok(())
-    }
-
-    /// Construct an asynchronous event associated with the current handle.
-    /*pub fn event(&self, initial_state: bool) -> Result<AsyncEvent> {
-        let event = Event::new(false, initial_state)?;
-        let handle = unsafe { event.raw_event() };
-
+    /// Register a pollfd for interest in events.
+    ///
+    /// Dropping the returned [PollHandle] will unregister interest.
+    pub fn register(&self, descriptor: c::pollfd) -> Result<PollHandle, Errno> {
         let waker = Arc::new(Waker {
-            ready: AtomicBool::new(false),
             waker: AtomicWaker::new(),
-            handle,
+            descriptor,
+            returned_events: Mutex::new(None),
         });
 
         self.shared
@@ -161,10 +229,14 @@ impl Poll {
             .unwrap()
             .added
             .push(waker.clone());
-        self.shared.parker.set();
 
-        Ok(AsyncEvent::new(self.shared.clone(), waker, event))
-    }*/
+        self.shared.parker.send(1)?;
+
+        Ok(PollHandle {
+            shared: self.shared.clone(),
+            waker,
+        })
+    }
 
     /// Join the current handle.
     ///
@@ -198,30 +270,33 @@ impl Drop for Poll {
 }
 
 struct Driver {
-    files: Vec<libc::pollfd>,
+    /// The descriptors being driven.
+    descriptors: Vec<libc::pollfd>,
 }
 
 impl Driver {
     fn run(mut self, guard: &mut PanicGuard) -> Result<()> {
         while guard.shared.running.load(Ordering::Acquire) {
-            let result = unsafe {
-                libc::poll(
-                    self.files.as_mut_ptr(),
-                    self.files.len() as libc::c_ulong,
+            let mut result = unsafe {
+                errno!(libc::poll(
+                    self.descriptors.as_mut_ptr(),
+                    self.descriptors.len() as libc::c_ulong,
                     -1,
-                )
+                ))?
             };
-
-            if result == -1 {
-                panic!("poll: {}", Errno::from_i32(-result));
-            }
 
             let mut notified = false;
 
-            for (n, e) in self.files.iter_mut().enumerate() {
+            for (n, e) in self.descriptors.iter_mut().enumerate() {
                 if e.revents == 0 {
                     continue;
                 }
+
+                if result == 0 {
+                    break;
+                }
+
+                result -= 1;
 
                 if n == 0 {
                     let _ = guard.shared.parker.recv()?;
@@ -229,16 +304,16 @@ impl Driver {
                     continue;
                 }
 
-                panic!("don't know how to handle legit events yet!")
+                // disable file descriptor and send the returned events.
+                e.fd = -1;
+                let waker = &guard.wakers[n - 1];
+                *waker.returned_events.lock().unwrap() = Some(std::mem::take(&mut e.revents));
+                waker.waker.wake();
             }
 
             if notified {
-                guard
-                    .shared
-                    .holders
-                    .lock()
-                    .unwrap()
-                    .process(&mut self, &mut guard.wakers)?;
+                let mut holders = guard.shared.holders.lock().unwrap();
+                holders.process(&mut self, &mut guard.wakers)?;
             }
         }
 
@@ -247,7 +322,7 @@ impl Driver {
 
     fn start(shared: Arc<Shared>) {
         let state = Driver {
-            files: vec![libc::pollfd {
+            descriptors: vec![libc::pollfd {
                 fd: shared.parker.fd,
                 events: libc::POLLIN,
                 revents: 0,
@@ -281,6 +356,49 @@ impl Drop for PanicGuard {
         // Wake up every waker so that they can observe the panic.
         for waker in self.wakers.iter() {
             waker.waker.wake();
+        }
+    }
+}
+
+/// Helper wrapper around an eventfd.
+pub(crate) struct EventFd {
+    fd: c::c_int,
+}
+
+impl EventFd {
+    fn new() -> Result<Self> {
+        unsafe {
+            Ok(Self {
+                fd: errno!(c::eventfd(0, c::EFD_NONBLOCK))?,
+            })
+        }
+    }
+
+    /// Add the given number to the eventfd.
+    fn send(&self, v: u64) -> Result<(), Errno> {
+        unsafe {
+            let n = v.to_ne_bytes();
+            errno!(c::write(self.fd, n.as_ptr() as *const c::c_void, 8))?;
+            Ok(())
+        }
+    }
+
+    /// Read the next value from the eventfd.
+    fn recv(&self) -> Result<u64> {
+        unsafe {
+            let mut bytes = [0u8; 8];
+            let read = errno!(c::read(self.fd, bytes.as_mut_ptr() as *mut c::c_void, 8))?;
+
+            assert!(read == 8);
+            Ok(u64::from_ne_bytes(bytes))
+        }
+    }
+}
+
+impl Drop for EventFd {
+    fn drop(&mut self) {
+        unsafe {
+            let _ = libc::close(self.fd);
         }
     }
 }

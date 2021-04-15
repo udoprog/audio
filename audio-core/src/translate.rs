@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 /// Trait used for translating one sample type to another.
 ///
 /// # Examples

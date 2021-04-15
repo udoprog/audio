@@ -4,9 +4,9 @@ use audio_device::alsa;
 use audio_generator::{self as gen, Generator as _};
 
 fn main() -> anyhow::Result<()> {
-    let audio_thread = ste::Thread::new()?;
+    let bg = ste::Thread::new()?;
 
-    audio_thread.submit(|| {
+    bg.submit(|| {
         let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
 
         let config = pcm.configure::<i16>().install()?;
@@ -22,7 +22,7 @@ fn main() -> anyhow::Result<()> {
         let mut buf = [0i16; 16 * 1024];
 
         loop {
-            for o in (0..buf.len()).step_by(2) {
+            for o in (0..buf.len()).step_by(channels) {
                 let s = i16::translate((a.sample() + b.sample() + c.sample()) * 0.01);
 
                 for c in 0..channels {
@@ -40,5 +40,6 @@ fn main() -> anyhow::Result<()> {
         Ok::<_, anyhow::Error>(())
     })??;
 
+    bg.join()?;
     Ok(())
 }

@@ -1,19 +1,19 @@
-use crate::sample::Translate;
+use crate::translate::Translate;
 
 macro_rules! test {
-    ($ty:ident, $min:expr, $max:expr) -> {
+    ($ty:ident, $min:expr, $max:expr) => {
         assert_eq!(<$ty>::translate(1.0f32), $max);
         assert_eq!(<$ty>::translate(-1.0f32), $min);
-    
+
         assert_eq!(<$ty>::translate(1.0f64), $max);
         assert_eq!(<$ty>::translate(-1.0f64), $min);
-    
+
         assert_eq!(<$ty>::translate(u16::MIN), $min);
         assert_eq!(<$ty>::translate(u16::MAX), $max);
-    
+
         assert_eq!(<$ty>::translate(i16::MIN), $min);
         assert_eq!(<$ty>::translate(i16::MAX), $max);
-    }
+    };
 }
 
 #[test]
