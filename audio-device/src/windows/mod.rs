@@ -4,6 +4,11 @@ use windows_sys::Windows::Win32::SystemServices as ss;
 mod event;
 pub use self::event::Event;
 
+cfg_events_driver! {
+    #[doc(inherit)]
+    pub use crate::runtime::events::AsyncEvent;
+}
+
 /// Trait that indicates a type that encapsulates an event.
 pub trait RawEvent {
     /// Access the underlying raw handle for the event.

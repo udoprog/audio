@@ -11,6 +11,7 @@
 //! # Examples
 //!
 //! * [ALSA blocking playback][alsa-blocking].
+//! * [ALSA async playback][alsa-async].
 //! * [WASAPI blocking playback][wasapi-blocking].
 //! * [WASAPI async playback][wasapi-async].
 //!
@@ -25,6 +26,7 @@
 //!
 //! [audio ecosystem]: https://docs.rs/audio
 //! [alsa-blocking]: https://github.com/udoprog/audio/blob/main/audio-device/examples/alsa.rs
+//! [alsa-async]: https://github.com/udoprog/audio/blob/main/audio-device/examples/alsa-async.rs
 //! [audio-core]: https://docs.rs/audio-core
 //! [wasapi-async]: https://github.com/udoprog/audio/blob/main/audio-device/examples/wasapi-async.rs
 //! [wasapi-blocking]: https://github.com/udoprog/audio/blob/main/audio-device/examples/wasapi.rs
@@ -59,4 +61,7 @@ cfg_alsa! {
     pub mod alsa;
 }
 
-pub mod driver;
+pub mod runtime;
+
+mod error;
+pub use self::error::{Error, Result};

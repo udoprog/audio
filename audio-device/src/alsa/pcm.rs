@@ -4,8 +4,6 @@ use crate::alsa::{
     ChannelArea, Configurator, Error, HardwareParameters, HardwareParametersMut, Result, Sample,
     SoftwareParameters, SoftwareParametersMut, State, Stream, Writer,
 };
-#[cfg(feature = "poll-driver")]
-use crate::driver::Poll;
 use crate::libc as c;
 use crate::unix::poll::PollFlags;
 use alsa_sys as alsa;
@@ -406,13 +404,13 @@ impl Pcm {
     /// Get returned events from poll descriptors.
     ///
     /// This function does "demangling" of the revents mask returned from the
-    /// [poll()][crate::unix::poll::poll()] syscall to correct semantics
-    /// ([PollFlags::POLLIN] = read, [PollFlags::POLLOUT] = write).
+    /// `poll()` syscall to correct semantics ([PollFlags::POLLIN] = read,
+    /// [PollFlags::POLLOUT] = write).
     ///
     /// Note: The null event also exists. Even if `poll()` or `select()` syscall
     /// returned that some events are waiting, this function might return empty
     /// set of events. In this case, application should do next event waiting
-    /// using [poll()][crate::unix::poll::poll()] or `select()`.
+    /// using `poll()` or `select()`.
     ///
     /// Note: Even if multiple poll descriptors are used (i.e. `fds.len() > 1`),
     /// this function returns only a single event.
@@ -504,6 +502,12 @@ impl Pcm {
         /// if the number of channels does not match the number of configured
         /// channels.
         ///
+        /// # Panics
+        ///
+        /// Panics if the audio runtime is not available.
+        ///
+        /// See [Runtime][crate::runtime::Runtime] for more.
+        ///
         /// # Examples
         ///
         /// ```rust,no_run
@@ -517,7 +521,7 @@ impl Pcm {
         /// // use writer with the resulting config.
         /// # Ok(()) }
         /// ```
-        pub fn async_writer<T>(&mut self, handle: &Poll) -> Result<AsyncWriter<'_, T>>
+        pub fn async_writer<T>(&mut self) -> Result<AsyncWriter<'_, T>>
         where
             T: Sample,
         {
@@ -544,7 +548,8 @@ impl Pcm {
             }
 
             let fd = fds[0];
-            Ok(unsafe { AsyncWriter::new(self, handle, fd, channels)? })
+
+            Ok(unsafe { AsyncWriter::new(self, fd, channels)? })
         }
     }
 

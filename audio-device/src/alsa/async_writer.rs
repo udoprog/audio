@@ -1,8 +1,8 @@
 use crate::alsa::{Error, Pcm, Result};
-use crate::driver::{Poll, PollHandle};
 use crate::libc as c;
 use crate::unix::errno;
 use crate::unix::poll;
+use crate::unix::AsyncPoll;
 use audio_core as core;
 use std::marker;
 
@@ -11,7 +11,7 @@ use std::marker;
 /// See [Pcm::async_writer].
 pub struct AsyncWriter<'a, T> {
     pcm: &'a mut Pcm,
-    poll_handle: PollHandle,
+    poll_handle: AsyncPoll,
     pollfd: c::pollfd,
     channels: usize,
     _marker: marker::PhantomData<T>,
@@ -24,15 +24,10 @@ impl<'a, T> AsyncWriter<'a, T> {
     ///
     /// This constructor assumes that the caller has checked that type `T` is
     /// appropriate for writing to the given PCM.
-    pub(super) unsafe fn new(
-        pcm: &'a mut Pcm,
-        poll: &Poll,
-        pollfd: c::pollfd,
-        channels: usize,
-    ) -> Result<Self> {
+    pub(super) unsafe fn new(pcm: &'a mut Pcm, pollfd: c::pollfd, channels: usize) -> Result<Self> {
         Ok(Self {
             pcm,
-            poll_handle: poll.register(pollfd)?,
+            poll_handle: AsyncPoll::new(pollfd)?,
             pollfd,
             channels,
             _marker: marker::PhantomData,

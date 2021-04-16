@@ -1,20 +1,12 @@
-use crate::driver::atomic_waker::AtomicWaker;
 use crate::libc as c;
 use crate::loom::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
+use crate::runtime::atomic_waker::AtomicWaker;
 use crate::unix::errno::Errno;
+use crate::Result;
 use std::collections::HashMap;
 use std::mem;
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error("system error: {0}")]
-    Sys(#[from] Errno),
-}
-
-pub type Result<T, E = Error> = ::std::result::Result<T, E>;
 
 /// The token associated with the current waiter.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -26,7 +18,7 @@ pub struct Token(c::c_int);
 /// Dropping this handle will allow the background thread to poll the handler
 /// again.
 ///
-/// Constructed by waiting on [PollHandle::returned_events].
+/// Constructed by waiting on [AsyncPoll::returned_events].
 pub struct PollEventsGuard<'a> {
     events: c::c_short,
     shared: &'a Shared,
@@ -50,15 +42,48 @@ impl Drop for PollEventsGuard<'_> {
     }
 }
 
-/// A handle to a registered poll file descriptor.
+/// An unsafe asynchronous poller around a `pollfd`.
 ///
-/// Constructed with [Handle::register].
-pub struct PollHandle {
+/// See [AsyncPoll::new].
+pub struct AsyncPoll {
     shared: Arc<Shared>,
     waker: Arc<Waker>,
 }
 
-impl PollHandle {
+impl AsyncPoll {
+    /// Construct a new poll handle around the given `pollfd`, registering it
+    /// for interest in receiving events asynchronously.
+    ///
+    /// Dropping the returned handle will unregister interest.
+    ///
+    /// # Panics
+    ///
+    /// Panics unless an audio runtime is available.
+    ///
+    /// See [Runtime][crate::runtime::Runtime].
+    ///
+    /// # Safety
+    ///
+    /// This is unsafe, because the caller must ensure that the provided
+    /// `pollfd` is not closed before this handle is dropped.
+    pub unsafe fn new(descriptor: c::pollfd) -> Result<AsyncPoll, Errno> {
+        crate::runtime::with_poll(|poll| {
+            let waker = Arc::new(Waker {
+                waker: AtomicWaker::new(),
+                descriptor,
+                returned_events: AtomicUsize::new(0),
+            });
+
+            poll.shared.holders.lock().added.push(waker.clone());
+            poll.shared.parker.send(1)?;
+
+            Ok(AsyncPoll {
+                shared: poll.shared.clone(),
+                waker,
+            })
+        })
+    }
+
     /// Wait for events to be triggered on the background driver and return a
     /// guard to the events.
     ///
@@ -71,7 +96,7 @@ impl PollHandle {
 
         return ReturnedEvents(self).await;
 
-        struct ReturnedEvents<'a>(&'a PollHandle);
+        struct ReturnedEvents<'a>(&'a AsyncPoll);
 
         impl<'a> Future for ReturnedEvents<'a> {
             type Output = PollEventsGuard<'a>;
@@ -94,7 +119,7 @@ impl PollHandle {
     }
 }
 
-impl Drop for PollHandle {
+impl Drop for AsyncPoll {
     fn drop(&mut self) {
         self.shared.holders.lock().removed.push(self.waker.token());
 
@@ -131,9 +156,9 @@ pub(crate) struct Shared {
 
 #[derive(Default)]
 pub(crate) struct Events {
-    pub(crate) added: Vec<Arc<Waker>>,
-    pub(crate) released: Vec<Token>,
-    pub(crate) removed: Vec<Token>,
+    added: Vec<Arc<Waker>>,
+    released: Vec<Token>,
+    removed: Vec<Token>,
 }
 
 impl Events {
@@ -158,9 +183,13 @@ impl Events {
             if let Some(loc) = driver.locations.remove(&token) {
                 driver.descriptors.swap_remove(loc.descriptor);
                 wakers.swap_remove(loc.waker);
-                // NB: redirect swap removed.
-                let token = wakers[loc.waker].token();
-                driver.locations.insert(token, loc);
+
+                // re-organize unless we're removing the last waker.
+                if wakers.len() != loc.waker {
+                    // NB: redirect swap removed.
+                    let token = wakers[loc.waker].token();
+                    driver.locations.insert(token, loc);
+                }
             }
         }
 
@@ -179,15 +208,13 @@ impl Events {
     }
 }
 
-cfg_poll_driver! {
-    /// An executor to drive things which are woken up by polling.
-    pub struct Poll {
-        thread: Option<thread::JoinHandle<()>>,
-        shared: Arc<Shared>,
-    }
+/// An executor to drive things which are woken up by polling.
+pub struct PollDriver {
+    thread: Option<thread::JoinHandle<()>>,
+    shared: Arc<Shared>,
 }
 
-impl Poll {
+impl PollDriver {
     /// Construct a new events windows event object driver and return its
     /// handle.
     pub fn new() -> Result<Self> {
@@ -208,26 +235,6 @@ impl Poll {
         };
 
         Ok(handle)
-    }
-
-    /// Register a pollfd for interest in events.
-    ///
-    /// Dropping the returned [PollHandle] will unregister interest.
-    pub fn register(&self, descriptor: c::pollfd) -> Result<PollHandle, Errno> {
-        let waker = Arc::new(Waker {
-            waker: AtomicWaker::new(),
-            descriptor,
-            returned_events: AtomicUsize::new(0),
-        });
-
-        self.shared.holders.lock().added.push(waker.clone());
-
-        self.shared.parker.send(1)?;
-
-        Ok(PollHandle {
-            shared: self.shared.clone(),
-            waker,
-        })
     }
 
     /// Join the current handle.
@@ -255,7 +262,7 @@ impl Poll {
     }
 }
 
-impl Drop for Poll {
+impl Drop for PollDriver {
     fn drop(&mut self) {
         let _ = self.inner_join();
     }

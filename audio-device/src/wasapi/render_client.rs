@@ -1,4 +1,3 @@
-use crate::driver::AsyncEvent;
 use crate::loom::sync::Arc;
 use crate::wasapi::{BufferMut, Error};
 use crate::windows::{Event, RawEvent};
@@ -86,33 +85,37 @@ impl<T> RenderClient<T, Event> {
     }
 }
 
-impl<T> RenderClient<T, AsyncEvent> {
-    /// Get access to the raw mutable buffer.
-    ///
-    /// This will block until it is appropriate to submit a buffer.
-    pub async fn buffer_mut_async(&mut self) -> Result<BufferMut<'_, T>, Error> {
-        loop {
-            self.event.wait().await;
-            self.tag.ensure_on_thread();
+cfg_events_driver! {
+    use crate::windows::AsyncEvent;
 
-            let padding = self.get_current_padding()?;
-            let frames = self.buffer_size.saturating_sub(padding);
+    impl<T> RenderClient<T, AsyncEvent> {
+        /// Get access to the raw mutable buffer.
+        ///
+        /// This will block until it is appropriate to submit a buffer.
+        pub async fn buffer_mut_async(&mut self) -> Result<BufferMut<'_, T>, Error> {
+            loop {
+                self.event.wait().await;
+                self.tag.ensure_on_thread();
 
-            if frames == 0 {
-                continue;
+                let padding = self.get_current_padding()?;
+                let frames = self.buffer_size.saturating_sub(padding);
+
+                if frames == 0 {
+                    continue;
+                }
+
+                let data = self.get_buffer(frames)?;
+
+                return Ok(BufferMut {
+                    tag: self.tag,
+                    render_client: &mut self.render_client,
+                    data,
+                    frames,
+                    len: frames as usize * self.channels,
+                    in_use: true,
+                    _marker: marker::PhantomData,
+                });
             }
-
-            let data = self.get_buffer(frames)?;
-
-            return Ok(BufferMut {
-                tag: self.tag,
-                render_client: &mut self.render_client,
-                data,
-                frames,
-                len: frames as usize * self.channels,
-                in_use: true,
-                _marker: marker::PhantomData,
-            });
         }
     }
 }

@@ -1,4 +1,5 @@
-use audio_device::driver::{Poll, PollHandle};
+use audio_device::runtime::Runtime;
+use audio_device::unix::AsyncPoll;
 use std::fs::OpenOptions;
 use std::io;
 use std::io::Read;
@@ -7,7 +8,7 @@ use std::os::unix::io::AsRawFd;
 
 /// Read the data from the reader `R` asynchronously using the specified poll
 /// handle.
-async fn read_to_vec<R>(handle: &PollHandle, mut read: R) -> io::Result<Vec<u8>>
+async fn read_to_vec<R>(handle: &AsyncPoll, mut read: R) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
@@ -46,7 +47,8 @@ where
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let poll = Poll::new()?;
+    let runtime = Runtime::new()?;
+    let _guard = runtime.enter();
 
     let mut file = OpenOptions::new()
         .read(true)
@@ -59,10 +61,8 @@ async fn main() -> anyhow::Result<()> {
         revents: 0,
     };
 
-    let handle = poll.register(pollfd)?;
+    let handle = unsafe { AsyncPoll::new(pollfd)? };
     let data = read_to_vec(&handle, &mut file).await?;
-
-    poll.join();
 
     let contents = std::str::from_utf8(&data)?;
     println!("contents:\n{}", contents);

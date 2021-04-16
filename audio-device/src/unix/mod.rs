@@ -5,6 +5,11 @@ pub mod poll;
 #[doc(inline)]
 pub use nix::Error;
 
+cfg_poll_driver! {
+    #[doc(inherit)]
+    pub use crate::runtime::poll::{AsyncPoll, PollEventsGuard};
+}
+
 macro_rules! errno {
     ($expr:expr) => {{
         let result = $expr;

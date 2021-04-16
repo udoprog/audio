@@ -4,11 +4,10 @@ use audio_device::alsa;
 use audio_generator::{self as gen, Generator as _};
 
 async fn generate_audio() -> anyhow::Result<()> {
-    let poll = audio_device::driver::Poll::new()?;
     let mut pcm = alsa::Pcm::open_default_nonblocking(alsa::Stream::Playback)?;
 
     let config = pcm.configure::<i16>().install()?;
-    let mut writer = pcm.async_writer::<i16>(&poll)?;
+    let mut writer = pcm.async_writer::<i16>()?;
     dbg!(config);
 
     let sample_rate = config.rate as f32;
@@ -38,8 +37,12 @@ async fn generate_audio() -> anyhow::Result<()> {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let bg = ste::Builder::new().with_tokio().build()?;
-    bg.submit_async(generate_audio()).await?;
+    let runtime = audio_device::runtime::Runtime::new()?;
+    let bg = ste::Builder::new().build()?;
+
+    bg.submit_async(runtime.wrap(generate_audio())).await?;
+
     bg.join();
+    runtime.join();
     Ok(())
 }

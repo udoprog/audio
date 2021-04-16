@@ -1,8 +1,6 @@
-use crate::driver::AsyncEvent;
-use crate::driver::Events;
 use crate::loom::sync::Arc;
 use crate::wasapi::{ClientConfig, Error, InitializedClient, Sample, SampleFormat};
-use crate::windows::{Event, RawEvent};
+use crate::windows::{AsyncEvent, Event, RawEvent};
 use std::marker;
 use std::mem;
 use std::ptr;
@@ -84,16 +82,23 @@ impl Client {
         self.initialize_inner(config, || Event::new(false, false))
     }
 
-    /// Try to initialize the client with the given configuration.
-    pub fn initialize_async<T>(
-        &self,
-        events: &Events,
-        config: ClientConfig,
-    ) -> Result<InitializedClient<T, AsyncEvent>, Error>
-    where
-        T: Sample,
-    {
-        self.initialize_inner(config, || events.event(false))
+    cfg_events_driver! {
+        /// Try to initialize the client with the given configuration.
+        ///
+        /// # Panics
+        ///
+        /// Panics if the audio runtime is not available.
+        ///
+        /// See [Runtime][crate::runtime::Runtime] for more.
+        pub fn initialize_async<T>(
+            &self,
+            config: ClientConfig,
+        ) -> Result<InitializedClient<T, AsyncEvent>, Error>
+        where
+            T: Sample,
+        {
+            self.initialize_inner(config, || AsyncEvent::new(false))
+        }
     }
 
     /// Try to initialize the client with the given configuration.

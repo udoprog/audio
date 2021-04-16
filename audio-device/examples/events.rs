@@ -2,7 +2,7 @@ use crate::loom::sync::Arc;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let events = audio_device::driver::Events::new()?;
+    let events = audio_device::runtime::Events::new()?;
     let event = Arc::new(events.event(false)?);
     let event2 = event.clone();
 

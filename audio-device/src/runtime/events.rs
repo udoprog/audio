@@ -1,8 +1,9 @@
-use crate::driver::atomic_waker::AtomicWaker;
 use crate::loom::sync::atomic::{AtomicBool, Ordering};
 use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
+use crate::runtime::atomic_waker::AtomicWaker;
 use crate::windows::{Event, RawEvent};
+use crate::Result;
 use std::io;
 use std::mem;
 use windows_sys::Windows::Win32::SystemServices as ss;
@@ -27,24 +28,22 @@ struct Holders {
     removed: Vec<Event>,
 }
 
-cfg_events_driver! {
-    /// An executor to drive things which are woken up by [windows event
-    /// objects].
-    ///
-    /// This is necessary to use in combination with [AsyncEvent].
-    ///
-    /// [windows event objects]:
-    /// https://docs.microsoft.com/en-us/windows/win32/sync/event-objects
-    pub struct Events {
-        thread: Option<thread::JoinHandle<()>>,
-        shared: Arc<Shared>,
-    }
+/// An executor to drive things which are woken up by [windows event
+/// objects].
+///
+/// This is necessary to use in combination with [AsyncEvent].
+///
+/// [windows event objects]:
+/// https://docs.microsoft.com/en-us/windows/win32/sync/event-objects
+pub struct EventsDriver {
+    thread: Option<thread::JoinHandle<()>>,
+    shared: Arc<Shared>,
 }
 
-impl Events {
+impl EventsDriver {
     /// Construct a new events windows event object driver and return its
     /// handle.
-    pub fn new() -> windows::Result<Self> {
+    pub fn new() -> Result<Self> {
         let shared = Arc::new(Shared {
             running: AtomicBool::new(true),
             holders: Mutex::new(Holders::default()),
@@ -62,27 +61,6 @@ impl Events {
         };
 
         Ok(handle)
-    }
-
-    /// Construct an asynchronous event associated with the current handle.
-    pub fn event(&self, initial_state: bool) -> windows::Result<AsyncEvent> {
-        let event = Event::new(false, initial_state)?;
-        let handle = unsafe { event.raw_event() };
-
-        let waker = Arc::new(Waker {
-            ready: AtomicBool::new(false),
-            waker: AtomicWaker::new(),
-            handle,
-        });
-
-        self.shared.holders.lock().added.push(waker.clone());
-        self.shared.parker.set();
-
-        Ok(AsyncEvent {
-            shared: self.shared.clone(),
-            waker,
-            event: Some(event),
-        })
     }
 
     /// Join the current handle.
@@ -107,7 +85,7 @@ impl Events {
     }
 }
 
-impl Drop for Events {
+impl Drop for EventsDriver {
     fn drop(&mut self) {
         let _ = self.inner_join();
     }
@@ -227,7 +205,7 @@ impl Driver {
 
 /// An asynchronous variant of [Event].
 ///
-/// Constructed through [Events::event][crate::driver::Events::event].
+/// See [AsyncEvent::new].
 pub struct AsyncEvent {
     shared: Arc<Shared>,
     waker: Arc<Waker>,
@@ -235,6 +213,36 @@ pub struct AsyncEvent {
 }
 
 impl AsyncEvent {
+    /// Construct an asynchronous event associated with the current handle. The
+    /// constructed event has the initial state specified by `initial_state`.
+    ///
+    /// # Panics
+    ///
+    /// Panics unless an audio runtime is available.
+    ///
+    /// See [Runtime][crate::runtime::Runtime].
+    pub fn new(initial_state: bool) -> windows::Result<AsyncEvent> {
+        crate::runtime::with_events(|events| {
+            let event = Event::new(false, initial_state)?;
+            let handle = unsafe { event.raw_event() };
+
+            let waker = Arc::new(Waker {
+                ready: AtomicBool::new(false),
+                waker: AtomicWaker::new(),
+                handle,
+            });
+
+            events.shared.holders.lock().added.push(waker.clone());
+            events.shared.parker.set();
+
+            Ok(AsyncEvent {
+                shared: events.shared.clone(),
+                waker,
+                event: Some(event),
+            })
+        })
+    }
+
     /// Wait for the specified event handle to become set.
     pub async fn wait(&self) {
         use std::future::Future;
