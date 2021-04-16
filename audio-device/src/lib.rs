@@ -32,9 +32,16 @@
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+pub(crate) mod loom;
+
 #[macro_use]
 #[doc(hidden)]
 mod macros;
+
+cfg_unix! {
+    #[macro_use]
+    pub mod unix;
+}
 
 cfg_wasapi! {
     pub mod wasapi;
@@ -42,11 +49,6 @@ cfg_wasapi! {
 
 cfg_windows! {
     pub mod windows;
-}
-
-cfg_unix! {
-    #[macro_use]
-    pub mod unix;
 }
 
 cfg_unix! {
@@ -58,5 +60,3 @@ cfg_alsa! {
 }
 
 pub mod driver;
-
-pub(crate) mod loom;
