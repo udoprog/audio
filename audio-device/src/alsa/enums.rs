@@ -225,3 +225,24 @@ decl_enum! {
         MonotonicRaw = SND_PCM_TSTAMP_TYPE_MONOTONIC_RAW,
     }
 }
+
+decl_enum! {
+    /// The interface of a control element.
+    #[repr(u32)]
+    pub enum ControlElementInterface {
+        /// Card level
+        Card = SND_CTL_ELEM_IFACE_CARD,
+        /// Hardware dependent device
+        HardwareDependency = SND_CTL_ELEM_IFACE_HWDEP,
+        /// Mixer
+        Mixer = SND_CTL_ELEM_IFACE_MIXER,
+        /// PCM
+        Pcm = SND_CTL_ELEM_IFACE_PCM,
+        /// RawMidi
+        RawMidi = SND_CTL_ELEM_IFACE_RAWMIDI,
+        /// Timer
+        Timer = SND_CTL_ELEM_IFACE_TIMER,
+        /// Sequencer
+        Sequencer = SND_CTL_ELEM_IFACE_SEQUENCER,
+    }
+}

@@ -114,7 +114,9 @@ mod access_mask;
 pub use self::access_mask::AccessMask;
 
 mod enums;
-pub use self::enums::{Access, Direction, Format, State, Stream, Timestamp, TimestampType};
+pub use self::enums::{
+    Access, ControlElementInterface, Direction, Format, State, Stream, Timestamp, TimestampType,
+};
 
 mod channel_area;
 #[doc(hidden)]
@@ -133,3 +135,6 @@ pub use self::sample::Sample;
 
 mod configurator;
 pub use self::configurator::{Config, Configurator};
+
+mod control;
+pub use self::control::{Control, ControlElementList};
