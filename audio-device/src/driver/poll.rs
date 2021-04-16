@@ -1,9 +1,10 @@
 use crate::driver::atomic_waker::AtomicWaker;
 use crate::libc as c;
-use crate::loom::sync::atomic::{AtomicBool, Ordering};
+use crate::loom::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
 use crate::unix::errno::Errno;
+use std::collections::HashMap;
 use std::mem;
 use thiserror::Error;
 
@@ -16,7 +17,7 @@ pub enum Error {
 pub type Result<T, E = Error> = ::std::result::Result<T, E>;
 
 /// The token associated with the current waiter.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Token(c::c_int);
 
@@ -82,10 +83,11 @@ impl PollHandle {
 
             fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
                 self.0.waker.waker.register_by_ref(cx.waker());
+                let returned_events = self.0.waker.returned_events.swap(0, Ordering::Acquire);
 
-                if let Some(events) = self.0.waker.returned_events.lock().unwrap().take() {
+                if returned_events != 0 {
                     Poll::Ready(PollEventsGuard {
-                        events,
+                        events: returned_events as c::c_short,
                         shared: &*self.0.shared,
                         token: self.0.waker.token(),
                     })
@@ -119,7 +121,7 @@ pub(crate) struct Waker {
     /// The descriptors associated with this waker.
     descriptor: c::pollfd,
     /// The last revents decoded. `None` if no events are ready.
-    returned_events: Mutex<Option<c::c_short>>,
+    returned_events: AtomicUsize,
 }
 
 impl Waker {
@@ -133,23 +135,29 @@ impl Waker {
 
 pub(crate) struct Shared {
     pub(crate) running: AtomicBool,
-    pub(crate) holders: Mutex<Holders>,
+    pub(crate) holders: Mutex<Events>,
     pub(crate) parker: EventFd,
 }
 
 #[derive(Default)]
-pub(crate) struct Holders {
+pub(crate) struct Events {
     pub(crate) added: Vec<Arc<Waker>>,
     pub(crate) released: Vec<Token>,
     pub(crate) removed: Vec<Token>,
 }
 
-impl Holders {
+impl Events {
     // Process all queued elements in the driver.
     fn process(&mut self, driver: &mut Driver, wakers: &mut Vec<Arc<Waker>>) -> Result<()> {
         let mut added = mem::replace(&mut self.added, Vec::new());
 
         for waker in added.drain(..) {
+            let loc = Loc {
+                descriptor: driver.descriptors.len(),
+                waker: wakers.len(),
+            };
+
+            driver.locations.insert(waker.token(), loc);
             driver.descriptors.push(waker.descriptor);
             wakers.push(waker);
         }
@@ -157,21 +165,20 @@ impl Holders {
         let mut removed = mem::replace(&mut self.removed, Vec::new());
 
         for token in removed.drain(..) {
-            if let Some(n) = wakers.iter().position(|w| w.token() == token) {
-                // NB: n == 0 is the fd used for waking up.
-                driver.descriptors.swap_remove(n + 1);
-                wakers.swap_remove(n);
+            if let Some(loc) = driver.locations.remove(&token) {
+                driver.descriptors.swap_remove(loc.descriptor);
+                wakers.swap_remove(loc.waker);
+                // NB: redirect swap removed.
+                let token = wakers[loc.waker].token();
+                driver.locations.insert(token, loc);
             }
         }
 
         let mut released = mem::replace(&mut self.released, Vec::new());
 
         for r in released.drain(..) {
-            for (n, w) in wakers.iter().enumerate() {
-                if w.token() == r {
-                    // NB: n == 0 is the fd used for waking up.
-                    driver.descriptors[n + 1].fd = w.descriptor.fd;
-                }
+            if let Some(Loc { descriptor, waker }) = driver.locations.get(&r) {
+                driver.descriptors[*descriptor].fd = wakers[*waker].descriptor.fd;
             }
         }
 
@@ -196,7 +203,7 @@ impl Poll {
     pub fn new() -> Result<Self> {
         let shared = Arc::new(Shared {
             running: AtomicBool::new(true),
-            holders: Mutex::new(Holders::default()),
+            holders: Mutex::new(Events::default()),
             parker: EventFd::new()?,
         });
 
@@ -220,7 +227,7 @@ impl Poll {
         let waker = Arc::new(Waker {
             waker: AtomicWaker::new(),
             descriptor,
-            returned_events: Mutex::new(None),
+            returned_events: AtomicUsize::new(0),
         });
 
         self.shared
@@ -269,7 +276,15 @@ impl Drop for Poll {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+struct Loc {
+    descriptor: usize,
+    waker: usize,
+}
+
 struct Driver {
+    /// Location of a given token.
+    locations: HashMap<Token, Loc>,
     /// The descriptors being driven.
     descriptors: Vec<libc::pollfd>,
 }
@@ -304,10 +319,13 @@ impl Driver {
                     continue;
                 }
 
-                // disable file descriptor and send the returned events.
+                // Disable file descriptor and wakeup the task to receive the
+                // returned events.
                 e.fd = -1;
                 let waker = &guard.wakers[n - 1];
-                *waker.returned_events.lock().unwrap() = Some(std::mem::take(&mut e.revents));
+                waker
+                    .returned_events
+                    .store(std::mem::take(&mut e.revents) as usize, Ordering::Release);
                 waker.waker.wake();
             }
 
@@ -322,6 +340,7 @@ impl Driver {
 
     fn start(shared: Arc<Shared>) {
         let state = Driver {
+            locations: HashMap::new(),
             descriptors: vec![libc::pollfd {
                 fd: shared.parker.fd,
                 events: libc::POLLIN,
