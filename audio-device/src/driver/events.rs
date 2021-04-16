@@ -2,29 +2,29 @@ use crate::driver::atomic_waker::AtomicWaker;
 use crate::loom::sync::atomic::{AtomicBool, Ordering};
 use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
-use crate::windows::{AsyncEvent, Event, RawEvent as _};
+use crate::windows::{Event, RawEvent};
 use std::io;
 use std::mem;
 use windows_sys::Windows::Win32::SystemServices as ss;
 use windows_sys::Windows::Win32::WindowsProgramming as wp;
 
 /// Data on the waker for a handle.
-pub(crate) struct Waker {
-    pub(crate) ready: AtomicBool,
-    pub(crate) waker: AtomicWaker,
+struct Waker {
+    ready: AtomicBool,
+    waker: AtomicWaker,
     handle: ss::HANDLE,
 }
 
-pub(crate) struct Shared {
-    pub(crate) running: AtomicBool,
-    pub(crate) holders: Mutex<Holders>,
-    pub(crate) parker: Event,
+struct Shared {
+    running: AtomicBool,
+    holders: Mutex<Holders>,
+    parker: Event,
 }
 
 #[derive(Default)]
-pub(crate) struct Holders {
-    pub(crate) added: Vec<Arc<Waker>>,
-    pub(crate) removed: Vec<Event>,
+struct Holders {
+    added: Vec<Arc<Waker>>,
+    removed: Vec<Event>,
 }
 
 cfg_events_driver! {
@@ -75,15 +75,14 @@ impl Events {
             handle,
         });
 
-        self.shared
-            .holders
-            .lock()
-            .unwrap()
-            .added
-            .push(waker.clone());
+        self.shared.holders.lock().added.push(waker.clone());
         self.shared.parker.set();
 
-        Ok(AsyncEvent::new(self.shared.clone(), waker, event))
+        Ok(AsyncEvent {
+            shared: self.shared.clone(),
+            waker,
+            event: Some(event),
+        })
     }
 
     /// Join the current handle.
@@ -170,7 +169,7 @@ impl Driver {
                 }
             }
 
-            let mut holders = self.shared.holders.lock().unwrap();
+            let mut holders = self.shared.holders.lock();
             let mut added = mem::replace(&mut holders.added, Vec::new());
 
             for waker in added.drain(..) {
@@ -225,3 +224,71 @@ impl Driver {
         state.run()
     }
 }
+
+/// An asynchronous variant of [Event].
+///
+/// Constructed through [Events::event][crate::driver::Events::event].
+pub struct AsyncEvent {
+    shared: Arc<Shared>,
+    waker: Arc<Waker>,
+    event: Option<Event>,
+}
+
+impl AsyncEvent {
+    /// Wait for the specified event handle to become set.
+    pub async fn wait(&self) {
+        use std::future::Future;
+        use std::pin::Pin;
+        use std::task::{Context, Poll};
+
+        return WaitFor {
+            shared: &*self.shared,
+            waker: &*self.waker,
+        }
+        .await;
+
+        struct WaitFor<'a> {
+            shared: &'a Shared,
+            waker: &'a Waker,
+        }
+
+        impl Future for WaitFor<'_> {
+            type Output = ();
+
+            fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+                if !self.shared.running.load(Ordering::Acquire) {
+                    panic!("background thread panicked");
+                }
+
+                if self.waker.ready.load(Ordering::Acquire) {
+                    return Poll::Ready(());
+                }
+
+                self.waker.waker.register_by_ref(cx.waker());
+                Poll::Pending
+            }
+        }
+    }
+
+    /// Set the current event handle.
+    pub fn set(&self) {
+        self.event.as_ref().unwrap().set();
+    }
+}
+
+impl RawEvent for AsyncEvent {
+    unsafe fn raw_event(&self) -> ss::HANDLE {
+        self.event.as_ref().unwrap().raw_event()
+    }
+}
+
+impl Drop for AsyncEvent {
+    fn drop(&mut self) {
+        let event = self.event.take().unwrap();
+        self.shared.holders.lock().removed.push(event);
+        self.shared.parker.set();
+    }
+}
+
+unsafe impl Send for AsyncEvent {}
+unsafe impl Sync for AsyncEvent {}

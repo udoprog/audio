@@ -42,12 +42,7 @@ impl PollEventsGuard<'_> {
 
 impl Drop for PollEventsGuard<'_> {
     fn drop(&mut self) {
-        self.shared
-            .holders
-            .lock()
-            .unwrap()
-            .released
-            .push(self.token);
+        self.shared.holders.lock().released.push(self.token);
 
         if let Err(e) = self.shared.parker.send(1) {
             log::error!("failed to unpark background thread: {}", e);
@@ -101,12 +96,7 @@ impl PollHandle {
 
 impl Drop for PollHandle {
     fn drop(&mut self) {
-        self.shared
-            .holders
-            .lock()
-            .unwrap()
-            .removed
-            .push(self.waker.token());
+        self.shared.holders.lock().removed.push(self.waker.token());
 
         if let Err(e) = self.shared.parker.send(1) {
             log::error!("failed to unpark background thread: {}", e);
@@ -230,12 +220,7 @@ impl Poll {
             returned_events: AtomicUsize::new(0),
         });
 
-        self.shared
-            .holders
-            .lock()
-            .unwrap()
-            .added
-            .push(waker.clone());
+        self.shared.holders.lock().added.push(waker.clone());
 
         self.shared.parker.send(1)?;
 
@@ -330,7 +315,7 @@ impl Driver {
             }
 
             if notified {
-                let mut holders = guard.shared.holders.lock().unwrap();
+                let mut holders = guard.shared.holders.lock();
                 holders.process(&mut self, &mut guard.wakers)?;
             }
         }

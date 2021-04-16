@@ -2,7 +2,7 @@
 
 use windows_sys::Windows::Win32::SystemServices as ss;
 mod event;
-pub use self::event::{AsyncEvent, Event};
+pub use self::event::Event;
 
 /// Trait that indicates a type that encapsulates an event.
 pub trait RawEvent {

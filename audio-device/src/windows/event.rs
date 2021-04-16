@@ -1,17 +1,11 @@
-use crate::driver::events::{Shared, Waker};
-use crate::loom::sync::atomic::Ordering;
 use crate::windows::RawEvent;
-use std::future::Future;
-use std::pin::Pin;
 use std::ptr;
-use std::sync::Arc;
-use std::task::{Context, Poll};
 use windows_sys::Windows::Win32::SystemServices as ss;
 use windows_sys::Windows::Win32::WindowsProgramming as wp;
 
 const NULL: ss::HANDLE = ss::HANDLE(0);
 
-/// A reference counted event object.
+/// A managed ewvent object.
 #[repr(transparent)]
 pub struct Event {
     handle: ss::HANDLE,
@@ -70,76 +64,3 @@ impl Drop for Event {
 
 unsafe impl Send for Event {}
 unsafe impl Sync for Event {}
-
-/// An asynchronous variant of [Event].
-///
-/// Constructed through [Handle::event][crate::driver::Events::event]
-pub struct AsyncEvent {
-    shared: Arc<Shared>,
-    waker: Arc<Waker>,
-    event: Option<Event>,
-}
-
-impl AsyncEvent {
-    /// Construct a new async event.
-    pub(crate) fn new(shared: Arc<Shared>, waker: Arc<Waker>, event: Event) -> Self {
-        Self {
-            shared,
-            waker,
-            event: Some(event),
-        }
-    }
-
-    /// Wait for the specified event handle to become set.
-    pub async fn wait(&self) {
-        return WaitFor {
-            shared: &*self.shared,
-            waker: &*self.waker,
-        }
-        .await;
-
-        struct WaitFor<'a> {
-            shared: &'a Shared,
-            waker: &'a Waker,
-        }
-
-        impl Future for WaitFor<'_> {
-            type Output = ();
-
-            fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-                if !self.shared.running.load(Ordering::Acquire) {
-                    panic!("background thread panicked");
-                }
-
-                if self.waker.ready.load(Ordering::Acquire) {
-                    return Poll::Ready(());
-                }
-
-                self.waker.waker.register_by_ref(cx.waker());
-                Poll::Pending
-            }
-        }
-    }
-
-    /// Set the current event handle.
-    pub fn set(&self) {
-        self.event.as_ref().unwrap().set();
-    }
-}
-
-impl RawEvent for AsyncEvent {
-    unsafe fn raw_event(&self) -> ss::HANDLE {
-        self.event.as_ref().unwrap().raw_event()
-    }
-}
-
-impl Drop for AsyncEvent {
-    fn drop(&mut self) {
-        let event = self.event.take().unwrap();
-        self.shared.holders.lock().unwrap().removed.push(event);
-        self.shared.parker.set();
-    }
-}
-
-unsafe impl Send for AsyncEvent {}
-unsafe impl Sync for AsyncEvent {}

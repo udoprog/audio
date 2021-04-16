@@ -1,10 +1,14 @@
+use crate::loom::sync::Arc;
 use crate::wasapi::{ClientConfig, Error, RenderClient, Sample};
 use std::marker;
 use std::mem;
-use std::sync::Arc;
 use windows::Interface as _;
 use windows_sys::Windows::Win32::CoreAudio as core;
 
+/// A client that has been initialized with the given type `T`.
+///
+/// The type must implement the [Sample] trait to make sure it's appropriate for
+/// use with WASAPI.
 pub struct InitializedClient<T, E> {
     pub(super) tag: ste::Tag,
     pub(super) audio_client: core::IAudioClient,

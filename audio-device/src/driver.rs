@@ -5,7 +5,7 @@ mod atomic_waker;
 
 cfg_events_driver! {
     pub(crate) mod events;
-    pub use self::events::Events;
+    pub use self::events::{AsyncEvent, Events};
 }
 
 cfg_poll_driver! {

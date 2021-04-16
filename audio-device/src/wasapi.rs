@@ -4,6 +4,7 @@ use std::mem;
 use std::ptr;
 use thiserror::Error;
 use windows::Interface as _;
+use windows_sys::Windows::Win32::Com as com;
 use windows_sys::Windows::Win32::CoreAudio as core;
 
 mod initialized_client;
@@ -21,23 +22,19 @@ pub use self::buffer_mut::BufferMut;
 mod sample;
 pub use self::sample::Sample;
 
-pub const CLSCTX_INPROC_SERVER: u32 = 0x1;
-pub const CLSCTX_INPROC_HANDLER: u32 = 0x2;
-pub const CLSCTX_LOCAL_SERVER: u32 = 0x4;
-pub const CLSCTX_REMOTE_SERVER: u32 = 0x10;
-
-pub const CLSCTX_ALL: u32 =
-    CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER;
-
 /// WASAPI-specific errors.
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("Windows error")]
-    Io(#[from] windows::Error),
+    /// A system error.
+    #[error("system error: {0}")]
+    Sys(
+        #[from]
+        #[source]
+        windows::Error,
+    ),
+    /// Trying to use a mix format which is not supported by the device.
     #[error("Device doesn't support a compatible mix format")]
     UnsupportedMixFormat,
-    #[error("Failed to wait for event to clear")]
-    EventFailed,
 }
 
 /// The audio prelude to use for wasapi.
@@ -62,8 +59,11 @@ pub enum SampleFormat {
 #[derive(Debug, Clone, Copy)]
 pub struct ClientConfig {
     tag: ste::Tag,
+    /// The number of channels in use.
     pub channels: u16,
+    /// The sample rate in use.
     pub sample_rate: u32,
+    /// The sample format in use.
     pub sample_format: SampleFormat,
 }
 
@@ -91,7 +91,7 @@ pub fn default_output_client() -> Result<Option<Client>, Error> {
         device
             .Activate(
                 &core::IAudioClient::IID,
-                CLSCTX_ALL,
+                com::CLSCTX::CLSCTX_ALL.0,
                 ptr::null_mut(),
                 audio_client.as_mut_ptr() as *mut _,
             )

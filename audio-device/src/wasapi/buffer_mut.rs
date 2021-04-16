@@ -4,6 +4,7 @@ use std::ops;
 use std::slice;
 use windows_sys::Windows::Win32::CoreAudio as core;
 
+/// A typed mutable data buffer.
 pub struct BufferMut<'a, T> {
     pub(super) tag: ste::Tag,
     pub(super) render_client: &'a mut core::IAudioRenderClient,

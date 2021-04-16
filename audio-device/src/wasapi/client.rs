@@ -1,10 +1,11 @@
+use crate::driver::AsyncEvent;
 use crate::driver::Events;
+use crate::loom::sync::Arc;
 use crate::wasapi::{ClientConfig, Error, InitializedClient, Sample, SampleFormat};
-use crate::windows::{AsyncEvent, Event, RawEvent};
+use crate::windows::{Event, RawEvent};
 use std::marker;
 use std::mem;
 use std::ptr;
-use std::sync::Arc;
 use windows_sys::Windows::Win32::Com as com;
 use windows_sys::Windows::Win32::CoreAudio as core;
 use windows_sys::Windows::Win32::Multimedia as mm;

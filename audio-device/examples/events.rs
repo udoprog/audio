@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use crate::loom::sync::Arc;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

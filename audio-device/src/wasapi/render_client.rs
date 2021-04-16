@@ -1,12 +1,14 @@
+use crate::driver::AsyncEvent;
+use crate::loom::sync::Arc;
 use crate::wasapi::{BufferMut, Error};
-use crate::windows::{AsyncEvent, Event, RawEvent};
+use crate::windows::{Event, RawEvent};
 use std::marker;
 use std::mem;
-use std::sync::Arc;
 use windows_sys::Windows::Win32::CoreAudio as core;
 use windows_sys::Windows::Win32::SystemServices as ss;
 use windows_sys::Windows::Win32::WindowsProgramming as wp;
 
+/// A typed render client.
 pub struct RenderClient<T, E> {
     pub(super) tag: ste::Tag,
     pub(super) audio_client: core::IAudioClient,
@@ -54,7 +56,10 @@ impl<T> RenderClient<T, Event> {
                 match ss::WaitForSingleObject(self.event.raw_event(), wp::INFINITE) {
                     ss::WAIT_RETURN_CAUSE::WAIT_OBJECT_0 => (),
                     _ => {
-                        return Err(Error::EventFailed);
+                        return Err(Error::from(windows::Error::new(
+                            windows::HRESULT::from_thread(),
+                            "waiting for event failed",
+                        )));
                     }
                 }
 
