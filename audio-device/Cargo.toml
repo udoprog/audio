@@ -22,6 +22,8 @@ rustdoc-args = ["--cfg", "docsrs"]
 default = []
 wasapi = ["windows-sys/wasapi", "events-driver"]
 alsa = ["alsa-sys", "poll-driver"]
+pulse = ["pulse-sys", "libc"]
+pipewire = ["pipewire-sys", "libc"]
 events-driver = ["windows", "windows-sys"]
 poll-driver = ["unix"]
 unix = ["libc", "nix"]
@@ -36,6 +38,9 @@ ste = {version = "0.1.0-alpha.9", path = "../ste"}
 # windows
 windows-sys = {package = "audio-device-windows-sys", version = "0.1.0-alpha.1", path = "../audio-device-windows-sys", optional = true}
 windows = {version = "0.8.0", default-features = false, optional = true}
+
+pulse-sys = {package = "audio-device-pulse-sys", version = "0.1.0-alpha.1", path = "../audio-device-pulse-sys", optional = true}
+pipewire-sys = {package = "audio-device-pipewire-sys", version = "0.1.0-alpha.1", path = "../audio-device-pipewire-sys", optional = true}
 
 # unix
 alsa-sys = {package = "audio-device-alsa-sys", version = "0.1.0-alpha.1", path = "../audio-device-alsa-sys", optional = true}

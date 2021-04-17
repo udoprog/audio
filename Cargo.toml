@@ -10,6 +10,8 @@ members = [
     "generate",
     "audio-device-windows-sys",
     "audio-device-alsa-sys",
+    "audio-device-pulse-sys",
+    "audio-device-pipewire-sys",
     "bittle",
     "ste",
 ]

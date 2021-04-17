@@ -26,6 +26,18 @@ macro_rules! cfg_unix {
     }
 }
 
+macro_rules! cfg_libc {
+    ($($item:item)*) => {
+        $(
+            #[cfg(feature = "libc")]
+            #[cfg_attr(docsrs, doc(
+                cfg(feature = "libc")
+            ))]
+            $item
+        )*
+    }
+}
+
 macro_rules! cfg_events_driver {
     ($($item:item)*) => {
         $(
@@ -68,6 +80,30 @@ macro_rules! cfg_alsa {
             #[cfg(feature = "alsa")]
             #[cfg_attr(docsrs, doc(
                 cfg(feature = "alsa")
+            ))]
+            $item
+        )*
+    }
+}
+
+macro_rules! cfg_pulse {
+    ($($item:item)*) => {
+        $(
+            #[cfg(feature = "pulse")]
+            #[cfg_attr(docsrs, doc(
+                cfg(feature = "pulse")
+            ))]
+            $item
+        )*
+    }
+}
+
+macro_rules! cfg_pipewire {
+    ($($item:item)*) => {
+        $(
+            #[cfg(feature = "pipewire")]
+            #[cfg_attr(docsrs, doc(
+                cfg(feature = "pipewire")
             ))]
             $item
         )*

@@ -1,4 +1,5 @@
 //! An idiomatic Rust ALSA interface.
+// Documentation: https://www.alsa-project.org/alsa-doc/alsa-lib/
 
 use crate::libc as c;
 use crate::unix::errno::Errno;

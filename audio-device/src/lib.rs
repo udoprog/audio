@@ -53,12 +53,20 @@ cfg_windows! {
     pub mod windows;
 }
 
-cfg_unix! {
+cfg_libc! {
     pub mod libc;
 }
 
 cfg_alsa! {
     pub mod alsa;
+}
+
+cfg_pulse! {
+    pub mod pulse;
+}
+
+cfg_pipewire! {
+    pub mod pipewire;
 }
 
 pub mod runtime;

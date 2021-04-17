@@ -57,3 +57,20 @@ jobs:
         args: >
           --features alsa
           --package audio-device
+  build-pulse:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - name: install libpulse-dev
+      run: sudo apt install libpulse-dev
+    - name: cargo test
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: >
+          --features pulse
+          --package audio-device
