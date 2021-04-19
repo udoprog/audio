@@ -1,9 +1,11 @@
-use crate::loom::sync::Arc;
+use audio_device::windows::AsyncEvent;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let events = audio_device::runtime::Events::new()?;
-    let event = Arc::new(events.event(false)?);
+    let runtime = audio_device::runtime::Runtime::new()?;
+    let guard = runtime.enter();
+    let event = Arc::new(AsyncEvent::new(false)?);
     let event2 = event.clone();
 
     tokio::spawn(async move {
@@ -15,6 +17,7 @@ async fn main() -> anyhow::Result<()> {
     event.wait().await;
     println!("event woken up");
 
-    events.join();
+    drop(guard);
+    runtime.join();
     Ok(())
 }
