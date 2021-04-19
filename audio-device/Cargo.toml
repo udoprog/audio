@@ -22,7 +22,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 default = []
 wasapi = ["windows-sys/wasapi", "events-driver"]
 alsa = ["alsa-sys", "poll-driver"]
-pulse = ["pulse-sys", "libc"]
+pulse = ["pulse-sys", "libc", "unix"]
 pipewire = ["pipewire-sys", "libc"]
 events-driver = ["windows", "windows-sys"]
 poll-driver = ["unix"]
@@ -60,6 +60,10 @@ required-features = ["alsa"]
 [[example]]
 name = "alsa"
 required-features = ["alsa"]
+
+[[example]]
+name = "pulse"
+required-features = ["pulse"]
 
 [[example]]
 name = "alsa-async"

@@ -1,4 +1,6 @@
+use crate::pulse::Context;
 use pulse_sys as pulse;
+use std::ffi::CStr;
 use std::ptr;
 
 /// A Pulseaudio main loop.
@@ -26,9 +28,32 @@ impl MainLoop {
             let mut handle = ptr::NonNull::new_unchecked(pulse::pa_mainloop_new());
             let api = ptr::NonNull::new_unchecked(pulse::pa_mainloop_get_api(handle.as_mut()));
 
-            Self {
-                handle,
-                api,
+            Self { handle, api }
+        }
+    }
+
+    /// Instantiate a new connection context with an abstract mainloop API and
+    /// an application name.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use audio_device::pulse;
+    /// use std::ffi::CString;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let mut m = pulse::MainLoop::new();
+    /// let ctx = m.context(&CString::new("My Application")?);
+    /// # Ok(()) }
+    /// ```
+    pub fn context(&mut self, name: &CStr) -> Context {
+        unsafe {
+            let handle = pulse::pa_context_new(self.api.as_mut(), name.as_ptr());
+            assert!(!handle.is_null(), "pa_context_new: returned NULL");
+
+            Context {
+                handle: ptr::NonNull::new_unchecked(handle),
+                callbacks: Vec::new(),
             }
         }
     }

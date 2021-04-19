@@ -24,9 +24,7 @@ impl MainLoop {
         unsafe {
             let mut handle = ptr::NonNull::new_unchecked(pw::pw_main_loop_new(ptr::null()));
 
-            Self {
-                handle,
-            }
+            Self { handle }
         }
     }
 }
