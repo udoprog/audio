@@ -351,13 +351,6 @@ impl Thread {
     /// it is polled it has to be perfectly synchronized with a remote poll
     /// happening on the background thread.
     ///
-    /// # Safety
-    ///
-    /// This function is unsafe as heck right now. Polling it without it having
-    /// been called w/ wake_by_ref **will cause a data race**.
-    ///
-    /// The above will be fixed.
-    ///
     /// # Examples
     ///
     /// This method supports panics the same way as other threads:
