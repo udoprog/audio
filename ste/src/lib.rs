@@ -353,24 +353,31 @@ impl Thread {
     ///
     /// # Examples
     ///
-    /// This method supports panics the same way as other threads:
+    /// This method allows the spawned task to access things from its scope,
+    /// assuming they are `Send`. The actual in the `async` task itself though
+    /// will run on the background thread.
     ///
     /// ```rust
     /// # #[tokio::main(flavor = "current_thread")]
     /// # async fn main() -> anyhow::Result<()> {
     /// let thread = ste::Builder::new().with_tokio().build()?;
     ///
+    /// let mut result = 1;
+    ///
     /// thread.submit_async(async {
     ///     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-    ///     println!("Hello World!");
-    /// });
+    ///     println!("Hello!");
+    ///     result += 1;
+    /// }).await;
     ///
+    /// assert_eq!(result, 2);
     /// thread.join();
     /// # Ok(()) }
     /// ```
     ///
-    /// Unwinding panics as isolated on a per-task basis the same was as for
-    /// [submit][Thread::submit].
+    /// Panics as isolated on a per-task basis the same was as for
+    /// [submit][Thread::submit]. They are propagated as a different panic to
+    /// the calling thread.
     ///
     /// ```rust,should_panic
     /// # #[tokio::main(flavor = "current_thread")]
