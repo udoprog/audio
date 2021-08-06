@@ -1,6 +1,6 @@
 use audio_core::{
-    AsInterleaved, AsInterleavedMut, Buf, Channel, ChannelMut, Channels, ChannelsMut, ExactSizeBuf,
-    InterleavedBuf, ReadBuf, WriteBuf,
+    AsInterleaved, AsInterleavedMut, Buf, Channels, ChannelsMut, ExactSizeBuf, InterleavedBuf,
+    InterleavedChannel, InterleavedChannelMut, ReadBuf, WriteBuf,
 };
 
 /// A wrapper for an interleaved audio buffer.
@@ -48,12 +48,10 @@ macro_rules! impl_buf {
         }
 
         impl<$($p)*> Channels<T> for Interleaved<$ty> {
-            fn channel(&self, channel: usize) -> Channel<'_, T> {
-                if self.channels == 1 && channel == 0 {
-                    Channel::linear(self.value.as_ref())
-                } else {
-                    Channel::interleaved(self.value.as_ref(), self.channels, channel)
-                }
+            type Channel<'a> where T: 'a = InterleavedChannel<'a, T>;
+
+            fn channel(&self, channel: usize) -> Self::Channel<'_> {
+                InterleavedChannel::new(self.value.as_ref(), self.channels, channel)
             }
         }
 
@@ -77,12 +75,10 @@ impl_buf!([T, const N: usize], &'_ mut [T; N], N);
 macro_rules! impl_buf_mut {
     ([$($p:tt)*], $ty:ty) => {
         impl<$($p)*> ChannelsMut<T> for Interleaved<$ty> where T: Copy {
-            fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
-                if self.channels == 1 && channel == 0 {
-                    ChannelMut::linear(self.value.as_mut())
-                } else {
-                    ChannelMut::interleaved(self.value.as_mut(), self.channels, channel)
-                }
+            type ChannelMut<'a> where T: 'a = InterleavedChannelMut<'a, T>;
+
+            fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
+                InterleavedChannelMut::new(self.value.as_mut(), self.channels, channel)
             }
 
             fn copy_channels(&mut self, from: usize, to: usize) {

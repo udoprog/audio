@@ -1,4 +1,4 @@
-use audio_core::{Buf, Channel, ChannelMut, Channels, ChannelsMut, ExactSizeBuf};
+use audio_core::{Buf, Channels, ChannelsMut, ExactSizeBuf, LinearChannel, LinearChannelMut};
 
 /// A wrapper for a sequential audio buffer.
 ///
@@ -45,11 +45,13 @@ macro_rules! impl_buf {
         }
 
         impl<$($p)*> Channels<T> for Sequential<$ty> {
-            fn channel(&self, channel: usize) -> Channel<'_, T> {
+            type Channel<'a> where T: 'a = LinearChannel<'a, T>;
+
+            fn channel(&self, channel: usize) -> Self::Channel<'_> {
                 let frames = self.frames();
                 let value = self.value.get(channel * frames..).unwrap_or_default();
                 let value = value.get(..frames).unwrap_or_default();
-                Channel::linear(value)
+                LinearChannel::new(value)
             }
         }
     };
@@ -67,11 +69,13 @@ impl_buf!([T, const N: usize], &'_ mut [T; N], N);
 macro_rules! impl_buf_mut {
     ([$($p:tt)*], $ty:ty) => {
         impl<$($p)*> ChannelsMut<T> for Sequential<$ty> where T: Copy {
-            fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
+            type ChannelMut<'a> where T: 'a = LinearChannelMut<'a, T>;
+
+            fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
                 let frames = self.frames();
                 let value = self.value.get_mut(channel * frames..).unwrap_or_default();
                 let value = value.get_mut(..frames).unwrap_or_default();
-                ChannelMut::linear(value)
+                LinearChannelMut::new(value)
             }
 
             fn copy_channels(&mut self, from: usize, to: usize) {

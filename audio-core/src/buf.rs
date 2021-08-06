@@ -1,6 +1,9 @@
 //! Trait for dealing with abstract channel buffers.
 
-use crate::channel::{Channel, ChannelMut};
+use crate::channel::Channel;
+use crate::channel_mut::ChannelMut;
+use crate::linear_channel::LinearChannel;
+use crate::linear_channel_mut::LinearChannelMut;
 
 mod skip;
 pub use self::skip::Skip;
@@ -230,6 +233,11 @@ pub trait Buf {
 
 /// A trait describing something that has channels.
 pub trait Channels<T>: Buf {
+    /// The type of the channel container.
+    type Channel<'a>: Channel<T>
+    where
+        T: 'a;
+
     /// Return a handler to the buffer associated with the channel.
     ///
     /// Note that we don't access the buffer for the underlying channel directly
@@ -243,18 +251,53 @@ pub trait Channels<T>: Buf {
     ///
     /// Panics if the specified channel is out of bound as reported by
     /// [Buf::channels].
-    fn channel(&self, channel: usize) -> Channel<'_, T>;
+    fn channel(&self, channel: usize) -> Self::Channel<'_>;
+}
+
+impl<B, T> Channels<T> for &B
+where
+    B: ?Sized + Channels<T>,
+{
+    type Channel<'a>
+    where
+        T: 'a,
+    = B::Channel<'a>;
+
+    #[inline]
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        (**self).channel(channel)
+    }
+}
+
+impl<B, T> Channels<T> for &mut B
+where
+    B: ?Sized + Channels<T>,
+{
+    type Channel<'a>
+    where
+        T: 'a,
+    = B::Channel<'a>;
+
+    #[inline]
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        (**self).channel(channel)
+    }
 }
 
 /// A trait describing a mutable audio buffer.
 pub trait ChannelsMut<T>: Channels<T> {
+    /// The type of the mutable channel container.
+    type ChannelMut<'a>: ChannelMut<T>
+    where
+        T: 'a;
+
     /// Return a mutable handler to the buffer associated with the channel.
     ///
     /// # Panics
     ///
     /// Panics if the specified channel is out of bound as reported by
     /// [Buf::channels].
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T>;
+    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_>;
 
     /// Copy one channel into another.
     ///
@@ -281,6 +324,29 @@ pub trait ChannelsMut<T>: Channels<T> {
         T: Copy;
 }
 
+impl<B, T> ChannelsMut<T> for &mut B
+where
+    B: ?Sized + ChannelsMut<T>,
+{
+    type ChannelMut<'a>
+    where
+        T: 'a,
+    = B::ChannelMut<'a>;
+
+    #[inline]
+    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
+        (**self).channel_mut(channel)
+    }
+
+    #[inline]
+    fn copy_channels(&mut self, from: usize, to: usize)
+    where
+        T: Copy,
+    {
+        (**self).copy_channels(from, to);
+    }
+}
+
 impl<B> Buf for &B
 where
     B: ?Sized + Buf,
@@ -293,16 +359,6 @@ where
     #[inline]
     fn channels(&self) -> usize {
         (**self).channels()
-    }
-}
-
-impl<B, T> Channels<T> for &B
-where
-    B: Channels<T>,
-{
-    #[inline]
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
-        (**self).channel(channel)
     }
 }
 
@@ -321,34 +377,6 @@ where
     }
 }
 
-impl<B, T> Channels<T> for &mut B
-where
-    B: ?Sized + Channels<T>,
-{
-    #[inline]
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
-        (**self).channel(channel)
-    }
-}
-
-impl<B, T> ChannelsMut<T> for &mut B
-where
-    B: ?Sized + ChannelsMut<T>,
-{
-    #[inline]
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
-        (**self).channel_mut(channel)
-    }
-
-    #[inline]
-    fn copy_channels(&mut self, from: usize, to: usize)
-    where
-        T: Copy,
-    {
-        (**self).copy_channels(from, to);
-    }
-}
-
 impl<T> Buf for Vec<Vec<T>> {
     fn frames_hint(&self) -> Option<usize> {
         Some(self.get(0)?.len())
@@ -359,9 +387,17 @@ impl<T> Buf for Vec<Vec<T>> {
     }
 }
 
-impl<T> Channels<T> for Vec<Vec<T>> {
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
-        Channel::linear(&self[channel])
+impl<T> Channels<T> for Vec<Vec<T>>
+where
+    T: Copy,
+{
+    type Channel<'a>
+    where
+        T: 'a,
+    = LinearChannel<'a, T>;
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        LinearChannel::new(&self[channel])
     }
 }
 
@@ -369,8 +405,13 @@ impl<T> ChannelsMut<T> for Vec<Vec<T>>
 where
     T: Copy,
 {
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
-        ChannelMut::linear(&mut self[channel])
+    type ChannelMut<'a>
+    where
+        T: 'a,
+    = LinearChannelMut<'a, T>;
+
+    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
+        LinearChannelMut::new(&mut self[channel])
     }
 
     fn copy_channels(&mut self, from: usize, to: usize) {
@@ -412,7 +453,12 @@ impl<T> Buf for [Vec<T>] {
 }
 
 impl<T> Channels<T> for [Vec<T>] {
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
-        Channel::linear(&self[channel])
+    type Channel<'a>
+    where
+        T: 'a,
+    = LinearChannel<'a, T>;
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        LinearChannel::new(&self[channel])
     }
 }

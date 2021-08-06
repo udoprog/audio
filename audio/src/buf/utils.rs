@@ -1,7 +1,6 @@
 //! Utilities for manipulating audio buffers.
 
-use audio_core::Translate;
-use audio_core::{Channels, ChannelsMut};
+use audio_core::{Channel, ChannelMut, Channels, ChannelsMut, Translate};
 
 /// Copy from the buffer specified by `from` into the buffer specified by `to`.
 ///
@@ -15,7 +14,32 @@ where
     let end = usize::min(from.channels(), to.channels());
 
     for chan in 0..end {
-        to.channel_mut(chan).copy_from(from.channel(chan));
+        let mut to = to.channel_mut(chan);
+        let from = from.channel(chan);
+
+        match (to.as_linear_mut(), from.as_linear()) {
+            (Some(to), Some(from)) => {
+                let len = usize::min(to.len(), from.len());
+                to[..len].copy_from_slice(&from[..len]);
+            }
+            _ => {
+                for (t, f) in to.iter_mut().zip(from.iter()) {
+                    *t = *f;
+                }
+            }
+        }
+    }
+}
+
+/// Copy a channel into an iterator.
+pub fn copy_channel_into_iter<'a, I, O, T>(from: I, out: O)
+where
+    I: Channel<T>,
+    O: IntoIterator<Item = &'a mut T>,
+    T: 'a + Copy,
+{
+    for (from, to) in from.iter().zip(out) {
+        *to = *from;
     }
 }
 
@@ -32,6 +56,11 @@ where
     let end = usize::min(from.channels(), to.channels());
 
     for chan in 0..end {
-        to.channel_mut(chan).translate_from(from.channel(chan));
+        let mut to = to.channel_mut(chan);
+        let from = from.channel(chan);
+
+        for (t, f) in to.iter_mut().zip(from.iter()) {
+            *t = T::translate(*f);
+        }
     }
 }

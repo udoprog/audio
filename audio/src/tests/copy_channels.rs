@@ -3,6 +3,8 @@
 // be run through miri to test that at least a base level of sanity is
 // maintained.
 
+use audio_core::Channel;
+
 #[test]
 fn test_copy_channels_dynamic() {
     use crate::{Channels, ChannelsMut};

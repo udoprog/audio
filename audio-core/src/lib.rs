@@ -6,8 +6,9 @@
 //!
 //! [audio]: https://docs.rs/audio
 
-#![deny(missing_docs, broken_intra_doc_links)]
+#![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 #![allow(clippy::should_implement_trait)]
+#![feature(generic_associated_types)]
 
 mod buf;
 pub use self::buf::{
@@ -16,7 +17,22 @@ pub use self::buf::{
 };
 
 mod channel;
-pub use self::channel::{Channel, ChannelMut};
+pub use self::channel::Channel;
+
+mod channel_mut;
+pub use self::channel_mut::ChannelMut;
+
+mod interleaved_channel_mut;
+pub use self::interleaved_channel_mut::InterleavedChannelMut;
+
+mod interleaved_channel;
+pub use self::interleaved_channel::InterleavedChannel;
+
+mod linear_channel_mut;
+pub use self::linear_channel_mut::LinearChannelMut;
+
+mod linear_channel;
+pub use self::linear_channel::LinearChannel;
 
 mod translate;
 pub use self::translate::Translate;

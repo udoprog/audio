@@ -1,6 +1,7 @@
 /// Note: most of these tests are duplicated doc tests, but they're here so that
 /// we can run them through miri and get a good idea of the soundness of our
 /// implementations.
+use audio_core::Channel;
 
 #[test]
 fn test_init() {
@@ -169,11 +170,11 @@ fn test_as_interleaved_mut_ptr() {
     test(&mut buf);
 
     assert_eq! {
-        buf.channel(0).iter().collect::<Vec<_>>(),
+        buf.channel(0).iter().copied().collect::<Vec<_>>(),
         &[1, 1, 1, 1, 1, 1, 1, 1],
     };
     assert_eq! {
-        buf.channel(1).iter().collect::<Vec<_>>(),
+        buf.channel(1).iter().copied().collect::<Vec<_>>(),
         &[1, 1, 1, 1, 1, 1, 1, 1],
     };
 }

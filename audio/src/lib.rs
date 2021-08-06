@@ -35,7 +35,7 @@
 //! and frame count of a buffer is known as its *topology*.
 //!
 //! ```rust
-//! use audio::ChannelsMut as _;
+//! use audio::{ChannelsMut, ChannelMut};
 //!
 //! let mut dynamic = audio::dynamic![[0i16; 4]; 2];
 //! let mut interleaved = audio::interleaved![[0i16; 4]; 2];
@@ -62,7 +62,7 @@
 //! # Examples
 //!
 //! ```rust
-//! use rand::Rng as _;
+//! use rand::Rng;
 //!
 //! let mut buffer = audio::Dynamic::<f32>::new();
 //!
@@ -115,8 +115,9 @@
 //! [Sequential]: https://docs.rs/audio/*/audio/sequential/struct.Sequential.html
 //! [wrap]: https://docs.rs/audio/*/audio/wrap/index.html
 
-#![deny(missing_docs, broken_intra_doc_links)]
+#![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 #![allow(clippy::should_implement_trait)]
+#![feature(generic_associated_types)]
 
 #[macro_use]
 mod macros;

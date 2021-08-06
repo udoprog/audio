@@ -1,5 +1,5 @@
 use crate::buf::{Buf, Channels, ChannelsMut, ExactSizeBuf};
-use crate::channel::{Channel, ChannelMut};
+use crate::channel::Channel;
 use crate::io::ReadBuf;
 
 /// The tail of a buffer.
@@ -71,7 +71,12 @@ impl<B, T> Channels<T> for Tail<B>
 where
     B: Channels<T>,
 {
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
+    type Channel<'a>
+    where
+        T: 'a,
+    = B::Channel<'a>;
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
         self.buf.channel(channel).tail(self.n)
     }
 }
@@ -80,7 +85,12 @@ impl<B, T> ChannelsMut<T> for Tail<B>
 where
     B: ChannelsMut<T>,
 {
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
+    type ChannelMut<'a>
+    where
+        T: 'a,
+    = B::ChannelMut<'a>;
+
+    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
         self.buf.channel_mut(channel).tail(self.n)
     }
 

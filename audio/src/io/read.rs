@@ -211,7 +211,12 @@ impl<B, T> Channels<T> for Read<B>
 where
     B: Channels<T>,
 {
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
+    type Channel<'a>
+    where
+        T: 'a,
+    = B::Channel<'a>;
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
         self.buf.channel(channel).tail(self.available)
     }
 }

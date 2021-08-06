@@ -3,7 +3,7 @@
 use crate::wrap;
 use audio_core::{
     AsInterleaved, AsInterleavedMut, Buf, Channels, ChannelsMut, ExactSizeBuf, InterleavedBuf,
-    ResizableBuf, Sample,
+    InterleavedChannel, InterleavedChannelMut, ResizableBuf, Sample,
 };
 use std::cmp;
 use std::fmt;
@@ -266,18 +266,18 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::Channels as _;
+    /// use audio::{Channels, Channel};
     ///
     /// let mut buffer = audio::Interleaved::<i16>::with_topology(2, 4);
     /// buffer.as_slice_mut().copy_from_slice(&[1, 1, 2, 2, 3, 3, 4, 4]);
     ///
     /// assert_eq! {
-    ///     buffer.channel(0).iter().collect::<Vec<_>>(),
+    ///     buffer.channel(0).iter().copied().collect::<Vec<_>>(),
     ///     &[1, 2, 3, 4],
     /// };
     ///
     /// assert_eq! {
-    ///     buffer.channel(1).iter().collect::<Vec<_>>(),
+    ///     buffer.channel(1).iter().copied().collect::<Vec<_>>(),
     ///     &[1, 2, 3, 4],
     /// };
     ///
@@ -366,7 +366,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels as _, ChannelsMut as _};
+    /// use audio::{Channels, ChannelsMut, ChannelMut};
     ///
     /// let mut buffer = audio::Interleaved::with_topology(2, 4);
     ///
@@ -392,7 +392,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels as _, ChannelsMut as _};
+    /// use audio::{Channels, ChannelsMut, ChannelMut};
     ///
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
     /// let mut to = audio::Interleaved::<f32>::with_topology(2, 4);
@@ -791,8 +791,13 @@ impl<T> Buf for Interleaved<T> {
 }
 
 impl<T> Channels<T> for Interleaved<T> {
-    fn channel(&self, channel: usize) -> audio_core::Channel<'_, T> {
-        audio_core::Channel::interleaved(&self.data, self.channels, channel)
+    type Channel<'a>
+    where
+        T: 'a,
+    = InterleavedChannel<'a, T>;
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        InterleavedChannel::new(&self.data, self.channels, channel)
     }
 }
 
@@ -842,8 +847,13 @@ impl<T> ChannelsMut<T> for Interleaved<T>
 where
     T: Copy,
 {
-    fn channel_mut(&mut self, channel: usize) -> audio_core::ChannelMut<'_, T> {
-        audio_core::ChannelMut::interleaved(&mut self.data, self.channels, channel)
+    type ChannelMut<'a>
+    where
+        T: 'a,
+    = InterleavedChannelMut<'a, T>;
+
+    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
+        InterleavedChannelMut::new(&mut self.data, self.channels, channel)
     }
 
     fn copy_channels(&mut self, from: usize, to: usize) {

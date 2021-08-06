@@ -38,7 +38,7 @@ macro_rules! dynamic {
     // This is typically more performant, since it doesn't require looping and
     // writing through the buffer.
     ([$sample:expr; $frames:literal]; $channels:literal) => {
-        $crate::Dynamic::from_array([[$sample; $frames]; $channels]);
+        $crate::Dynamic::from_array([[$sample; $frames]; $channels])
     };
 
     // Branch of the macro used when we can evaluate an expression that is

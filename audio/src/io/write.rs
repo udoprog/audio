@@ -1,4 +1,4 @@
-use audio_core::{Buf, Channel, ChannelMut, Channels, ChannelsMut, ExactSizeBuf, WriteBuf};
+use audio_core::{Buf, Channel, Channels, ChannelsMut, ExactSizeBuf, WriteBuf};
 
 /// Make a mutable buffer into a write adapter that implements [WriteBuf].
 ///
@@ -214,7 +214,12 @@ impl<B, T> Channels<T> for Write<B>
 where
     B: Channels<T>,
 {
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
+    type Channel<'a>
+    where
+        T: 'a,
+    = B::Channel<'a>;
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
         self.buf.channel(channel).tail(self.available)
     }
 }
@@ -223,8 +228,13 @@ impl<B, T> ChannelsMut<T> for Write<B>
 where
     B: ChannelsMut<T>,
 {
+    type ChannelMut<'a>
+    where
+        T: 'a,
+    = B::ChannelMut<'a>;
+
     #[inline]
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
+    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
         self.buf.channel_mut(channel).tail(self.available)
     }
 
