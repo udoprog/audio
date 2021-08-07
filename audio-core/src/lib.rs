@@ -10,10 +10,8 @@
 #![allow(clippy::should_implement_trait)]
 #![feature(generic_associated_types)]
 
-mod buf;
-pub use self::buf::{
-    AsInterleaved, AsInterleavedMut, Buf, ExactSizeBuf, InterleavedBuf, ResizableBuf,
-};
+pub mod buf;
+pub use self::buf::Buf;
 
 mod buf_mut;
 pub use self::buf_mut::BufMut;
@@ -44,3 +42,18 @@ pub use self::sample::Sample;
 
 mod io;
 pub use self::io::{ReadBuf, WriteBuf};
+
+mod exact_size_buf;
+pub use self::exact_size_buf::ExactSizeBuf;
+
+mod resizable_buf;
+pub use self::resizable_buf::ResizableBuf;
+
+mod interleaved_buf;
+pub use self::interleaved_buf::InterleavedBuf;
+
+mod as_interleaved;
+pub use self::as_interleaved::AsInterleaved;
+
+mod as_interleaved_mut;
+pub use self::as_interleaved_mut::AsInterleavedMut;

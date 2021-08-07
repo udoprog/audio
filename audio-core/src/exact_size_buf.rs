@@ -1,4 +1,4 @@
-use crate::buf::Buf;
+use crate::Buf;
 
 /// Trait used to describe a buffer that knows exactly how many frames it has
 /// regardless of if it's sized or not.

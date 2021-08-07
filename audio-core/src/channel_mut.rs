@@ -1,4 +1,4 @@
-use crate::channel::Channel;
+use crate::Channel;
 
 /// The mutable buffer of a single channel.
 ///

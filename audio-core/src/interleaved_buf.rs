@@ -1,3 +1,5 @@
+use crate::Buf;
+
 /// Trait implemented for buffers which are linearly stored in memory.
 ///
 /// This allows us to reason about a specific number of frames, so that the
@@ -7,7 +9,7 @@
 /// This is usually used in combination with other traits, such as
 /// [AsInterleaved][crate::AsInterleaved] to allow for generically accessing a
 /// fixed linear buffer with a specific topology.
-pub trait InterleavedBuf {
+pub trait InterleavedBuf: Buf {
     /// Make sure that the buffer has reserved exactly the given number of
     /// frames.
     ///

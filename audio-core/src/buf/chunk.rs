@@ -1,6 +1,4 @@
-use crate::buf::{Buf, ExactSizeBuf};
-use crate::buf_mut::BufMut;
-use crate::channel::Channel;
+use crate::{Buf, BufMut, Channel, ExactSizeBuf};
 
 /// A chunk of another buffer.
 ///

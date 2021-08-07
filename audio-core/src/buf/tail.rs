@@ -1,7 +1,4 @@
-use crate::buf::{Buf, ExactSizeBuf};
-use crate::buf_mut::BufMut;
-use crate::channel::Channel;
-use crate::io::ReadBuf;
+use crate::{Buf, BufMut, Channel, ExactSizeBuf, ReadBuf};
 
 /// The tail of a buffer.
 ///

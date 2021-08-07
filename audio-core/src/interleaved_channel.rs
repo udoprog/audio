@@ -1,4 +1,4 @@
-use crate::channel::Channel;
+use crate::Channel;
 use std::cmp;
 use std::fmt;
 use std::hash;

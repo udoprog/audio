@@ -1,4 +1,4 @@
-use crate::channel::Channel;
+use crate::Channel;
 use std::fmt;
 use std::ops;
 use std::slice;

@@ -1,6 +1,4 @@
-use crate::buf::Buf;
-use crate::channel_mut::ChannelMut;
-use crate::linear_channel_mut::LinearChannelMut;
+use crate::{Buf, ChannelMut, LinearChannelMut};
 
 /// A trait describing a mutable audio buffer.
 pub trait BufMut: Buf {

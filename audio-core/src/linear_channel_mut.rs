@@ -1,5 +1,4 @@
-use crate::channel::Channel;
-use crate::channel_mut::ChannelMut;
+use crate::{Channel, ChannelMut};
 use std::fmt;
 use std::ops;
 use std::slice;

@@ -1,5 +1,4 @@
-use crate::buf::Buf;
-use crate::sample::Sample;
+use crate::{Buf, Sample};
 
 /// Trait implemented for buffers that can be resized.
 pub trait ResizableBuf: Buf {

@@ -1,10 +1,8 @@
 //! Trait for dealing with abstract channel buffers.
 
-use crate::channel::Channel;
-use crate::linear_channel::LinearChannel;
+use crate::{Channel, LinearChannel};
 
 mod skip;
-
 pub use self::skip::Skip;
 
 mod limit;
@@ -15,21 +13,6 @@ pub use self::chunk::Chunk;
 
 mod tail;
 pub use self::tail::Tail;
-
-mod exact_size_buf;
-pub use self::exact_size_buf::ExactSizeBuf;
-
-mod resizable_buf;
-pub use self::resizable_buf::ResizableBuf;
-
-mod interleaved_buf;
-pub use self::interleaved_buf::InterleavedBuf;
-
-mod as_interleaved;
-pub use self::as_interleaved::AsInterleaved;
-
-mod as_interleaved_mut;
-pub use self::as_interleaved_mut::AsInterleavedMut;
 
 /// The base trait available to all audio buffers.
 ///

@@ -1,7 +1,4 @@
-use crate::buf::{Buf, ExactSizeBuf};
-use crate::buf_mut::BufMut;
-use crate::channel::Channel;
-use crate::io::ReadBuf;
+use crate::{Buf, BufMut, Channel, ExactSizeBuf, ReadBuf};
 
 /// A buffer where a number of frames have been skipped over.
 ///
