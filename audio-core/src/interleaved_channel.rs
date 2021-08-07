@@ -52,7 +52,9 @@ impl<'a, T> InterleavedChannel<'a, T> {
     }
 }
 
-impl<'a, T> Channel<T> for InterleavedChannel<'a, T> {
+impl<'a, T> Channel for InterleavedChannel<'a, T> {
+    type Sample = T;
+
     type Iter<'b>
     where
         T: 'b,

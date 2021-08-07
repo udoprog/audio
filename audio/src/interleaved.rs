@@ -370,7 +370,7 @@ impl<T> Interleaved<T> {
     ///
     /// let mut buffer = audio::Interleaved::with_topology(2, 4);
     ///
-    /// buffer.interleaved_skip_mut(2).channel_mut(0).copy_from_slice(&[1.0, 1.0]);
+    /// buffer.interleaved_skip_mut(2).channel_mut(0).copy_from_iter([1.0, 1.0]);
     ///
     /// assert_eq!(buffer.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
     /// ```
@@ -790,17 +790,6 @@ impl<T> Buf for Interleaved<T> {
     }
 }
 
-impl<T> Channels<T> for Interleaved<T> {
-    type Channel<'a>
-    where
-        T: 'a,
-    = InterleavedChannel<'a, T>;
-
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        InterleavedChannel::new(&self.data, self.channels, channel)
-    }
-}
-
 impl<T> ResizableBuf for Interleaved<T>
 where
     T: Sample,
@@ -843,14 +832,27 @@ where
     }
 }
 
-impl<T> ChannelsMut<T> for Interleaved<T>
+impl<T> Channels for Interleaved<T> {
+    type Sample = T;
+
+    type Channel<'a>
+    where
+        Self::Sample: 'a,
+    = InterleavedChannel<'a, Self::Sample>;
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        InterleavedChannel::new(&self.data, self.channels, channel)
+    }
+}
+
+impl<T> ChannelsMut for Interleaved<T>
 where
     T: Copy,
 {
     type ChannelMut<'a>
     where
-        T: 'a,
-    = InterleavedChannelMut<'a, T>;
+        Self::Sample: 'a,
+    = InterleavedChannelMut<'a, Self::Sample>;
 
     fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
         InterleavedChannelMut::new(&mut self.data, self.channels, channel)

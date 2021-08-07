@@ -52,7 +52,9 @@ impl<'a, T> InterleavedChannelMut<'a, T> {
     }
 }
 
-impl<'a, T> Channel<T> for InterleavedChannelMut<'a, T> {
+impl<'a, T> Channel for InterleavedChannelMut<'a, T> {
+    type Sample = T;
+
     type Iter<'i>
     where
         T: 'i,
@@ -122,7 +124,7 @@ impl<'a, T> Channel<T> for InterleavedChannelMut<'a, T> {
     }
 }
 
-impl<'a, T> ChannelMut<T> for InterleavedChannelMut<'a, T> {
+impl<'a, T> ChannelMut for InterleavedChannelMut<'a, T> {
     type IterMut<'i>
     where
         T: 'i,

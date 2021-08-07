@@ -37,7 +37,9 @@ impl<'a, T> LinearChannelMut<'a, T> {
     }
 }
 
-impl<'a, T> Channel<T> for LinearChannelMut<'a, T> {
+impl<'a, T> Channel for LinearChannelMut<'a, T> {
+    type Sample = T;
+
     type Iter<'b>
     where
         T: 'b,
@@ -92,7 +94,7 @@ impl<'a, T> Channel<T> for LinearChannelMut<'a, T> {
     }
 }
 
-impl<'a, T> ChannelMut<T> for LinearChannelMut<'a, T> {
+impl<'a, T> ChannelMut for LinearChannelMut<'a, T> {
     type IterMut<'b>
     where
         T: 'b,
@@ -109,7 +111,7 @@ impl<'a, T> ChannelMut<T> for LinearChannelMut<'a, T> {
 
 impl<T> fmt::Debug for LinearChannelMut<'_, T>
 where
-    T: Copy + fmt::Debug,
+    T: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.buf.iter()).finish()

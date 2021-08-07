@@ -47,8 +47,9 @@ macro_rules! impl_buf {
             }
         }
 
-        impl<$($p)*> Channels<T> for Interleaved<$ty> {
-            type Channel<'a> where T: 'a = InterleavedChannel<'a, T>;
+        impl<$($p)*> Channels for Interleaved<$ty> {
+            type Sample = T;
+            type Channel<'a> where Self::Sample: 'a = InterleavedChannel<'a, Self::Sample>;
 
             fn channel(&self, channel: usize) -> Self::Channel<'_> {
                 InterleavedChannel::new(self.value.as_ref(), self.channels, channel)
@@ -74,8 +75,8 @@ impl_buf!([T, const N: usize], &'_ mut [T; N], N);
 
 macro_rules! impl_buf_mut {
     ([$($p:tt)*], $ty:ty) => {
-        impl<$($p)*> ChannelsMut<T> for Interleaved<$ty> where T: Copy {
-            type ChannelMut<'a> where T: 'a = InterleavedChannelMut<'a, T>;
+        impl<$($p)*> ChannelsMut for Interleaved<$ty> where T: Copy {
+            type ChannelMut<'a> where Self::Sample: 'a = InterleavedChannelMut<'a, Self::Sample>;
 
             fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
                 InterleavedChannelMut::new(self.value.as_mut(), self.channels, channel)

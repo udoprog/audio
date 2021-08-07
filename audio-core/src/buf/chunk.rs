@@ -1,4 +1,7 @@
-use crate::buf::{Buf, Channel, Channels, ChannelsMut, ExactSizeBuf};
+use crate::buf::{Buf, ExactSizeBuf};
+use crate::channel::Channel;
+use crate::channels::Channels;
+use crate::channels_mut::ChannelsMut;
 
 /// A chunk of another buffer.
 ///
@@ -67,13 +70,15 @@ where
     }
 }
 
-impl<B, T> Channels<T> for Chunk<B>
+impl<B> Channels for Chunk<B>
 where
-    B: Channels<T>,
+    B: Channels,
 {
+    type Sample = B::Sample;
+
     type Channel<'a>
     where
-        T: 'a,
+        Self::Sample: 'a,
     = B::Channel<'a>;
 
     fn channel(&self, channel: usize) -> Self::Channel<'_> {
@@ -81,13 +86,13 @@ where
     }
 }
 
-impl<B, T> ChannelsMut<T> for Chunk<B>
+impl<B> ChannelsMut for Chunk<B>
 where
-    B: ChannelsMut<T>,
+    B: ChannelsMut,
 {
     type ChannelMut<'a>
     where
-        T: 'a,
+        Self::Sample: 'a,
     = B::ChannelMut<'a>;
 
     fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
@@ -96,7 +101,7 @@ where
 
     fn copy_channels(&mut self, from: usize, to: usize)
     where
-        T: Copy,
+        Self::Sample: Copy,
     {
         self.buf.copy_channels(from, to);
     }

@@ -149,10 +149,10 @@ impl<B> Write<B> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Buf, ChannelsMut, WriteBuf};
+    /// use audio::{ChannelsMut, WriteBuf};
     /// use audio::io;
     ///
-    /// fn write_to_buf(mut write: impl Buf + ChannelsMut<i16> + WriteBuf) {
+    /// fn write_to_buf(mut write: impl ChannelsMut<Sample = i16> + WriteBuf) {
     ///     let mut from = audio::interleaved![[0; 4]; 2];
     ///     io::copy_remaining(io::Read::new(&mut from), write);
     /// }
@@ -210,13 +210,15 @@ where
     }
 }
 
-impl<B, T> Channels<T> for Write<B>
+impl<B> Channels for Write<B>
 where
-    B: Channels<T>,
+    B: Channels,
 {
+    type Sample = B::Sample;
+
     type Channel<'a>
     where
-        T: 'a,
+        Self::Sample: 'a,
     = B::Channel<'a>;
 
     fn channel(&self, channel: usize) -> Self::Channel<'_> {
@@ -224,13 +226,13 @@ where
     }
 }
 
-impl<B, T> ChannelsMut<T> for Write<B>
+impl<B> ChannelsMut for Write<B>
 where
-    B: ChannelsMut<T>,
+    B: ChannelsMut,
 {
     type ChannelMut<'a>
     where
-        T: 'a,
+        Self::Sample: 'a,
     = B::ChannelMut<'a>;
 
     #[inline]
@@ -241,7 +243,7 @@ where
     #[inline]
     fn copy_channels(&mut self, from: usize, to: usize)
     where
-        T: Copy,
+        Self::Sample: Copy,
     {
         self.buf.copy_channels(from, to);
     }

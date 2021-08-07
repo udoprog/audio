@@ -745,17 +745,6 @@ impl<T> Buf for Dynamic<T> {
     }
 }
 
-impl<T> Channels<T> for Dynamic<T> {
-    type Channel<'a>
-    where
-        T: 'a,
-    = LinearChannel<'a, T>;
-
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        LinearChannel::new(&self[channel])
-    }
-}
-
 impl<T> ResizableBuf for Dynamic<T>
 where
     T: Sample,
@@ -770,14 +759,27 @@ where
     }
 }
 
-impl<T> ChannelsMut<T> for Dynamic<T>
+impl<T> Channels for Dynamic<T> {
+    type Sample = T;
+
+    type Channel<'a>
+    where
+        Self::Sample: 'a,
+    = LinearChannel<'a, Self::Sample>;
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        LinearChannel::new(&self[channel])
+    }
+}
+
+impl<T> ChannelsMut for Dynamic<T>
 where
     T: Copy,
 {
     type ChannelMut<'a>
     where
-        T: 'a,
-    = LinearChannelMut<'a, T>;
+        Self::Sample: 'a,
+    = LinearChannelMut<'a, Self::Sample>;
 
     fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
         LinearChannelMut::new(&mut self[channel])

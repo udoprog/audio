@@ -1,10 +1,5 @@
 //! Trait for dealing with abstract channel buffers.
 
-use crate::channel::Channel;
-use crate::channel_mut::ChannelMut;
-use crate::linear_channel::LinearChannel;
-use crate::linear_channel_mut::LinearChannelMut;
-
 mod skip;
 pub use self::skip::Skip;
 
@@ -231,122 +226,6 @@ pub trait Buf {
     }
 }
 
-/// A trait describing something that has channels.
-pub trait Channels<T>: Buf {
-    /// The type of the channel container.
-    type Channel<'a>: Channel<T>
-    where
-        T: 'a;
-
-    /// Return a handler to the buffer associated with the channel.
-    ///
-    /// Note that we don't access the buffer for the underlying channel directly
-    /// as a linear buffer like `&[T]`, because the underlying representation
-    /// might be different.
-    ///
-    /// We must instead make use of the various utility functions found on
-    /// [Channel] to copy data out of the channel.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the specified channel is out of bound as reported by
-    /// [Buf::channels].
-    fn channel(&self, channel: usize) -> Self::Channel<'_>;
-}
-
-impl<B, T> Channels<T> for &B
-where
-    B: ?Sized + Channels<T>,
-{
-    type Channel<'a>
-    where
-        T: 'a,
-    = B::Channel<'a>;
-
-    #[inline]
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        (**self).channel(channel)
-    }
-}
-
-impl<B, T> Channels<T> for &mut B
-where
-    B: ?Sized + Channels<T>,
-{
-    type Channel<'a>
-    where
-        T: 'a,
-    = B::Channel<'a>;
-
-    #[inline]
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        (**self).channel(channel)
-    }
-}
-
-/// A trait describing a mutable audio buffer.
-pub trait ChannelsMut<T>: Channels<T> {
-    /// The type of the mutable channel container.
-    type ChannelMut<'a>: ChannelMut<T>
-    where
-        T: 'a;
-
-    /// Return a mutable handler to the buffer associated with the channel.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the specified channel is out of bound as reported by
-    /// [Buf::channels].
-    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_>;
-
-    /// Copy one channel into another.
-    ///
-    /// If the channels have different sizes, the minimul difference between
-    /// them will be copied.
-    ///
-    /// # Panics
-    ///
-    /// Panics if one of the channels being tried to copy from or to is out of
-    /// bounds as reported by [Buf::channels].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use audio::{Channels, ChannelsMut};
-    ///
-    /// let mut buffer: audio::Dynamic<i16> = audio::dynamic![[1, 2, 3, 4], [0, 0, 0, 0]];
-    /// buffer.copy_channels(0, 1);
-    ///
-    /// assert_eq!(buffer.channel(1), buffer.channel(0));
-    /// ```
-    fn copy_channels(&mut self, from: usize, to: usize)
-    where
-        T: Copy;
-}
-
-impl<B, T> ChannelsMut<T> for &mut B
-where
-    B: ?Sized + ChannelsMut<T>,
-{
-    type ChannelMut<'a>
-    where
-        T: 'a,
-    = B::ChannelMut<'a>;
-
-    #[inline]
-    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        (**self).channel_mut(channel)
-    }
-
-    #[inline]
-    fn copy_channels(&mut self, from: usize, to: usize)
-    where
-        T: Copy,
-    {
-        (**self).copy_channels(from, to);
-    }
-}
-
 impl<B> Buf for &B
 where
     B: ?Sized + Buf,
@@ -387,61 +266,6 @@ impl<T> Buf for Vec<Vec<T>> {
     }
 }
 
-impl<T> Channels<T> for Vec<Vec<T>>
-where
-    T: Copy,
-{
-    type Channel<'a>
-    where
-        T: 'a,
-    = LinearChannel<'a, T>;
-
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        LinearChannel::new(&self[channel])
-    }
-}
-
-impl<T> ChannelsMut<T> for Vec<Vec<T>>
-where
-    T: Copy,
-{
-    type ChannelMut<'a>
-    where
-        T: 'a,
-    = LinearChannelMut<'a, T>;
-
-    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        LinearChannelMut::new(&mut self[channel])
-    }
-
-    fn copy_channels(&mut self, from: usize, to: usize) {
-        assert! {
-            from < self.len(),
-            "copy from channel {} is out of bounds 0-{}",
-            from,
-            self.len()
-        };
-        assert! {
-            to < self.len(),
-            "copy to channel {} which is out of bounds 0-{}",
-            to,
-            self.len()
-        };
-
-        if from != to {
-            // Safety: We're making sure not to access any mutable buffers which are
-            // not initialized.
-            unsafe {
-                let ptr = self.as_mut_ptr();
-                let from = &*ptr.add(from);
-                let to = &mut *ptr.add(to);
-                let end = usize::min(from.len(), to.len());
-                to[..end].copy_from_slice(&from[..end]);
-            }
-        }
-    }
-}
-
 impl<T> Buf for [Vec<T>] {
     fn frames_hint(&self) -> Option<usize> {
         Some(self.get(0)?.len())
@@ -449,16 +273,5 @@ impl<T> Buf for [Vec<T>] {
 
     fn channels(&self) -> usize {
         self.as_ref().len()
-    }
-}
-
-impl<T> Channels<T> for [Vec<T>] {
-    type Channel<'a>
-    where
-        T: 'a,
-    = LinearChannel<'a, T>;
-
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        LinearChannel::new(&self[channel])
     }
 }

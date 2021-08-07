@@ -36,7 +36,9 @@ impl<'a, T> LinearChannel<'a, T> {
     }
 }
 
-impl<'a, T> Channel<T> for LinearChannel<'a, T> {
+impl<'a, T> Channel for LinearChannel<'a, T> {
+    type Sample = T;
+
     type Iter<'i>
     where
         T: 'i,

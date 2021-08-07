@@ -7,11 +7,14 @@
 /// allows us to copy data usinga  number of utility functions.
 ///
 /// See [Channels::channel][crate::Channels::channel].
-pub trait Channel<T> {
+pub trait Channel {
+    /// The sample of a channel.
+    type Sample;
+
     /// A borrowing iterator over the channel.
-    type Iter<'a>: Iterator<Item = &'a T>
+    type Iter<'a>: Iterator<Item = &'a Self::Sample>
     where
-        T: 'a;
+        Self::Sample: 'a;
 
     /// Access the number of frames on the current channel.
     ///
@@ -153,5 +156,16 @@ pub trait Channel<T> {
     /// test(&audio::sequential![[1.0; 16]; 2], Some(&[1.0; 16]));
     /// test(&audio::interleaved![[1.0; 16]; 2], None);
     /// ```
-    fn as_linear(&self) -> Option<&[T]>;
+    fn as_linear(&self) -> Option<&[Self::Sample]>;
+
+    /// Copy the contents of a channel into an iterator.
+    fn copy_into_iter<'a, I>(&self, to: I)
+    where
+        Self::Sample: 'a + Copy,
+        I: IntoIterator<Item = &'a mut Self::Sample>,
+    {
+        for (from, to) in self.iter().zip(to) {
+            *to = *from;
+        }
+    }
 }

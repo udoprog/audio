@@ -44,8 +44,10 @@ macro_rules! impl_buf {
             }
         }
 
-        impl<$($p)*> Channels<T> for Sequential<$ty> {
-            type Channel<'a> where T: 'a = LinearChannel<'a, T>;
+        impl<$($p)*> Channels for Sequential<$ty> {
+            type Sample = T;
+
+            type Channel<'a> where Self::Sample: 'a = LinearChannel<'a, Self::Sample>;
 
             fn channel(&self, channel: usize) -> Self::Channel<'_> {
                 let frames = self.frames();
@@ -68,8 +70,8 @@ impl_buf!([T, const N: usize], &'_ mut [T; N], N);
 
 macro_rules! impl_buf_mut {
     ([$($p:tt)*], $ty:ty) => {
-        impl<$($p)*> ChannelsMut<T> for Sequential<$ty> where T: Copy {
-            type ChannelMut<'a> where T: 'a = LinearChannelMut<'a, T>;
+        impl<$($p)*> ChannelsMut for Sequential<$ty> where T: Copy {
+            type ChannelMut<'a> where Self::Sample: 'a = LinearChannelMut<'a, Self::Sample>;
 
             fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
                 let frames = self.frames();

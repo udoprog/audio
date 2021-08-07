@@ -708,18 +708,6 @@ impl<T> Buf for Sequential<T> {
     }
 }
 
-impl<T> Channels<T> for Sequential<T> {
-    type Channel<'a>
-    where
-        T: 'a,
-    = LinearChannel<'a, T>;
-
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        let data = &self.data[self.frames * channel..];
-        LinearChannel::new(&data[..self.frames])
-    }
-}
-
 impl<T> ResizableBuf for Sequential<T>
 where
     T: Sample,
@@ -734,14 +722,31 @@ where
     }
 }
 
-impl<T> ChannelsMut<T> for Sequential<T>
+impl<T> Channels for Sequential<T>
+where
+    T: Copy,
+{
+    type Sample = T;
+
+    type Channel<'a>
+    where
+        Self::Sample: 'a,
+    = LinearChannel<'a, Self::Sample>;
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        let data = &self.data[self.frames * channel..];
+        LinearChannel::new(&data[..self.frames])
+    }
+}
+
+impl<T> ChannelsMut for Sequential<T>
 where
     T: Copy,
 {
     type ChannelMut<'a>
     where
-        T: 'a,
-    = LinearChannelMut<'a, T>;
+        Self::Sample: 'a,
+    = LinearChannelMut<'a, Self::Sample>;
 
     fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
         let data = &mut self.data[self.frames * channel..];

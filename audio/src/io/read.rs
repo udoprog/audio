@@ -149,10 +149,10 @@ impl<B> Read<B> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Buf, Channels, ReadBuf};
+    /// use audio::{Channels, ReadBuf};
     /// use audio::io;
     ///
-    /// fn read_from_buf(mut read: impl Buf + Channels<i16> + ReadBuf) {
+    /// fn read_from_buf(mut read: impl Channels<Sample = i16> + ReadBuf) {
     ///     let mut out = audio::interleaved![[0; 4]; 2];
     ///     io::copy_remaining(read, io::Write::new(&mut out));
     /// }
@@ -207,13 +207,15 @@ where
     }
 }
 
-impl<B, T> Channels<T> for Read<B>
+impl<B> Channels for Read<B>
 where
-    B: Channels<T>,
+    B: Channels,
 {
+    type Sample = B::Sample;
+
     type Channel<'a>
     where
-        T: 'a,
+        Self::Sample: 'a,
     = B::Channel<'a>;
 
     fn channel(&self, channel: usize) -> Self::Channel<'_> {
