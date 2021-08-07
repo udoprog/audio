@@ -1,7 +1,7 @@
 //! Utilities for manipulating audio buffers.
 
 use audio_core::Translate;
-use audio_core::{Channels, ChannelsMut, ReadBuf, WriteBuf};
+use audio_core::{Buf, BufMut, ReadBuf, WriteBuf};
 
 /// Copy the shared remaining frames from `from` into `to`.
 ///
@@ -10,8 +10,8 @@ use audio_core::{Channels, ChannelsMut, ReadBuf, WriteBuf};
 /// using [ReadBuf::advance] and [WriteBuf::advance_mut].
 pub fn copy_remaining<I, O>(mut from: I, mut to: O)
 where
-    I: ReadBuf + Channels,
-    O: WriteBuf + ChannelsMut<Sample = I::Sample>,
+    I: ReadBuf + Buf,
+    O: WriteBuf + BufMut<Sample = I::Sample>,
     I::Sample: Copy,
 {
     let len = usize::min(from.remaining(), to.remaining_mut());
@@ -29,8 +29,8 @@ where
 /// buffers appropriately using [ReadBuf::advance] and [WriteBuf::advance_mut].
 pub fn translate_remaining<I, O>(mut from: I, mut to: O)
 where
-    I: ReadBuf + Channels,
-    O: WriteBuf + ChannelsMut,
+    I: ReadBuf + Buf,
+    O: WriteBuf + BufMut,
     O::Sample: Translate<I::Sample>,
     I::Sample: Copy,
 {

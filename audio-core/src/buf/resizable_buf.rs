@@ -8,9 +8,9 @@ pub trait ResizableBuf: Buf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{ResizableBuf, ExactSizeBuf as _, Channels as _};
+    /// use audio::{Buf, ExactSizeBuf, ResizableBuf};
     ///
-    /// fn test<B>(mut buffer: B) where B: ResizableBuf {
+    /// fn test(mut buffer: impl ResizableBuf) {
     ///     buffer.resize(4);
     /// }
     ///
@@ -31,9 +31,9 @@ pub trait ResizableBuf: Buf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{ResizableBuf, ExactSizeBuf as _, Channels as _};
+    /// use audio::{Buf, ExactSizeBuf, ResizableBuf};
     ///
-    /// fn test<B>(mut buffer: B) where B: ResizableBuf {
+    /// fn test(mut buffer: impl ResizableBuf) {
     ///     buffer.resize_topology(2, 4);
     /// }
     ///

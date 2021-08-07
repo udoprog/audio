@@ -7,10 +7,10 @@ pub trait AsInterleavedMut<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels, AsInterleaved, AsInterleavedMut};
+    /// use audio::{AsInterleaved, AsInterleavedMut, Buf, Channel};
     /// use audio::wrap;
     ///
-    /// fn test<B>(mut buffer: B) where B: Channels<i16> + AsInterleaved<i16> + AsInterleavedMut<i16> {
+    /// fn test(mut buffer: impl Buf<Sample = i16> + AsInterleaved<i16> + AsInterleavedMut<i16>) {
     ///     buffer.as_interleaved_mut().copy_from_slice(&[1, 1, 2, 2, 3, 3, 4, 4]);
     ///
     ///     assert_eq! {
@@ -44,7 +44,7 @@ pub trait AsInterleavedMut<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{AsInterleavedMut, InterleavedBuf, Channels};
+    /// use audio::{AsInterleavedMut, InterleavedBuf, Buf, Channel};
     /// # unsafe fn fill_with_ones(buf: *mut i16, len: usize) -> (usize, usize) {
     /// #     let buf = std::slice::from_raw_parts_mut(buf, len);
     /// #
@@ -55,7 +55,7 @@ pub trait AsInterleavedMut<T> {
     /// #     (2, len / 2)
     /// # }
     ///
-    /// fn test<B>(mut buffer: B) where B: InterleavedBuf + AsInterleavedMut<i16> {
+    /// fn test(mut buffer: impl InterleavedBuf + AsInterleavedMut<i16>) {
     ///     buffer.reserve_frames(16);
     ///     // Note: call fills the buffer with ones.
     ///     // Safety: We've initialized exactly 16 frames before calling this

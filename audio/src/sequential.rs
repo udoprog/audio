@@ -1,7 +1,7 @@
 //! A dynamically sized, multi-channel sequential audio buffer.
 
 use audio_core::{
-    Buf, Channels, ChannelsMut, ExactSizeBuf, LinearChannel, LinearChannelMut, ResizableBuf, Sample,
+    Buf, BufMut, ExactSizeBuf, LinearChannel, LinearChannelMut, ResizableBuf, Sample,
 };
 use std::cmp;
 use std::fmt;
@@ -699,12 +699,24 @@ impl<T> ExactSizeBuf for Sequential<T> {
 }
 
 impl<T> Buf for Sequential<T> {
+    type Sample = T;
+
+    type Channel<'a>
+    where
+        Self::Sample: 'a,
+    = LinearChannel<'a, Self::Sample>;
+
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
     }
 
     fn channels(&self) -> usize {
         self.channels
+    }
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        let data = &self.data[self.frames * channel..];
+        LinearChannel::new(&data[..self.frames])
     }
 }
 
@@ -722,24 +734,7 @@ where
     }
 }
 
-impl<T> Channels for Sequential<T>
-where
-    T: Copy,
-{
-    type Sample = T;
-
-    type Channel<'a>
-    where
-        Self::Sample: 'a,
-    = LinearChannel<'a, Self::Sample>;
-
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        let data = &self.data[self.frames * channel..];
-        LinearChannel::new(&data[..self.frames])
-    }
-}
-
-impl<T> ChannelsMut for Sequential<T>
+impl<T> BufMut for Sequential<T>
 where
     T: Copy,
 {

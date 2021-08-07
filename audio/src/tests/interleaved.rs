@@ -1,7 +1,7 @@
 /// Note: most of these tests are duplicated doc tests, but they're here so that
 /// we can run them through miri and get a good idea of the soundness of our
 /// implementations.
-use audio_core::Channel;
+use audio_core::{AsInterleavedMut, Buf, Channel, InterleavedBuf};
 
 #[test]
 fn test_init() {
@@ -142,8 +142,6 @@ fn test_resize() {
 
 #[test]
 fn test_as_interleaved_mut_ptr() {
-    use crate::{AsInterleavedMut, Channels, InterleavedBuf};
-
     unsafe fn fill_with_ones(buf: *mut i16, len: usize) -> (usize, usize) {
         let buf = std::slice::from_raw_parts_mut(buf, len);
 

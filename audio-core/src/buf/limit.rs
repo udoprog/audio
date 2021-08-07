@@ -1,7 +1,6 @@
 use crate::buf::{Buf, ExactSizeBuf};
+use crate::buf_mut::BufMut;
 use crate::channel::Channel;
-use crate::channels::Channels;
-use crate::channels_mut::ChannelsMut;
 use crate::io::ReadBuf;
 
 /// A buffer that has been limited.
@@ -40,6 +39,13 @@ impl<B> Buf for Limit<B>
 where
     B: Buf,
 {
+    type Sample = B::Sample;
+
+    type Channel<'a>
+    where
+        Self::Sample: 'a,
+    = B::Channel<'a>;
+
     fn frames_hint(&self) -> Option<usize> {
         let frames = self.buf.frames_hint()?;
         Some(usize::min(frames, self.limit))
@@ -47,6 +53,31 @@ where
 
     fn channels(&self) -> usize {
         self.buf.channels()
+    }
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        self.buf.channel(channel).limit(self.limit)
+    }
+}
+
+impl<B> BufMut for Limit<B>
+where
+    B: BufMut,
+{
+    type ChannelMut<'a>
+    where
+        Self::Sample: 'a,
+    = B::ChannelMut<'a>;
+
+    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
+        self.buf.channel_mut(channel).limit(self.limit)
+    }
+
+    fn copy_channels(&mut self, from: usize, to: usize)
+    where
+        Self::Sample: Copy,
+    {
+        self.buf.copy_channels(from, to);
     }
 }
 
@@ -68,43 +99,6 @@ where
 {
     fn frames(&self) -> usize {
         usize::min(self.buf.frames(), self.limit)
-    }
-}
-
-impl<B> Channels for Limit<B>
-where
-    B: Channels,
-{
-    type Sample = B::Sample;
-
-    type Channel<'a>
-    where
-        Self::Sample: 'a,
-    = B::Channel<'a>;
-
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        self.buf.channel(channel).limit(self.limit)
-    }
-}
-
-impl<B> ChannelsMut for Limit<B>
-where
-    B: ChannelsMut,
-{
-    type ChannelMut<'a>
-    where
-        Self::Sample: 'a,
-    = B::ChannelMut<'a>;
-
-    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        self.buf.channel_mut(channel).limit(self.limit)
-    }
-
-    fn copy_channels(&mut self, from: usize, to: usize)
-    where
-        Self::Sample: Copy,
-    {
-        self.buf.copy_channels(from, to);
     }
 }
 

@@ -11,7 +11,7 @@
 /// # Examples
 ///
 /// ```rust
-/// use audio::ReadBuf as _;
+/// use audio::ReadBuf;
 /// use audio::{io, wrap};
 /// # fn send_data(buf: &mut [i16]) {}
 ///
@@ -44,7 +44,7 @@ pub trait ReadBuf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::ReadBuf as _;
+    /// use audio::ReadBuf;
     ///
     /// let mut buffer = audio::wrap::interleaved(&[0, 1, 2, 3, 4, 5, 6, 7][..], 2);
     ///
@@ -62,7 +62,7 @@ pub trait ReadBuf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::ReadBuf as _;
+    /// use audio::ReadBuf;
     ///
     /// let buffer = audio::wrap::interleaved(&[0, 1, 2, 3, 4, 5, 6, 7][..], 2);
     ///
@@ -75,7 +75,7 @@ pub trait ReadBuf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::ReadBuf as _;
+    /// use audio::ReadBuf;
     ///
     /// let mut buffer = audio::wrap::interleaved(&[0, 1, 2, 3, 4, 5, 6, 7][..], 2);
     ///
@@ -116,7 +116,7 @@ where
 /// # Examples
 ///
 /// ```rust
-/// use audio::WriteBuf as _;
+/// use audio::WriteBuf;
 /// use audio::{io, wrap};
 /// # fn recv_data(buf: &mut [i16]) {}
 ///
@@ -150,7 +150,7 @@ pub trait WriteBuf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::WriteBuf as _;
+    /// use audio::WriteBuf;
     ///
     /// let mut buffer = [0, 1, 2, 3, 4, 5, 6, 7];
     /// let mut buffer = audio::wrap::interleaved(&mut buffer[..], 2);
@@ -169,7 +169,7 @@ pub trait WriteBuf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::WriteBuf as _;
+    /// use audio::WriteBuf;
     ///
     /// let mut buffer = [0, 1, 2, 3, 4, 5, 6, 7];
     /// let buffer = audio::wrap::interleaved(&mut buffer[..], 2);
@@ -183,7 +183,7 @@ pub trait WriteBuf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::WriteBuf as _;
+    /// use audio::WriteBuf;
     ///
     /// let mut buffer = [0, 1, 2, 3, 4, 5, 6, 7];
     /// let mut buffer = audio::wrap::interleaved(&mut buffer[..], 2);

@@ -1,6 +1,6 @@
 use audio_core::{
-    AsInterleaved, AsInterleavedMut, Buf, Channels, ChannelsMut, ExactSizeBuf, InterleavedBuf,
-    InterleavedChannel, InterleavedChannelMut, ReadBuf, WriteBuf,
+    AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedChannel,
+    InterleavedChannelMut, ReadBuf, WriteBuf,
 };
 
 /// A wrapper for an interleaved audio buffer.
@@ -32,6 +32,9 @@ impl<T> Interleaved<T> {
 macro_rules! impl_buf {
     ([$($p:tt)*], $ty:ty $(, $len:ident)?) => {
         impl<$($p)*> Buf for Interleaved<$ty> {
+            type Sample = T;
+            type Channel<'a> where Self::Sample: 'a = InterleavedChannel<'a, Self::Sample>;
+
             fn frames_hint(&self) -> Option<usize> {
                 Some(self.frames())
             }
@@ -39,20 +42,15 @@ macro_rules! impl_buf {
             fn channels(&self) -> usize {
                 self.channels
             }
+
+            fn channel(&self, channel: usize) -> Self::Channel<'_> {
+                InterleavedChannel::new(self.value.as_ref(), self.channels, channel)
+            }
         }
 
         impl<$($p)*> ExactSizeBuf for Interleaved<$ty> {
             fn frames(&self) -> usize {
                 impl_buf!(@frames self, $($len)*) / self.channels
-            }
-        }
-
-        impl<$($p)*> Channels for Interleaved<$ty> {
-            type Sample = T;
-            type Channel<'a> where Self::Sample: 'a = InterleavedChannel<'a, Self::Sample>;
-
-            fn channel(&self, channel: usize) -> Self::Channel<'_> {
-                InterleavedChannel::new(self.value.as_ref(), self.channels, channel)
             }
         }
 
@@ -75,7 +73,7 @@ impl_buf!([T, const N: usize], &'_ mut [T; N], N);
 
 macro_rules! impl_buf_mut {
     ([$($p:tt)*], $ty:ty) => {
-        impl<$($p)*> ChannelsMut for Interleaved<$ty> where T: Copy {
+        impl<$($p)*> BufMut for Interleaved<$ty> where T: Copy {
             type ChannelMut<'a> where Self::Sample: 'a = InterleavedChannelMut<'a, Self::Sample>;
 
             fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {

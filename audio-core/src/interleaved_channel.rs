@@ -11,7 +11,7 @@ use std::slice;
 /// This doesn't provide direct access to the underlying buffer, but rather
 /// allows us to copy data usinga  number of utility functions.
 ///
-/// See [Channels::channel][crate::Channels::channel].
+/// See [Buf::channel][crate::Buf::channel].
 #[derive(Clone, Copy)]
 pub struct InterleavedChannel<'a, T> {
     buf: &'a [T],

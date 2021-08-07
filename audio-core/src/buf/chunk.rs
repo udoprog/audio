@@ -1,7 +1,6 @@
 use crate::buf::{Buf, ExactSizeBuf};
+use crate::buf_mut::BufMut;
 use crate::channel::Channel;
-use crate::channels::Channels;
-use crate::channels_mut::ChannelsMut;
 
 /// A chunk of another buffer.
 ///
@@ -37,6 +36,13 @@ impl<B> Buf for Chunk<B>
 where
     B: Buf,
 {
+    type Sample = B::Sample;
+
+    type Channel<'a>
+    where
+        Self::Sample: 'a,
+    = B::Channel<'a>;
+
     fn frames_hint(&self) -> Option<usize> {
         let frames = self.buf.frames_hint()?;
         let len = frames.saturating_sub(self.n.saturating_mul(self.len));
@@ -45,6 +51,31 @@ where
 
     fn channels(&self) -> usize {
         self.buf.channels()
+    }
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        self.buf.channel(channel).chunk(self.n, self.len)
+    }
+}
+
+impl<B> BufMut for Chunk<B>
+where
+    B: BufMut,
+{
+    type ChannelMut<'a>
+    where
+        Self::Sample: 'a,
+    = B::ChannelMut<'a>;
+
+    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
+        self.buf.channel_mut(channel).chunk(self.n, self.len)
+    }
+
+    fn copy_channels(&mut self, from: usize, to: usize)
+    where
+        Self::Sample: Copy,
+    {
+        self.buf.copy_channels(from, to);
     }
 }
 
@@ -67,42 +98,5 @@ where
             .frames()
             .saturating_sub(self.n.saturating_mul(self.len));
         usize::min(len, self.len)
-    }
-}
-
-impl<B> Channels for Chunk<B>
-where
-    B: Channels,
-{
-    type Sample = B::Sample;
-
-    type Channel<'a>
-    where
-        Self::Sample: 'a,
-    = B::Channel<'a>;
-
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        self.buf.channel(channel).chunk(self.n, self.len)
-    }
-}
-
-impl<B> ChannelsMut for Chunk<B>
-where
-    B: ChannelsMut,
-{
-    type ChannelMut<'a>
-    where
-        Self::Sample: 'a,
-    = B::ChannelMut<'a>;
-
-    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        self.buf.channel_mut(channel).chunk(self.n, self.len)
-    }
-
-    fn copy_channels(&mut self, from: usize, to: usize)
-    where
-        Self::Sample: Copy,
-    {
-        self.buf.copy_channels(from, to);
     }
 }

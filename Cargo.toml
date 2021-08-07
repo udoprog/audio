@@ -7,7 +7,6 @@ members = [
     "audio-core",
     "audio-device",
     "audio-generator",
-    "audio-mixer",
     "generate",
     "audio-device-windows-sys",
     "audio-device-alsa-sys",

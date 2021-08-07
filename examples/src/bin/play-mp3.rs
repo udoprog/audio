@@ -1,5 +1,5 @@
 use anyhow::{anyhow, bail, Result};
-use audio::ChannelsMut;
+use audio::BufMut;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use rubato::{InterpolationParameters, InterpolationType, SincFixedIn, WindowFunction};
 use std::fs;

@@ -1,4 +1,4 @@
-use audio_core::{Buf, Channel, Channels, ChannelsMut, ExactSizeBuf, ReadBuf, WriteBuf};
+use audio_core::{Buf, BufMut, Channel, ExactSizeBuf, ReadBuf, WriteBuf};
 
 /// Make any mutable buffer into a write adapter that implements
 /// [ReadBuf] and [WriteBuf].
@@ -6,7 +6,7 @@ use audio_core::{Buf, Channel, Channels, ChannelsMut, ExactSizeBuf, ReadBuf, Wri
 /// # Examples
 ///
 /// ```rust
-/// use audio::{Buf as _, ReadBuf as _, WriteBuf as _};
+/// use audio::{Buf, ReadBuf, WriteBuf};
 /// use audio::io;
 ///
 /// let from = audio::interleaved![[1.0f32, 2.0f32, 3.0f32, 4.0f32]; 2];
@@ -124,7 +124,7 @@ impl<B> ReadWrite<B> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::Channels as _;
+    /// use audio::Buf;
     /// use audio::io;
     ///
     /// let buffer: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
@@ -146,7 +146,7 @@ impl<B> ReadWrite<B> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::Buf as _;
+    /// use audio::Buf;
     /// use audio::io;
     ///
     /// let to: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
@@ -170,7 +170,7 @@ impl<B> ReadWrite<B> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::Channels as _;
+    /// use audio::Buf;
     /// use audio::io;
     ///
     /// let buffer: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
@@ -206,10 +206,10 @@ impl<B> ReadWrite<B> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Buf, Channels, ReadBuf};
+    /// use audio::{Buf, ReadBuf};
     /// use audio::io;
     ///
-    /// fn read_from_buf(mut read: impl Channels<Sample = i16> + ReadBuf) {
+    /// fn read_from_buf(mut read: impl Buf<Sample = i16> + ReadBuf) {
     ///     let mut out = audio::interleaved![[0; 4]; 2];
     ///     io::copy_remaining(read, io::Write::new(&mut out));
     /// }
@@ -237,10 +237,10 @@ impl<B> ReadWrite<B> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{ChannelsMut, WriteBuf};
+    /// use audio::{BufMut, WriteBuf};
     /// use audio::io;
     ///
-    /// fn write_to_buf(mut write: impl ChannelsMut<Sample = i16> + WriteBuf) {
+    /// fn write_to_buf(mut write: impl BufMut<Sample = i16> + WriteBuf) {
     ///     let mut from = audio::interleaved![[0; 4]; 2];
     ///     io::copy_remaining(io::Read::new(&mut from), write);
     /// }
@@ -273,6 +273,13 @@ impl<B> Buf for ReadWrite<B>
 where
     B: Buf,
 {
+    type Sample = B::Sample;
+
+    type Channel<'a>
+    where
+        Self::Sample: 'a,
+    = B::Channel<'a>;
+
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
         self.buf.frames_hint()
@@ -282,18 +289,6 @@ where
     fn channels(&self) -> usize {
         self.buf.channels()
     }
-}
-
-impl<B> Channels for ReadWrite<B>
-where
-    B: Channels,
-{
-    type Sample = B::Sample;
-
-    type Channel<'a>
-    where
-        Self::Sample: 'a,
-    = B::Channel<'a>;
 
     #[inline]
     fn channel(&self, channel: usize) -> Self::Channel<'_> {
@@ -302,9 +297,9 @@ where
     }
 }
 
-impl<B> ChannelsMut for ReadWrite<B>
+impl<B> BufMut for ReadWrite<B>
 where
-    B: ExactSizeBuf + ChannelsMut,
+    B: ExactSizeBuf + BufMut,
 {
     type ChannelMut<'a>
     where

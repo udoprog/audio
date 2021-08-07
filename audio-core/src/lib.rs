@@ -15,11 +15,8 @@ pub use self::buf::{
     AsInterleaved, AsInterleavedMut, Buf, ExactSizeBuf, InterleavedBuf, ResizableBuf,
 };
 
-mod channels;
-pub use self::channels::Channels;
-
-mod channels_mut;
-pub use self::channels_mut::ChannelsMut;
+mod buf_mut;
+pub use self::buf_mut::BufMut;
 
 mod channel;
 pub use self::channel::Channel;

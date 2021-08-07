@@ -2,8 +2,8 @@
 
 use crate::wrap;
 use audio_core::{
-    AsInterleaved, AsInterleavedMut, Buf, Channels, ChannelsMut, ExactSizeBuf, InterleavedBuf,
-    InterleavedChannel, InterleavedChannelMut, ResizableBuf, Sample,
+    AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedChannel,
+    InterleavedChannelMut, ResizableBuf, Sample,
 };
 use std::cmp;
 use std::fmt;
@@ -266,7 +266,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels, Channel};
+    /// use audio::{Buf, Channel};
     ///
     /// let mut buffer = audio::Interleaved::<i16>::with_topology(2, 4);
     /// buffer.as_slice_mut().copy_from_slice(&[1, 1, 2, 2, 3, 3, 4, 4]);
@@ -366,7 +366,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels, ChannelsMut, ChannelMut};
+    /// use audio::{Buf, BufMut, ChannelMut};
     ///
     /// let mut buffer = audio::Interleaved::with_topology(2, 4);
     ///
@@ -392,7 +392,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels, ChannelsMut, ChannelMut};
+    /// use audio::{Buf, BufMut, ChannelMut};
     ///
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
     /// let mut to = audio::Interleaved::<f32>::with_topology(2, 4);
@@ -781,12 +781,23 @@ impl<T> ExactSizeBuf for Interleaved<T> {
 }
 
 impl<T> Buf for Interleaved<T> {
+    type Sample = T;
+
+    type Channel<'a>
+    where
+        Self::Sample: 'a,
+    = InterleavedChannel<'a, Self::Sample>;
+
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
     }
 
     fn channels(&self) -> usize {
         self.channels
+    }
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        InterleavedChannel::new(&self.data, self.channels, channel)
     }
 }
 
@@ -832,20 +843,7 @@ where
     }
 }
 
-impl<T> Channels for Interleaved<T> {
-    type Sample = T;
-
-    type Channel<'a>
-    where
-        Self::Sample: 'a,
-    = InterleavedChannel<'a, Self::Sample>;
-
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        InterleavedChannel::new(&self.data, self.channels, channel)
-    }
-}
-
-impl<T> ChannelsMut for Interleaved<T>
+impl<T> BufMut for Interleaved<T>
 where
     T: Copy,
 {

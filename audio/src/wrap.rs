@@ -1,5 +1,5 @@
-//! Wrap an external type to implement [Channels][crate::Channels] and
-//! [ChannelsMut][crate::ChannelsMut].
+//! Wrap an external type to implement [Buf][crate::Buf] and
+//! [BufMut][crate::BufMut].
 
 mod interleaved;
 pub use self::interleaved::Interleaved;

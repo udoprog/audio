@@ -5,7 +5,7 @@ use crate::channel::Channel;
 /// This doesn't provide direct access to the underlying buffer, but rather
 /// allows us to copy data usinga  number of utility functions.
 ///
-/// See [Channels::channel_mut][crate::Channels::channel_mut].
+/// See [BufMut::channel_mut][crate::BufMut::channel_mut].
 pub trait ChannelMut: Channel {
     /// A mutable iterator over a channel.
     type IterMut<'a>: Iterator<Item = &'a mut Self::Sample>
@@ -20,13 +20,18 @@ pub trait ChannelMut: Channel {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{ChannelsMut, ChannelMut};
+    /// use audio::{BufMut, Channel, ChannelMut};
     ///
-    /// fn test(buf: &mut dyn ChannelsMut<f32>) {
-    ///     if let Some(linear) = buf.channel_mut(0).as_linear_mut() {
-    ///         let mut out = vec![0.0; 8];
-    ///         audio::buf::copy_channel_into_iter(buf.channel(0), &mut out);
-    ///         assert_eq!(out, vec![1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]);
+    /// fn test(buf: &mut impl BufMut<Sample = f32>) {
+    ///     let is_linear = if let Some(linear) = buf.channel_mut(0).as_linear_mut() {
+    ///         linear[0] = 1.0;
+    ///         true
+    ///     } else {
+    ///         false
+    ///     };
+    ///
+    ///     if is_linear {
+    ///         assert_eq!(buf.channel(0).iter().next(), Some(&1.0));
     ///     }
     /// }
     ///
@@ -41,7 +46,7 @@ pub trait ChannelMut: Channel {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels, ChannelsMut, ChannelMut};
+    /// use audio::{Buf, BufMut, ChannelMut};
     ///
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
     /// let mut to = audio::Interleaved::<f32>::with_topology(2, 4);
@@ -72,7 +77,7 @@ pub trait ChannelMut: Channel {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels, ChannelsMut, ChannelMut};
+    /// use audio::{Buf, BufMut, ChannelMut};
     ///
     /// let mut buffer = audio::Interleaved::with_topology(2, 4);
     ///

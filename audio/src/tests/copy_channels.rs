@@ -3,12 +3,11 @@
 // be run through miri to test that at least a base level of sanity is
 // maintained.
 
-use audio_core::Channel;
+use crate::wrap;
+use audio_core::{Buf, BufMut, Channel};
 
 #[test]
 fn test_copy_channels_dynamic() {
-    use crate::{Channels, ChannelsMut};
-
     let mut buffer: crate::Dynamic<i16> = crate::dynamic![[1, 2, 3, 4], [0, 0, 0, 0]];
     buffer.copy_channels(0, 1);
 
@@ -17,8 +16,6 @@ fn test_copy_channels_dynamic() {
 
 #[test]
 fn test_copy_channels_sequential() {
-    use crate::{Channels, ChannelsMut};
-
     let mut buffer: crate::Sequential<i16> = crate::sequential![[1, 2, 3, 4], [0, 0, 0, 0]];
     buffer.copy_channels(0, 1);
 
@@ -28,9 +25,6 @@ fn test_copy_channels_sequential() {
 
 #[test]
 fn test_copy_channels_wrap_sequential() {
-    use crate::wrap;
-    use crate::{Channels, ChannelsMut};
-
     let mut data = [1, 2, 3, 4, 0, 0, 0, 0];
     let data = &mut data[..];
     let mut buffer: wrap::Sequential<&mut [i16]> = wrap::sequential(data, 2);
@@ -42,8 +36,6 @@ fn test_copy_channels_wrap_sequential() {
 
 #[test]
 fn test_copy_channels_interleaved() {
-    use crate::{Channels, ChannelsMut};
-
     let mut buffer: crate::Interleaved<i16> = crate::interleaved![[1, 2, 3, 4], [0, 0, 0, 0]];
     buffer.copy_channels(0, 1);
 
@@ -53,9 +45,6 @@ fn test_copy_channels_interleaved() {
 
 #[test]
 fn test_copy_channels_wrap_interleaved() {
-    use crate::wrap;
-    use crate::{Channels, ChannelsMut};
-
     let mut data = [1, 0, 2, 0, 3, 0, 4, 0];
     let mut buffer: wrap::Interleaved<&mut [i16]> = wrap::interleaved(&mut data[..], 2);
     buffer.copy_channels(0, 1);
@@ -66,8 +55,6 @@ fn test_copy_channels_wrap_interleaved() {
 
 #[test]
 fn test_copy_channels_vec_of_vecs() {
-    use crate::{Channels, ChannelsMut};
-
     let mut buffer: Vec<Vec<i16>> = vec![vec![1, 2, 3, 4], vec![0, 0]];
     buffer.copy_channels(0, 1);
 

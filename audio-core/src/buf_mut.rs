@@ -1,9 +1,9 @@
+use crate::buf::Buf;
 use crate::channel_mut::ChannelMut;
-use crate::channels::Channels;
 use crate::linear_channel_mut::LinearChannelMut;
 
 /// A trait describing a mutable audio buffer.
-pub trait ChannelsMut: Channels {
+pub trait BufMut: Buf {
     /// The type of the mutable channel container.
     type ChannelMut<'a>: ChannelMut<Sample = Self::Sample>
     where
@@ -30,7 +30,7 @@ pub trait ChannelsMut: Channels {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels, ChannelsMut};
+    /// use audio::{Buf, BufMut};
     ///
     /// let mut buffer: audio::Dynamic<i16> = audio::dynamic![[1, 2, 3, 4], [0, 0, 0, 0]];
     /// buffer.copy_channels(0, 1);
@@ -42,9 +42,9 @@ pub trait ChannelsMut: Channels {
         Self::Sample: Copy;
 }
 
-impl<B> ChannelsMut for &mut B
+impl<B> BufMut for &mut B
 where
-    B: ?Sized + ChannelsMut,
+    B: ?Sized + BufMut,
 {
     type ChannelMut<'a>
     where
@@ -65,7 +65,7 @@ where
     }
 }
 
-impl<T> ChannelsMut for Vec<Vec<T>>
+impl<T> BufMut for Vec<Vec<T>>
 where
     T: Copy,
 {

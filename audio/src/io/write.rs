@@ -1,4 +1,4 @@
-use audio_core::{Buf, Channel, Channels, ChannelsMut, ExactSizeBuf, WriteBuf};
+use audio_core::{Buf, BufMut, Channel, ExactSizeBuf, WriteBuf};
 
 /// Make a mutable buffer into a write adapter that implements [WriteBuf].
 ///
@@ -149,10 +149,10 @@ impl<B> Write<B> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{ChannelsMut, WriteBuf};
+    /// use audio::{BufMut, WriteBuf};
     /// use audio::io;
     ///
-    /// fn write_to_buf(mut write: impl ChannelsMut<Sample = i16> + WriteBuf) {
+    /// fn write_to_buf(mut write: impl BufMut<Sample = i16> + WriteBuf) {
     ///     let mut from = audio::interleaved![[0; 4]; 2];
     ///     io::copy_remaining(io::Read::new(&mut from), write);
     /// }
@@ -201,19 +201,6 @@ impl<B> Buf for Write<B>
 where
     B: Buf,
 {
-    fn frames_hint(&self) -> Option<usize> {
-        self.buf.frames_hint()
-    }
-
-    fn channels(&self) -> usize {
-        self.buf.channels()
-    }
-}
-
-impl<B> Channels for Write<B>
-where
-    B: Channels,
-{
     type Sample = B::Sample;
 
     type Channel<'a>
@@ -221,14 +208,22 @@ where
         Self::Sample: 'a,
     = B::Channel<'a>;
 
+    fn frames_hint(&self) -> Option<usize> {
+        self.buf.frames_hint()
+    }
+
+    fn channels(&self) -> usize {
+        self.buf.channels()
+    }
+
     fn channel(&self, channel: usize) -> Self::Channel<'_> {
         self.buf.channel(channel).tail(self.available)
     }
 }
 
-impl<B> ChannelsMut for Write<B>
+impl<B> BufMut for Write<B>
 where
-    B: ChannelsMut,
+    B: BufMut,
 {
     type ChannelMut<'a>
     where

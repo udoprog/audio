@@ -30,12 +30,12 @@
 //! * [sequential][Sequential] - where each channel is stored in a linear
 //!   buffer, one after another. Like `0:0, 0:1, 1:0, 1:0`.
 //!
-//! These all implement the [Channels] and [ChannelsMut] traits, allowing
+//! These all implement the [Buf] and [BufMut] traits, allowing
 //! library authors to abstract over any one specific format. The exact channel
 //! and frame count of a buffer is known as its *topology*.
 //!
 //! ```rust
-//! use audio::{ChannelsMut, ChannelMut};
+//! use audio::{BufMut, ChannelMut};
 //!
 //! let mut dynamic = audio::dynamic![[0i16; 4]; 2];
 //! let mut interleaved = audio::interleaved![[0i16; 4]; 2];
@@ -102,8 +102,8 @@
 //! [audio-device]: https://docs.rs/audio-device
 //! [audio-generator]: https://docs.rs/audio-generator
 //! [audio]: https://docs.rs/audio
-//! [Channels]: https://docs.rs/audio-core/*/audio_core/trait.Channels.html
-//! [ChannelsMut]: https://docs.rs/audio-core/*/audio_core/trait.ChannelsMut.html
+//! [Buf]: https://docs.rs/audio-core/*/audio_core/trait.Buf.html
+//! [BufMut]: https://docs.rs/audio-core/*/audio_core/trait.BufMut.html
 //! [cpal]: https://github.com/RustAudio/cpal
 //! [Dynamic::resize]: https://docs.rs/audio/*/audio/dynamic/struct.Dynamic.html#method.resize
 //! [dynamic!]: https://docs.rs/audio/*/audio/macros/macro.dynamic.html

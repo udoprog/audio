@@ -1,4 +1,4 @@
-use audio_core::{Buf, Channel, Channels, ExactSizeBuf, ReadBuf};
+use audio_core::{Buf, Channel, ExactSizeBuf, ReadBuf};
 
 /// Make a buffer into a read adapter that implements [ReadBuf].
 ///
@@ -149,10 +149,10 @@ impl<B> Read<B> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels, ReadBuf};
+    /// use audio::{Buf, ReadBuf};
     /// use audio::io;
     ///
-    /// fn read_from_buf(mut read: impl Channels<Sample = i16> + ReadBuf) {
+    /// fn read_from_buf(mut read: impl Buf<Sample = i16> + ReadBuf) {
     ///     let mut out = audio::interleaved![[0; 4]; 2];
     ///     io::copy_remaining(read, io::Write::new(&mut out));
     /// }
@@ -198,6 +198,13 @@ impl<B> Buf for Read<B>
 where
     B: Buf,
 {
+    type Sample = B::Sample;
+
+    type Channel<'a>
+    where
+        Self::Sample: 'a,
+    = B::Channel<'a>;
+
     fn frames_hint(&self) -> Option<usize> {
         self.buf.frames_hint()
     }
@@ -205,18 +212,6 @@ where
     fn channels(&self) -> usize {
         self.buf.channels()
     }
-}
-
-impl<B> Channels for Read<B>
-where
-    B: Channels,
-{
-    type Sample = B::Sample;
-
-    type Channel<'a>
-    where
-        Self::Sample: 'a,
-    = B::Channel<'a>;
 
     fn channel(&self, channel: usize) -> Self::Channel<'_> {
         self.buf.channel(channel).tail(self.available)

@@ -1,12 +1,12 @@
-//! A channel buffer as created through [Channels::channel][crate::Channels::channel] or
-//! [ChannelsMut::channel_mut][crate::ChannelsMut::channel_mut].
+//! A channel buffer as created through [Buf::channel][crate::Buf::channel] or
+//! [BufMut::channel_mut][crate::BufMut::channel_mut].
 
 /// The buffer of a single channel.
 ///
 /// This doesn't provide direct access to the underlying buffer, but rather
 /// allows us to copy data usinga  number of utility functions.
 ///
-/// See [Channels::channel][crate::Channels::channel].
+/// See [Buf::channel][crate::Buf::channel].
 pub trait Channel {
     /// The sample of a channel.
     type Sample;
@@ -21,9 +21,9 @@ pub trait Channel {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::Channels;
+    /// use audio::{Buf, Channel};
     ///
-    /// fn test(buf: &dyn Channels<f32>) {
+    /// fn test(buf: &impl Buf<Sample = f32>) {
     ///     let left = buf.channel(0);
     ///     let right = buf.channel(1);
     ///
@@ -42,7 +42,7 @@ pub trait Channel {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels as _, ChannelsMut as _};
+    /// use audio::{Buf, BufMut, Channel, ChannelMut};
     ///
     /// let mut left = audio::interleaved![[0.0f32; 4]; 2];
     /// let mut right = audio::dynamic![[0.0f32; 4]; 2];
@@ -65,7 +65,7 @@ pub trait Channel {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels as _, ChannelsMut as _};
+    /// use audio::{Buf, BufMut, Channel, ChannelMut};
     ///
     /// let mut from = audio::interleaved![[0.0f32; 4]; 2];
     /// *from.frame_mut(0, 2).unwrap() = 1.0;
@@ -83,12 +83,12 @@ pub trait Channel {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels as _, ChannelsMut as _};
+    /// use audio::{Buf, BufMut, Channel, ChannelMut};
     ///
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
     /// let mut to = audio::interleaved![[0.0f32; 4]; 2];
     ///
-    /// to.channel_mut(0).as_mut().tail(2).copy_from(from.channel(0));
+    /// to.channel_mut(0).tail(2).copy_from(from.channel(0));
     /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0]);
     /// ```
     fn tail(self, n: usize) -> Self;
@@ -98,7 +98,7 @@ pub trait Channel {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels as _, ChannelsMut as _};
+    /// use audio::{Buf, BufMut, Channel, ChannelMut};
     ///
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
     /// let mut to = audio::interleaved![[0.0f32; 4]; 2];
@@ -122,9 +122,9 @@ pub trait Channel {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::Channels;
+    /// use audio::{Buf, Channel};
     ///
-    /// fn test(buf: &dyn Channels<f32>) {
+    /// fn test(buf: &impl Buf<Sample = f32>) {
     ///     let left = buf.channel(0);
     ///     let right = buf.channel(1);
     ///
@@ -146,9 +146,9 @@ pub trait Channel {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channel, Channels};
+    /// use audio::{Buf, Channel};
     ///
-    /// fn test(buf: &dyn Channels<f32>, expected: Option<&[f32]>) {
+    /// fn test(buf: &impl Buf<Sample = f32>, expected: Option<&[f32]>) {
     ///     assert_eq!(buf.channel(0).as_linear(), expected);
     /// }
     ///

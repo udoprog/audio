@@ -59,9 +59,9 @@ pub trait InterleavedBuf {
     /// instead.
     ///
     /// ```rust,should_panic
-    /// use audio::{Channels, ExactSizeBuf, InterleavedBuf};
+    /// use audio::{Buf, ExactSizeBuf, InterleavedBuf};
     ///
-    /// fn test<B>(mut buffer: B) where B: InterleavedBuf {
+    /// fn test(mut buffer: impl InterleavedBuf) {
     ///     buffer.set_topology(2, 4); // panics because buffer is zero-sized.
     /// }
     ///
@@ -71,9 +71,9 @@ pub trait InterleavedBuf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channels, ExactSizeBuf, InterleavedBuf};
+    /// use audio::{Buf, ExactSizeBuf, InterleavedBuf};
     ///
-    /// fn test<B>(mut buffer: B) where B: InterleavedBuf {
+    /// fn test(mut buffer: impl InterleavedBuf) {
     ///     buffer.set_topology(2, 4);
     /// }
     ///

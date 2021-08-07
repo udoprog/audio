@@ -1,6 +1,10 @@
 //! Trait for dealing with abstract channel buffers.
 
+use crate::channel::Channel;
+use crate::linear_channel::LinearChannel;
+
 mod skip;
+
 pub use self::skip::Skip;
 
 mod limit;
@@ -33,7 +37,7 @@ pub use self::as_interleaved_mut::AsInterleavedMut;
 /// number of channels.
 ///
 /// ```rust
-/// use audio::Buf as _;
+/// use audio::Buf;
 ///
 /// let buffer = audio::interleaved![[0; 4]; 2];
 ///
@@ -45,7 +49,7 @@ pub use self::as_interleaved_mut::AsInterleavedMut;
 ///
 ///
 /// ```rust
-/// use audio::{Buf as _, ExactSizeBuf as _};
+/// use audio::{Buf, ExactSizeBuf};
 ///
 /// let buffer = audio::interleaved![[0; 4]; 2];
 ///
@@ -54,15 +58,23 @@ pub use self::as_interleaved_mut::AsInterleavedMut;
 /// assert_eq!(buffer.limit(2).frames(), 2);
 /// ```
 pub trait Buf {
+    /// The type of a single sample.
+    type Sample;
+
+    /// The type of the channel container.
+    type Channel<'a>: Channel<Sample = Self::Sample>
+    where
+        Self::Sample: 'a;
+
     /// A typical number of frames for each channel in the buffer, if known.
     ///
     /// If you only want to support buffers which have exact sizes use
     /// [ExactSizeBuf].
     ///
-    /// This is only a best effort hint. We can't require any [Channels] to know
-    /// the exact number of frames, because we want to be able to implement it
-    /// for types which does not keep track of the exact number of frames it
-    /// expects each channel to have such as `Vec<Vec<i16>>`.
+    /// This is only a best effort hint. We can't require any [Buf] to know the
+    /// exact number of frames, because we want to be able to implement it for
+    /// types which does not keep track of the exact number of frames it expects
+    /// each channel to have such as `Vec<Vec<i16>>`.
     ///
     /// ```rust
     /// use audio::Buf;
@@ -79,9 +91,9 @@ pub trait Buf {
     /// frames in each channel.
     ///
     /// ```rust
-    /// use audio::Channels;
+    /// use audio::{Buf, Channel};
     ///
-    /// fn test(buf: impl Channels<i16>) {
+    /// fn test(buf: impl Buf<Sample = i16>) {
     ///     assert_eq!(buf.channels(), 2);
     ///     assert_eq!(buf.frames_hint(), Some(4));
     ///
@@ -98,9 +110,9 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::Channels;
+    /// use audio::{Buf, Channel};
     ///
-    /// fn test(buf: impl Channels<i16>) {
+    /// fn test(buf: impl Buf<Sample = i16>) {
     ///     assert_eq!(buf.channels(), 2);
     ///
     ///     assert_eq! {
@@ -120,12 +132,27 @@ pub trait Buf {
     /// ```
     fn channels(&self) -> usize;
 
+    /// Return a handler to the buffer associated with the channel.
+    ///
+    /// Note that we don't access the buffer for the underlying channel directly
+    /// as a linear buffer like `&[T]`, because the underlying representation
+    /// might be different.
+    ///
+    /// We must instead make use of the various utility functions found on
+    /// [Channel] to copy data out of the channel.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the specified channel is out of bound as reported by
+    /// [Buf::channels].
+    fn channel(&self, channel: usize) -> Self::Channel<'_>;
+
     /// Construct a new buffer where `n` frames are skipped.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use audio::Buf as _;
+    /// use audio::Buf;
     /// use audio::buf;
     ///
     /// let from = audio::interleaved![[0, 0, 1, 1], [0; 4]];
@@ -139,7 +166,7 @@ pub trait Buf {
     /// With a mutable buffer.
     ///
     /// ```rust
-    /// use audio::{Buf as _, ChannelsMut as _};
+    /// use audio::Buf;
     /// use audio::{buf, wrap};
     ///
     /// let from = wrap::interleaved(&[1, 1, 1, 1, 1, 1, 1, 1], 2);
@@ -161,7 +188,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::Buf as _;
+    /// use audio::Buf;
     /// use audio::buf;
     ///
     /// let from = audio::interleaved![[1; 4]; 2];
@@ -183,7 +210,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::Buf as _;
+    /// use audio::Buf;
     /// use audio::buf;
     ///
     /// let from = audio::interleaved![[1; 4]; 2];
@@ -208,7 +235,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::Buf as _;
+    /// use audio::Buf;
     /// use audio::buf;
     ///
     /// let from = audio::interleaved![[1; 4]; 2];
@@ -230,6 +257,13 @@ impl<B> Buf for &B
 where
     B: ?Sized + Buf,
 {
+    type Sample = B::Sample;
+
+    type Channel<'a>
+    where
+        Self::Sample: 'a,
+    = B::Channel<'a>;
+
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
         (**self).frames_hint()
@@ -238,6 +272,11 @@ where
     #[inline]
     fn channels(&self) -> usize {
         (**self).channels()
+    }
+
+    #[inline]
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        (**self).channel(channel)
     }
 }
 
@@ -245,6 +284,13 @@ impl<B> Buf for &mut B
 where
     B: ?Sized + Buf,
 {
+    type Sample = B::Sample;
+
+    type Channel<'a>
+    where
+        Self::Sample: 'a,
+    = B::Channel<'a>;
+
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
         (**self).frames_hint()
@@ -254,9 +300,21 @@ where
     fn channels(&self) -> usize {
         (**self).channels()
     }
+
+    #[inline]
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        (**self).channel(channel)
+    }
 }
 
 impl<T> Buf for Vec<Vec<T>> {
+    type Sample = T;
+
+    type Channel<'a>
+    where
+        Self::Sample: 'a,
+    = LinearChannel<'a, T>;
+
     fn frames_hint(&self) -> Option<usize> {
         Some(self.get(0)?.len())
     }
@@ -264,14 +322,29 @@ impl<T> Buf for Vec<Vec<T>> {
     fn channels(&self) -> usize {
         self.len()
     }
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        LinearChannel::new(&self[channel])
+    }
 }
 
 impl<T> Buf for [Vec<T>] {
+    type Sample = T;
+
+    type Channel<'a>
+    where
+        Self::Sample: 'a,
+    = LinearChannel<'a, T>;
+
     fn frames_hint(&self) -> Option<usize> {
         Some(self.get(0)?.len())
     }
 
     fn channels(&self) -> usize {
         self.as_ref().len()
+    }
+
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        LinearChannel::new(&self[channel])
     }
 }
