@@ -10,6 +10,9 @@
 #![allow(clippy::should_implement_trait)]
 #![feature(generic_associated_types)]
 
+mod slice;
+pub use self::slice::{Slice, SliceIndex, SliceMut};
+
 pub mod buf;
 pub use self::buf::Buf;
 
@@ -22,17 +25,11 @@ pub use self::channel::Channel;
 mod channel_mut;
 pub use self::channel_mut::ChannelMut;
 
-mod interleaved_channel_mut;
-pub use self::interleaved_channel_mut::InterleavedChannelMut;
+pub mod interleaved;
+pub use self::interleaved::InterleavedChannel;
 
-mod interleaved_channel;
-pub use self::interleaved_channel::InterleavedChannel;
-
-mod linear_channel_mut;
-pub use self::linear_channel_mut::LinearChannelMut;
-
-mod linear_channel;
-pub use self::linear_channel::LinearChannel;
+pub mod linear;
+pub use self::linear::LinearChannel;
 
 mod translate;
 pub use self::translate::Translate;

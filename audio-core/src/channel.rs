@@ -9,10 +9,10 @@
 /// See [Buf::channel][crate::Buf::channel].
 pub trait Channel {
     /// The sample of a channel.
-    type Sample;
+    type Sample: Copy;
 
     /// A borrowing iterator over the channel.
-    type Iter<'a>: Iterator<Item = &'a Self::Sample>
+    type Iter<'a>: Iterator<Item = Self::Sample>
     where
         Self::Sample: 'a;
 
@@ -165,7 +165,7 @@ pub trait Channel {
         I: IntoIterator<Item = &'a mut Self::Sample>,
     {
         for (from, to) in self.iter().zip(to) {
-            *to = *from;
+            *to = from;
         }
     }
 }

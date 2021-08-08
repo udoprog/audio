@@ -1,8 +1,6 @@
 //! A dynamically sized, multi-channel sequential audio buffer.
 
-use audio_core::{
-    Buf, BufMut, ExactSizeBuf, LinearChannel, LinearChannelMut, ResizableBuf, Sample,
-};
+use audio_core::{Buf, BufMut, ExactSizeBuf, LinearChannel, ResizableBuf, Sample};
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -692,19 +690,25 @@ impl<T> ops::IndexMut<usize> for Sequential<T> {
     }
 }
 
-impl<T> ExactSizeBuf for Sequential<T> {
+impl<T> ExactSizeBuf for Sequential<T>
+where
+    T: Copy,
+{
     fn frames(&self) -> usize {
         self.frames
     }
 }
 
-impl<T> Buf for Sequential<T> {
+impl<T> Buf for Sequential<T>
+where
+    T: Copy,
+{
     type Sample = T;
 
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<'a, Self::Sample>;
+    = LinearChannel<&'a [Self::Sample]>;
 
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
@@ -741,11 +745,11 @@ where
     type ChannelMut<'a>
     where
         Self::Sample: 'a,
-    = LinearChannelMut<'a, Self::Sample>;
+    = LinearChannel<&'a mut [Self::Sample]>;
 
     fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
         let data = &mut self.data[self.frames * channel..];
-        LinearChannelMut::new(&mut data[..self.frames])
+        LinearChannel::new(&mut data[..self.frames])
     }
 
     fn copy_channels(&mut self, from: usize, to: usize) {

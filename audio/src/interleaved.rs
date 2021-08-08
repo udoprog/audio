@@ -3,7 +3,7 @@
 use crate::wrap;
 use audio_core::{
     AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedChannel,
-    InterleavedChannelMut, ResizableBuf, Sample,
+    ResizableBuf, Sample,
 };
 use std::cmp;
 use std::fmt;
@@ -272,12 +272,12 @@ impl<T> Interleaved<T> {
     /// buffer.as_slice_mut().copy_from_slice(&[1, 1, 2, 2, 3, 3, 4, 4]);
     ///
     /// assert_eq! {
-    ///     buffer.channel(0).iter().copied().collect::<Vec<_>>(),
+    ///     buffer.channel(0).iter().collect::<Vec<_>>(),
     ///     &[1, 2, 3, 4],
     /// };
     ///
     /// assert_eq! {
-    ///     buffer.channel(1).iter().copied().collect::<Vec<_>>(),
+    ///     buffer.channel(1).iter().collect::<Vec<_>>(),
     ///     &[1, 2, 3, 4],
     /// };
     ///
@@ -774,19 +774,25 @@ where
     }
 }
 
-impl<T> ExactSizeBuf for Interleaved<T> {
+impl<T> ExactSizeBuf for Interleaved<T>
+where
+    T: Copy,
+{
     fn frames(&self) -> usize {
         self.frames
     }
 }
 
-impl<T> Buf for Interleaved<T> {
+impl<T> Buf for Interleaved<T>
+where
+    T: Copy,
+{
     type Sample = T;
 
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = InterleavedChannel<'a, Self::Sample>;
+    = InterleavedChannel<&'a [Self::Sample]>;
 
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
@@ -850,10 +856,10 @@ where
     type ChannelMut<'a>
     where
         Self::Sample: 'a,
-    = InterleavedChannelMut<'a, Self::Sample>;
+    = InterleavedChannel<&'a mut [Self::Sample]>;
 
     fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        InterleavedChannelMut::new(&mut self.data, self.channels, channel)
+        InterleavedChannel::new(&mut self.data, self.channels, channel)
     }
 
     fn copy_channels(&mut self, from: usize, to: usize) {

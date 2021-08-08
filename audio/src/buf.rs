@@ -37,7 +37,7 @@ where
         let from = from.channel(chan);
 
         for (t, f) in to.iter_mut().zip(from.iter()) {
-            *t = O::Sample::translate(*f);
+            *t = O::Sample::translate(f);
         }
     }
 }

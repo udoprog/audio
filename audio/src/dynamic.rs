@@ -1,8 +1,6 @@
 //! A dynamically sized, multi-channel audio buffer.
 
-use audio_core::{
-    Buf, BufMut, ExactSizeBuf, LinearChannel, LinearChannelMut, ResizableBuf, Sample,
-};
+use audio_core::{Buf, BufMut, ExactSizeBuf, LinearChannel, ResizableBuf, Sample};
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -729,19 +727,25 @@ impl<T> Drop for Dynamic<T> {
     }
 }
 
-impl<T> ExactSizeBuf for Dynamic<T> {
+impl<T> ExactSizeBuf for Dynamic<T>
+where
+    T: Copy,
+{
     fn frames(&self) -> usize {
         self.frames
     }
 }
 
-impl<T> Buf for Dynamic<T> {
+impl<T> Buf for Dynamic<T>
+where
+    T: Copy,
+{
     type Sample = T;
 
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<'a, Self::Sample>;
+    = LinearChannel<&'a [Self::Sample]>;
 
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
@@ -777,10 +781,10 @@ where
     type ChannelMut<'a>
     where
         Self::Sample: 'a,
-    = LinearChannelMut<'a, Self::Sample>;
+    = LinearChannel<&'a mut [Self::Sample]>;
 
     fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        LinearChannelMut::new(&mut self[channel])
+        LinearChannel::new(&mut self[channel])
     }
 
     fn copy_channels(&mut self, from: usize, to: usize) {

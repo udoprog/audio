@@ -31,7 +31,7 @@ pub trait ChannelMut: Channel {
     ///     };
     ///
     ///     if is_linear {
-    ///         assert_eq!(buf.channel(0).iter().next(), Some(&1.0));
+    ///         assert_eq!(buf.channel(0).iter().next(), Some(1.0));
     ///     }
     /// }
     ///
@@ -66,7 +66,7 @@ pub trait ChannelMut: Channel {
             }
             _ => {
                 for (t, f) in self.iter_mut().zip(from.iter()) {
-                    *t = *f;
+                    *t = f;
                 }
             }
         }

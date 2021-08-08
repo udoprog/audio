@@ -1,6 +1,6 @@
 use audio_core::{
     AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedChannel,
-    InterleavedChannelMut, ReadBuf, WriteBuf,
+    ReadBuf, Slice, SliceMut, WriteBuf,
 };
 
 /// A wrapper for an interleaved audio buffer.
@@ -29,93 +29,97 @@ impl<T> Interleaved<T> {
     }
 }
 
-macro_rules! impl_buf {
-    ([$($p:tt)*], $ty:ty $(, $len:ident)?) => {
-        impl<$($p)*> Buf for Interleaved<$ty> {
-            type Sample = T;
-            type Channel<'a> where Self::Sample: 'a = InterleavedChannel<'a, Self::Sample>;
+impl<T> Buf for Interleaved<T>
+where
+    T: Slice,
+{
+    type Sample = T::Item;
+    type Channel<'a>
+    where
+        T::Item: 'a,
+    = InterleavedChannel<&'a [T::Item]>;
 
-            fn frames_hint(&self) -> Option<usize> {
-                Some(self.frames())
-            }
+    fn frames_hint(&self) -> Option<usize> {
+        Some(self.frames())
+    }
 
-            fn channels(&self) -> usize {
-                self.channels
-            }
+    fn channels(&self) -> usize {
+        self.channels
+    }
 
-            fn channel(&self, channel: usize) -> Self::Channel<'_> {
-                InterleavedChannel::new(self.value.as_ref(), self.channels, channel)
-            }
-        }
-
-        impl<$($p)*> ExactSizeBuf for Interleaved<$ty> {
-            fn frames(&self) -> usize {
-                impl_buf!(@frames self, $($len)*) / self.channels
-            }
-        }
-
-        impl<$($p)*> AsInterleaved<T> for Interleaved<$ty> {
-            fn as_interleaved(&self) -> &[T] {
-                self.value.as_ref()
-            }
-        }
-    };
-
-    (@frames $s:ident,) => { $s.value.len() };
-    (@frames $_:ident, $n:ident) => { $n };
+    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+        InterleavedChannel::new(self.value.as_ref(), self.channels, channel)
+    }
 }
 
-impl_buf!([T], &'_ [T]);
-impl_buf!([T], &'_ mut [T]);
-impl_buf!([T, const N: usize], [T; N], N);
-impl_buf!([T, const N: usize], &'_ [T; N], N);
-impl_buf!([T, const N: usize], &'_ mut [T; N], N);
-
-macro_rules! impl_buf_mut {
-    ([$($p:tt)*], $ty:ty) => {
-        impl<$($p)*> BufMut for Interleaved<$ty> where T: Copy {
-            type ChannelMut<'a> where Self::Sample: 'a = InterleavedChannelMut<'a, Self::Sample>;
-
-            fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-                InterleavedChannelMut::new(self.value.as_mut(), self.channels, channel)
-            }
-
-            fn copy_channels(&mut self, from: usize, to: usize) {
-                let frames = self.frames();
-
-                // Safety: We're calling the copy function with internal
-                // parameters which are guaranteed to be correct. `frames` is
-                // guaranteed to reflect a valid subset of the buffer based on
-                // frames, because it uses the trusted length of the provided
-                // slice.
-                unsafe {
-                    crate::utils::copy_channels_interleaved(
-                        self.value.as_mut_ptr(),
-                        self.channels,
-                        frames,
-                        from,
-                        to,
-                    );
-                }
-            }
-        }
-
-        impl<$($p)*> AsInterleavedMut<T> for Interleaved<$ty> {
-            fn as_interleaved_mut(&mut self) -> &mut [T] {
-                self.value
-            }
-
-            fn as_interleaved_mut_ptr(&mut self) -> *mut T {
-                self.value.as_mut_ptr()
-            }
-        }
-    };
+impl<T> ExactSizeBuf for Interleaved<T>
+where
+    T: Slice,
+{
+    fn frames(&self) -> usize {
+        self.value.as_ref().len() / self.channels
+    }
 }
 
-impl_buf_mut!([T], &'_ mut [T]);
-impl_buf_mut!([T, const N: usize], &'_ mut [T; N]);
+impl<T> AsInterleaved<T::Item> for Interleaved<T>
+where
+    T: Slice,
+{
+    fn as_interleaved(&self) -> &[T::Item] {
+        self.value.as_ref()
+    }
+}
 
-impl<T> ReadBuf for Interleaved<&'_ [T]> {
+impl<T> BufMut for Interleaved<T>
+where
+    T: SliceMut,
+{
+    type ChannelMut<'a>
+    where
+        T::Item: 'a,
+    = InterleavedChannel<&'a mut [T::Item]>;
+
+    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
+        InterleavedChannel::new(self.value.as_mut(), self.channels, channel)
+    }
+
+    fn copy_channels(&mut self, from: usize, to: usize) {
+        let frames = self.frames();
+
+        // Safety: We're calling the copy function with internal
+        // parameters which are guaranteed to be correct. `frames` is
+        // guaranteed to reflect a valid subset of the buffer based on
+        // frames, because it uses the trusted length of the provided
+        // slice.
+        unsafe {
+            crate::utils::copy_channels_interleaved(
+                self.value.as_mut_ptr(),
+                self.channels,
+                frames,
+                from,
+                to,
+            );
+        }
+    }
+}
+
+impl<T> AsInterleavedMut<T::Item> for Interleaved<T>
+where
+    T: SliceMut,
+{
+    fn as_interleaved_mut(&mut self) -> &mut [T::Item] {
+        self.value.as_mut()
+    }
+
+    fn as_interleaved_mut_ptr(&mut self) -> *mut T::Item {
+        self.value.as_mut_ptr()
+    }
+}
+
+impl<T> ReadBuf for Interleaved<&'_ [T]>
+where
+    T: Copy,
+{
     fn remaining(&self) -> usize {
         self.frames()
     }
@@ -128,7 +132,10 @@ impl<T> ReadBuf for Interleaved<&'_ [T]> {
     }
 }
 
-impl<T> ReadBuf for Interleaved<&'_ mut [T]> {
+impl<T> ReadBuf for Interleaved<&'_ mut [T]>
+where
+    T: Copy,
+{
     fn remaining(&self) -> usize {
         self.frames()
     }
@@ -141,7 +148,10 @@ impl<T> ReadBuf for Interleaved<&'_ mut [T]> {
     }
 }
 
-impl<T> WriteBuf for Interleaved<&'_ mut [T]> {
+impl<T> WriteBuf for Interleaved<&'_ mut [T]>
+where
+    T: Copy,
+{
     fn remaining_mut(&self) -> usize {
         self.frames()
     }
@@ -154,7 +164,10 @@ impl<T> WriteBuf for Interleaved<&'_ mut [T]> {
     }
 }
 
-impl<T> InterleavedBuf for Interleaved<&'_ mut [T]> {
+impl<T> InterleavedBuf for Interleaved<&'_ mut [T]>
+where
+    T: Copy,
+{
     fn reserve_frames(&mut self, frames: usize) {
         if frames > self.value.len() {
             panic!(

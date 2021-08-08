@@ -52,7 +52,7 @@ pub trait Buf {
     /// A typical number of frames for each channel in the buffer, if known.
     ///
     /// If you only want to support buffers which have exact sizes use
-    /// [ExactSizeBuf].
+    /// [ExactSizeBuf][crate::ExactSizeBuf].
     ///
     /// This is only a best effort hint. We can't require any [Buf] to know the
     /// exact number of frames, because we want to be able to implement it for
@@ -290,13 +290,16 @@ where
     }
 }
 
-impl<T> Buf for Vec<Vec<T>> {
+impl<T> Buf for Vec<Vec<T>>
+where
+    T: Copy,
+{
     type Sample = T;
 
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<'a, T>;
+    = LinearChannel<&'a [T]>;
 
     fn frames_hint(&self) -> Option<usize> {
         Some(self.get(0)?.len())
@@ -311,13 +314,16 @@ impl<T> Buf for Vec<Vec<T>> {
     }
 }
 
-impl<T> Buf for [Vec<T>] {
+impl<T> Buf for [Vec<T>]
+where
+    T: Copy,
+{
     type Sample = T;
 
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<'a, T>;
+    = LinearChannel<&'a [T]>;
 
     fn frames_hint(&self) -> Option<usize> {
         Some(self.get(0)?.len())

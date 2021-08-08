@@ -1,4 +1,4 @@
-use crate::{Buf, ChannelMut, LinearChannelMut};
+use crate::{Buf, ChannelMut, LinearChannel};
 
 /// A trait describing a mutable audio buffer.
 pub trait BufMut: Buf {
@@ -70,10 +70,10 @@ where
     type ChannelMut<'a>
     where
         Self::Sample: 'a,
-    = LinearChannelMut<'a, T>;
+    = LinearChannel<&'a mut [T]>;
 
     fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        LinearChannelMut::new(&mut self[channel])
+        LinearChannel::new(&mut self[channel])
     }
 
     fn copy_channels(&mut self, from: usize, to: usize) {
