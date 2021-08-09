@@ -51,7 +51,7 @@ where
     = LinearChannelIter<'a, T::Item>;
 
     fn frames(&self) -> usize {
-        self.buf.as_ref().len()
+        self.buf.len()
     }
 
     fn iter(&self) -> Self::Iter<'_> {
@@ -60,37 +60,29 @@ where
 
     fn skip(self, n: usize) -> Self {
         Self {
-            buf: self.buf.index(n..),
+            buf: self.buf.index_from(n),
         }
     }
 
     fn tail(self, n: usize) -> Self {
-        let start = self.buf.as_ref().len().saturating_sub(n);
+        let start = self.buf.len().saturating_sub(n);
 
         Self {
-            buf: self.buf.index(start..),
+            buf: self.buf.index_from(start),
         }
     }
 
     fn limit(self, limit: usize) -> Self {
         Self {
-            buf: self.buf.index(..limit),
+            buf: self.buf.index_to(limit),
         }
     }
 
     fn chunk(self, n: usize, len: usize) -> Self {
+        let end = n.saturating_add(len);
+
         Self {
-            buf: self.buf.index(n..n + len),
-        }
-    }
-
-    fn chunks(&self, chunk: usize) -> usize {
-        let len = self.frames();
-
-        if len % chunk == 0 {
-            len / chunk
-        } else {
-            len / chunk + 1
+            buf: self.buf.index_full(n, end),
         }
     }
 
@@ -162,58 +154,60 @@ impl<T> Copy for LinearChannel<T> where T: Copy {}
 
 impl<T> cmp::PartialEq for LinearChannel<T>
 where
-    T: Slice,
+    T: SliceIndex,
     T::Item: cmp::PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
-        self.buf.as_ref().eq(other.buf.as_ref())
+        self.iter().eq(other.iter())
     }
 }
 
 impl<T> cmp::Eq for LinearChannel<T>
 where
-    T: Slice,
+    T: SliceIndex,
     T::Item: cmp::Eq,
 {
 }
 
 impl<T> hash::Hash for LinearChannel<T>
 where
-    T: Slice,
+    T: SliceIndex,
     T::Item: hash::Hash,
 {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
-        self.buf.as_ref().hash(state)
+        for item in self.iter() {
+            item.hash(state);
+        }
     }
 }
 
 impl<T> cmp::PartialOrd for LinearChannel<T>
 where
-    T: Slice,
+    T: SliceIndex,
     T::Item: cmp::PartialOrd,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-        self.buf.as_ref().partial_cmp(other.buf.as_ref())
+        self.iter().partial_cmp(other.iter())
     }
 }
 
 impl<T> cmp::Ord for LinearChannel<T>
 where
-    T: Slice,
+    T: SliceIndex,
     T::Item: cmp::Ord,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
-        self.buf.as_ref().cmp(other.buf.as_ref())
+        self.iter().cmp(other.iter())
     }
 }
 
 impl<T> fmt::Debug for LinearChannel<T>
 where
-    T: Slice,
+    T: SliceIndex,
     T::Item: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_list().entries(self.buf.as_ref()).finish()
+        f.debug_list().entries(self.iter()).finish()
     }
 }
 

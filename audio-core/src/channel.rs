@@ -139,7 +139,15 @@ pub trait Channel {
     /// test(&audio::sequential![[0.0; 16]; 2]);
     /// test(&audio::interleaved![[0.0; 16]; 2]);
     /// ```
-    fn chunks(&self, chunk: usize) -> usize;
+    fn chunks(&self, chunk: usize) -> usize {
+        let len = self.frames();
+
+        if len % chunk == 0 {
+            len / chunk
+        } else {
+            len / chunk + 1
+        }
+    }
 
     /// Try to coerce the channel the channel into a linear sequence of memory.
     ///

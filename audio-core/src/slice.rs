@@ -1,16 +1,18 @@
 //! Traits used to generically describe and operate over slice-like types.
 
-use std::slice;
-
 /// Describes how a buffer can be indexed.
 pub trait SliceIndex: Slice
 where
     Self: Sized,
 {
     /// Get a range out of the given slice.
-    fn index<I>(self, index: I) -> Self
-    where
-        I: slice::SliceIndex<[Self::Item], Output = [Self::Item]>;
+    fn index_from(self, index: usize) -> Self;
+
+    /// Index to the given index.
+    fn index_to(self, index: usize) -> Self;
+
+    /// Index to the given index.
+    fn index_full(self, from: usize, to: usize) -> Self;
 }
 
 /// Trait used to operate over a slice.
@@ -20,6 +22,9 @@ where
 {
     /// A single item in the slice.
     type Item: Copy;
+
+    /// Get the length of the slice.
+    fn len(&self) -> usize;
 
     /// Helper to reborrow the items of self.
     fn as_ref(&self) -> &[Self::Item];
@@ -41,11 +46,16 @@ impl<T> SliceIndex for &[T]
 where
     T: Copy,
 {
-    fn index<I>(self, index: I) -> Self
-    where
-        I: slice::SliceIndex<[Self::Item], Output = [Self::Item]>,
-    {
-        self.get(index).unwrap_or_default()
+    fn index_from(self, index: usize) -> Self {
+        self.get(index..).unwrap_or_default()
+    }
+
+    fn index_to(self, index: usize) -> Self {
+        self.get(..index).unwrap_or_default()
+    }
+
+    fn index_full(self, from: usize, to: usize) -> Self {
+        self.get(from..to).unwrap_or_default()
     }
 }
 
@@ -54,6 +64,10 @@ where
     T: Copy,
 {
     type Item = T;
+
+    fn len(&self) -> usize {
+        <[T]>::len(self)
+    }
 
     fn as_ref(&self) -> &[Self::Item] {
         *self
@@ -66,6 +80,10 @@ where
 {
     type Item = T;
 
+    fn len(&self) -> usize {
+        N
+    }
+
     fn as_ref(&self) -> &[Self::Item] {
         &self[..]
     }
@@ -77,6 +95,10 @@ where
 {
     type Item = T;
 
+    fn len(&self) -> usize {
+        N
+    }
+
     fn as_ref(&self) -> &[Self::Item] {
         &self[..]
     }
@@ -86,11 +108,16 @@ impl<T> SliceIndex for &mut [T]
 where
     T: Copy,
 {
-    fn index<I>(self, index: I) -> Self
-    where
-        I: slice::SliceIndex<[Self::Item], Output = [Self::Item]>,
-    {
-        self.get_mut(index).unwrap_or_default()
+    fn index_from(self, index: usize) -> Self {
+        self.get_mut(index..).unwrap_or_default()
+    }
+
+    fn index_to(self, index: usize) -> Self {
+        self.get_mut(..index).unwrap_or_default()
+    }
+
+    fn index_full(self, from: usize, to: usize) -> Self {
+        self.get_mut(from..to).unwrap_or_default()
     }
 }
 
@@ -99,6 +126,10 @@ where
     T: Copy,
 {
     type Item = T;
+
+    fn len(&self) -> usize {
+        <[T]>::len(self)
+    }
 
     fn as_ref(&self) -> &[Self::Item] {
         *self
@@ -110,6 +141,10 @@ where
     T: Copy,
 {
     type Item = T;
+
+    fn len(&self) -> usize {
+        N
+    }
 
     fn as_ref(&self) -> &[Self::Item] {
         *self

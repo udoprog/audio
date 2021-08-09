@@ -65,7 +65,7 @@ where
     = InterleavedChannelIter<'a, T::Item>;
 
     fn frames(&self) -> usize {
-        self.buf.as_ref().len() / self.channels
+        self.buf.len() / self.channels
     }
 
     fn iter(&self) -> Self::Iter<'_> {
@@ -73,49 +73,46 @@ where
     }
 
     fn skip(self, n: usize) -> Self {
+        let start = n.saturating_mul(self.channels);
+
         Self {
-            buf: self.buf.index(n * self.channels..),
+            buf: self.buf.index_from(start),
             channels: self.channels,
             channel: self.channel,
         }
     }
 
     fn tail(self, n: usize) -> Self {
-        let start = self.buf.as_ref().len().saturating_sub(n * self.channels);
+        let start = self
+            .buf
+            .len()
+            .saturating_sub(n.saturating_mul(self.channels));
 
         Self {
-            buf: self.buf.index(start..),
+            buf: self.buf.index_from(start),
             channels: self.channels,
             channel: self.channel,
         }
     }
 
     fn limit(self, limit: usize) -> Self {
+        let end = limit.saturating_mul(self.channels);
+
         Self {
-            buf: self.buf.index(..limit * self.channels),
+            buf: self.buf.index_to(end),
             channels: self.channels,
             channel: self.channel,
         }
     }
 
     fn chunk(self, n: usize, len: usize) -> Self {
-        let len = len * self.channels;
-        let n = n * len;
+        let start = n.saturating_mul(len);
+        let end = start.saturating_add(len.saturating_mul(self.channels));
 
         Self {
-            buf: self.buf.index(n..n + len),
+            buf: self.buf.index_full(start, end),
             channels: self.channels,
             channel: self.channel,
-        }
-    }
-
-    fn chunks(&self, chunk: usize) -> usize {
-        let len = self.frames();
-
-        if len % chunk == 0 {
-            len / chunk
-        } else {
-            len / chunk + 1
         }
     }
 
@@ -134,7 +131,7 @@ where
     = iter::StepBy<slice::IterMut<'a, T::Item>>;
 
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
-        let start = usize::min(self.channel, self.buf.as_ref().len());
+        let start = usize::min(self.channel, self.buf.len());
 
         self.buf
             .as_mut()
