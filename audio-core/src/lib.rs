@@ -26,7 +26,7 @@ mod channel_mut;
 pub use self::channel_mut::ChannelMut;
 
 pub mod interleaved;
-pub use self::interleaved::InterleavedChannel;
+pub use self::interleaved::{InterleavedChannel, InterleavedChannelMut};
 
 pub mod linear;
 pub use self::linear::LinearChannel;

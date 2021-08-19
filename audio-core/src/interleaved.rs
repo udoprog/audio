@@ -1,12 +1,28 @@
 //! Utilities for working with interleaved channels.
 
-use crate::{Channel, ChannelMut, SliceIndex, SliceMut};
+use crate::{Channel, ChannelMut};
 use std::cmp;
 use std::fmt;
-use std::hash;
-use std::iter;
-use std::ops;
-use std::slice;
+use std::marker;
+use std::mem;
+use std::ptr;
+
+#[macro_use]
+mod macros;
+
+#[cfg(test)]
+mod tests;
+
+#[inline(always)]
+fn size_from_ptr<T>(_: *const T) -> usize {
+    mem::size_of::<T>()
+}
+
+interleaved_channel!('a, T, const, InterleavedChannel);
+interleaved_channel!('a, T, mut, InterleavedChannelMut);
+
+comparisons!({'a, T}, InterleavedChannel<'a, T>, InterleavedChannelMut<'a, T>);
+comparisons!({'a, T}, InterleavedChannelMut<'a, T>, InterleavedChannel<'a, T>);
 
 /// The buffer of a single interleaved channel.
 ///
@@ -14,289 +30,177 @@ use std::slice;
 /// allows us to copy data usinga  number of utility functions.
 ///
 /// See [Buf::channel][crate::Buf::channel].
-pub struct InterleavedChannel<T> {
-    buf: T,
+pub struct InterleavedChannel<'a, T> {
+    /// The base pointer of the buffer.
+    ptr: ptr::NonNull<T>,
+    /// The end pointer of the buffer.
+    end: *const T,
     /// The number of channels in the interleaved buffer.
-    channels: usize,
-    /// The channel that is being accessed.
-    channel: usize,
+    step: usize,
+    /// The market indicating the kind of the channel.
+    _marker: marker::PhantomData<&'a [T]>,
 }
 
-impl<T> InterleavedChannel<T> {
-    /// Construct an interleaved channel buffer.
+impl<'a, T> InterleavedChannel<'a, T> {
+    /// Construct an interleaved channel buffer from a slice.
     ///
-    /// The provided buffer must be the complete buffer, which includes *all*
-    /// other channels. The provided `channels` argument is the total number of
-    /// channels in this buffer, and `channel` indicates which specific channel
-    /// this buffer belongs to.
+    /// This is a safe function since the data being referenced is both bounds
+    /// checked and is associated with the lifetime of the structure.
     ///
-    /// Note that this is typically not used directly, but instead through an
-    /// abstraction which makes sure to provide the correct parameters.
+    /// # Panics
+    ///
+    /// Panics if the channel configuration is not valid. That is either true if
+    /// the given number of `channels` cannot fit within it or if the selected
+    /// `channel` does not fit within the specified `channels`.
+    ///
+    /// ```rust,should_panic
+    /// use audio::InterleavedChannel;
+    ///
+    /// let buf: &[u32] = &[1, 2];
+    /// InterleavedChannel::from_slice(buf, 1, 4);
+    /// ```
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use audio::InterleavedChannel;
+    /// use audio::{Channel, InterleavedChannel};
     ///
     /// let buf: &[u32] = &[1, 2, 3, 4, 5, 6, 7, 8];
-    /// let channel = InterleavedChannel::new(buf, 2, 1);
+    /// let channel = InterleavedChannel::from_slice(buf, 1, 2);
     ///
-    /// assert_eq!(channel[1], 4);
-    /// assert_eq!(channel[2], 6);
+    /// assert_eq!(channel.iter().nth(1), Some(4));
+    /// assert_eq!(channel.iter().nth(2), Some(6));
     /// ```
-    pub fn new(buf: T, channels: usize, channel: usize) -> Self {
-        Self {
-            buf,
-            channels,
-            channel,
+    pub fn from_slice(data: &'a [T], channel: usize, channels: usize) -> Self {
+        assert!(channels <= data.len());
+        assert!(channel < channels);
+
+        unsafe {
+            Self::new_unchecked(
+                ptr::NonNull::new_unchecked(data.as_ptr() as *mut _),
+                data.len(),
+                channel,
+                channels,
+            )
         }
     }
 }
 
-impl<T> Channel for InterleavedChannel<T>
-where
-    T: SliceIndex,
-{
-    type Sample = T::Item;
+/// The buffer of a single interleaved channel.
+///
+/// This doesn't provide direct access to the underlying buffer, but rather
+/// allows us to copy data usinga  number of utility functions.
+///
+/// See [Buf::channel][crate::Buf::channel].
+pub struct InterleavedChannelMut<'a, T> {
+    /// The base pointer of the buffer.
+    ptr: ptr::NonNull<T>,
+    /// The size of the buffer.
+    end: *mut T,
+    /// The number of channels in the interleaved buffer.
+    step: usize,
+    /// The market indicating the kind of the channel.
+    _marker: marker::PhantomData<&'a mut [T]>,
+}
 
-    type Iter<'a>
-    where
-        T::Item: 'a,
-    = InterleavedChannelIter<'a, T::Item>;
+impl<'a, T> InterleavedChannelMut<'a, T> {
+    /// Construct an interleaved channel buffer from a slice.
+    ///
+    /// This is a safe function since the data being referenced is both bounds
+    /// checked and is associated with the lifetime of the structure.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the channel configuration is not valid. That is either true if
+    /// the given number of `channels` cannot fit within it or if the selected
+    /// `channel` does not fit within the specified `channels`.
+    ///
+    /// ```rust,should_panic
+    /// use audio::InterleavedChannelMut;
+    ///
+    /// let buf: &mut [u32] = &mut [1, 2];
+    /// InterleavedChannelMut::from_slice(buf, 1, 4);
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use audio::{Channel, InterleavedChannelMut};
+    ///
+    /// let buf: &mut [u32] = &mut [1, 2, 3, 4, 5, 6, 7, 8];
+    /// let channel = InterleavedChannelMut::from_slice(buf, 1, 2);
+    ///
+    /// assert_eq!(channel.iter().nth(1), Some(4));
+    /// assert_eq!(channel.iter().nth(2), Some(6));
+    /// ```
+    pub fn from_slice(data: &'a mut [T], channel: usize, channels: usize) -> Self {
+        assert!(channels <= data.len());
+        assert!(channel < channels);
 
-    fn frames(&self) -> usize {
-        self.buf.len() / self.channels
-    }
-
-    fn iter(&self) -> Self::Iter<'_> {
-        InterleavedChannelIter::new(self.channel, self.channels, self.buf.as_ref())
-    }
-
-    fn skip(self, n: usize) -> Self {
-        let start = n.saturating_mul(self.channels);
-
-        Self {
-            buf: self.buf.index_from(start),
-            channels: self.channels,
-            channel: self.channel,
+        unsafe {
+            Self::new_unchecked(
+                ptr::NonNull::new_unchecked(data.as_mut_ptr()),
+                data.len(),
+                channel,
+                channels,
+            )
         }
-    }
-
-    fn tail(self, n: usize) -> Self {
-        let start = self
-            .buf
-            .len()
-            .saturating_sub(n.saturating_mul(self.channels));
-
-        Self {
-            buf: self.buf.index_from(start),
-            channels: self.channels,
-            channel: self.channel,
-        }
-    }
-
-    fn limit(self, limit: usize) -> Self {
-        let end = limit.saturating_mul(self.channels);
-
-        Self {
-            buf: self.buf.index_to(end),
-            channels: self.channels,
-            channel: self.channel,
-        }
-    }
-
-    fn chunk(self, n: usize, len: usize) -> Self {
-        let start = n.saturating_mul(len);
-        let end = start.saturating_add(len.saturating_mul(self.channels));
-
-        Self {
-            buf: self.buf.index_full(start, end),
-            channels: self.channels,
-            channel: self.channel,
-        }
-    }
-
-    fn as_linear(&self) -> Option<&[T::Item]> {
-        None
     }
 }
 
-impl<T> ChannelMut for InterleavedChannel<T>
+impl<'a, T> ChannelMut for InterleavedChannelMut<'a, T>
 where
-    T: SliceMut + SliceIndex,
+    T: Copy,
 {
-    type IterMut<'a>
+    type IterMut<'s>
     where
-        T::Item: 'a,
-    = iter::StepBy<slice::IterMut<'a, T::Item>>;
+        T: 's,
+    = InterleavedChannelMutIter<'s, T>;
 
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
-        let start = usize::min(self.channel, self.buf.len());
-
-        self.buf
-            .as_mut()
-            .get_mut(start..)
-            .unwrap_or_default()
-            .iter_mut()
-            .step_by(self.channels)
+        InterleavedChannelMutIter {
+            ptr: self.ptr,
+            end: self.end,
+            step: self.step,
+            _marker: marker::PhantomData,
+        }
     }
 
-    fn as_linear_mut(&mut self) -> Option<&mut [T::Item]> {
+    fn as_linear_mut(&mut self) -> Option<&mut [T]> {
         None
     }
 }
 
-impl<'a, T> IntoIterator for InterleavedChannel<&'a [T]>
-where
-    T: Copy,
-{
-    type Item = T;
-    type IntoIter = InterleavedChannelIter<'a, T>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        InterleavedChannelIter::new(self.channel, self.channels, self.buf.as_ref())
-    }
-}
-
-impl<'a, T> IntoIterator for InterleavedChannel<&'a mut [T]> {
-    type Item = &'a mut T;
-    type IntoIter = iter::StepBy<slice::IterMut<'a, T>>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        let start = usize::min(self.channel, self.buf.len());
-
-        self.buf
-            .get_mut(start..)
-            .unwrap_or_default()
-            .iter_mut()
-            .step_by(self.channels)
-    }
-}
-
-impl<T> ops::Index<usize> for InterleavedChannel<T>
-where
-    T: SliceIndex,
-{
-    type Output = T::Item;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.buf.as_ref()[self.channel + self.channels * index]
-    }
-}
-
-impl<T> cmp::PartialEq for InterleavedChannel<T>
-where
-    T: SliceIndex,
-    T::Item: cmp::PartialEq,
-{
-    fn eq(&self, other: &Self) -> bool {
-        self.iter().eq(other.iter())
-    }
-}
-
-impl<T> cmp::Eq for InterleavedChannel<T>
-where
-    T: SliceIndex,
-    T::Item: cmp::Eq,
-{
-}
-
-impl<T> hash::Hash for InterleavedChannel<T>
-where
-    T: SliceIndex,
-    T::Item: hash::Hash,
-{
-    fn hash<H: hash::Hasher>(&self, state: &mut H) {
-        for item in self.iter() {
-            item.hash(state);
+impl<T> Clone for InterleavedChannel<'_, T> {
+    fn clone(&self) -> Self {
+        Self {
+            ptr: self.ptr,
+            end: self.end,
+            step: self.step,
+            _marker: marker::PhantomData,
         }
     }
 }
 
-impl<T> cmp::PartialOrd for InterleavedChannel<T>
-where
-    T: SliceIndex,
-    T::Item: cmp::PartialOrd,
-{
-    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-        self.iter().partial_cmp(other.iter())
-    }
+/// Note: InterleavedChannel is always Copy since it represents an immutable
+/// buffer.
+impl<T> Copy for InterleavedChannel<'_, T> {}
+
+/// An immutable iterator.
+pub struct InterleavedChannelIter<'a, T> {
+    ptr: ptr::NonNull<T>,
+    end: *const T,
+    step: usize,
+    _marker: marker::PhantomData<&'a [T]>,
 }
 
-impl<T> cmp::Ord for InterleavedChannel<T>
-where
-    T: SliceIndex,
-    T::Item: cmp::Ord,
-{
-    fn cmp(&self, other: &Self) -> cmp::Ordering {
-        self.iter().cmp(other.iter())
-    }
+/// A mutable iterator.
+pub struct InterleavedChannelMutIter<'a, T> {
+    ptr: ptr::NonNull<T>,
+    end: *mut T,
+    step: usize,
+    _marker: marker::PhantomData<&'a mut [T]>,
 }
 
-impl<T> fmt::Debug for InterleavedChannel<T>
-where
-    T: SliceIndex,
-    T::Item: fmt::Debug,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_list().entries(self.iter()).finish()
-    }
-}
-
-/// An iterator over an interleaved channel.
-///
-/// Constructed through the [Channel::iter] of [InterleavedChannel].
-#[repr(transparent)]
-pub struct InterleavedChannelIter<'a, T>
-where
-    T: Copy,
-{
-    iter: iter::StepBy<slice::Iter<'a, T>>,
-}
-
-impl<'a, T> InterleavedChannelIter<'a, T>
-where
-    T: Copy,
-{
-    #[inline]
-    fn new(channel: usize, channels: usize, buf: &'a [T]) -> Self {
-        let start = usize::min(channel, buf.len());
-
-        let iter = buf
-            .get(start..)
-            .unwrap_or_default()
-            .iter()
-            .step_by(channels);
-
-        Self { iter }
-    }
-}
-
-impl<'a, T> Iterator for InterleavedChannelIter<'a, T>
-where
-    T: Copy,
-{
-    type Item = T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().copied()
-    }
-}
-
-impl<'a, T> DoubleEndedIterator for InterleavedChannelIter<'a, T>
-where
-    T: Copy,
-{
-    fn next_back(&mut self) -> Option<Self::Item> {
-        self.iter.next_back().copied()
-    }
-}
-
-impl<'a, T> ExactSizeIterator for InterleavedChannelIter<'a, T>
-where
-    T: Copy,
-{
-    fn len(&self) -> usize {
-        self.iter.len()
-    }
-}
+iterator!(struct InterleavedChannelIter -> *const T, T, const, {/* no mut */});
+iterator!(struct InterleavedChannelMutIter -> *mut T, &'a mut T, mut, {&mut});

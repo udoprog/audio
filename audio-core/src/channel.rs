@@ -108,11 +108,11 @@ pub trait Channel {
     /// ```
     fn limit(self, limit: usize) -> Self;
 
-    /// Construct a range of frames corresponds to the chunk with `len` and
-    /// position `n`.
+    /// Construct a range of frames corresponding to the chunk with the window
+    /// size `window` at position `n`.
     ///
-    /// Which is the range `n * len .. n * len + len`.
-    fn chunk(self, n: usize, len: usize) -> Self;
+    /// Which is the range `n * window .. n * window + window`.
+    fn chunk(self, n: usize, window: usize) -> Self;
 
     /// How many chunks of the given size can you divide buf into.
     ///

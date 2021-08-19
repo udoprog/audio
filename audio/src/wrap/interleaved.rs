@@ -1,6 +1,6 @@
 use audio_core::{
     AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedChannel,
-    ReadBuf, Slice, SliceMut, WriteBuf,
+    InterleavedChannelMut, ReadBuf, Slice, SliceMut, WriteBuf,
 };
 
 /// A wrapper for an interleaved audio buffer.
@@ -37,7 +37,7 @@ where
     type Channel<'a>
     where
         T::Item: 'a,
-    = InterleavedChannel<&'a [T::Item]>;
+    = InterleavedChannel<'a, T::Item>;
 
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames())
@@ -48,7 +48,7 @@ where
     }
 
     fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        InterleavedChannel::new(self.value.as_ref(), self.channels, channel)
+        InterleavedChannel::from_slice(self.value.as_ref(), channel, self.channels)
     }
 }
 
@@ -77,10 +77,10 @@ where
     type ChannelMut<'a>
     where
         T::Item: 'a,
-    = InterleavedChannel<&'a mut [T::Item]>;
+    = InterleavedChannelMut<'a, T::Item>;
 
     fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        InterleavedChannel::new(self.value.as_mut(), self.channels, channel)
+        InterleavedChannelMut::from_slice(self.value.as_mut(), channel, self.channels)
     }
 
     fn copy_channels(&mut self, from: usize, to: usize) {
