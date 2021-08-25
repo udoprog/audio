@@ -1,40 +1,42 @@
 use std::fs;
 use std::io;
 use std::io::Write as _;
+use std::path::PathBuf;
 use std::process;
 
 fn main() -> io::Result<()> {
     let tokens = windows_macros::generate!(
-        Windows::Win32::Audio::*,
-        Windows::Win32::CoreAudio::*,
-        Windows::Win32::Multimedia::{
+        Windows::Win32::Media::Audio::CoreAudio::*,
+        Windows::Win32::Media::Multimedia::{
             WAVEFORMATEX,
             WAVEFORMATEXTENSIBLE,
             WAVE_FORMAT_PCM,
             WAVE_FORMAT_IEEE_FLOAT,
             KSDATAFORMAT_SUBTYPE_IEEE_FLOAT,
         },
-        Windows::Win32::StructuredStorage::PROPVARIANT,
-        Windows::Win32::Com::{CoTaskMemAlloc, CoTaskMemFree, CLSIDFromProgID, CoInitializeEx, CoCreateInstance, CLSCTX},
-        Windows::Win32::WindowsAndMessaging::GetForegroundWindow,
-        Windows::Win32::SystemServices::{
+        Windows::Win32::Storage::StructuredStorage::PROPVARIANT,
+        Windows::Win32::System::Com::{CoTaskMemAlloc, CoTaskMemFree, CLSIDFromProgID, CoInitializeEx, CoCreateInstance, CLSCTX},
+        Windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow,
+        Windows::Win32::System::Threading::{
             CreateEventA,
-            HANDLE,
-            INVALID_HANDLE_VALUE,
             ResetEvent,
             SetEvent,
             WAIT_RETURN_CAUSE,
             WaitForSingleObject,
             WaitForMultipleObjects,
-            FALSE,
-            TRUE,
-            S_FALSE,
         },
-        Windows::Win32::WindowsProgramming::{INFINITE, CloseHandle},
-        Windows::Win32::ApplicationInstallationAndServicing::NTDDI_WIN7,
+        Windows::Win32::Foundation::{
+            HANDLE,
+            INVALID_HANDLE_VALUE,
+            S_FALSE,
+            CloseHandle,
+            BOOL,
+        },
+        Windows::Win32::System::WindowsProgramming::INFINITE,
+        Windows::Win32::System::ApplicationInstallationAndServicing::NTDDI_WIN7,
     );
 
-    let path = windows_gen::workspace_dir()
+    let path = PathBuf::from(windows_reader::workspace_dir())
         .join("audio-device-windows-sys")
         .join("src")
         .join("bindings.rs");

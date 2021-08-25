@@ -1,9 +1,7 @@
 use crate::loom::sync::Arc;
 use crate::wasapi::{ClientConfig, Error, RenderClient, Sample};
 use std::marker;
-use std::mem;
-use windows::Interface as _;
-use windows_sys::Windows::Win32::CoreAudio as core;
+use windows_sys::Windows::Win32::Media::Audio::CoreAudio as core;
 
 /// A client that has been initialized with the given type `T`.
 ///
@@ -32,14 +30,7 @@ where
         self.tag.ensure_on_thread();
 
         let render_client: core::IAudioRenderClient = unsafe {
-            let mut render_client = std::ptr::null_mut();
-
-            self.audio_client
-                .GetService(&core::IAudioRenderClient::IID, &mut render_client)
-                .ok()?;
-
-            debug_assert!(!render_client.is_null());
-            mem::transmute(render_client)
+            self.audio_client.GetService()?
         };
 
         Ok(RenderClient {

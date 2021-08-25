@@ -30,14 +30,14 @@ unix = ["libc", "nix"]
 
 [dependencies]
 log = "0.4.14"
-audio-core = {version = "0.2.0-alpha.3", path = "../audio-core"}
+core = {package = "audio-core", version = "0.2.0-alpha.3", path = "../audio-core"}
 thiserror = "1.0.24"
 rand = "0.8.3"
 ste = {version = "0.1.0-alpha.9", path = "../ste"}
 
 # windows
 windows-sys = {package = "audio-device-windows-sys", version = "0.1.0-alpha.1", path = "../audio-device-windows-sys", optional = true}
-windows = {version = "0.8.0", default-features = false, optional = true}
+windows = {version = "0.19.0", default-features = false, optional = true}
 
 pulse-sys = {package = "audio-device-pulse-sys", version = "0.1.0-alpha.1", path = "../audio-device-pulse-sys", optional = true}
 pipewire-sys = {package = "audio-device-pipewire-sys", version = "0.1.0-alpha.1", path = "../audio-device-pipewire-sys", optional = true}

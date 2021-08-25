@@ -3,9 +3,9 @@
 use std::mem;
 use std::ptr;
 use thiserror::Error;
-use windows::Interface as _;
-use windows_sys::Windows::Win32::Com as com;
-use windows_sys::Windows::Win32::CoreAudio as core;
+use windows::Interface;
+use windows_sys::Windows::Win32::System::Com as com;
+use windows_sys::Windows::Win32::Media::Audio::CoreAudio as core;
 
 mod initialized_client;
 pub use self::initialized_client::InitializedClient;
@@ -39,8 +39,10 @@ pub enum Error {
 
 /// The audio prelude to use for wasapi.
 pub fn audio_prelude() {
-    if let Err(e) = windows::initialize_mta() {
-        panic!("failed to initialize multithreaded apartment: {}", e);
+    unsafe {
+        if let Err(e) = com::CoInitializeEx(ptr::null_mut(), com::COINIT_MULTITHREADED) {
+            panic!("failed to initialize multithreaded apartment: {}", e);
+        }
     }
 }
 
@@ -71,19 +73,17 @@ pub struct ClientConfig {
 pub fn default_output_client() -> Result<Option<Client>, Error> {
     let tag = ste::Tag::current_thread();
 
-    let enumerator: core::IMMDeviceEnumerator =
-        windows::create_instance(&core::MMDeviceEnumerator)?;
-
-    let mut device = None;
+    let enumerator: core::IMMDeviceEnumerator = unsafe {
+        com::CoCreateInstance(&core::MMDeviceEnumerator, None, com::CLSCTX_ALL)?
+    };
 
     unsafe {
-        enumerator
-            .GetDefaultAudioEndpoint(core::EDataFlow::eRender, core::ERole::eConsole, &mut device)
-            .ok()?;
+        let device = enumerator
+            .GetDefaultAudioEndpoint(core::eRender, core::eConsole);
 
         let device = match device {
-            Some(device) => device,
-            None => return Ok(None),
+            Ok(device) => device,
+            Err(..) => return Ok(None),
         };
 
         let mut audio_client: mem::MaybeUninit<core::IAudioClient> = mem::MaybeUninit::zeroed();
@@ -91,11 +91,10 @@ pub fn default_output_client() -> Result<Option<Client>, Error> {
         device
             .Activate(
                 &core::IAudioClient::IID,
-                com::CLSCTX::CLSCTX_ALL.0,
+                com::CLSCTX_ALL.0,
                 ptr::null_mut(),
                 audio_client.as_mut_ptr() as *mut _,
-            )
-            .ok()?;
+            )?;
 
         let audio_client = audio_client.assume_init();
 

@@ -4,10 +4,9 @@ use crate::windows::{AsyncEvent, Event, RawEvent};
 use std::marker;
 use std::mem;
 use std::ptr;
-use windows_sys::Windows::Win32::Com as com;
-use windows_sys::Windows::Win32::CoreAudio as core;
-use windows_sys::Windows::Win32::Multimedia as mm;
-use windows_sys::Windows::Win32::SystemServices as ss;
+use windows_sys::Windows::Win32::System::Com as com;
+use windows_sys::Windows::Win32::Media::Audio::CoreAudio as core;
+use windows_sys::Windows::Win32::Media::Multimedia as mm;
 
 /// An audio client.
 pub struct Client {
@@ -21,13 +20,8 @@ impl Client {
         let tag = ste::Tag::current_thread();
 
         unsafe {
-            let mut mix_format = mem::MaybeUninit::<*mut mm::WAVEFORMATEX>::zeroed();
-
-            self.audio_client
-                .GetMixFormat(mix_format.as_mut_ptr())
-                .ok()?;
-
-            let mix_format = mix_format.assume_init() as *const mm::WAVEFORMATEX;
+            let mix_format = self.audio_client
+                .GetMixFormat()?;
 
             let bits_per_sample = (*mix_format).wBitsPerSample;
 
@@ -114,20 +108,18 @@ impl Client {
     {
         unsafe {
             let mut mix_format = T::mix_format(config);
-            let mut closest_match: *mut mm::WAVEFORMATEXTENSIBLE = ptr::null_mut();
 
-            let result: windows::HRESULT = self.audio_client.IsFormatSupported(
-                core::AUDCLNT_SHAREMODE::AUDCLNT_SHAREMODE_SHARED,
+            let closest_match = self.audio_client.IsFormatSupported(
+                core::AUDCLNT_SHAREMODE_SHARED,
                 &mix_format as *const _ as *const mm::WAVEFORMATEX,
-                &mut closest_match as *mut _ as *mut *mut mm::WAVEFORMATEX,
-            );
+            )?;
 
-            if result == ss::S_FALSE {
+            if result.is_err() {
                 if !T::is_compatible_with(closest_match as *const _) {
                     return Err(Error::UnsupportedMixFormat);
                 }
 
-                mix_format = *closest_match;
+                mix_format = *(closest_match as *mut mm::WAVEFORMATEXTENSIBLE);
                 config.sample_rate = mix_format.Format.nSamplesPerSec;
                 config.channels = mix_format.Format.nChannels;
                 com::CoTaskMemFree(closest_match as *mut _);
@@ -138,24 +130,20 @@ impl Client {
 
             self.audio_client
                 .Initialize(
-                    core::AUDCLNT_SHAREMODE::AUDCLNT_SHAREMODE_SHARED,
+                    core::AUDCLNT_SHAREMODE_SHARED,
                     core::AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
                     0,
                     0,
                     &mix_format as *const _ as *const mm::WAVEFORMATEX,
                     ptr::null_mut(),
-                )
-                .ok()?;
+                )?;
 
             let event = Arc::new(event()?);
 
-            self.audio_client.SetEventHandle(event.raw_event()).ok()?;
+            self.audio_client.SetEventHandle(event.raw_event())?;
 
-            let mut buffer_size = mem::MaybeUninit::<u32>::uninit();
-            self.audio_client
-                .GetBufferSize(buffer_size.as_mut_ptr())
-                .ok()?;
-            let buffer_size = buffer_size.assume_init();
+            let buffer_size = self.audio_client
+                .GetBufferSize()?;
 
             Ok(InitializedClient {
                 tag: self.tag,
@@ -171,7 +159,7 @@ impl Client {
     /// Start playback on device.
     pub fn start(&self) -> Result<(), Error> {
         unsafe {
-            self.audio_client.Start().ok()?;
+            self.audio_client.Start()?;
         }
 
         Ok(())
@@ -180,7 +168,7 @@ impl Client {
     /// Stop playback on device.
     pub fn stop(&self) -> Result<(), Error> {
         unsafe {
-            self.audio_client.Stop().ok()?;
+            self.audio_client.Stop()?;
         }
 
         Ok(())

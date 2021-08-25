@@ -3,7 +3,7 @@ use crate::libc as c;
 use crate::unix::errno;
 use crate::unix::poll;
 use crate::unix::AsyncPoll;
-use audio_core as core;
+use core as core;
 use std::marker;
 
 /// An interleaved type-checked async PCM writer.

@@ -1,6 +1,6 @@
 use crate::alsa::{Error, Pcm, Result};
 use crate::libc as c;
-use audio_core as core;
+use core as core;
 use std::marker;
 
 /// A interleaved type-checked PCM writer.

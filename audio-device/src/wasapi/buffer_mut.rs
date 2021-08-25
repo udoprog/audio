@@ -2,7 +2,7 @@ use crate::wasapi::Error;
 use std::marker;
 use std::ops;
 use std::slice;
-use windows_sys::Windows::Win32::CoreAudio as core;
+use windows_sys::Windows::Win32::Media::Audio::CoreAudio as core;
 
 /// A typed mutable data buffer.
 pub struct BufferMut<'a, T> {
@@ -22,7 +22,7 @@ impl<'a, T> BufferMut<'a, T> {
 
         if std::mem::take(&mut self.in_use) {
             unsafe {
-                self.render_client.ReleaseBuffer(self.frames, 0).ok()?;
+                self.render_client.ReleaseBuffer(self.frames, 0)?;
             }
         }
 
