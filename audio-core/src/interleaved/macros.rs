@@ -308,8 +308,8 @@ macro_rules! interleaved_channel {
             }
 
             /// Construct an iterator over the interleaved channel.
-            pub fn iter(&self) -> InterleavedChannelIter<'_, $arg> {
-                InterleavedChannelIter {
+            pub fn iter(&self) -> Iter<'_, $arg> {
+                Iter {
                     ptr: self.ptr,
                     end: self.end,
                     step: self.step,
@@ -327,7 +327,7 @@ macro_rules! interleaved_channel {
             type Iter<'s>
             where
                 $arg: 's,
-            = InterleavedChannelIter<'s, $arg>;
+            = Iter<'s, $arg>;
 
             fn frames(&self) -> usize {
                 len!(self)

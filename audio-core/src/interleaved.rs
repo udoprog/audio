@@ -183,8 +183,8 @@ impl<'a, T> InterleavedMut<'a, T> {
     }
 
     /// Construct a mutable iterator over the channel.
-    pub fn iter_mut(&mut self) -> InterleavedChannelMutIter<'_, T> {
-        InterleavedChannelMutIter {
+    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+        IterMut {
             ptr: self.ptr,
             end: self.end,
             step: self.step,
@@ -200,7 +200,7 @@ where
     type IterMut<'s>
     where
         T: 's,
-    = InterleavedChannelMutIter<'s, T>;
+    = IterMut<'s, T>;
 
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         (*self).iter_mut()
@@ -227,7 +227,7 @@ impl<T> Clone for InterleavedRef<'_, T> {
 impl<T> Copy for InterleavedRef<'_, T> {}
 
 /// An immutable iterator.
-pub struct InterleavedChannelIter<'a, T> {
+pub struct Iter<'a, T> {
     ptr: ptr::NonNull<T>,
     end: *const T,
     step: usize,
@@ -235,12 +235,12 @@ pub struct InterleavedChannelIter<'a, T> {
 }
 
 /// A mutable iterator.
-pub struct InterleavedChannelMutIter<'a, T> {
+pub struct IterMut<'a, T> {
     ptr: ptr::NonNull<T>,
     end: *mut T,
     step: usize,
     _marker: marker::PhantomData<&'a mut [T]>,
 }
 
-iterator!(struct InterleavedChannelIter -> *const T, T, const, {/* no mut */});
-iterator!(struct InterleavedChannelMutIter -> *mut T, &'a mut T, mut, {&mut});
+iterator!(struct Iter -> *const T, T, const, {/* no mut */});
+iterator!(struct IterMut -> *mut T, &'a mut T, mut, {&mut});
