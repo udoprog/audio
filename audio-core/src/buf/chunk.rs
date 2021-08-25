@@ -1,4 +1,4 @@
-use crate::{Buf, BufMut, Channel, ExactSizeBuf};
+use crate::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf};
 
 /// A chunk of another buffer.
 ///
@@ -6,13 +6,13 @@ use crate::{Buf, BufMut, Channel, ExactSizeBuf};
 pub struct Chunk<B> {
     buf: B,
     n: usize,
-    len: usize,
+    window: usize,
 }
 
 impl<B> Chunk<B> {
     /// Construct a new limited buffer.
-    pub(crate) fn new(buf: B, n: usize, len: usize) -> Self {
-        Self { buf, n, len }
+    pub(crate) fn new(buf: B, n: usize, window: usize) -> Self {
+        Self { buf, n, window }
     }
 }
 
@@ -41,18 +41,31 @@ where
         Self::Sample: 'a,
     = B::Channel<'a>;
 
+    type Iter<'a>
+    where
+        Self::Sample: 'a,
+    = Iter<B::Iter<'a>>;
+
     fn frames_hint(&self) -> Option<usize> {
         let frames = self.buf.frames_hint()?;
-        let len = frames.saturating_sub(self.n.saturating_mul(self.len));
-        Some(usize::min(len, self.len))
+        let len = frames.saturating_sub(self.n.saturating_mul(self.window));
+        Some(usize::min(len, self.window))
     }
 
     fn channels(&self) -> usize {
         self.buf.channels()
     }
 
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        self.buf.channel(channel).chunk(self.n, self.len)
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(self.buf.get(channel)?.chunk(self.n, self.window))
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        Iter {
+            iter: self.buf.iter(),
+            n: self.n,
+            window: self.window,
+        }
     }
 }
 
@@ -65,8 +78,13 @@ where
         Self::Sample: 'a,
     = B::ChannelMut<'a>;
 
-    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        self.buf.channel_mut(channel).chunk(self.n, self.len)
+    type IterMut<'a>
+    where
+        Self::Sample: 'a,
+    = IterMut<B::IterMut<'a>>;
+
+    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.get_mut(channel)?.chunk(self.n, self.window))
     }
 
     fn copy_channels(&mut self, from: usize, to: usize)
@@ -74,6 +92,14 @@ where
         Self::Sample: Copy,
     {
         self.buf.copy_channels(from, to);
+    }
+
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        IterMut {
+            iter: self.buf.iter_mut(),
+            n: self.n,
+            window: self.window,
+        }
     }
 }
 
@@ -94,7 +120,14 @@ where
         let len = self
             .buf
             .frames()
-            .saturating_sub(self.n.saturating_mul(self.len));
-        usize::min(len, self.len)
+            .saturating_sub(self.n.saturating_mul(self.window));
+        usize::min(len, self.window)
     }
+}
+
+iterators! {
+    n: usize,
+    window: usize,
+    =>
+    self.chunk(n, window)
 }

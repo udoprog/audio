@@ -269,6 +269,35 @@ where
     }
 }
 
+impl<B> ReadWrite<B>
+where
+    B: Buf,
+{
+    /// Construct an iterator over all available channels.
+    pub fn iter(&self) -> Iter<B> {
+        let len = self.remaining();
+
+        Iter {
+            iter: self.buf.iter(),
+            len,
+            read: self.read,
+        }
+    }
+}
+
+impl<B> ReadWrite<B>
+where
+    B: BufMut,
+{
+    /// Construct a mutable iterator over all available channels.
+    pub fn iter_mut(&mut self) -> IterMut<B> {
+        IterMut {
+            iter: self.buf.iter_mut(),
+            written: self.written,
+        }
+    }
+}
+
 impl<B> Buf for ReadWrite<B>
 where
     B: Buf,
@@ -279,6 +308,11 @@ where
     where
         Self::Sample: 'a,
     = B::Channel<'a>;
+
+    type Iter<'a>
+    where
+        Self::Sample: 'a,
+    = Iter<'a, B>;
 
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
@@ -291,9 +325,15 @@ where
     }
 
     #[inline]
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        let channel = self.buf.get(channel)?;
         let len = self.remaining();
-        self.buf.channel(channel).skip(self.read).limit(len)
+        Some(channel.skip(self.read).limit(len))
+    }
+
+    #[inline]
+    fn iter(&self) -> Self::Iter<'_> {
+        (*self).iter()
     }
 }
 
@@ -306,9 +346,14 @@ where
         Self::Sample: 'a,
     = B::ChannelMut<'a>;
 
+    type IterMut<'a>
+    where
+        Self::Sample: 'a,
+    = IterMut<'a, B>;
+
     #[inline]
-    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        self.buf.channel_mut(channel).skip(self.written)
+    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.get_mut(channel)?.skip(self.written))
     }
 
     #[inline]
@@ -317,6 +362,11 @@ where
         Self::Sample: Copy,
     {
         self.buf.copy_channels(from, to);
+    }
+
+    #[inline]
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        (*self).iter_mut()
     }
 }
 
@@ -345,4 +395,17 @@ where
     fn advance_mut(&mut self, n: usize) {
         self.written = self.written.saturating_add(n);
     }
+}
+
+iter! {
+    len: usize,
+    read: usize,
+    =>
+    self.skip(read).limit(len)
+}
+
+iter_mut! {
+    written: usize,
+    =>
+    self.skip(written)
 }

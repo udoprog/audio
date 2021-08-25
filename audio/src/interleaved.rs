@@ -1,6 +1,5 @@
 //! A dynamically sized, multi-channel interleaved audio buffer.
 
-use crate::wrap;
 use audio_core::{
     AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedChannel,
     InterleavedChannelMut, ResizableBuf, Sample,
@@ -8,12 +7,7 @@ use audio_core::{
 use std::cmp;
 use std::fmt;
 use std::hash;
-use std::marker;
 use std::ptr;
-
-mod channel;
-pub use self::channel::{Channel, ChannelMut};
-use self::channel::{RawChannelMut, RawChannelRef};
 
 mod iter;
 pub use self::iter::{Iter, IterMut};
@@ -115,7 +109,7 @@ impl<T> Interleaved<T> {
     /// assert_eq!(buffer.channels(), 4);
     ///
     /// for chan in &buffer {
-    ///     assert!(chan.iter().eq(&[2.0; 256][..]));
+    ///     assert!(chan.iter().eq([2.0; 256]));
     /// }
     /// ```
     pub fn from_vec(data: Vec<T>, channels: usize, frames: usize) -> Self {
@@ -268,17 +262,17 @@ impl<T> Interleaved<T> {
     /// ```rust
     /// use audio::{Buf, Channel};
     ///
-    /// let mut buffer = audio::Interleaved::<i16>::with_topology(2, 4);
+    /// let mut buffer = audio::Interleaved::<u32>::with_topology(2, 4);
     /// buffer.as_slice_mut().copy_from_slice(&[1, 1, 2, 2, 3, 3, 4, 4]);
     ///
     /// assert_eq! {
-    ///     buffer.channel(0).iter().collect::<Vec<_>>(),
-    ///     &[1, 2, 3, 4],
+    ///     buffer.get(0).unwrap(),
+    ///     [1u32, 2, 3, 4],
     /// };
     ///
     /// assert_eq! {
-    ///     buffer.channel(1).iter().collect::<Vec<_>>(),
-    ///     &[1, 2, 3, 4],
+    ///     buffer.get(1).unwrap(),
+    ///     [1u32, 2, 3, 4],
     /// };
     ///
     /// assert_eq!(buffer.as_slice(), &[1, 1, 2, 2, 3, 3, 4, 4]);
@@ -347,70 +341,6 @@ impl<T> Interleaved<T> {
     /// ```
     pub fn channels(&self) -> usize {
         self.channels
-    }
-
-    /// Offset the interleaved buffer and return a wrapped buffer.
-    ///
-    /// This is provided as a special operation for this buffer kind, because it
-    /// can be done more efficiently than what is available through [Buf::skip].
-    pub fn interleaved_skip(&self, skip: usize) -> wrap::Interleaved<&[T]> {
-        let data = self.data.get(skip * self.channels..).unwrap_or_default();
-        wrap::interleaved(data, self.channels)
-    }
-
-    /// Offset the interleaved buffer and return a mutable wrapped buffer.
-    ///
-    /// This is provided as a special operation for this buffer kind, because it
-    /// can be done more efficiently than what is available through [Buf::skip].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use audio::{Buf, BufMut, ChannelMut};
-    ///
-    /// let mut buffer = audio::Interleaved::with_topology(2, 4);
-    ///
-    /// buffer.interleaved_skip_mut(2).channel_mut(0).copy_from_iter([1.0, 1.0]);
-    ///
-    /// assert_eq!(buffer.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
-    /// ```
-    pub fn interleaved_skip_mut(&mut self, skip: usize) -> wrap::Interleaved<&mut [T]> {
-        let data = self
-            .data
-            .get_mut(skip * self.channels..)
-            .unwrap_or_default();
-
-        wrap::interleaved(data, self.channels)
-    }
-
-    /// Limit the interleaved buffer and return a wrapped buffer.
-    ///
-    /// This is provided as a special operation for this buffer kind, because it
-    /// can be done more efficiently than what is available through
-    /// [Buf::limit].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use audio::{Buf, BufMut, ChannelMut};
-    ///
-    /// let from = audio::interleaved![[1.0f32; 4]; 2];
-    /// let mut to = audio::Interleaved::<f32>::with_topology(2, 4);
-    ///
-    /// to.channel_mut(0).copy_from(from.interleaved_limit(2).channel(0));
-    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
-    /// ```
-    pub fn interleaved_limit(&self, limit: usize) -> wrap::Interleaved<&[T]> {
-        wrap::interleaved(&self.data[..limit * self.channels], self.channels)
-    }
-
-    /// Limit the interleaved buffer and return a mutable wrapped buffer.
-    ///
-    /// This is provided as a special operation for this buffer kind, because it
-    /// can be done more efficiently than what is available through
-    /// [Buf::limit].
-    pub fn interleaved_limit_mut(&mut self, limit: usize) -> wrap::Interleaved<&mut [T]> {
-        wrap::interleaved(&mut self.data[..limit * self.channels], self.channels)
     }
 
     /// Resize to the given number of channels in use.
@@ -503,20 +433,21 @@ impl<T> Interleaved<T> {
     ///     *c = *s;
     /// }
     ///
-    /// assert_eq!(buffer.get(0).unwrap().iter().nth(2), Some(&3.0));
-    /// assert_eq!(buffer.get(1).unwrap().iter().nth(2), Some(&7.0));
+    /// assert_eq!(buffer.get(0).unwrap().iter().nth(2), Some(3.0));
+    /// assert_eq!(buffer.get(1).unwrap().iter().nth(2), Some(7.0));
     /// ```
-    pub fn get(&self, channel: usize) -> Option<Channel<'_, T>> {
+    pub fn get(&self, channel: usize) -> Option<InterleavedChannel<'_, T>> {
         if channel < self.channels {
-            Some(Channel {
-                inner: RawChannelRef {
-                    buffer: self.data.as_ptr(),
+            unsafe {
+                let ptr = ptr::NonNull::new_unchecked(self.data.as_ptr() as *mut _);
+                let len = self.data.len();
+                Some(InterleavedChannel::new_unchecked(
+                    ptr,
+                    len,
                     channel,
-                    channels: self.channels,
-                    frames: self.frames,
-                },
-                _marker: marker::PhantomData,
-            })
+                    self.channels,
+                ))
+            }
         } else {
             None
         }
@@ -557,17 +488,18 @@ impl<T> Interleaved<T> {
     ///
     /// assert_eq!(buffer.as_slice(), &[1.0, 5.0, 2.0, 6.0, 3.0, 7.0, 4.0, 8.0]);
     /// ```
-    pub fn get_mut(&mut self, channel: usize) -> Option<ChannelMut<'_, T>> {
+    pub fn get_mut(&mut self, channel: usize) -> Option<InterleavedChannelMut<'_, T>> {
         if channel < self.channels {
-            Some(ChannelMut {
-                inner: RawChannelMut {
-                    buffer: self.data.as_mut_ptr(),
+            unsafe {
+                let ptr = ptr::NonNull::new_unchecked(self.data.as_mut_ptr());
+                let len = self.data.len();
+                Some(InterleavedChannelMut::new_unchecked(
+                    ptr,
+                    len,
                     channel,
-                    channels: self.channels,
-                    frames: self.frames,
-                },
-                _marker: marker::PhantomData,
-            })
+                    self.channels,
+                ))
+            }
         } else {
             None
         }
@@ -586,69 +518,6 @@ impl<T> Interleaved<T> {
     /// ```
     pub fn frame_mut(&mut self, channel: usize, frame: usize) -> Option<&mut T> {
         self.get_mut(channel)?.into_mut(frame)
-    }
-
-    /// Construct an iterator over all available channels.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::with_topology(2, 4);
-    ///
-    /// let mut it = buffer.iter_mut();
-    ///
-    /// for (c, f) in it.next().unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
-    ///     *c = *f;
-    /// }
-    ///
-    /// for (c, f) in it.next().unwrap().iter_mut().zip(&[5.0, 6.0, 7.0, 8.0]) {
-    ///     *c = *f;
-    /// }
-    ///
-    /// let channels = buffer.iter().collect::<Vec<_>>();
-    /// let left = channels[0].iter().copied().collect::<Vec<_>>();
-    /// let right = channels[1].iter().copied().collect::<Vec<_>>();
-    ///
-    /// assert_eq!(left, &[1.0, 2.0, 3.0, 4.0]);
-    /// assert_eq!(right, &[5.0, 6.0, 7.0, 8.0]);
-    /// ```
-    pub fn iter(&self) -> Iter<'_, T> {
-        Iter {
-            buffer: self.data.as_ptr(),
-            channel: 0,
-            channels: self.channels,
-            frames: self.frames,
-            _marker: marker::PhantomData,
-        }
-    }
-
-    /// Construct a mutable iterator over all available channels.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::with_topology(2, 4);
-    ///
-    /// let mut it = buffer.iter_mut();
-    ///
-    /// for (c, f) in it.next().unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
-    ///     *c = *f;
-    /// }
-    ///
-    /// for (c, f) in it.next().unwrap().iter_mut().zip(&[5.0, 6.0, 7.0, 8.0]) {
-    ///     *c = *f;
-    /// }
-    ///
-    /// assert_eq!(buffer.as_slice(), &[1.0, 5.0, 2.0, 6.0, 3.0, 7.0, 4.0, 8.0]);
-    /// ```
-    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
-        IterMut {
-            buffer: self.data.as_mut_ptr(),
-            channel: 0,
-            channels: self.channels,
-            frames: self.frames,
-            _marker: marker::PhantomData,
-        }
     }
 
     /// The internal resize function for interleaved channel buffers.
@@ -725,9 +594,82 @@ impl<T> Interleaved<T> {
     }
 }
 
+impl<T> Interleaved<T>
+where
+    T: Copy,
+{
+    /// Construct an iterator over all available channels.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let mut buffer = audio::Interleaved::<f32>::with_topology(2, 4);
+    ///
+    /// let mut it = buffer.iter_mut();
+    ///
+    /// for (c, f) in it.next().unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
+    ///     *c = *f;
+    /// }
+    ///
+    /// for (c, f) in it.next().unwrap().iter_mut().zip(&[5.0, 6.0, 7.0, 8.0]) {
+    ///     *c = *f;
+    /// }
+    ///
+    /// let channels = buffer.iter().collect::<Vec<_>>();
+    /// let left = channels[0].iter().collect::<Vec<_>>();
+    /// let right = channels[1].iter().collect::<Vec<_>>();
+    ///
+    /// assert_eq!(left, &[1.0, 2.0, 3.0, 4.0]);
+    /// assert_eq!(right, &[5.0, 6.0, 7.0, 8.0]);
+    /// ```
+    pub fn iter(&self) -> Iter<'_, T> {
+        unsafe {
+            Iter::new_unchecked(
+                ptr::NonNull::new_unchecked(self.data.as_ptr() as *mut _),
+                self.data.len(),
+                self.channels,
+            )
+        }
+    }
+
+    /// Construct a mutable iterator over all available channels.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let mut buffer = audio::Interleaved::<f32>::with_topology(2, 4);
+    ///
+    /// let mut it = buffer.iter_mut();
+    ///
+    /// for (c, f) in it.next().unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
+    ///     *c = *f;
+    /// }
+    ///
+    /// for (c, f) in it.next().unwrap().iter_mut().zip(&[5.0, 6.0, 7.0, 8.0]) {
+    ///     *c = *f;
+    /// }
+    ///
+    /// let channels = buffer.iter().collect::<Vec<_>>();
+    /// let left = channels[0].iter().collect::<Vec<_>>();
+    /// let right = channels[1].iter().collect::<Vec<_>>();
+    ///
+    /// assert_eq!(left, &[1.0, 2.0, 3.0, 4.0]);
+    /// assert_eq!(right, &[5.0, 6.0, 7.0, 8.0]);
+    /// ```
+    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+        unsafe {
+            IterMut::new_unchecked(
+                ptr::NonNull::new_unchecked(self.data.as_mut_ptr()),
+                self.data.len(),
+                self.channels,
+            )
+        }
+    }
+}
+
 impl<T> fmt::Debug for Interleaved<T>
 where
-    T: fmt::Debug,
+    T: Copy + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.iter()).finish()
@@ -736,18 +678,18 @@ where
 
 impl<T> cmp::PartialEq for Interleaved<T>
 where
-    T: cmp::PartialEq,
+    T: Copy + cmp::PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
         self.iter().eq(other.iter())
     }
 }
 
-impl<T> cmp::Eq for Interleaved<T> where T: cmp::Eq {}
+impl<T> cmp::Eq for Interleaved<T> where T: Copy + cmp::Eq {}
 
 impl<T> cmp::PartialOrd for Interleaved<T>
 where
-    T: cmp::PartialOrd,
+    T: Copy + cmp::PartialOrd,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         self.iter().partial_cmp(other.iter())
@@ -756,7 +698,7 @@ where
 
 impl<T> cmp::Ord for Interleaved<T>
 where
-    T: cmp::Ord,
+    T: Copy + cmp::Ord,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         self.iter().cmp(other.iter())
@@ -765,11 +707,13 @@ where
 
 impl<T> hash::Hash for Interleaved<T>
 where
-    T: hash::Hash,
+    T: Copy + hash::Hash,
 {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         for channel in self.iter() {
-            channel.hash(state);
+            for f in channel.iter() {
+                f.hash(state);
+            }
         }
     }
 }
@@ -794,6 +738,11 @@ where
         Self::Sample: 'a,
     = InterleavedChannel<'a, Self::Sample>;
 
+    type Iter<'a>
+    where
+        Self::Sample: 'a,
+    = Iter<'a, Self::Sample>;
+
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
     }
@@ -802,8 +751,12 @@ where
         self.channels
     }
 
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
         InterleavedChannel::from_slice(&self.data, channel, self.channels)
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        (*self).iter()
     }
 }
 
@@ -858,7 +811,12 @@ where
         Self::Sample: 'a,
     = InterleavedChannelMut<'a, Self::Sample>;
 
-    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
+    type IterMut<'a>
+    where
+        Self::Sample: 'a,
+    = IterMut<'a, Self::Sample>;
+
+    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         InterleavedChannelMut::from_slice(&mut self.data, channel, self.channels)
     }
 
@@ -867,7 +825,7 @@ where
         // are not initialized.
         unsafe {
             crate::utils::copy_channels_interleaved(
-                self.data.as_mut_ptr(),
+                ptr::NonNull::new_unchecked(self.data.as_mut_ptr()),
                 self.channels,
                 self.frames,
                 from,
@@ -875,23 +833,21 @@ where
             )
         }
     }
+
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        (*self).iter_mut()
+    }
 }
 
-impl<'a, T> IntoIterator for &'a Interleaved<T> {
+impl<'a, T> IntoIterator for &'a Interleaved<T>
+where
+    T: Copy,
+{
     type IntoIter = Iter<'a, T>;
     type Item = <Self::IntoIter as Iterator>::Item;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.iter()
-    }
-}
-
-impl<'a, T> IntoIterator for &'a mut Interleaved<T> {
-    type IntoIter = IterMut<'a, T>;
-    type Item = <Self::IntoIter as Iterator>::Item;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter_mut()
+        (*self).iter()
     }
 }
 
@@ -906,7 +862,7 @@ impl<T> AsInterleavedMut<T> for Interleaved<T> {
         self.as_slice_mut()
     }
 
-    fn as_interleaved_mut_ptr(&mut self) -> *mut T {
-        self.data.as_mut_ptr()
+    fn as_interleaved_mut_ptr(&mut self) -> ptr::NonNull<T> {
+        unsafe { ptr::NonNull::new_unchecked(self.data.as_mut_ptr()) }
     }
 }

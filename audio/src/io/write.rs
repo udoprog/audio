@@ -175,6 +175,32 @@ impl<B> Write<B> {
     }
 }
 
+impl<B> Write<B>
+where
+    B: Buf,
+{
+    /// Construct an iterator over all available channels.
+    pub fn iter(&self) -> Iter<B> {
+        Iter {
+            iter: self.buf.iter(),
+            available: self.available,
+        }
+    }
+}
+
+impl<B> Write<B>
+where
+    B: BufMut,
+{
+    /// Construct a mutable iterator over all available channels.
+    pub fn iter_mut(&mut self) -> IterMut<B> {
+        IterMut {
+            iter: self.buf.iter_mut(),
+            available: self.available,
+        }
+    }
+}
+
 impl<B> WriteBuf for Write<B> {
     /// Remaining number of frames available.
     #[inline]
@@ -208,6 +234,11 @@ where
         Self::Sample: 'a,
     = B::Channel<'a>;
 
+    type Iter<'a>
+    where
+        Self::Sample: 'a,
+    = Iter<'a, B>;
+
     fn frames_hint(&self) -> Option<usize> {
         self.buf.frames_hint()
     }
@@ -216,8 +247,12 @@ where
         self.buf.channels()
     }
 
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        self.buf.channel(channel).tail(self.available)
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(self.buf.get(channel)?.tail(self.available))
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        (*self).iter()
     }
 }
 
@@ -230,9 +265,14 @@ where
         Self::Sample: 'a,
     = B::ChannelMut<'a>;
 
+    type IterMut<'a>
+    where
+        Self::Sample: 'a,
+    = IterMut<'a, B>;
+
     #[inline]
-    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        self.buf.channel_mut(channel).tail(self.available)
+    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.get_mut(channel)?.tail(self.available))
     }
 
     #[inline]
@@ -242,4 +282,21 @@ where
     {
         self.buf.copy_channels(from, to);
     }
+
+    #[inline]
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        (*self).iter_mut()
+    }
+}
+
+iter! {
+    available: usize,
+    =>
+    self.tail(available)
+}
+
+iter_mut! {
+    available: usize,
+    =>
+    self.tail(available)
 }

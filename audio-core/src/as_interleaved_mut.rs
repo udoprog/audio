@@ -1,3 +1,5 @@
+use std::ptr;
+
 /// A trait describing a buffer that is interleaved and mutable.
 ///
 /// This allows for accessing the raw underlying interleaved buffer.
@@ -14,12 +16,12 @@ pub trait AsInterleavedMut<T> {
     ///     buffer.as_interleaved_mut().copy_from_slice(&[1, 1, 2, 2, 3, 3, 4, 4]);
     ///
     ///     assert_eq! {
-    ///         buffer.channel(0).iter().collect::<Vec<_>>(),
+    ///         buffer.get(0).unwrap().iter().collect::<Vec<_>>(),
     ///         &[1, 2, 3, 4],
     ///     };
     ///
     ///     assert_eq! {
-    ///         buffer.channel(1).iter().collect::<Vec<_>>(),
+    ///         buffer.get(1).unwrap().iter().collect::<Vec<_>>(),
     ///         &[1, 2, 3, 4],
     ///     };
     ///
@@ -45,8 +47,8 @@ pub trait AsInterleavedMut<T> {
     ///
     /// ```rust
     /// use audio::{AsInterleavedMut, InterleavedBuf, Buf, Channel};
-    /// # unsafe fn fill_with_ones(buf: *mut i16, len: usize) -> (usize, usize) {
-    /// #     let buf = std::slice::from_raw_parts_mut(buf, len);
+    /// # unsafe fn fill_with_ones(buf: std::ptr::NonNull<i16>, len: usize) -> (usize, usize) {
+    /// #     let buf = std::slice::from_raw_parts_mut(buf.as_ptr(), len);
     /// #
     /// #     for (o, b) in buf.iter_mut().zip(std::iter::repeat(1)) {
     /// #          *o = b;
@@ -68,15 +70,15 @@ pub trait AsInterleavedMut<T> {
     /// test(&mut buf);
     ///
     /// assert_eq! {
-    ///     buf.channel(0).iter().collect::<Vec<_>>(),
+    ///     buf.get(0).unwrap().iter().collect::<Vec<_>>(),
     ///     &[1, 1, 1, 1, 1, 1, 1, 1],
     /// };
     /// assert_eq! {
-    ///     buf.channel(1).iter().collect::<Vec<_>>(),
+    ///     buf.get(1).unwrap().iter().collect::<Vec<_>>(),
     ///     &[1, 1, 1, 1, 1, 1, 1, 1],
     /// };
     /// ```
-    fn as_interleaved_mut_ptr(&mut self) -> *mut T;
+    fn as_interleaved_mut_ptr(&mut self) -> ptr::NonNull<T>;
 }
 
 impl<B, T> AsInterleavedMut<T> for &mut B
@@ -87,7 +89,7 @@ where
         (**self).as_interleaved_mut()
     }
 
-    fn as_interleaved_mut_ptr(&mut self) -> *mut T {
+    fn as_interleaved_mut_ptr(&mut self) -> ptr::NonNull<T> {
         (**self).as_interleaved_mut_ptr()
     }
 }

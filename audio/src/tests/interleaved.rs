@@ -1,7 +1,7 @@
 /// Note: most of these tests are duplicated doc tests, but they're here so that
 /// we can run them through miri and get a good idea of the soundness of our
 /// implementations.
-use audio_core::{AsInterleavedMut, Buf, Channel, InterleavedBuf};
+use audio_core::{AsInterleavedMut, InterleavedBuf};
 
 #[test]
 fn test_init() {
@@ -71,10 +71,10 @@ fn test_iter() {
     let left2 = channels[0].iter().collect::<Vec<_>>();
     let right2 = channels[1].iter().collect::<Vec<_>>();
 
-    assert_eq!(left, &[&1.0, &2.0, &3.0, &4.0]);
-    assert_eq!(right, &[&5.0, &6.0, &7.0, &8.0]);
-    assert_eq!(left2, &[&1.0, &2.0, &3.0, &4.0]);
-    assert_eq!(right2, &[&5.0, &6.0, &7.0, &8.0]);
+    assert_eq!(left, &[1.0, 2.0, 3.0, 4.0]);
+    assert_eq!(right, &[5.0, 6.0, 7.0, 8.0]);
+    assert_eq!(left2, &[1.0, 2.0, 3.0, 4.0]);
+    assert_eq!(right2, &[5.0, 6.0, 7.0, 8.0]);
 }
 
 #[test]
@@ -142,8 +142,10 @@ fn test_resize() {
 
 #[test]
 fn test_as_interleaved_mut_ptr() {
-    unsafe fn fill_with_ones(buf: *mut i16, len: usize) -> (usize, usize) {
-        let buf = std::slice::from_raw_parts_mut(buf, len);
+    use std::ptr;
+
+    unsafe fn fill_with_ones(buf: ptr::NonNull<i16>, len: usize) -> (usize, usize) {
+        let buf = std::slice::from_raw_parts_mut(buf.as_ptr(), len);
 
         for (o, b) in buf.iter_mut().zip(std::iter::repeat(1)) {
             *o = b;
@@ -168,11 +170,11 @@ fn test_as_interleaved_mut_ptr() {
     test(&mut buf);
 
     assert_eq! {
-        buf.channel(0).iter().collect::<Vec<_>>(),
+        buf.get(0).unwrap().iter().collect::<Vec<_>>(),
         &[1, 1, 1, 1, 1, 1, 1, 1],
     };
     assert_eq! {
-        buf.channel(1).iter().collect::<Vec<_>>(),
+        buf.get(1).unwrap().iter().collect::<Vec<_>>(),
         &[1, 1, 1, 1, 1, 1, 1, 1],
     };
 }

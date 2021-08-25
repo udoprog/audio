@@ -1,12 +1,11 @@
 //! Utilities for working with linear buffers.
 
-use crate::{Channel, ChannelMut, Slice, SliceIndex, SliceMut};
+use crate::{Channel, ChannelMut, Slice};
 use std::cmp;
 use std::fmt;
-use std::hash;
-use std::iter;
-use std::ops;
-use std::slice;
+
+#[macro_use]
+mod macros;
 
 /// The buffer of a single linear channel.
 ///
@@ -14,12 +13,14 @@ use std::slice;
 /// allows us to copy data usinga  number of utility functions.
 ///
 /// See [Buf::channel][crate::Buf::channel].
-pub struct LinearChannel<T> {
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+pub struct LinearChannel<'a, T> {
     /// The underlying channel buffer.
-    buf: T,
+    buf: &'a [T],
 }
 
-impl<T> LinearChannel<T> {
+impl<'a, T> LinearChannel<'a, T> {
     /// Construct a linear channel buffer.
     ///
     /// The buffer provided as-is constitutes the frames of the channel.
@@ -32,35 +33,57 @@ impl<T> LinearChannel<T> {
     /// let buf: &[u32] = &[1, 3, 5, 7];
     /// let channel = LinearChannel::new(buf);
     ///
-    /// assert_eq!(channel[1], 3);
-    /// assert_eq!(channel[2], 5);
+    /// assert_eq!(channel.iter().nth(1), Some(3));
+    /// assert_eq!(channel.iter().nth(2), Some(5));
     /// ```
-    pub fn new(buf: T) -> Self {
+    pub fn new(buf: &'a [T]) -> Self {
         Self { buf }
+    }
+
+    /// Convert the channel into the underlying buffer.
+    #[inline]
+    pub fn into_ref(self) -> &'a [T] {
+        self.buf
+    }
+
+    /// Get a reference to the underlying buffer.
+    #[inline]
+    pub fn as_ref(&self) -> &[T] {
+        self.buf
     }
 }
 
-impl<T> Channel for LinearChannel<T>
+impl<'a, T> LinearChannel<'a, T>
 where
-    T: SliceIndex,
+    T: Copy,
 {
-    type Sample = T::Item;
-    type Iter<'a>
+    /// Construct an immutable iterator over the linear channel.
+    pub fn iter(&self) -> std::iter::Copied<std::slice::Iter<'_, T>> {
+        self.buf.iter().copied()
+    }
+}
+
+impl<'a, T> Channel for LinearChannel<'a, T>
+where
+    T: Copy,
+{
+    type Sample = T;
+    type Iter<'i>
     where
-        T::Item: 'a,
-    = LinearChannelIter<'a, T::Item>;
+        T: 'i,
+    = std::iter::Copied<std::slice::Iter<'i, T>>;
 
     fn frames(&self) -> usize {
         self.buf.len()
     }
 
     fn iter(&self) -> Self::Iter<'_> {
-        LinearChannelIter::new(self.buf.as_ref())
+        (*self).iter()
     }
 
     fn skip(self, n: usize) -> Self {
         Self {
-            buf: self.buf.index_from(n),
+            buf: self.buf.get(n..).unwrap_or_default(),
         }
     }
 
@@ -68,195 +91,201 @@ where
         let start = self.buf.len().saturating_sub(n);
 
         Self {
-            buf: self.buf.index_from(start),
+            buf: self.buf.get(start..).unwrap_or_default(),
         }
     }
 
     fn limit(self, limit: usize) -> Self {
         Self {
-            buf: self.buf.index_to(limit),
+            buf: self.buf.get(..limit).unwrap_or_default(),
         }
     }
 
-    fn chunk(self, n: usize, len: usize) -> Self {
-        let end = n.saturating_add(len);
+    fn chunk(self, n: usize, window: usize) -> Self {
+        let n = n.saturating_mul(window);
 
         Self {
-            buf: self.buf.index_full(n, end),
+            buf: self
+                .buf
+                .get(n..n.saturating_add(window))
+                .unwrap_or_default(),
         }
     }
 
-    fn as_linear(&self) -> Option<&[T::Item]> {
-        Some(self.buf.as_ref())
+    fn as_linear(&self) -> Option<&[T]> {
+        Some(self.buf)
     }
 }
 
-impl<T> ChannelMut for LinearChannel<T>
+impl<T> fmt::Debug for LinearChannel<'_, T>
 where
-    T: SliceMut + SliceIndex,
+    T: fmt::Debug,
 {
-    type IterMut<'a>
-    where
-        T::Item: 'a,
-    = slice::IterMut<'a, T::Item>;
-
-    fn iter_mut(&mut self) -> Self::IterMut<'_> {
-        self.buf.as_mut().iter_mut()
-    }
-
-    fn as_linear_mut(&mut self) -> Option<&mut [T::Item]> {
-        Some(self.buf.as_mut())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.buf).finish()
     }
 }
 
-impl<T> ops::Index<usize> for LinearChannel<T>
-where
-    T: Slice,
-{
-    type Output = T::Item;
+/// The buffer of a single linear channel.
+///
+/// This doesn't provide direct access to the underlying buffer, but rather
+/// allows us to copy data usinga  number of utility functions.
+///
+/// See [Buf::channel][crate::Buf::channel].
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct LinearChannelMut<'a, T> {
+    /// The underlying channel buffer.
+    buf: &'a mut [T],
+}
 
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.buf.as_ref()[index]
+impl<'a, T> LinearChannelMut<'a, T> {
+    /// Construct a linear channel buffer.
+    ///
+    /// The buffer provided as-is constitutes the frames of the channel.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use audio::LinearChannelMut;
+    ///
+    /// let buf: &mut [u32] = &mut [1, 3, 5, 7];
+    /// let channel = LinearChannelMut::new(buf);
+    ///
+    /// assert_eq!(channel.iter().nth(1), Some(3));
+    /// assert_eq!(channel.iter().nth(2), Some(5));
+    /// ```
+    pub fn new(buf: &'a mut [T]) -> Self {
+        Self { buf }
+    }
+
+    /// Construct an immutable iterator over the linear channel.
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
+        self.buf.iter_mut()
+    }
+
+    /// Convert the channel into the underlying buffer.
+    #[inline]
+    pub fn into_ref(self) -> &'a [T] {
+        self.buf
+    }
+
+    /// Get a reference to the underlying buffer.
+    #[inline]
+    pub fn as_ref(&self) -> &[T] {
+        self.buf
+    }
+
+    /// Convert the channel into the underlying mutable buffer.
+    #[inline]
+    pub fn into_mut(self) -> &'a mut [T] {
+        self.buf
+    }
+
+    /// Get a mutable reference to the underlying buffer.
+    #[inline]
+    pub fn as_mut(&mut self) -> &mut [T] {
+        self.buf
     }
 }
 
-impl<'a, T> IntoIterator for LinearChannel<&'a [T]>
+impl<'a, T> LinearChannelMut<'a, T>
 where
     T: Copy,
 {
-    type Item = T;
-    type IntoIter = iter::Copied<slice::Iter<'a, T>>;
-
-    fn into_iter(self) -> Self::IntoIter {
+    /// Construct an immutable iterator over the linear channel.
+    pub fn iter(&self) -> std::iter::Copied<std::slice::Iter<'_, T>> {
         self.buf.iter().copied()
     }
 }
 
-impl<'a, T> IntoIterator for LinearChannel<&'a mut [T]> {
-    type Item = &'a mut T;
-    type IntoIter = slice::IterMut<'a, T>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.buf.iter_mut()
-    }
-}
-
-impl<T> Clone for LinearChannel<T>
+impl<'a, T> Channel for LinearChannelMut<'a, T>
 where
     T: Copy,
 {
-    fn clone(&self) -> Self {
-        Self { buf: self.buf }
+    type Sample = T;
+
+    type Iter<'i>
+    where
+        T: 'i,
+    = std::iter::Copied<std::slice::Iter<'i, T>>;
+
+    fn frames(&self) -> usize {
+        self.buf.len()
     }
-}
 
-impl<T> Copy for LinearChannel<T> where T: Copy {}
-
-impl<T> cmp::PartialEq for LinearChannel<T>
-where
-    T: SliceIndex,
-    T::Item: cmp::PartialEq,
-{
-    fn eq(&self, other: &Self) -> bool {
-        self.iter().eq(other.iter())
+    fn iter(&self) -> Self::Iter<'_> {
+        self.buf.iter().copied()
     }
-}
 
-impl<T> cmp::Eq for LinearChannel<T>
-where
-    T: SliceIndex,
-    T::Item: cmp::Eq,
-{
-}
-
-impl<T> hash::Hash for LinearChannel<T>
-where
-    T: SliceIndex,
-    T::Item: hash::Hash,
-{
-    fn hash<H: hash::Hasher>(&self, state: &mut H) {
-        for item in self.iter() {
-            item.hash(state);
+    fn skip(self, n: usize) -> Self {
+        Self {
+            buf: self.buf.get_mut(n..).unwrap_or_default(),
         }
     }
-}
 
-impl<T> cmp::PartialOrd for LinearChannel<T>
-where
-    T: SliceIndex,
-    T::Item: cmp::PartialOrd,
-{
-    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-        self.iter().partial_cmp(other.iter())
+    fn tail(self, n: usize) -> Self {
+        let start = self.buf.len().saturating_sub(n);
+
+        Self {
+            buf: self.buf.get_mut(start..).unwrap_or_default(),
+        }
+    }
+
+    fn limit(self, limit: usize) -> Self {
+        Self {
+            buf: self.buf.get_mut(..limit).unwrap_or_default(),
+        }
+    }
+
+    fn chunk(self, n: usize, window: usize) -> Self {
+        let n = n.saturating_mul(window);
+
+        Self {
+            buf: self
+                .buf
+                .get_mut(n..)
+                .and_then(|b| b.get_mut(..window))
+                .unwrap_or_default(),
+        }
+    }
+
+    fn as_linear(&self) -> Option<&[T]> {
+        Some(self.buf)
     }
 }
 
-impl<T> cmp::Ord for LinearChannel<T>
+impl<'a, T> ChannelMut for LinearChannelMut<'a, T>
 where
-    T: SliceIndex,
-    T::Item: cmp::Ord,
+    T: Copy,
 {
-    fn cmp(&self, other: &Self) -> cmp::Ordering {
-        self.iter().cmp(other.iter())
+    type IterMut<'i>
+    where
+        Self::Sample: 'i,
+    = std::slice::IterMut<'i, T>;
+
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        (*self).iter_mut()
+    }
+
+    fn as_linear_mut(&mut self) -> Option<&mut [Self::Sample]> {
+        Some(self.buf)
     }
 }
 
-impl<T> fmt::Debug for LinearChannel<T>
+impl<T> fmt::Debug for LinearChannelMut<'_, T>
 where
-    T: SliceIndex,
-    T::Item: fmt::Debug,
+    T: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_list().entries(self.iter()).finish()
+        f.debug_list().entries(self.buf.iter()).finish()
     }
 }
 
-/// An iterator over an interleaved channel.
-///
-/// Constructed through the [Channel::iter] of [LinearChannel].
-#[repr(transparent)]
-pub struct LinearChannelIter<'a, T>
-where
-    T: Copy,
-{
-    iter: slice::Iter<'a, T>,
-}
-
-impl<'a, T> LinearChannelIter<'a, T>
-where
-    T: Copy,
-{
-    #[inline]
-    fn new(buf: &'a [T]) -> Self {
-        Self { iter: buf.iter() }
-    }
-}
-
-impl<'a, T> Iterator for LinearChannelIter<'a, T>
-where
-    T: Copy,
-{
-    type Item = T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().copied()
-    }
-}
-
-impl<'a, T> DoubleEndedIterator for LinearChannelIter<'a, T>
-where
-    T: Copy,
-{
-    fn next_back(&mut self) -> Option<Self::Item> {
-        self.iter.next_back().copied()
-    }
-}
-
-impl<'a, T> ExactSizeIterator for LinearChannelIter<'a, T>
-where
-    T: Copy,
-{
-    fn len(&self) -> usize {
-        self.iter.len()
-    }
-}
+slice_comparisons!({'a, T, const N: usize}, LinearChannel<'a, T>, [T; N]);
+slice_comparisons!({'a, T}, LinearChannel<'a, T>, [T]);
+slice_comparisons!({'a, T}, LinearChannel<'a, T>, &[T]);
+slice_comparisons!({'a, T}, LinearChannel<'a, T>, Vec<T>);
+slice_comparisons!({'a, T, const N: usize}, LinearChannelMut<'a, T>, [T; N]);
+slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, [T]);
+slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, &[T]);
+slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, Vec<T>);

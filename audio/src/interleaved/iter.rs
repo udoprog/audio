@@ -1,80 +1,107 @@
-use crate::interleaved::channel::{Channel, ChannelMut, RawChannelMut, RawChannelRef};
+use audio_core::{InterleavedChannel, InterleavedChannelMut};
 use std::marker;
+use std::ptr;
 
-/// An iterator over the channels in the buffer.
-///
-/// Created with [Interleaved::iter][super::Interleaved::iter].
+/// An immutable iterator over an interleaved buffer.
 pub struct Iter<'a, T> {
-    pub(super) buffer: *const T,
-    pub(super) channel: usize,
-    pub(super) channels: usize,
-    pub(super) frames: usize,
-    pub(super) _marker: marker::PhantomData<&'a T>,
+    ptr: ptr::NonNull<T>,
+    len: usize,
+    channel: usize,
+    channels: usize,
+    _marker: marker::PhantomData<&'a [T]>,
 }
 
-// Safety: the iterator is simply a container of T's, any Send/Sync properties
-// are inherited.
-unsafe impl<T> Send for Iter<'_, T> where T: Send {}
-unsafe impl<T> Sync for Iter<'_, T> where T: Sync {}
-
-impl<'a, T> Iterator for Iter<'a, T> {
-    type Item = Channel<'a, T>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.channel < self.channels {
-            let channel = self.channel;
-            self.channel += 1;
-
-            Some(Channel {
-                inner: RawChannelRef {
-                    buffer: self.buffer,
-                    channel,
-                    frames: self.frames,
-                    channels: self.channels,
-                },
-                _marker: marker::PhantomData,
-            })
-        } else {
-            None
+impl<'a, T> Iter<'a, T> {
+    /// Construct a new unchecked iterator.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the pointed to buffer is a valid immutable
+    /// interleaved region of data.
+    pub(crate) unsafe fn new_unchecked(ptr: ptr::NonNull<T>, len: usize, channels: usize) -> Self {
+        Self {
+            ptr,
+            len,
+            channel: 0,
+            channels,
+            _marker: marker::PhantomData,
         }
     }
 }
 
-/// A mutable iterator over the channels in the buffer.
-///
-/// Created with [Interleaved::iter_mut][super::Interleaved::iter_mut].
-pub struct IterMut<'a, T> {
-    pub(super) buffer: *mut T,
-    pub(super) channel: usize,
-    pub(super) channels: usize,
-    pub(super) frames: usize,
-    pub(super) _marker: marker::PhantomData<&'a mut T>,
-}
-
-// Safety: the iterator is simply a container of T's, any Send/Sync properties
-// are inherited.
-unsafe impl<T> Send for IterMut<'_, T> where T: Send {}
-unsafe impl<T> Sync for IterMut<'_, T> where T: Sync {}
-
-impl<'a, T> Iterator for IterMut<'a, T> {
-    type Item = ChannelMut<'a, T>;
+impl<'a, T> Iterator for Iter<'a, T>
+where
+    T: Copy,
+{
+    type Item = InterleavedChannel<'a, T>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.channel < self.channels {
-            let channel = self.channel;
-            self.channel += 1;
+        if self.channel == self.channels {
+            return None;
+        }
 
-            Some(ChannelMut {
-                inner: RawChannelMut {
-                    buffer: self.buffer,
-                    channel,
-                    frames: self.frames,
-                    channels: self.channels,
-                },
-                _marker: marker::PhantomData,
-            })
-        } else {
-            None
+        let channel = self.channel;
+        self.channel += 1;
+
+        unsafe {
+            Some(InterleavedChannel::new_unchecked(
+                self.ptr,
+                self.len,
+                channel,
+                self.channels,
+            ))
+        }
+    }
+}
+
+/// An mutable iterator over an interleaved buffer.
+pub struct IterMut<'a, T> {
+    ptr: ptr::NonNull<T>,
+    len: usize,
+    channel: usize,
+    channels: usize,
+    _marker: marker::PhantomData<&'a mut [T]>,
+}
+
+impl<'a, T> IterMut<'a, T> {
+    /// Construct a new unchecked iterator.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the pointed to buffer is a valid mutable
+    /// interleaved region of data.
+    pub(crate) unsafe fn new_unchecked(ptr: ptr::NonNull<T>, len: usize, channels: usize) -> Self {
+        Self {
+            ptr,
+            len,
+            channel: 0,
+            channels,
+            _marker: marker::PhantomData,
+        }
+    }
+}
+
+impl<'a, T> Iterator for IterMut<'a, T>
+where
+    T: Copy,
+{
+    type Item = InterleavedChannelMut<'a, T>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.channel == self.channels {
+            return None;
+        }
+
+        let channel = self.channel;
+        self.channel += 1;
+
+        unsafe {
+            Some(InterleavedChannelMut::new_unchecked(
+                self.ptr,
+                self.len,
+                channel,
+                self.channels,
+            ))
         }
     }
 }

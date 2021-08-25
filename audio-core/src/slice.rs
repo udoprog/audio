@@ -1,5 +1,7 @@
 //! Traits used to generically describe and operate over slice-like types.
 
+use std::ptr;
+
 /// Describes how a buffer can be indexed.
 pub trait SliceIndex: Slice
 where
@@ -28,6 +30,9 @@ where
 
     /// Helper to reborrow the items of self.
     fn as_ref(&self) -> &[Self::Item];
+
+    /// Get the pointer to the first element.
+    fn as_ptr(&self) -> ptr::NonNull<Self::Item>;
 }
 
 /// Trait used to operate generically over a mutable slice.
@@ -39,7 +44,7 @@ where
     fn as_mut(&mut self) -> &mut [Self::Item];
 
     /// Get the base mutable pointer.
-    fn as_mut_ptr(&mut self) -> *mut Self::Item;
+    fn as_mut_ptr(&mut self) -> ptr::NonNull<Self::Item>;
 }
 
 impl<T> SliceIndex for &[T]
@@ -72,6 +77,10 @@ where
     fn as_ref(&self) -> &[Self::Item] {
         *self
     }
+
+    fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(*self) as *mut _) }
+    }
 }
 
 impl<T, const N: usize> Slice for [T; N]
@@ -87,6 +96,10 @@ where
     fn as_ref(&self) -> &[Self::Item] {
         &self[..]
     }
+
+    fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(self) as *mut _) }
+    }
 }
 
 impl<T, const N: usize> Slice for &[T; N]
@@ -101,6 +114,10 @@ where
 
     fn as_ref(&self) -> &[Self::Item] {
         &self[..]
+    }
+
+    fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(*self) as *mut _) }
     }
 }
 
@@ -134,6 +151,10 @@ where
     fn as_ref(&self) -> &[Self::Item] {
         *self
     }
+
+    fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(*self) as *mut _) }
+    }
 }
 
 impl<T, const N: usize> Slice for &mut [T; N]
@@ -149,6 +170,10 @@ where
     fn as_ref(&self) -> &[Self::Item] {
         *self
     }
+
+    fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(*self) as *mut _) }
+    }
 }
 
 impl<T> SliceMut for &mut [T]
@@ -159,8 +184,8 @@ where
         self
     }
 
-    fn as_mut_ptr(&mut self) -> *mut Self::Item {
-        <[T]>::as_mut_ptr(self)
+    fn as_mut_ptr(&mut self) -> ptr::NonNull<Self::Item> {
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_mut_ptr(self)) }
     }
 }
 
@@ -172,8 +197,8 @@ where
         self
     }
 
-    fn as_mut_ptr(&mut self) -> *mut Self::Item {
-        <[T]>::as_mut_ptr(self)
+    fn as_mut_ptr(&mut self) -> ptr::NonNull<Self::Item> {
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_mut_ptr(self)) }
     }
 }
 
@@ -185,7 +210,7 @@ where
         *self
     }
 
-    fn as_mut_ptr(&mut self) -> *mut Self::Item {
-        <[T]>::as_mut_ptr(*self)
+    fn as_mut_ptr(&mut self) -> ptr::NonNull<Self::Item> {
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_mut_ptr(*self)) }
     }
 }

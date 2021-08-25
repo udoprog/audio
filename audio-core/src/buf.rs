@@ -2,6 +2,9 @@
 
 use crate::{Channel, LinearChannel};
 
+#[macro_use]
+mod macros;
+
 mod skip;
 pub use self::skip::Skip;
 
@@ -49,6 +52,11 @@ pub trait Buf {
     where
         Self::Sample: 'a;
 
+    /// An iterator over available channels.
+    type Iter<'a>: Iterator<Item = Self::Channel<'a>>
+    where
+        Self::Sample: 'a;
+
     /// A typical number of frames for each channel in the buffer, if known.
     ///
     /// If you only want to support buffers which have exact sizes use
@@ -80,8 +88,8 @@ pub trait Buf {
     ///     assert_eq!(buf.channels(), 2);
     ///     assert_eq!(buf.frames_hint(), Some(4));
     ///
-    ///     assert_eq!(buf.channel(0).frames(), 4);
-    ///     assert_eq!(buf.channel(1).frames(), 2);
+    ///     assert_eq!(buf.get(0).map(|c| c.frames()), Some(4));
+    ///     assert_eq!(buf.get(1).map(|c| c.frames()), Some(2));
     /// }
     ///
     /// test(vec![vec![1, 2, 3, 4], vec![5, 6]]);
@@ -99,12 +107,12 @@ pub trait Buf {
     ///     assert_eq!(buf.channels(), 2);
     ///
     ///     assert_eq! {
-    ///         buf.channel(0).iter().collect::<Vec<_>>(),
+    ///         buf.get(0).unwrap().iter().collect::<Vec<_>>(),
     ///         &[1, 2, 3, 4],
     ///     }
     ///
     ///     assert_eq! {
-    ///         buf.channel(1).iter().collect::<Vec<_>>(),
+    ///         buf.get(1).unwrap().iter().collect::<Vec<_>>(),
     ///         &[5, 6, 7, 8],
     ///     }
     /// }
@@ -123,12 +131,10 @@ pub trait Buf {
     ///
     /// We must instead make use of the various utility functions found on
     /// [Channel] to copy data out of the channel.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the specified channel is out of bound as reported by
-    /// [Buf::channels].
-    fn channel(&self, channel: usize) -> Self::Channel<'_>;
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>>;
+
+    /// Construct an iterator over all the channels in the audio buffer.
+    fn iter(&self) -> Self::Iter<'_>;
 
     /// Construct a new buffer where `n` frames are skipped.
     ///
@@ -247,6 +253,11 @@ where
         Self::Sample: 'a,
     = B::Channel<'a>;
 
+    type Iter<'a>
+    where
+        Self::Sample: 'a,
+    = B::Iter<'a>;
+
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
         (**self).frames_hint()
@@ -258,8 +269,12 @@ where
     }
 
     #[inline]
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        (**self).channel(channel)
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        (**self).get(channel)
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        (**self).iter()
     }
 }
 
@@ -274,6 +289,11 @@ where
         Self::Sample: 'a,
     = B::Channel<'a>;
 
+    type Iter<'a>
+    where
+        Self::Sample: 'a,
+    = B::Iter<'a>;
+
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
         (**self).frames_hint()
@@ -285,8 +305,13 @@ where
     }
 
     #[inline]
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        (**self).channel(channel)
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        (**self).get(channel)
+    }
+
+    #[inline]
+    fn iter(&self) -> Self::Iter<'_> {
+        (**self).iter()
     }
 }
 
@@ -299,18 +324,29 @@ where
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<&'a [T]>;
+    = LinearChannel<'a, Self::Sample>;
+
+    type Iter<'a>
+    where
+        Self::Sample: 'a,
+    = VecIter<'a, Self::Sample>;
 
     fn frames_hint(&self) -> Option<usize> {
-        Some(self.get(0)?.len())
+        Some((**self).get(0)?.len())
     }
 
     fn channels(&self) -> usize {
         self.len()
     }
 
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        LinearChannel::new(&self[channel])
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(LinearChannel::new((**self).get(channel)?.as_ref()))
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        VecIter {
+            iter: (**self).iter(),
+        }
     }
 }
 
@@ -323,7 +359,12 @@ where
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<&'a [T]>;
+    = LinearChannel<'a, Self::Sample>;
+
+    type Iter<'a>
+    where
+        Self::Sample: 'a,
+    = VecIter<'a, T>;
 
     fn frames_hint(&self) -> Option<usize> {
         Some(self.get(0)?.len())
@@ -333,7 +374,29 @@ where
         self.as_ref().len()
     }
 
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        LinearChannel::new(&self[channel])
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(LinearChannel::new((*self).get(channel)?))
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        VecIter {
+            iter: (*self).iter(),
+        }
+    }
+}
+
+/// An iterator over a linear channel slice buffer.
+pub struct VecIter<'a, T> {
+    iter: std::slice::Iter<'a, Vec<T>>,
+}
+
+impl<'a, T> Iterator for VecIter<'a, T>
+where
+    T: Copy,
+{
+    type Item = LinearChannel<'a, T>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(LinearChannel::new(self.iter.next()?))
     }
 }

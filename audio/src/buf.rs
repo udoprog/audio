@@ -11,11 +11,7 @@ where
     O: BufMut<Sample = I::Sample>,
     I::Sample: Copy,
 {
-    let end = usize::min(from.channels(), to.channels());
-
-    for chan in 0..end {
-        let mut to = to.channel_mut(chan);
-        let from = from.channel(chan);
+    for (mut to, from) in to.iter_mut().zip(from.iter()) {
         to.copy_from(from);
     }
 }
@@ -30,12 +26,7 @@ where
     O::Sample: Translate<I::Sample>,
     I::Sample: Copy,
 {
-    let end = usize::min(from.channels(), to.channels());
-
-    for chan in 0..end {
-        let mut to = to.channel_mut(chan);
-        let from = from.channel(chan);
-
+    for (mut to, from) in to.iter_mut().zip(from.iter()) {
         for (t, f) in to.iter_mut().zip(from.iter()) {
             *t = O::Sample::translate(f);
         }

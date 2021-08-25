@@ -292,6 +292,32 @@ macro_rules! interleaved_channel {
             }
         }
 
+        impl<$lt, $arg> $name<$lt, $arg> where $arg: Copy {
+            /// Get the given frame if it's in bound.
+            pub fn get(&self, frame: usize) -> Option<T> {
+                if frame < len!(self) {
+                    if mem::size_of::<T>() == 0 {
+                        Some(unsafe { *(self.ptr.as_ptr() as *const _) })
+                    } else {
+                        let add = frame.saturating_mul(self.step);
+                        Some(unsafe { *(self.ptr.as_ptr() as *const $arg).add(add) })
+                    }
+                } else {
+                    None
+                }
+            }
+
+            /// Construct an iterator over the interleaved channel.
+            pub fn iter(&self) -> InterleavedChannelIter<'_, $arg> {
+                InterleavedChannelIter {
+                    ptr: self.ptr,
+                    end: self.end,
+                    step: self.step,
+                    _marker: marker::PhantomData,
+                }
+            }
+        }
+
         impl<$lt, $arg> Channel for $name<$lt, $arg>
         where
             $arg: Copy,
@@ -308,12 +334,7 @@ macro_rules! interleaved_channel {
             }
 
             fn iter(&self) -> Self::Iter<'_> {
-                InterleavedChannelIter {
-                    ptr: self.ptr,
-                    end: self.end,
-                    step: self.step,
-                    _marker: marker::PhantomData,
-                }
+                (*self).iter()
             }
 
             fn skip(mut self, n: usize) -> Self {
@@ -425,6 +446,22 @@ macro_rules! comparisons {
         impl<$($gen)*> cmp::Ord for $a where T: Copy + cmp::Ord {
             fn cmp(&self, other: &$a) -> cmp::Ordering {
                 self.iter().cmp(other.iter())
+            }
+        }
+    };
+}
+
+macro_rules! slice_comparisons {
+    ({$($gen:tt)*}, $a:ty, $b:ty) => {
+        impl<$($gen)*> cmp::PartialEq<$b> for $a where T: Copy, T: cmp::PartialEq {
+            fn eq(&self, b: &$b) -> bool {
+                (*self).iter().eq(b.iter().copied())
+            }
+        }
+
+        impl<$($gen)*> cmp::PartialOrd<$b> for $a where T: Copy, T: cmp::PartialOrd {
+            fn partial_cmp(&self, b: &$b) -> Option<cmp::Ordering> {
+                (*self).iter().partial_cmp(b.iter().copied())
             }
         }
     };

@@ -7,6 +7,9 @@
 
 pub use audio_core::{ReadBuf, WriteBuf};
 
+#[macro_use]
+mod macros;
+
 mod utils;
 pub use self::utils::{copy_remaining, translate_remaining};
 

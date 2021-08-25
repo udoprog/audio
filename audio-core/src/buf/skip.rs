@@ -1,4 +1,4 @@
-use crate::{Buf, BufMut, Channel, ExactSizeBuf, ReadBuf};
+use crate::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, ReadBuf};
 
 /// A buffer where a number of frames have been skipped over.
 ///
@@ -42,6 +42,11 @@ where
         Self::Sample: 'a,
     = B::Channel<'a>;
 
+    type Iter<'a>
+    where
+        Self::Sample: 'a,
+    = Iter<B::Iter<'a>>;
+
     fn frames_hint(&self) -> Option<usize> {
         let frames = self.buf.frames_hint()?;
         Some(frames.saturating_sub(self.n))
@@ -51,8 +56,15 @@ where
         self.buf.channels()
     }
 
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        self.buf.channel(channel).skip(self.n)
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(self.buf.get(channel)?.skip(self.n))
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        Iter {
+            iter: self.buf.iter(),
+            n: self.n,
+        }
     }
 }
 
@@ -65,8 +77,13 @@ where
         Self::Sample: 'a,
     = B::ChannelMut<'a>;
 
-    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        self.buf.channel_mut(channel).skip(self.n)
+    type IterMut<'a>
+    where
+        Self::Sample: 'a,
+    = IterMut<B::IterMut<'a>>;
+
+    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.get_mut(channel)?.skip(self.n))
     }
 
     fn copy_channels(&mut self, from: usize, to: usize)
@@ -74,6 +91,13 @@ where
         Self::Sample: Copy,
     {
         self.buf.copy_channels(from, to);
+    }
+
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        IterMut {
+            iter: self.buf.iter_mut(),
+            n: self.n,
+        }
     }
 }
 
@@ -108,4 +132,10 @@ where
     fn advance(&mut self, n: usize) {
         self.buf.advance(self.n.saturating_add(n));
     }
+}
+
+iterators! {
+    n: usize,
+    =>
+    self.skip(n)
 }

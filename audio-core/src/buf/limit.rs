@@ -1,4 +1,4 @@
-use crate::{Buf, BufMut, Channel, ExactSizeBuf, ReadBuf};
+use crate::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, ReadBuf};
 
 /// A buffer that has been limited.
 ///
@@ -43,6 +43,11 @@ where
         Self::Sample: 'a,
     = B::Channel<'a>;
 
+    type Iter<'a>
+    where
+        Self::Sample: 'a,
+    = Iter<B::Iter<'a>>;
+
     fn frames_hint(&self) -> Option<usize> {
         let frames = self.buf.frames_hint()?;
         Some(usize::min(frames, self.limit))
@@ -52,8 +57,15 @@ where
         self.buf.channels()
     }
 
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        self.buf.channel(channel).limit(self.limit)
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(self.buf.get(channel)?.limit(self.limit))
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        Iter {
+            iter: self.buf.iter(),
+            limit: self.limit,
+        }
     }
 }
 
@@ -66,8 +78,13 @@ where
         Self::Sample: 'a,
     = B::ChannelMut<'a>;
 
-    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        self.buf.channel_mut(channel).limit(self.limit)
+    type IterMut<'a>
+    where
+        Self::Sample: 'a,
+    = IterMut<B::IterMut<'a>>;
+
+    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.get_mut(channel)?.limit(self.limit))
     }
 
     fn copy_channels(&mut self, from: usize, to: usize)
@@ -75,6 +92,13 @@ where
         Self::Sample: Copy,
     {
         self.buf.copy_channels(from, to);
+    }
+
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        IterMut {
+            iter: self.buf.iter_mut(),
+            limit: self.limit,
+        }
     }
 }
 
@@ -110,4 +134,10 @@ where
     fn advance(&mut self, n: usize) {
         self.buf.advance(usize::min(n, self.limit));
     }
+}
+
+iterators! {
+    limit: usize,
+    =>
+    self.limit(limit)
 }

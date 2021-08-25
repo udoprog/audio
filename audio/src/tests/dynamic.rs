@@ -11,11 +11,11 @@ fn test_channels_then_resize() {
 
     let expected = vec![0.0; 1024];
 
-    assert_eq!(Some(&expected[..]), buffer.get(0));
-    assert_eq!(Some(&expected[..]), buffer.get(1));
-    assert_eq!(Some(&expected[..]), buffer.get(2));
-    assert_eq!(Some(&expected[..]), buffer.get(3));
-    assert_eq!(None, buffer.get(4));
+    assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(2).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(3).unwrap(), &expected[..]);
+    assert!(buffer.get(4).is_none());
 }
 
 #[test]
@@ -27,11 +27,11 @@ fn test_resize_then_channels() {
 
     let expected = vec![0.0; 1024];
 
-    assert_eq!(buffer.get(0), Some(&expected[..]));
-    assert_eq!(buffer.get(1), Some(&expected[..]));
-    assert_eq!(buffer.get(2), Some(&expected[..]));
-    assert_eq!(buffer.get(3), Some(&expected[..]));
-    assert_eq!(buffer.get(4), None);
+    assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(2).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(3).unwrap(), &expected[..]);
+    assert!(buffer.get(4).is_none());
 }
 
 #[test]
@@ -40,11 +40,11 @@ fn test_empty_channels() {
 
     buffer.resize_channels(4);
 
-    assert_eq!(buffer.get(0), Some(&[][..]));
-    assert_eq!(buffer.get(1), Some(&[][..]));
-    assert_eq!(buffer.get(2), Some(&[][..]));
-    assert_eq!(buffer.get(3), Some(&[][..]));
-    assert_eq!(buffer.get(4), None);
+    assert!(buffer.get(0).is_some());
+    assert!(buffer.get(1).is_some());
+    assert!(buffer.get(2).is_some());
+    assert!(buffer.get(3).is_some());
+    assert!(buffer.get(4).is_none());
 }
 
 #[test]
@@ -52,7 +52,7 @@ fn test_empty() {
     let buffer = crate::Dynamic::<f32>::new();
 
     assert_eq!(buffer.frames(), 0);
-    assert_eq!(buffer.get(0), None);
+    assert!(buffer.get(0).is_none());
 }
 
 #[test]
@@ -64,11 +64,11 @@ fn test_multiple_resizes() {
 
     let expected = vec![0.0; 1024];
 
-    assert_eq!(buffer.get(0), Some(&expected[..]));
-    assert_eq!(buffer.get(1), Some(&expected[..]));
-    assert_eq!(buffer.get(2), Some(&expected[..]));
-    assert_eq!(buffer.get(3), Some(&expected[..]));
-    assert_eq!(buffer.get(4), None);
+    assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(2).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(3).unwrap(), &expected[..]);
+    assert!(buffer.get(4).is_none());
 }
 
 #[test]
@@ -78,21 +78,21 @@ fn test_multiple_channel_resizes() {
     buffer.resize_channels(4);
     buffer.resize(1024);
 
-    let expected = vec![0.0; 1024];
+    let expected = vec![0.0f32; 1024];
 
-    assert_eq!(buffer.get(0), Some(&expected[..]));
-    assert_eq!(buffer.get(1), Some(&expected[..]));
-    assert_eq!(buffer.get(2), Some(&expected[..]));
-    assert_eq!(buffer.get(3), Some(&expected[..]));
-    assert_eq!(buffer.get(4), None);
+    assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(2).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(3).unwrap(), &expected[..]);
+    assert!(buffer.get(4).is_none());
 
     buffer.resize_channels(2);
 
-    assert_eq!(buffer.get(0), Some(&expected[..]));
-    assert_eq!(buffer.get(1), Some(&expected[..]));
-    assert_eq!(buffer.get(2), None);
-    assert_eq!(buffer.get(3), None);
-    assert_eq!(buffer.get(4), None);
+    assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    assert!(buffer.get(2).is_none());
+    assert!(buffer.get(3).is_none());
+    assert!(buffer.get(4).is_none());
 }
 
 #[test]
@@ -127,8 +127,8 @@ fn test_enabled_mut() {
     let mut buffer = crate::Dynamic::<f32>::with_topology(4, 1024);
     let mask: bittle::BitSet<u128> = bittle::bit_set![0, 2, 3];
 
-    for chan in mask.join(buffer.iter_mut()) {
-        for b in chan {
+    for mut chan in mask.join(buffer.iter_mut()) {
+        for b in chan.iter_mut() {
             *b = 1.0;
         }
     }
@@ -171,12 +171,12 @@ fn test_get_mut() {
 
     let mut rng = rand::thread_rng();
 
-    if let Some(left) = buffer.get_mut(0) {
-        rng.fill(left);
+    if let Some(mut left) = buffer.get_mut(0) {
+        rng.fill(left.as_mut());
     }
 
-    if let Some(right) = buffer.get_mut(1) {
-        rng.fill(right);
+    if let Some(mut right) = buffer.get_mut(1) {
+        rng.fill(right.as_mut());
     }
 }
 

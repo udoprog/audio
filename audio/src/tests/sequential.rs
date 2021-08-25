@@ -11,10 +11,10 @@ fn test_channels_then_resize() {
 
     let expected = vec![0.0; 128];
 
-    assert_eq!(Some(&expected[..]), buffer.get(0));
-    assert_eq!(Some(&expected[..]), buffer.get(1));
-    assert_eq!(Some(&expected[..]), buffer.get(2));
-    assert_eq!(Some(&expected[..]), buffer.get(3));
+    assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(2).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(3).unwrap(), &expected[..]);
     assert_eq!(None, buffer.get(4));
 }
 
@@ -27,11 +27,11 @@ fn test_resize_then_channels() {
 
     let expected = vec![0.0; 128];
 
-    assert_eq!(buffer.get(0), Some(&expected[..]));
-    assert_eq!(buffer.get(1), Some(&expected[..]));
-    assert_eq!(buffer.get(2), Some(&expected[..]));
-    assert_eq!(buffer.get(3), Some(&expected[..]));
-    assert_eq!(buffer.get(4), None);
+    assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(2).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(3).unwrap(), &expected[..]);
+    assert!(buffer.get(4).is_none());
 }
 
 #[test]
@@ -40,11 +40,11 @@ fn test_empty_channels() {
 
     buffer.resize_channels(4);
 
-    assert_eq!(buffer.get(0), Some(&[][..]));
-    assert_eq!(buffer.get(1), Some(&[][..]));
-    assert_eq!(buffer.get(2), Some(&[][..]));
-    assert_eq!(buffer.get(3), Some(&[][..]));
-    assert_eq!(buffer.get(4), None);
+    assert!(buffer.get(0).is_some());
+    assert!(buffer.get(1).is_some());
+    assert!(buffer.get(2).is_some());
+    assert!(buffer.get(3).is_some());
+    assert!(buffer.get(4).is_none());
 }
 
 #[test]
@@ -52,7 +52,7 @@ fn test_empty() {
     let buffer = crate::Sequential::<f32>::new();
 
     assert_eq!(buffer.frames(), 0);
-    assert_eq!(buffer.get(0), None);
+    assert!(buffer.get(0).is_none());
 }
 
 #[test]
@@ -64,11 +64,11 @@ fn test_multiple_resizes() {
 
     let expected = vec![0.0; 128];
 
-    assert_eq!(buffer.get(0), Some(&expected[..]));
-    assert_eq!(buffer.get(1), Some(&expected[..]));
-    assert_eq!(buffer.get(2), Some(&expected[..]));
-    assert_eq!(buffer.get(3), Some(&expected[..]));
-    assert_eq!(buffer.get(4), None);
+    assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(2).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(3).unwrap(), &expected[..]);
+    assert!(buffer.get(4).is_none());
 }
 
 #[test]
@@ -97,30 +97,30 @@ fn test_multiple_channel_resizes() {
 
     let expected = (0..128).map(|v| v as f32).collect::<Vec<_>>();
 
-    for chan in buffer.iter_mut() {
+    for mut chan in buffer.iter_mut() {
         for (s, v) in chan.iter_mut().zip(&expected) {
             *s = *v;
         }
     }
 
-    assert_eq!(buffer.get(0), Some(&expected[..]));
-    assert_eq!(buffer.get(1), Some(&expected[..]));
-    assert_eq!(buffer.get(2), Some(&expected[..]));
-    assert_eq!(buffer.get(3), Some(&expected[..]));
-    assert_eq!(buffer.get(4), None);
+    assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(2).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(3).unwrap(), &expected[..]);
+    assert!(buffer.get(4).is_none());
 
     buffer.resize_channels(2);
 
-    assert_eq!(buffer.get(0), Some(&expected[..]));
-    assert_eq!(buffer.get(1), Some(&expected[..]));
-    assert_eq!(buffer.get(2), None);
+    assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    assert!(buffer.get(2).is_none());
 
     // shrink
     buffer.resize(64);
 
-    assert_eq!(buffer.get(0), Some(&expected[..64]));
-    assert_eq!(buffer.get(1), Some(&expected[..64]));
-    assert_eq!(buffer.get(2), None);
+    assert_eq!(buffer.get(0).unwrap(), &expected[..64]);
+    assert_eq!(buffer.get(1).unwrap(), &expected[..64]);
+    assert!(buffer.get(2).is_none());
 
     // increase - this causes some weirdness.
     buffer.resize(128);
@@ -131,11 +131,11 @@ fn test_multiple_channel_resizes() {
         .copied()
         .collect::<Vec<_>>();
 
-    assert_eq!(buffer.get(0), Some(&first_overlapping[..]));
+    assert_eq!(buffer.get(0).unwrap(), &first_overlapping[..]);
     // Note: second channel matches perfectly up with an old channel that was
     // masked out.
-    assert_eq!(buffer.get(1), Some(&expected[..]));
-    assert_eq!(buffer.get(2), None);
+    assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    assert!(buffer.get(2).is_none());
 }
 
 #[test]

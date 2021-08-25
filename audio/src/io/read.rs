@@ -1,4 +1,4 @@
-use audio_core::{Buf, Channel, ExactSizeBuf, ReadBuf};
+use audio_core::{Buf, BufMut, Channel, ExactSizeBuf, ReadBuf};
 
 /// Make a buffer into a read adapter that implements [ReadBuf].
 ///
@@ -175,6 +175,32 @@ impl<B> Read<B> {
     }
 }
 
+impl<B> Read<B>
+where
+    B: Buf,
+{
+    /// Construct an iterator over all available channels.
+    pub fn iter(&self) -> Iter<B> {
+        Iter {
+            iter: self.buf.iter(),
+            available: self.available,
+        }
+    }
+}
+
+impl<B> Read<B>
+where
+    B: BufMut,
+{
+    /// Construct a mutable iterator over all available channels.
+    pub fn iter_mut(&mut self) -> IterMut<B> {
+        IterMut {
+            iter: self.buf.iter_mut(),
+            available: self.available,
+        }
+    }
+}
+
 impl<B> ReadBuf for Read<B> {
     fn remaining(&self) -> usize {
         self.available
@@ -205,6 +231,11 @@ where
         Self::Sample: 'a,
     = B::Channel<'a>;
 
+    type Iter<'a>
+    where
+        Self::Sample: 'a,
+    = Iter<'a, B>;
+
     fn frames_hint(&self) -> Option<usize> {
         self.buf.frames_hint()
     }
@@ -213,7 +244,56 @@ where
         self.buf.channels()
     }
 
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        self.buf.channel(channel).tail(self.available)
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(self.buf.get(channel)?.tail(self.available))
     }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        (*self).iter()
+    }
+}
+
+impl<B> BufMut for Read<B>
+where
+    B: ExactSizeBuf + BufMut,
+{
+    type ChannelMut<'a>
+    where
+        Self::Sample: 'a,
+    = B::ChannelMut<'a>;
+
+    type IterMut<'a>
+    where
+        Self::Sample: 'a,
+    = IterMut<'a, B>;
+
+    #[inline]
+    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.get_mut(channel)?.tail(self.available))
+    }
+
+    #[inline]
+    fn copy_channels(&mut self, from: usize, to: usize)
+    where
+        Self::Sample: Copy,
+    {
+        self.buf.copy_channels(from, to);
+    }
+
+    #[inline]
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        (*self).iter_mut()
+    }
+}
+
+iter! {
+    available: usize,
+    =>
+    self.tail(available)
+}
+
+iter_mut! {
+    available: usize,
+    =>
+    self.tail(available)
 }

@@ -24,8 +24,8 @@ pub trait Channel {
     /// use audio::{Buf, Channel};
     ///
     /// fn test(buf: &impl Buf<Sample = f32>) {
-    ///     let left = buf.channel(0);
-    ///     let right = buf.channel(1);
+    ///     let left = buf.get(0).unwrap();
+    ///     let right = buf.get(1).unwrap();
     ///
     ///     assert_eq!(left.frames(), 16);
     ///     assert_eq!(right.frames(), 16);
@@ -37,6 +37,29 @@ pub trait Channel {
     /// ```
     fn frames(&self) -> usize;
 
+    /// Get the frame at the given offset.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use audio::{Buf, Channel};
+    ///
+    /// fn test(buf: &impl Buf<Sample = f32>) {
+    ///     let left = buf.get(0).unwrap();
+    ///     let right = buf.get(1).unwrap();
+    ///
+    ///     assert_eq!(left.get(0), Some(0.0));
+    ///     assert_eq!(right.get(0), Some(0.0));
+    /// }
+    ///
+    /// test(&audio::dynamic![[0.0; 16]; 2]);
+    /// test(&audio::sequential![[0.0; 16]; 2]);
+    /// test(&audio::interleaved![[0.0; 16]; 2]);
+    /// ```
+    fn get(&self, n: usize) -> Option<Self::Sample> {
+        self.iter().nth(n)
+    }
+
     /// Construct an iterator over the channel.
     ///
     /// # Examples
@@ -47,12 +70,14 @@ pub trait Channel {
     /// let mut left = audio::interleaved![[0.0f32; 4]; 2];
     /// let mut right = audio::dynamic![[0.0f32; 4]; 2];
     ///
-    /// for (l, r) in left.channel_mut(0).iter_mut().zip(right.channel_mut(0)) {
-    ///     *l = 1.0;
-    ///     *r = 1.0;
+    /// if let (Some(mut left), Some(mut right)) = (left.get_mut(0), right.get_mut(0)) {
+    ///     for (l, r) in left.iter_mut().zip(right.iter_mut()) {
+    ///         *l = 1.0;
+    ///         *r = 1.0;
+    ///     }
     /// }
     ///
-    /// assert!(left.channel(0).iter().eq(right.channel(0).iter()));
+    /// assert!(left.get(0).unwrap().iter().eq(right.get(0).unwrap().iter()));
     ///
     /// assert_eq!(left.as_slice(), &[1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0]);
     /// assert_eq!(&right[0], &[1.0, 1.0, 1.0, 1.0]);
@@ -73,7 +98,10 @@ pub trait Channel {
     ///
     /// let mut to = audio::interleaved![[0.0f32; 4]; 2];
     ///
-    /// to.channel_mut(0).copy_from(from.channel(0).skip(2));
+    /// if let (Some(mut to), Some(from)) = (to.get_mut(0), from.get(0)) {
+    ///     to.copy_from(from.skip(2));
+    /// }
+    ///
     /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
     /// ```
     fn skip(self, n: usize) -> Self;
@@ -88,7 +116,10 @@ pub trait Channel {
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
     /// let mut to = audio::interleaved![[0.0f32; 4]; 2];
     ///
-    /// to.channel_mut(0).tail(2).copy_from(from.channel(0));
+    /// if let (Some(mut to), Some(from)) = (to.get_mut(0), from.get(0)) {
+    ///     to.tail(2).copy_from(from);
+    /// }
+    ///
     /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0]);
     /// ```
     fn tail(self, n: usize) -> Self;
@@ -103,7 +134,10 @@ pub trait Channel {
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
     /// let mut to = audio::interleaved![[0.0f32; 4]; 2];
     ///
-    /// to.channel_mut(0).copy_from(from.channel(0).limit(2));
+    /// if let (Some(mut to), Some(from)) = (to.get_mut(0), from.get(0)) {
+    ///     to.copy_from(from.limit(2));
+    /// }
+    ///
     /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
     /// ```
     fn limit(self, limit: usize) -> Self;
@@ -125,8 +159,8 @@ pub trait Channel {
     /// use audio::{Buf, Channel};
     ///
     /// fn test(buf: &impl Buf<Sample = f32>) {
-    ///     let left = buf.channel(0);
-    ///     let right = buf.channel(1);
+    ///     let left = buf.get(0).unwrap();
+    ///     let right = buf.get(1).unwrap();
     ///
     ///     assert_eq!(left.chunks(4), 4);
     ///     assert_eq!(right.chunks(4), 4);
@@ -157,7 +191,7 @@ pub trait Channel {
     /// use audio::{Buf, Channel};
     ///
     /// fn test(buf: &impl Buf<Sample = f32>, expected: Option<&[f32]>) {
-    ///     assert_eq!(buf.channel(0).as_linear(), expected);
+    ///     assert_eq!(buf.get(0).unwrap().as_linear(), expected);
     /// }
     ///
     /// test(&audio::dynamic![[1.0; 16]; 2], Some(&[1.0; 16]));

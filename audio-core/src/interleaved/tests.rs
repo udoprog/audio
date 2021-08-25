@@ -1,5 +1,5 @@
 use super::{InterleavedChannel, InterleavedChannelMut};
-use crate::{Channel, ChannelMut};
+use crate::Channel;
 use std::ptr;
 
 #[test]

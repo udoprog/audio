@@ -1,6 +1,8 @@
 //! Wrap an external type to implement [Buf][crate::Buf] and
 //! [BufMut][crate::BufMut].
 
+use audio_core::Slice;
+
 mod interleaved;
 pub use self::interleaved::Interleaved;
 
@@ -55,7 +57,10 @@ pub use self::sequential::Sequential;
 ///     &[0, 0, 1, 1, 2, 2, 3, 3],
 /// };
 /// ```
-pub fn interleaved<T>(value: T, channels: usize) -> Interleaved<T> {
+pub fn interleaved<T>(value: T, channels: usize) -> Interleaved<T>
+where
+    T: Slice,
+{
     Interleaved::new(value, channels)
 }
 
@@ -68,6 +73,9 @@ pub fn interleaved<T>(value: T, channels: usize) -> Interleaved<T> {
 ///
 /// You can instead use the [Read][crate::io::Read] or [Write][crate::io::Write]
 /// adapters available to accomplish this.
-pub fn sequential<T>(value: T, channels: usize) -> Sequential<T> {
+pub fn sequential<T>(value: T, channels: usize) -> Sequential<T>
+where
+    T: Slice,
+{
     Sequential::new(value, channels)
 }

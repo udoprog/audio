@@ -1,4 +1,5 @@
 use crate::dynamic::RawSlice;
+use audio_core::{LinearChannel, LinearChannelMut};
 use std::slice;
 
 // Helper to forward slice-optimized iterator functions.
@@ -133,22 +134,22 @@ impl<'a, T> Iter<'a, T> {
 }
 
 impl<'a, T> Iterator for Iter<'a, T> {
-    type Item = &'a [T];
+    type Item = LinearChannel<'a, T>;
 
-    forward!(as_ref);
+    forward!(as_linear_channel);
 }
 
 impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         let buf = self.iter.next_back()?;
-        Some(unsafe { buf.as_ref(self.len) })
+        Some(unsafe { buf.as_linear_channel(self.len) })
     }
 
     #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
         let buf = self.iter.nth_back(n)?;
-        Some(unsafe { buf.as_ref(self.len) })
+        Some(unsafe { buf.as_linear_channel(self.len) })
     }
 }
 
@@ -182,22 +183,22 @@ impl<'a, T> IterMut<'a, T> {
 }
 
 impl<'a, T> Iterator for IterMut<'a, T> {
-    type Item = &'a mut [T];
+    type Item = LinearChannelMut<'a, T>;
 
-    forward!(as_mut);
+    forward!(as_linear_channel_mut);
 }
 
 impl<'a, T> DoubleEndedIterator for IterMut<'a, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         let buf = self.iter.next_back()?;
-        Some(unsafe { buf.as_mut(self.len) })
+        Some(unsafe { buf.as_linear_channel_mut(self.len) })
     }
 
     #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
         let buf = self.iter.nth_back(n)?;
-        Some(unsafe { buf.as_mut(self.len) })
+        Some(unsafe { buf.as_linear_channel_mut(self.len) })
     }
 }
 

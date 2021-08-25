@@ -1,6 +1,8 @@
 //! A dynamically sized, multi-channel audio buffer.
 
-use audio_core::{Buf, BufMut, ExactSizeBuf, LinearChannel, ResizableBuf, Sample};
+use audio_core::{
+    Buf, BufMut, ExactSizeBuf, LinearChannel, LinearChannelMut, ResizableBuf, Sample,
+};
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -109,7 +111,7 @@ impl<T> Dynamic<T> {
     /// assert_eq!(buffer.channels(), 4);
     ///
     /// for chan in &buffer {
-    ///     assert_eq!(chan, vec![2.0; 256]);
+    ///     assert_eq!(chan.as_ref(), vec![2.0; 256]);
     /// }
     /// ```
     pub fn from_array<const F: usize, const C: usize>(channels: [[T; F]; C]) -> Self
@@ -236,7 +238,7 @@ impl<T> Dynamic<T> {
     /// let all_zeros = vec![0.0; 256];
     ///
     /// for chan in buffer.iter() {
-    ///     assert_eq!(chan, &all_zeros[..]);
+    ///     assert_eq!(chan.as_ref(), &all_zeros[..]);
     /// }
     /// ```
     pub fn iter(&self) -> Iter<'_, T> {
@@ -254,8 +256,8 @@ impl<T> Dynamic<T> {
     /// let mut buffer = audio::Dynamic::<f32>::with_topology(4, 256);
     /// let mut rng = rand::thread_rng();
     ///
-    /// for chan in buffer.iter_mut() {
-    ///     rng.fill(chan);
+    /// for mut chan in buffer.iter_mut() {
+    ///     rng.fill(chan.as_mut());
     /// }
     /// ```
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
@@ -398,17 +400,18 @@ impl<T> Dynamic<T> {
     ///
     /// let expected = vec![0.0; 256];
     ///
-    /// assert_eq!(Some(&expected[..]), buffer.get(0));
-    /// assert_eq!(Some(&expected[..]), buffer.get(1));
-    /// assert_eq!(Some(&expected[..]), buffer.get(2));
-    /// assert_eq!(Some(&expected[..]), buffer.get(3));
-    /// assert_eq!(None, buffer.get(4));
+    /// assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    /// assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    /// assert_eq!(buffer.get(2).unwrap(), &expected[..]);
+    /// assert_eq!(buffer.get(3).unwrap(), &expected[..]);
+    /// assert!(buffer.get(4).is_none());
     /// ```
-    pub fn get(&self, channel: usize) -> Option<&[T]> {
+    pub fn get(&self, channel: usize) -> Option<LinearChannel<'_, T>> {
         if channel < self.channels {
             // Safety: We control the length of each channel so we can assert that
             // it is both allocated and initialized up to `len`.
-            unsafe { Some(self.data.get_unchecked(channel).as_ref(self.frames)) }
+            let data = unsafe { self.data.get_unchecked(channel).as_ref(self.frames) };
+            Some(LinearChannel::new(data))
         } else {
             None
         }
@@ -455,19 +458,20 @@ impl<T> Dynamic<T> {
     ///
     /// let mut rng = rand::thread_rng();
     ///
-    /// if let Some(left) = buffer.get_mut(0) {
-    ///     rng.fill(left);
+    /// if let Some(mut left) = buffer.get_mut(0) {
+    ///     rng.fill(left.as_mut());
     /// }
     ///
-    /// if let Some(right) = buffer.get_mut(1) {
-    ///     rng.fill(right);
+    /// if let Some(mut right) = buffer.get_mut(1) {
+    ///     rng.fill(right.as_mut());
     /// }
     /// ```
-    pub fn get_mut(&mut self, channel: usize) -> Option<&mut [T]> {
+    pub fn get_mut(&mut self, channel: usize) -> Option<LinearChannelMut<'_, T>> {
         if channel < self.channels {
             // Safety: We control the length of each channel so we can assert that
             // it is both allocated and initialized up to `len`.
-            unsafe { Some(self.data.get_unchecked_mut(channel).as_mut(self.frames)) }
+            let data = unsafe { self.data.get_unchecked_mut(channel).as_mut(self.frames) };
+            Some(LinearChannelMut::new(data))
         } else {
             None
         }
@@ -675,7 +679,7 @@ impl<'a, T> IntoIterator for &'a Dynamic<T> {
     type Item = <Self::IntoIter as Iterator>::Item;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.iter()
+        (*self).iter()
     }
 }
 
@@ -693,7 +697,7 @@ impl<T> ops::Index<usize> for Dynamic<T> {
 
     fn index(&self, index: usize) -> &Self::Output {
         match self.get(index) {
-            Some(slice) => slice,
+            Some(slice) => slice.into_ref(),
             None => panic!("index `{}` is not a channel", index),
         }
     }
@@ -702,7 +706,7 @@ impl<T> ops::Index<usize> for Dynamic<T> {
 impl<T> ops::IndexMut<usize> for Dynamic<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         match self.get_mut(index) {
-            Some(slice) => slice,
+            Some(slice) => slice.into_mut(),
             None => panic!("index `{}` is not a channel", index,),
         }
     }
@@ -745,7 +749,12 @@ where
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<&'a [Self::Sample]>;
+    = LinearChannel<'a, Self::Sample>;
+
+    type Iter<'a>
+    where
+        Self::Sample: 'a,
+    = Iter<'a, T>;
 
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
@@ -755,8 +764,12 @@ where
         self.channels
     }
 
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        LinearChannel::new(&self[channel])
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        (*self).get(channel)
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        (*self).iter()
     }
 }
 
@@ -781,10 +794,15 @@ where
     type ChannelMut<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<&'a mut [Self::Sample]>;
+    = LinearChannelMut<'a, Self::Sample>;
 
-    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        LinearChannel::new(&mut self[channel])
+    type IterMut<'a>
+    where
+        Self::Sample: 'a,
+    = IterMut<'a, T>;
+
+    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        (*self).get_mut(channel)
     }
 
     fn copy_channels(&mut self, from: usize, to: usize) {
@@ -810,6 +828,10 @@ where
                 to.copy_from_slice(from);
             }
         }
+    }
+
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        (*self).iter_mut()
     }
 }
 
@@ -959,6 +981,16 @@ impl<T> RawSlice<T> {
         slice::from_raw_parts(self.data.as_ptr() as *const _, len)
     }
 
+    /// Get the raw slice as a linear channel.
+    ///
+    /// # Safety
+    ///
+    /// The incoming len must represent a valid slice of initialized data.
+    /// The produced lifetime must be bounded to something valid!
+    unsafe fn as_linear_channel<'a>(self, len: usize) -> LinearChannel<'a, T> {
+        LinearChannel::new(self.as_ref(len))
+    }
+
     /// Get the raw slice as a mutable slice.
     ///
     /// # Safety
@@ -967,6 +999,16 @@ impl<T> RawSlice<T> {
     /// The produced lifetime must be bounded to something valid!
     unsafe fn as_mut<'a>(self, len: usize) -> &'a mut [T] {
         slice::from_raw_parts_mut(self.data.as_ptr(), len)
+    }
+
+    /// Get the raw slice as a mutable linear channel.
+    ///
+    /// # Safety
+    ///
+    /// The incoming len must represent a valid slice of initialized data. The
+    /// produced lifetime must be bounded to something valid!
+    unsafe fn as_linear_channel_mut<'a>(self, len: usize) -> LinearChannelMut<'a, T> {
+        LinearChannelMut::new(self.as_mut(len))
     }
 
     /// Drop the slice in place.
@@ -1002,4 +1044,5 @@ impl<T> Clone for RawSlice<T> {
         *self
     }
 }
+
 impl<T> Copy for RawSlice<T> {}

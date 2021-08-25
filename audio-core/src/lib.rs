@@ -29,7 +29,7 @@ pub mod interleaved;
 pub use self::interleaved::{InterleavedChannel, InterleavedChannelMut};
 
 pub mod linear;
-pub use self::linear::LinearChannel;
+pub use self::linear::{LinearChannel, LinearChannelMut};
 
 mod translate;
 pub use self::translate::Translate;

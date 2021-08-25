@@ -23,7 +23,7 @@ pub trait ChannelMut: Channel {
     /// use audio::{BufMut, Channel, ChannelMut};
     ///
     /// fn test(buf: &mut impl BufMut<Sample = f32>) {
-    ///     let is_linear = if let Some(linear) = buf.channel_mut(0).as_linear_mut() {
+    ///     let is_linear = if let Some(linear) = buf.get_mut(0).unwrap().as_linear_mut() {
     ///         linear[0] = 1.0;
     ///         true
     ///     } else {
@@ -31,7 +31,7 @@ pub trait ChannelMut: Channel {
     ///     };
     ///
     ///     if is_linear {
-    ///         assert_eq!(buf.channel(0).iter().next(), Some(1.0));
+    ///         assert_eq!(buf.get(0).and_then(|c| c.get(0)), Some(1.0));
     ///     }
     /// }
     ///
@@ -51,7 +51,7 @@ pub trait ChannelMut: Channel {
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
     /// let mut to = audio::Interleaved::<f32>::with_topology(2, 4);
     ///
-    /// to.channel_mut(0).copy_from(from.interleaved_limit(2).channel(0));
+    /// to.get_mut(0).unwrap().copy_from(from.limit(2).get(0).unwrap());
     /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
     /// ```
     fn copy_from<I>(&mut self, from: I)
@@ -81,7 +81,7 @@ pub trait ChannelMut: Channel {
     ///
     /// let mut buffer = audio::Interleaved::with_topology(2, 4);
     ///
-    /// buffer.interleaved_skip_mut(2).channel_mut(0).copy_from_iter([1.0, 1.0]);
+    /// (&mut buffer).skip(2).get_mut(0).unwrap().copy_from_iter([1.0, 1.0]);
     ///
     /// assert_eq!(buffer.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
     /// ```

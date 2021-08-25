@@ -1,6 +1,8 @@
 //! A dynamically sized, multi-channel sequential audio buffer.
 
-use audio_core::{Buf, BufMut, ExactSizeBuf, LinearChannel, ResizableBuf, Sample};
+use audio_core::{
+    Buf, BufMut, ExactSizeBuf, LinearChannel, LinearChannelMut, ResizableBuf, Sample,
+};
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -114,7 +116,7 @@ impl<T> Sequential<T> {
     /// assert_eq!(buffer.channels(), 4);
     ///
     /// for chan in &buffer {
-    ///     assert_eq!(chan, vec![2.0; 256]);
+    ///     assert_eq!(chan.as_ref(), vec![2.0; 256]);
     /// }
     /// ```
     pub fn from_vec(data: Vec<T>, channels: usize, frames: usize) -> Self {
@@ -296,7 +298,7 @@ impl<T> Sequential<T> {
     /// let all_zeros = vec![0.0; 256];
     ///
     /// for chan in buffer.iter() {
-    ///     assert_eq!(chan, &all_zeros[..]);
+    ///     assert_eq!(chan.as_ref(), &all_zeros[..]);
     /// }
     /// ```
     pub fn iter(&self) -> Iter<'_, T> {
@@ -313,8 +315,8 @@ impl<T> Sequential<T> {
     /// let mut buffer = audio::Sequential::<f32>::with_topology(4, 256);
     /// let mut rng = rand::thread_rng();
     ///
-    /// for chan in buffer.iter_mut() {
-    ///     rng.fill(chan);
+    /// for mut chan in buffer.iter_mut() {
+    ///     rng.fill(chan.as_mut());
     /// }
     /// ```
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
@@ -404,30 +406,30 @@ impl<T> Sequential<T> {
     ///
     /// let expected = (0..128).map(|v| v as f32).collect::<Vec<_>>();
     ///
-    /// for chan in buffer.iter_mut() {
+    /// for mut chan in buffer.iter_mut() {
     ///     for (s, v) in chan.iter_mut().zip(&expected) {
     ///         *s = *v;
     ///     }
     /// }
     ///
-    /// assert_eq!(buffer.get(0), Some(&expected[..]));
-    /// assert_eq!(buffer.get(1), Some(&expected[..]));
-    /// assert_eq!(buffer.get(2), Some(&expected[..]));
-    /// assert_eq!(buffer.get(3), Some(&expected[..]));
-    /// assert_eq!(buffer.get(4), None);
+    /// assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    /// assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    /// assert_eq!(buffer.get(2).unwrap(), &expected[..]);
+    /// assert_eq!(buffer.get(3).unwrap(), &expected[..]);
+    /// assert!(buffer.get(4).is_none());
     ///
     /// buffer.resize_channels(2);
     ///
-    /// assert_eq!(buffer.get(0), Some(&expected[..]));
-    /// assert_eq!(buffer.get(1), Some(&expected[..]));
-    /// assert_eq!(buffer.get(2), None);
+    /// assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    /// assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    /// assert!(buffer.get(2).is_none());
     ///
     /// // shrink
     /// buffer.resize(64);
     ///
-    /// assert_eq!(buffer.get(0), Some(&expected[..64]));
-    /// assert_eq!(buffer.get(1), Some(&expected[..64]));
-    /// assert_eq!(buffer.get(2), None);
+    /// assert_eq!(buffer.get(0).unwrap(), &expected[..64]);
+    /// assert_eq!(buffer.get(1).unwrap(), &expected[..64]);
+    /// assert!(buffer.get(2).is_none());
     ///
     /// // increase - this causes some weirdness.
     /// buffer.resize(128);
@@ -438,11 +440,11 @@ impl<T> Sequential<T> {
     ///     .copied()
     ///     .collect::<Vec<_>>();
     ///
-    /// assert_eq!(buffer.get(0), Some(&first_overlapping[..]));
+    /// assert_eq!(buffer.get(0).unwrap(), &first_overlapping[..]);
     /// // Note: second channel matches perfectly up with an old channel that was
     /// // masked out.
-    /// assert_eq!(buffer.get(1), Some(&expected[..]));
-    /// assert_eq!(buffer.get(2), None);
+    /// assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    /// assert!(buffer.get(2).is_none());
     /// ```
     pub fn resize(&mut self, frames: usize)
     where
@@ -495,18 +497,19 @@ impl<T> Sequential<T> {
     ///
     /// let expected = vec![0.0; 256];
     ///
-    /// assert_eq!(Some(&expected[..]), buffer.get(0));
-    /// assert_eq!(Some(&expected[..]), buffer.get(1));
-    /// assert_eq!(Some(&expected[..]), buffer.get(2));
-    /// assert_eq!(Some(&expected[..]), buffer.get(3));
-    /// assert_eq!(None, buffer.get(4));
+    /// assert_eq!(buffer.get(0).unwrap(), &expected[..]);
+    /// assert_eq!(buffer.get(1).unwrap(), &expected[..]);
+    /// assert_eq!(buffer.get(2).unwrap(), &expected[..]);
+    /// assert_eq!(buffer.get(3).unwrap(), &expected[..]);
+    /// assert!(buffer.get(4).is_none());
     /// ```
-    pub fn get(&self, channel: usize) -> Option<&[T]> {
+    pub fn get(&self, channel: usize) -> Option<LinearChannel<'_, T>> {
         if channel >= self.channels {
             return None;
         }
 
-        self.data.get(channel * self.frames..)?.get(..self.frames)
+        let data = self.data.get(channel * self.frames..)?.get(..self.frames)?;
+        Some(LinearChannel::new(data))
     }
 
     /// Get a mutable reference to the buffer of the given channel.
@@ -523,22 +526,25 @@ impl<T> Sequential<T> {
     ///
     /// let mut rng = rand::thread_rng();
     ///
-    /// if let Some(left) = buffer.get_mut(0) {
-    ///     rng.fill(left);
+    /// if let Some(mut left) = buffer.get_mut(0) {
+    ///     rng.fill(left.as_mut());
     /// }
     ///
-    /// if let Some(right) = buffer.get_mut(1) {
-    ///     rng.fill(right);
+    /// if let Some(mut right) = buffer.get_mut(1) {
+    ///     rng.fill(right.as_mut());
     /// }
     /// ```
-    pub fn get_mut(&mut self, channel: usize) -> Option<&mut [T]> {
+    pub fn get_mut(&mut self, channel: usize) -> Option<LinearChannelMut<'_, T>> {
         if channel >= self.channels {
             return None;
         }
 
-        self.data
+        let data = self
+            .data
             .get_mut(channel * self.frames..)?
-            .get_mut(..self.frames)
+            .get_mut(..self.frames)?;
+
+        Some(LinearChannelMut::new(data))
     }
 
     fn resize_inner(
@@ -675,7 +681,7 @@ impl<T> ops::Index<usize> for Sequential<T> {
 
     fn index(&self, index: usize) -> &Self::Output {
         match self.get(index) {
-            Some(slice) => slice,
+            Some(slice) => slice.into_ref(),
             None => panic!("index `{}` is not a channel", index),
         }
     }
@@ -684,7 +690,7 @@ impl<T> ops::Index<usize> for Sequential<T> {
 impl<T> ops::IndexMut<usize> for Sequential<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         match self.get_mut(index) {
-            Some(slice) => slice,
+            Some(slice) => slice.into_mut(),
             None => panic!("index `{}` is not a channel", index,),
         }
     }
@@ -708,7 +714,12 @@ where
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<&'a [Self::Sample]>;
+    = LinearChannel<'a, Self::Sample>;
+
+    type Iter<'a>
+    where
+        Self::Sample: 'a,
+    = Iter<'a, T>;
 
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
@@ -718,9 +729,12 @@ where
         self.channels
     }
 
-    fn channel(&self, channel: usize) -> Self::Channel<'_> {
-        let data = &self.data[self.frames * channel..];
-        LinearChannel::new(&data[..self.frames])
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        (*self).get(channel)
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        (*self).iter()
     }
 }
 
@@ -745,11 +759,15 @@ where
     type ChannelMut<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<&'a mut [Self::Sample]>;
+    = LinearChannelMut<'a, Self::Sample>;
 
-    fn channel_mut(&mut self, channel: usize) -> Self::ChannelMut<'_> {
-        let data = &mut self.data[self.frames * channel..];
-        LinearChannel::new(&mut data[..self.frames])
+    type IterMut<'a>
+    where
+        Self::Sample: 'a,
+    = IterMut<'a, T>;
+
+    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        (*self).get_mut(channel)
     }
 
     fn copy_channels(&mut self, from: usize, to: usize) {
@@ -757,12 +775,16 @@ where
         // which are guaranteed to be correct.
         unsafe {
             crate::utils::copy_channels_sequential(
-                self.data.as_mut_ptr(),
+                ptr::NonNull::new_unchecked(self.data.as_mut_ptr()),
                 self.channels,
                 self.frames,
                 from,
                 to,
             )
         }
+    }
+
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        (*self).iter_mut()
     }
 }

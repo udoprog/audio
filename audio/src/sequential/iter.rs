@@ -1,30 +1,22 @@
+use audio_core::{LinearChannel, LinearChannelMut};
 use std::slice;
 
 // Helper to forward slice-optimized iterator functions.
 macro_rules! forward {
-    () => {
+    ($channel:ident) => {
         #[inline]
         fn next(&mut self) -> Option<Self::Item> {
-            self.iter.next()
+            Some($channel::new(self.iter.next()?))
         }
 
         #[inline]
         fn nth(&mut self, n: usize) -> Option<Self::Item> {
-            self.iter.nth(n)
+            Some($channel::new(self.iter.nth(n)?))
         }
 
         #[inline]
         fn last(self) -> Option<Self::Item> {
-            self.iter.last()
-        }
-
-        #[inline]
-        fn find<P>(&mut self, predicate: P) -> Option<Self::Item>
-        where
-            Self: Sized,
-            P: FnMut(&Self::Item) -> bool,
-        {
-            self.iter.find(predicate)
+            Some($channel::new(self.iter.last()?))
         }
 
         #[inline]
@@ -38,57 +30,61 @@ macro_rules! forward {
         }
 
         #[inline]
-        fn for_each<F>(self, f: F)
+        fn for_each<F>(self, mut f: F)
         where
             Self: Sized,
             F: FnMut(Self::Item),
         {
-            self.iter.for_each(f);
+            self.iter.for_each(move |item| {
+                f($channel::new(item));
+            });
         }
 
         #[inline]
-        fn all<F>(&mut self, f: F) -> bool
+        fn all<F>(&mut self, mut f: F) -> bool
         where
             Self: Sized,
             F: FnMut(Self::Item) -> bool,
         {
-            self.iter.all(f)
+            self.iter.all(move |item| f($channel::new(item)))
         }
 
         #[inline]
-        fn any<F>(&mut self, f: F) -> bool
+        fn any<F>(&mut self, mut f: F) -> bool
         where
             Self: Sized,
             F: FnMut(Self::Item) -> bool,
         {
-            self.iter.any(f)
+            self.iter.any(move |item| f($channel::new(item)))
         }
 
         #[inline]
-        fn find_map<B, F>(&mut self, f: F) -> Option<B>
+        fn find_map<B, F>(&mut self, mut f: F) -> Option<B>
         where
             Self: Sized,
             F: FnMut(Self::Item) -> Option<B>,
         {
-            self.iter.find_map(f)
+            self.iter.find_map(move |item| f($channel::new(item)))
         }
 
         #[inline]
-        fn position<P>(&mut self, predicate: P) -> Option<usize>
+        fn position<P>(&mut self, mut predicate: P) -> Option<usize>
         where
             Self: Sized,
             P: FnMut(Self::Item) -> bool,
         {
-            self.iter.position(predicate)
+            self.iter
+                .position(move |item| predicate($channel::new(item)))
         }
 
         #[inline]
-        fn rposition<P>(&mut self, predicate: P) -> Option<usize>
+        fn rposition<P>(&mut self, mut predicate: P) -> Option<usize>
         where
             P: FnMut(Self::Item) -> bool,
             Self: Sized,
         {
-            self.iter.rposition(predicate)
+            self.iter
+                .rposition(move |item| predicate($channel::new(item)))
         }
     };
 }
@@ -102,7 +98,7 @@ pub struct Iter<'a, T> {
 
 impl<'a, T> Iter<'a, T> {
     #[inline]
-    pub(super) fn new(data: &'a [T], frames: usize) -> Self {
+    pub(crate) fn new(data: &'a [T], frames: usize) -> Self {
         Self {
             iter: data.chunks_exact(frames),
         }
@@ -110,20 +106,20 @@ impl<'a, T> Iter<'a, T> {
 }
 
 impl<'a, T> Iterator for Iter<'a, T> {
-    type Item = &'a [T];
+    type Item = LinearChannel<'a, T>;
 
-    forward!();
+    forward!(LinearChannel);
 }
 
 impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.iter.next_back()
+        Some(LinearChannel::new(self.iter.next_back()?))
     }
 
     #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        self.iter.nth_back(n)
+        Some(LinearChannel::new(self.iter.nth_back(n)?))
     }
 }
 
@@ -142,7 +138,7 @@ pub struct IterMut<'a, T> {
 
 impl<'a, T> IterMut<'a, T> {
     #[inline]
-    pub(super) fn new(data: &'a mut [T], frames: usize) -> Self {
+    pub(crate) fn new(data: &'a mut [T], frames: usize) -> Self {
         Self {
             iter: data.chunks_exact_mut(frames),
         }
@@ -150,20 +146,20 @@ impl<'a, T> IterMut<'a, T> {
 }
 
 impl<'a, T> Iterator for IterMut<'a, T> {
-    type Item = &'a mut [T];
+    type Item = LinearChannelMut<'a, T>;
 
-    forward!();
+    forward!(LinearChannelMut);
 }
 
 impl<'a, T> DoubleEndedIterator for IterMut<'a, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.iter.next_back()
+        Some(LinearChannelMut::new(self.iter.next_back()?))
     }
 
     #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        self.iter.nth_back(n)
+        Some(LinearChannelMut::new(self.iter.nth_back(n)?))
     }
 }
 
