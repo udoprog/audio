@@ -1,8 +1,6 @@
 //! A dynamically sized, multi-channel audio buffer.
 
-use audio_core::{
-    Buf, BufMut, ExactSizeBuf, LinearChannel, LinearChannelMut, ResizableBuf, Sample,
-};
+use core::{Buf, BufMut, ExactSizeBuf, LinearMut, LinearRef, ResizableBuf, Sample};
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -21,8 +19,8 @@ pub use self::iter::{Iter, IterMut};
 ///
 /// This kind of buffer stores each channel in its own heap-allocated slice of
 /// memory, meaning they can be manipulated more cheaply independently of each
-/// other than say [Interleaved][crate::Interleaved] or
-/// [Sequential][crate::Sequential]. These would have to re-organize every
+/// other than say [Interleaved][crate::buf::Interleaved] or
+/// [Sequential][crate::buf::Sequential]. These would have to re-organize every
 /// constituent channel when resizing, while [Dynamic] generally only requires
 /// [growing and shrinking][std::alloc::Allocator] of a memory region.
 ///
@@ -48,7 +46,7 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Dynamic::<f32>::new();
+    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
     ///
     /// assert_eq!(buffer.frames(), 0);
     /// ```
@@ -69,7 +67,7 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Dynamic::<f32>::with_topology(4, 256);
+    /// let mut buffer = audio::buf::Dynamic::<f32>::with_topology(4, 256);
     ///
     /// assert_eq!(buffer.frames(), 256);
     /// assert_eq!(buffer.channels(), 4);
@@ -105,7 +103,7 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Dynamic::<f32>::from_array([[2.0; 256]; 4]);
+    /// let mut buffer = audio::buf::Dynamic::<f32>::from_array([[2.0; 256]; 4]);
     ///
     /// assert_eq!(buffer.frames(), 256);
     /// assert_eq!(buffer.channels(), 4);
@@ -157,7 +155,7 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Dynamic::from_frames([1.0, 2.0, 3.0, 4.0], 4);
+    /// let mut buffer = audio::buf::Dynamic::from_frames([1.0, 2.0, 3.0, 4.0], 4);
     ///
     /// assert_eq!(buffer.frames(), 4);
     /// assert_eq!(buffer.channels(), 4);
@@ -201,7 +199,7 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Dynamic::<f32>::new();
+    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
     ///
     /// assert_eq!(buffer.frames(), 0);
     /// buffer.resize(256);
@@ -216,7 +214,7 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Dynamic::<f32>::new();
+    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// buffer.resize_channels(2);
@@ -233,7 +231,7 @@ impl<T> Dynamic<T> {
     /// ```
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = audio::Dynamic::<f32>::with_topology(4, 256);
+    /// let mut buffer = audio::buf::Dynamic::<f32>::with_topology(4, 256);
     ///
     /// let all_zeros = vec![0.0; 256];
     ///
@@ -253,7 +251,7 @@ impl<T> Dynamic<T> {
     /// ```
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = audio::Dynamic::<f32>::with_topology(4, 256);
+    /// let mut buffer = audio::buf::Dynamic::<f32>::with_topology(4, 256);
     /// let mut rng = rand::thread_rng();
     ///
     /// for mut chan in buffer.iter_mut() {
@@ -275,7 +273,7 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Dynamic::<f32>::new();
+    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// assert_eq!(buffer.frames(), 0);
@@ -294,7 +292,7 @@ impl<T> Dynamic<T> {
     /// already been allocated.
     ///
     /// ```rust
-    /// # let mut buffer = audio::Dynamic::<f32>::with_topology(4, 256);
+    /// # let mut buffer = audio::buf::Dynamic::<f32>::with_topology(4, 256);
     /// assert_eq!(buffer[1][128], 0.0);
     /// buffer[1][128] = 42.0;
     ///
@@ -341,7 +339,7 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Dynamic::<f32>::new();
+    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// assert_eq!(buffer.frames(), 0);
@@ -393,7 +391,7 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Dynamic::<f32>::new();
+    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
     ///
     /// buffer.resize_channels(4);
     /// buffer.resize(256);
@@ -406,12 +404,12 @@ impl<T> Dynamic<T> {
     /// assert_eq!(buffer.get(3).unwrap(), &expected[..]);
     /// assert!(buffer.get(4).is_none());
     /// ```
-    pub fn get(&self, channel: usize) -> Option<LinearChannel<'_, T>> {
+    pub fn get(&self, channel: usize) -> Option<LinearRef<'_, T>> {
         if channel < self.channels {
             // Safety: We control the length of each channel so we can assert that
             // it is both allocated and initialized up to `len`.
             let data = unsafe { self.data.get_unchecked(channel).as_ref(self.frames) };
-            Some(LinearChannel::new(data))
+            Some(LinearRef::new(data))
         } else {
             None
         }
@@ -422,7 +420,7 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Dynamic::<f32>::new();
+    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
     ///
     /// buffer.resize(256);
     ///
@@ -451,7 +449,7 @@ impl<T> Dynamic<T> {
     /// ```rust
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = audio::Dynamic::<f32>::new();
+    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
     ///
     /// buffer.resize_channels(2);
     /// buffer.resize(256);
@@ -466,12 +464,12 @@ impl<T> Dynamic<T> {
     ///     rng.fill(right.as_mut());
     /// }
     /// ```
-    pub fn get_mut(&mut self, channel: usize) -> Option<LinearChannelMut<'_, T>> {
+    pub fn get_mut(&mut self, channel: usize) -> Option<LinearMut<'_, T>> {
         if channel < self.channels {
             // Safety: We control the length of each channel so we can assert that
             // it is both allocated and initialized up to `len`.
             let data = unsafe { self.data.get_unchecked_mut(channel).as_mut(self.frames) };
-            Some(LinearChannelMut::new(data))
+            Some(LinearMut::new(data))
         } else {
             None
         }
@@ -486,7 +484,7 @@ impl<T> Dynamic<T> {
     /// ```rust
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = audio::Dynamic::<f32>::new();
+    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
     ///
     /// buffer.resize(256);
     ///
@@ -517,7 +515,7 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Dynamic::<f32>::new();
+    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
     /// buffer.resize_channels(4);
     /// buffer.resize(512);
     ///
@@ -546,7 +544,7 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Dynamic::<f32>::new();
+    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
     /// buffer.resize_channels(4);
     /// buffer.resize(512);
     ///
@@ -749,7 +747,7 @@ where
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<'a, Self::Sample>;
+    = LinearRef<'a, Self::Sample>;
 
     type Iter<'a>
     where
@@ -794,7 +792,7 @@ where
     type ChannelMut<'a>
     where
         Self::Sample: 'a,
-    = LinearChannelMut<'a, Self::Sample>;
+    = LinearMut<'a, Self::Sample>;
 
     type IterMut<'a>
     where
@@ -987,8 +985,8 @@ impl<T> RawSlice<T> {
     ///
     /// The incoming len must represent a valid slice of initialized data.
     /// The produced lifetime must be bounded to something valid!
-    unsafe fn as_linear_channel<'a>(self, len: usize) -> LinearChannel<'a, T> {
-        LinearChannel::new(self.as_ref(len))
+    unsafe fn as_linear_channel<'a>(self, len: usize) -> LinearRef<'a, T> {
+        LinearRef::new(self.as_ref(len))
     }
 
     /// Get the raw slice as a mutable slice.
@@ -1007,8 +1005,8 @@ impl<T> RawSlice<T> {
     ///
     /// The incoming len must represent a valid slice of initialized data. The
     /// produced lifetime must be bounded to something valid!
-    unsafe fn as_linear_channel_mut<'a>(self, len: usize) -> LinearChannelMut<'a, T> {
-        LinearChannelMut::new(self.as_mut(len))
+    unsafe fn as_linear_channel_mut<'a>(self, len: usize) -> LinearMut<'a, T> {
+        LinearMut::new(self.as_mut(len))
     }
 
     /// Drop the slice in place.

@@ -1,7 +1,7 @@
 //! Utilities for manipulating audio buffers.
 
-use audio_core::Translate;
-use audio_core::{Buf, BufMut, ReadBuf, WriteBuf};
+use core::Translate;
+use core::{Buf, BufMut, ReadBuf, WriteBuf};
 
 /// Copy the shared remaining frames from `from` into `to`.
 ///

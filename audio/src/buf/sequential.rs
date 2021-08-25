@@ -1,8 +1,6 @@
 //! A dynamically sized, multi-channel sequential audio buffer.
 
-use audio_core::{
-    Buf, BufMut, ExactSizeBuf, LinearChannel, LinearChannelMut, ResizableBuf, Sample,
-};
+use core::{Buf, BufMut, ExactSizeBuf, LinearMut, LinearRef, ResizableBuf, Sample};
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -28,7 +26,7 @@ pub use self::iter::{Iter, IterMut};
 /// data to be visible after a resize.
 ///
 /// ```rust
-/// let mut buffer = audio::Sequential::<f32>::with_topology(2, 4);
+/// let mut buffer = audio::buf::Sequential::<f32>::with_topology(2, 4);
 /// buffer[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
 /// buffer[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
 ///
@@ -47,7 +45,7 @@ pub use self::iter::{Iter, IterMut};
 /// [Sequential::as_slice] or [Sequential::into_vec].
 ///
 /// ```rust
-/// let mut buffer = audio::Sequential::<f32>::with_topology(2, 4);
+/// let mut buffer = audio::buf::Sequential::<f32>::with_topology(2, 4);
 /// buffer[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
 /// buffer[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
 ///
@@ -68,7 +66,7 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::<f32>::new();
+    /// let mut buffer = audio::buf::Sequential::<f32>::new();
     ///
     /// assert_eq!(buffer.frames(), 0);
     /// ```
@@ -87,7 +85,7 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::<f32>::with_topology(4, 256);
+    /// let mut buffer = audio::buf::Sequential::<f32>::with_topology(4, 256);
     ///
     /// assert_eq!(buffer.frames(), 256);
     /// assert_eq!(buffer.channels(), 4);
@@ -135,7 +133,7 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::from_frames([1.0, 2.0, 3.0, 4.0], 2);
+    /// let mut buffer = audio::buf::Sequential::from_frames([1.0, 2.0, 3.0, 4.0], 2);
     ///
     /// assert_eq!(buffer.frames(), 4);
     /// assert_eq!(buffer.channels(), 2);
@@ -173,7 +171,7 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::from_array([[1; 4]; 2]);
+    /// let mut buffer = audio::buf::Sequential::from_array([[1; 4]; 2]);
     ///
     /// assert_eq!(buffer.frames(), 4);
     /// assert_eq!(buffer.channels(), 2);
@@ -187,7 +185,7 @@ impl<T> Sequential<T> {
     /// Using a specific array topology.
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::from_array([[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// let mut buffer = audio::buf::Sequential::from_array([[1, 2, 3, 4], [5, 6, 7, 8]]);
     ///
     /// assert_eq!(buffer.frames(), 4);
     /// assert_eq!(buffer.channels(), 2);
@@ -226,7 +224,7 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::<f32>::with_topology(2, 4);
+    /// let mut buffer = audio::buf::Sequential::<f32>::with_topology(2, 4);
     /// buffer[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
     /// buffer[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
     ///
@@ -243,7 +241,7 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::<f32>::with_topology(2, 4);
+    /// let mut buffer = audio::buf::Sequential::<f32>::with_topology(2, 4);
     ///
     /// buffer[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
     /// buffer[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
@@ -261,7 +259,7 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::<f32>::new();
+    /// let mut buffer = audio::buf::Sequential::<f32>::new();
     ///
     /// assert_eq!(buffer.frames(), 0);
     /// buffer.resize(256);
@@ -276,7 +274,7 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::<f32>::new();
+    /// let mut buffer = audio::buf::Sequential::<f32>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// buffer.resize_channels(2);
@@ -293,7 +291,7 @@ impl<T> Sequential<T> {
     /// ```
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = audio::Sequential::<f32>::with_topology(4, 256);
+    /// let mut buffer = audio::buf::Sequential::<f32>::with_topology(4, 256);
     ///
     /// let all_zeros = vec![0.0; 256];
     ///
@@ -312,7 +310,7 @@ impl<T> Sequential<T> {
     /// ```
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = audio::Sequential::<f32>::with_topology(4, 256);
+    /// let mut buffer = audio::buf::Sequential::<f32>::with_topology(4, 256);
     /// let mut rng = rand::thread_rng();
     ///
     /// for mut chan in buffer.iter_mut() {
@@ -332,7 +330,7 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::<f32>::new();
+    /// let mut buffer = audio::buf::Sequential::<f32>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// assert_eq!(buffer.frames(), 0);
@@ -360,7 +358,7 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::<f32>::new();
+    /// let mut buffer = audio::buf::Sequential::<f32>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// assert_eq!(buffer.frames(), 0);
@@ -378,7 +376,7 @@ impl<T> Sequential<T> {
     /// Decreasing and increasing the size will modify the underlying buffer:
     ///
     /// ```rust
-    /// # let mut buffer = audio::Sequential::<f32>::with_topology(4, 256);
+    /// # let mut buffer = audio::buf::Sequential::<f32>::with_topology(4, 256);
     /// assert_eq!(buffer[1][128], 0.0);
     /// buffer[1][128] = 42.0;
     ///
@@ -399,7 +397,7 @@ impl<T> Sequential<T> {
     /// resizing this buffer dynamically.
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::<f32>::new();
+    /// let mut buffer = audio::buf::Sequential::<f32>::new();
     ///
     /// buffer.resize_channels(4);
     /// buffer.resize(128);
@@ -461,7 +459,7 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::<f32>::new();
+    /// let mut buffer = audio::buf::Sequential::<f32>::new();
     ///
     /// assert_eq!(buffer.capacity(), 0);
     ///
@@ -490,7 +488,7 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Sequential::<f32>::new();
+    /// let mut buffer = audio::buf::Sequential::<f32>::new();
     ///
     /// buffer.resize_channels(4);
     /// buffer.resize(256);
@@ -503,13 +501,13 @@ impl<T> Sequential<T> {
     /// assert_eq!(buffer.get(3).unwrap(), &expected[..]);
     /// assert!(buffer.get(4).is_none());
     /// ```
-    pub fn get(&self, channel: usize) -> Option<LinearChannel<'_, T>> {
+    pub fn get(&self, channel: usize) -> Option<LinearRef<'_, T>> {
         if channel >= self.channels {
             return None;
         }
 
         let data = self.data.get(channel * self.frames..)?.get(..self.frames)?;
-        Some(LinearChannel::new(data))
+        Some(LinearRef::new(data))
     }
 
     /// Get a mutable reference to the buffer of the given channel.
@@ -519,7 +517,7 @@ impl<T> Sequential<T> {
     /// ```rust
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = audio::Sequential::<f32>::new();
+    /// let mut buffer = audio::buf::Sequential::<f32>::new();
     ///
     /// buffer.resize_channels(2);
     /// buffer.resize(256);
@@ -534,7 +532,7 @@ impl<T> Sequential<T> {
     ///     rng.fill(right.as_mut());
     /// }
     /// ```
-    pub fn get_mut(&mut self, channel: usize) -> Option<LinearChannelMut<'_, T>> {
+    pub fn get_mut(&mut self, channel: usize) -> Option<LinearMut<'_, T>> {
         if channel >= self.channels {
             return None;
         }
@@ -544,7 +542,7 @@ impl<T> Sequential<T> {
             .get_mut(channel * self.frames..)?
             .get_mut(..self.frames)?;
 
-        Some(LinearChannelMut::new(data))
+        Some(LinearMut::new(data))
     }
 
     fn resize_inner(
@@ -714,7 +712,7 @@ where
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<'a, Self::Sample>;
+    = LinearRef<'a, Self::Sample>;
 
     type Iter<'a>
     where
@@ -759,7 +757,7 @@ where
     type ChannelMut<'a>
     where
         Self::Sample: 'a,
-    = LinearChannelMut<'a, Self::Sample>;
+    = LinearMut<'a, Self::Sample>;
 
     type IterMut<'a>
     where

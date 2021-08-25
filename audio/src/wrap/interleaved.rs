@@ -1,7 +1,7 @@
-use crate::interleaved::{Iter, IterMut};
-use audio_core::{
-    AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedChannel,
-    InterleavedChannelMut, ReadBuf, Slice, SliceIndex, SliceMut, WriteBuf,
+use crate::buf::interleaved::{Iter, IterMut};
+use core::{
+    AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedMut, InterleavedRef,
+    ReadBuf, Slice, SliceIndex, SliceMut, WriteBuf,
 };
 use std::ptr;
 
@@ -81,7 +81,7 @@ where
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = InterleavedChannel<'a, Self::Sample>;
+    = InterleavedRef<'a, Self::Sample>;
 
     type Iter<'a>
     where
@@ -97,7 +97,7 @@ where
     }
 
     fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        InterleavedChannel::from_slice(self.value.as_ref(), channel, self.channels)
+        InterleavedRef::from_slice(self.value.as_ref(), channel, self.channels)
     }
 
     fn iter(&self) -> Self::Iter<'_> {
@@ -130,7 +130,7 @@ where
     type ChannelMut<'a>
     where
         T::Item: 'a,
-    = InterleavedChannelMut<'a, T::Item>;
+    = InterleavedMut<'a, T::Item>;
 
     type IterMut<'a>
     where
@@ -138,7 +138,7 @@ where
     = IterMut<'a, Self::Sample>;
 
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
-        InterleavedChannelMut::from_slice(self.value.as_mut(), channel, self.channels)
+        InterleavedMut::from_slice(self.value.as_mut(), channel, self.channels)
     }
 
     fn copy_channels(&mut self, from: usize, to: usize) {
@@ -209,7 +209,7 @@ where
     }
 }
 
-impl<T> InterleavedBuf for Interleaved<&'_ mut [T]>
+impl<T> core::Interleaved for Interleaved<&'_ mut [T]>
 where
     T: Copy,
 {

@@ -18,28 +18,28 @@ fn size_from_ptr<T>(_: *const T) -> usize {
     mem::size_of::<T>()
 }
 
-interleaved_channel!('a, T, const, InterleavedChannel);
-interleaved_channel!('a, T, mut, InterleavedChannelMut);
+interleaved_channel!('a, T, const, InterleavedRef);
+interleaved_channel!('a, T, mut, InterleavedMut);
 
-comparisons!({'a, T}, InterleavedChannel<'a, T>, InterleavedChannelMut<'a, T>);
-comparisons!({'a, T}, InterleavedChannelMut<'a, T>, InterleavedChannel<'a, T>);
+comparisons!({'a, T}, InterleavedRef<'a, T>, InterleavedMut<'a, T>);
+comparisons!({'a, T}, InterleavedMut<'a, T>, InterleavedRef<'a, T>);
 
-slice_comparisons!({'a, T, const N: usize}, InterleavedChannel<'a, T>, [T; N]);
-slice_comparisons!({'a, T}, InterleavedChannel<'a, T>, [T]);
-slice_comparisons!({'a, T}, InterleavedChannel<'a, T>, &[T]);
-slice_comparisons!({'a, T}, InterleavedChannel<'a, T>, Vec<T>);
-slice_comparisons!({'a, T, const N: usize}, InterleavedChannelMut<'a, T>, [T; N]);
-slice_comparisons!({'a, T}, InterleavedChannelMut<'a, T>, [T]);
-slice_comparisons!({'a, T}, InterleavedChannelMut<'a, T>, &[T]);
-slice_comparisons!({'a, T}, InterleavedChannelMut<'a, T>, Vec<T>);
+slice_comparisons!({'a, T, const N: usize}, InterleavedRef<'a, T>, [T; N]);
+slice_comparisons!({'a, T}, InterleavedRef<'a, T>, [T]);
+slice_comparisons!({'a, T}, InterleavedRef<'a, T>, &[T]);
+slice_comparisons!({'a, T}, InterleavedRef<'a, T>, Vec<T>);
+slice_comparisons!({'a, T, const N: usize}, InterleavedMut<'a, T>, [T; N]);
+slice_comparisons!({'a, T}, InterleavedMut<'a, T>, [T]);
+slice_comparisons!({'a, T}, InterleavedMut<'a, T>, &[T]);
+slice_comparisons!({'a, T}, InterleavedMut<'a, T>, Vec<T>);
 
 /// The buffer of a single interleaved channel.
 ///
 /// This doesn't provide direct access to the underlying buffer, but rather
 /// allows us to copy data usinga  number of utility functions.
 ///
-/// See [Buf::channel][crate::Buf::channel].
-pub struct InterleavedChannel<'a, T> {
+/// See [Buf::get][crate::Buf::get].
+pub struct InterleavedRef<'a, T> {
     /// The base pointer of the buffer.
     ptr: ptr::NonNull<T>,
     /// The end pointer of the buffer.
@@ -50,7 +50,7 @@ pub struct InterleavedChannel<'a, T> {
     _marker: marker::PhantomData<&'a [T]>,
 }
 
-impl<'a, T> InterleavedChannel<'a, T> {
+impl<'a, T> InterleavedRef<'a, T> {
     /// Construct an interleaved channel buffer from a slice.
     ///
     /// This is a safe function since the data being referenced is both bounds
@@ -61,25 +61,25 @@ impl<'a, T> InterleavedChannel<'a, T> {
     /// selected `channel` does not fit within the specified `channels`.
     ///
     /// ```rust
-    /// use audio::InterleavedChannel;
+    /// use audio::InterleavedRef;
     ///
     /// let buf: &[u32] = &[1, 2];
-    /// assert!(InterleavedChannel::from_slice(buf, 1, 4).is_none());
+    /// assert!(InterleavedRef::from_slice(buf, 1, 4).is_none());
     /// ```
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channel, InterleavedChannel};
+    /// use audio::{Channel, InterleavedRef};
     ///
     /// let buf: &[u32] = &[1, 2, 3, 4, 5, 6, 7, 8];
-    /// let channel = InterleavedChannel::from_slice(buf, 1, 2).unwrap();
+    /// let channel = InterleavedRef::from_slice(buf, 1, 2).unwrap();
     ///
-    /// assert_eq!(channel.iter().nth(1), Some(4));
-    /// assert_eq!(channel.iter().nth(2), Some(6));
+    /// assert_eq!(channel.get(1), Some(4));
+    /// assert_eq!(channel.get(2), Some(6));
     /// ```
     pub fn from_slice(data: &'a [T], channel: usize, channels: usize) -> Option<Self> {
-        if channels == 0 || data.len() % channels != 0 || channel >= channels {
+        if data.len().checked_rem(channels)? != 0 || channel >= channels {
             return None;
         }
 
@@ -99,8 +99,8 @@ impl<'a, T> InterleavedChannel<'a, T> {
 /// This doesn't provide direct access to the underlying buffer, but rather
 /// allows us to copy data usinga  number of utility functions.
 ///
-/// See [Buf::channel][crate::Buf::channel].
-pub struct InterleavedChannelMut<'a, T> {
+/// See [BufMut::get_mut][crate::BufMut::get_mut].
+pub struct InterleavedMut<'a, T> {
     /// The base pointer of the buffer.
     ptr: ptr::NonNull<T>,
     /// The size of the buffer.
@@ -111,7 +111,7 @@ pub struct InterleavedChannelMut<'a, T> {
     _marker: marker::PhantomData<&'a mut [T]>,
 }
 
-impl<'a, T> InterleavedChannelMut<'a, T> {
+impl<'a, T> InterleavedMut<'a, T> {
     /// Construct an interleaved channel buffer from a slice.
     ///
     /// This is a safe function since the data being referenced is both bounds
@@ -122,25 +122,25 @@ impl<'a, T> InterleavedChannelMut<'a, T> {
     /// `channel` does not fit within the specified `channels`.
     ///
     /// ```rust
-    /// use audio::InterleavedChannelMut;
+    /// use audio::InterleavedMut;
     ///
     /// let buf: &mut [u32] = &mut [1, 2];
-    /// assert!(InterleavedChannelMut::from_slice(buf, 1, 4).is_none());
+    /// assert!(InterleavedMut::from_slice(buf, 1, 4).is_none());
     /// ```
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channel, InterleavedChannelMut};
+    /// use audio::{Channel, InterleavedMut};
     ///
     /// let buf: &mut [u32] = &mut [1, 2, 3, 4, 5, 6, 7, 8];
-    /// let channel = InterleavedChannelMut::from_slice(buf, 1, 2).unwrap();
+    /// let channel = InterleavedMut::from_slice(buf, 1, 2).unwrap();
     ///
     /// assert_eq!(channel.get(1), Some(4));
     /// assert_eq!(channel.get(2), Some(6));
     /// ```
     pub fn from_slice(data: &'a mut [T], channel: usize, channels: usize) -> Option<Self> {
-        if channels == 0 || data.len() % channels != 0 || channel >= channels {
+        if data.len().checked_rem(channels)? != 0 || channel >= channels {
             return None;
         }
 
@@ -193,7 +193,7 @@ impl<'a, T> InterleavedChannelMut<'a, T> {
     }
 }
 
-impl<'a, T> ChannelMut for InterleavedChannelMut<'a, T>
+impl<'a, T> ChannelMut for InterleavedMut<'a, T>
 where
     T: Copy,
 {
@@ -211,7 +211,7 @@ where
     }
 }
 
-impl<T> Clone for InterleavedChannel<'_, T> {
+impl<T> Clone for InterleavedRef<'_, T> {
     fn clone(&self) -> Self {
         Self {
             ptr: self.ptr,
@@ -222,9 +222,9 @@ impl<T> Clone for InterleavedChannel<'_, T> {
     }
 }
 
-/// Note: InterleavedChannel is always Copy since it represents an immutable
+/// Note: InterleavedRef is always Copy since it represents an immutable
 /// buffer.
-impl<T> Copy for InterleavedChannel<'_, T> {}
+impl<T> Copy for InterleavedRef<'_, T> {}
 
 /// An immutable iterator.
 pub struct InterleavedChannelIter<'a, T> {

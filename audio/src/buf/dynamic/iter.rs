@@ -1,22 +1,39 @@
-use audio_core::{LinearChannel, LinearChannelMut};
+use crate::buf::dynamic::RawSlice;
+use core::{LinearMut, LinearRef};
 use std::slice;
 
 // Helper to forward slice-optimized iterator functions.
 macro_rules! forward {
-    ($channel:ident) => {
+    ($as:ident) => {
         #[inline]
         fn next(&mut self) -> Option<Self::Item> {
-            Some($channel::new(self.iter.next()?))
+            let buf = self.iter.next()?;
+            Some(unsafe { buf.$as(self.len) })
         }
 
         #[inline]
         fn nth(&mut self, n: usize) -> Option<Self::Item> {
-            Some($channel::new(self.iter.nth(n)?))
+            let buf = self.iter.nth(n)?;
+            Some(unsafe { buf.$as(self.len) })
         }
 
         #[inline]
         fn last(self) -> Option<Self::Item> {
-            Some($channel::new(self.iter.last()?))
+            let buf = self.iter.last()?;
+            Some(unsafe { buf.$as(self.len) })
+        }
+
+        #[inline]
+        fn find<P>(&mut self, mut predicate: P) -> Option<Self::Item>
+        where
+            Self: Sized,
+            P: FnMut(&Self::Item) -> bool,
+        {
+            let len = self.len;
+            let buf = self
+                .iter
+                .find(move |buf| predicate(&unsafe { buf.$as(len) }))?;
+            Some(unsafe { buf.$as(self.len) })
         }
 
         #[inline]
@@ -35,9 +52,8 @@ macro_rules! forward {
             Self: Sized,
             F: FnMut(Self::Item),
         {
-            self.iter.for_each(move |item| {
-                f($channel::new(item));
-            });
+            let len = self.len;
+            self.iter.for_each(move |buf| f(unsafe { buf.$as(len) }));
         }
 
         #[inline]
@@ -46,7 +62,8 @@ macro_rules! forward {
             Self: Sized,
             F: FnMut(Self::Item) -> bool,
         {
-            self.iter.all(move |item| f($channel::new(item)))
+            let len = self.len;
+            self.iter.all(move |buf| f(unsafe { buf.$as(len) }))
         }
 
         #[inline]
@@ -55,7 +72,8 @@ macro_rules! forward {
             Self: Sized,
             F: FnMut(Self::Item) -> bool,
         {
-            self.iter.any(move |item| f($channel::new(item)))
+            let len = self.len;
+            self.iter.any(move |buf| f(unsafe { buf.$as(len) }))
         }
 
         #[inline]
@@ -64,7 +82,8 @@ macro_rules! forward {
             Self: Sized,
             F: FnMut(Self::Item) -> Option<B>,
         {
-            self.iter.find_map(move |item| f($channel::new(item)))
+            let len = self.len;
+            self.iter.find_map(move |buf| f(unsafe { buf.$as(len) }))
         }
 
         #[inline]
@@ -73,8 +92,9 @@ macro_rules! forward {
             Self: Sized,
             P: FnMut(Self::Item) -> bool,
         {
+            let len = self.len;
             self.iter
-                .position(move |item| predicate($channel::new(item)))
+                .position(move |buf| predicate(unsafe { buf.$as(len) }))
         }
 
         #[inline]
@@ -83,43 +103,53 @@ macro_rules! forward {
             P: FnMut(Self::Item) -> bool,
             Self: Sized,
         {
+            let len = self.len;
             self.iter
-                .rposition(move |item| predicate($channel::new(item)))
+                .rposition(move |buf| predicate(unsafe { buf.$as(len) }))
         }
     };
 }
 
 /// An iterator over the channels in the buffer.
 ///
-/// Created with [Sequential::iter][super::Sequential::iter].
+/// Created with [Dynamic::iter][crate::buf::Dynamic::iter].
 pub struct Iter<'a, T> {
-    iter: slice::ChunksExact<'a, T>,
+    iter: slice::Iter<'a, RawSlice<T>>,
+    len: usize,
 }
 
 impl<'a, T> Iter<'a, T> {
+    /// Construct a new iterator.
+    ///
+    /// # Safety
+    ///
+    /// The provided `len` must match the lengths of all provided slices.
     #[inline]
-    pub(crate) fn new(data: &'a [T], frames: usize) -> Self {
+    pub(super) unsafe fn new(data: &'a [RawSlice<T>], len: usize) -> Self {
         Self {
-            iter: data.chunks_exact(frames),
+            iter: data.iter(),
+            len,
         }
     }
 }
 
 impl<'a, T> Iterator for Iter<'a, T> {
-    type Item = LinearChannel<'a, T>;
+    type Item = LinearRef<'a, T>;
 
-    forward!(LinearChannel);
+    forward!(as_linear_channel);
 }
 
 impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        Some(LinearChannel::new(self.iter.next_back()?))
+        let buf = self.iter.next_back()?;
+        Some(unsafe { buf.as_linear_channel(self.len) })
     }
 
     #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        Some(LinearChannel::new(self.iter.nth_back(n)?))
+        let buf = self.iter.nth_back(n)?;
+        Some(unsafe { buf.as_linear_channel(self.len) })
     }
 }
 
@@ -131,35 +161,44 @@ impl<'a, T> ExactSizeIterator for Iter<'a, T> {
 
 /// A mutable iterator over the channels in the buffer.
 ///
-/// Created with [Sequential::iter_mut][super::Sequential::iter_mut].
+/// Created with [Dynamic::iter_mut][crate::buf::Dynamic::iter_mut].
 pub struct IterMut<'a, T> {
-    iter: slice::ChunksExactMut<'a, T>,
+    iter: slice::IterMut<'a, RawSlice<T>>,
+    len: usize,
 }
 
 impl<'a, T> IterMut<'a, T> {
+    /// Construct a new iterator.
+    ///
+    /// # Safety
+    ///
+    /// The provided `len` must match the lengths of all provided slices.
     #[inline]
-    pub(crate) fn new(data: &'a mut [T], frames: usize) -> Self {
+    pub(super) unsafe fn new(data: &'a mut [RawSlice<T>], len: usize) -> Self {
         Self {
-            iter: data.chunks_exact_mut(frames),
+            iter: data.iter_mut(),
+            len,
         }
     }
 }
 
 impl<'a, T> Iterator for IterMut<'a, T> {
-    type Item = LinearChannelMut<'a, T>;
+    type Item = LinearMut<'a, T>;
 
-    forward!(LinearChannelMut);
+    forward!(as_linear_channel_mut);
 }
 
 impl<'a, T> DoubleEndedIterator for IterMut<'a, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        Some(LinearChannelMut::new(self.iter.next_back()?))
+        let buf = self.iter.next_back()?;
+        Some(unsafe { buf.as_linear_channel_mut(self.len) })
     }
 
     #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        Some(LinearChannelMut::new(self.iter.nth_back(n)?))
+        let buf = self.iter.nth_back(n)?;
+        Some(unsafe { buf.as_linear_channel_mut(self.len) })
     }
 }
 

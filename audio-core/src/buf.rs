@@ -1,6 +1,6 @@
 //! Trait for dealing with abstract channel buffers.
 
-use crate::{Channel, LinearChannel};
+use crate::{Channel, LinearRef};
 
 #[macro_use]
 mod macros;
@@ -145,7 +145,7 @@ pub trait Buf {
     /// use audio::buf;
     ///
     /// let from = audio::interleaved![[0, 0, 1, 1], [0; 4]];
-    /// let mut to = audio::Interleaved::with_topology(2, 4);
+    /// let mut to = audio::buf::Interleaved::with_topology(2, 4);
     ///
     /// buf::copy(from.skip(2), &mut to);
     ///
@@ -159,7 +159,7 @@ pub trait Buf {
     /// use audio::{buf, wrap};
     ///
     /// let from = wrap::interleaved(&[1, 1, 1, 1, 1, 1, 1, 1], 2);
-    /// let mut to = audio::Interleaved::with_topology(2, 4);
+    /// let mut to = audio::buf::Interleaved::with_topology(2, 4);
     ///
     /// buf::copy(from, (&mut to).skip(2));
     ///
@@ -203,7 +203,7 @@ pub trait Buf {
     /// use audio::buf;
     ///
     /// let from = audio::interleaved![[1; 4]; 2];
-    /// let mut to = audio::Interleaved::with_topology(2, 4);
+    /// let mut to = audio::buf::Interleaved::with_topology(2, 4);
     ///
     /// buf::copy(from, (&mut to).limit(2));
     ///
@@ -324,7 +324,7 @@ where
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<'a, Self::Sample>;
+    = LinearRef<'a, Self::Sample>;
 
     type Iter<'a>
     where
@@ -340,7 +340,7 @@ where
     }
 
     fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        Some(LinearChannel::new((**self).get(channel)?.as_ref()))
+        Some(LinearRef::new((**self).get(channel)?.as_ref()))
     }
 
     fn iter(&self) -> Self::Iter<'_> {
@@ -359,7 +359,7 @@ where
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<'a, Self::Sample>;
+    = LinearRef<'a, Self::Sample>;
 
     type Iter<'a>
     where
@@ -375,7 +375,7 @@ where
     }
 
     fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        Some(LinearChannel::new((*self).get(channel)?))
+        Some(LinearRef::new((*self).get(channel)?))
     }
 
     fn iter(&self) -> Self::Iter<'_> {
@@ -394,9 +394,9 @@ impl<'a, T> Iterator for VecIter<'a, T>
 where
     T: Copy,
 {
-    type Item = LinearChannel<'a, T>;
+    type Item = LinearRef<'a, T>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        Some(LinearChannel::new(self.iter.next()?))
+        Some(LinearRef::new(self.iter.next()?))
     }
 }

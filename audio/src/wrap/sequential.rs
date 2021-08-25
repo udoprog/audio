@@ -1,5 +1,5 @@
-use crate::sequential::{Iter, IterMut};
-use audio_core::{Buf, BufMut, ExactSizeBuf, LinearChannel, LinearChannelMut, Slice, SliceMut};
+use crate::buf::sequential::{Iter, IterMut};
+use core::{Buf, BufMut, ExactSizeBuf, LinearMut, LinearRef, Slice, SliceMut};
 
 /// A wrapper for a sequential audio buffer.
 ///
@@ -77,7 +77,7 @@ where
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = LinearChannel<'a, Self::Sample>;
+    = LinearRef<'a, Self::Sample>;
 
     type Iter<'a>
     where
@@ -99,7 +99,7 @@ where
             .get(channel.saturating_mul(self.frames)..)?
             .get(..self.frames)
             .unwrap_or_default();
-        Some(LinearChannel::new(value))
+        Some(LinearRef::new(value))
     }
 
     fn iter(&self) -> Self::Iter<'_> {
@@ -124,7 +124,7 @@ where
     type ChannelMut<'a>
     where
         Self::Sample: 'a,
-    = LinearChannelMut<'a, Self::Sample>;
+    = LinearMut<'a, Self::Sample>;
 
     type IterMut<'a>
     where
@@ -137,7 +137,7 @@ where
             .as_mut()
             .get_mut(channel.saturating_mul(self.frames)..)?;
         let value = value.get_mut(..self.frames).unwrap_or_default();
-        Some(LinearChannelMut::new(value))
+        Some(LinearMut::new(value))
     }
 
     fn copy_channels(&mut self, from: usize, to: usize) {

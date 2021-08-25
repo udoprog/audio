@@ -66,7 +66,7 @@ cargo run --release --package audio-examples --bin play-mp3 -- path/to/file.mp3
 ```rust
 use rand::Rng as _;
 
-let mut buffer = audio::Dynamic::<f32>::new();
+let mut buffer = audio::buf::Dynamic::<f32>::new();
 
 buffer.resize_channels(2);
 buffer.resize(2048);
@@ -81,7 +81,7 @@ For convenience we also provide several macros for constructing various
 forms of dynamic audio buffers. These should mostly be used for testing.
 
 ```rust
-let mut buf = audio::Dynamic::<f32>::with_topology(4, 8);
+let mut buf = audio::buf::Dynamic::<f32>::with_topology(4, 8);
 
 for channel in &mut buf {
     for f in channel {

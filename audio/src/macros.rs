@@ -38,7 +38,7 @@ macro_rules! dynamic {
     // This is typically more performant, since it doesn't require looping and
     // writing through the buffer.
     ([$sample:expr; $frames:literal]; $channels:literal) => {
-        $crate::Dynamic::from_array([[$sample; $frames]; $channels])
+        $crate::buf::Dynamic::from_array([[$sample; $frames]; $channels])
     };
 
     // Branch of the macro used when we can evaluate an expression that is
@@ -48,7 +48,7 @@ macro_rules! dynamic {
     // `Copy`. `$frames` and `$channels` should evaluate to `usize`.
     ([$sample:expr; $frames:expr]; $channels:expr) => {{
         let value = $sample;
-        let mut buffer = $crate::Dynamic::with_topology($channels, $frames);
+        let mut buffer = $crate::buf::Dynamic::with_topology($channels, $frames);
 
         for chan in &mut buffer {
             for f in chan {
@@ -61,12 +61,12 @@ macro_rules! dynamic {
 
     // Build a dynamic audio buffer with a template channel.
     ([$($value:expr),* $(,)?]; $channels:expr) => {
-        $crate::Dynamic::from_frames([$($value),*], $channels)
+        $crate::buf::Dynamic::from_frames([$($value),*], $channels)
     };
 
     // Build a dynamic audio buffer from a specific topology of channels.
     ($($channel:expr),* $(,)?) => {
-        $crate::Dynamic::from_array([$($channel),*])
+        $crate::buf::Dynamic::from_array([$($channel),*])
     };
 }
 
@@ -108,17 +108,17 @@ macro_rules! sequential {
     // `$sample`, `$frames`, and `$channels` are all expected to implement
     // `Copy`. `$frames` and `$channels` should evaluate to `usize`.
     ([$sample:expr; $frames:expr]; $channels:expr) => {
-        $crate::Sequential::from_vec(vec![$sample; $channels * $frames], $channels, $frames)
+        $crate::buf::Sequential::from_vec(vec![$sample; $channels * $frames], $channels, $frames)
     };
 
     // Build a sequential audio buffer with a template channel.
     ([$($value:expr),* $(,)?]; $channels:expr) => {
-        $crate::Sequential::from_frames([$($value),*], $channels)
+        $crate::buf::Sequential::from_frames([$($value),*], $channels)
     };
 
     // Build a sequential audio buffer from a specific topology of channels.
     ($($channel:expr),* $(,)?) => {
-        $crate::Sequential::from_array([$($channel),*])
+        $crate::buf::Sequential::from_array([$($channel),*])
     };
 }
 
@@ -160,16 +160,16 @@ macro_rules! interleaved {
     // `$sample`, `$frames`, and `$channels` are all expected to implement
     // `Copy`. `$frames` and `$channels` should evaluate to `usize`.
     ([$sample:expr; $frames:expr]; $channels:expr) => {
-        $crate::Interleaved::from_vec(vec![$sample; $channels * $frames], $channels, $frames)
+        $crate::buf::Interleaved::from_vec(vec![$sample; $channels * $frames], $channels, $frames)
     };
 
     // Build an interleaved audio buffer with a template channel.
     ([$($value:expr),* $(,)?]; $channels:expr) => {
-        $crate::Interleaved::from_frames([$($value),*], $channels)
+        $crate::buf::Interleaved::from_frames([$($value),*], $channels)
     };
 
     // Build an interleaved audio buffer from a specific topology of channels.
     ($($channel:expr),* $(,)?) => {
-        $crate::Interleaved::from_array([$($channel),*])
+        $crate::buf::Interleaved::from_array([$($channel),*])
     };
 }

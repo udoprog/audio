@@ -1,4 +1,4 @@
-use audio_core::{InterleavedChannel, InterleavedChannelMut};
+use core::{InterleavedMut, InterleavedRef};
 use std::marker;
 use std::ptr;
 
@@ -33,7 +33,7 @@ impl<'a, T> Iterator for Iter<'a, T>
 where
     T: Copy,
 {
-    type Item = InterleavedChannel<'a, T>;
+    type Item = InterleavedRef<'a, T>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.channel == self.channels {
@@ -44,7 +44,7 @@ where
         self.channel += 1;
 
         unsafe {
-            Some(InterleavedChannel::new_unchecked(
+            Some(InterleavedRef::new_unchecked(
                 self.ptr,
                 self.len,
                 channel,
@@ -85,7 +85,7 @@ impl<'a, T> Iterator for IterMut<'a, T>
 where
     T: Copy,
 {
-    type Item = InterleavedChannelMut<'a, T>;
+    type Item = InterleavedMut<'a, T>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.channel == self.channels {
@@ -96,7 +96,7 @@ where
         self.channel += 1;
 
         unsafe {
-            Some(InterleavedChannelMut::new_unchecked(
+            Some(InterleavedMut::new_unchecked(
                 self.ptr,
                 self.len,
                 channel,

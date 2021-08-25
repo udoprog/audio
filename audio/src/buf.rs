@@ -1,6 +1,15 @@
 //! Utilities for working with audio buffers.
 
-use audio_core::{Buf, BufMut, Channel, ChannelMut, Translate};
+use core::{Buf, BufMut, Channel, ChannelMut, Translate};
+
+pub mod dynamic;
+pub use self::dynamic::Dynamic;
+
+pub mod interleaved;
+pub use self::interleaved::Interleaved;
+
+pub mod sequential;
+pub use self::sequential::Sequential;
 
 /// Copy from the buffer specified by `from` into the buffer specified by `to`.
 ///

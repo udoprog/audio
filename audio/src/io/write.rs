@@ -1,4 +1,4 @@
-use audio_core::{Buf, BufMut, Channel, ExactSizeBuf, WriteBuf};
+use core::{Buf, BufMut, Channel, ExactSizeBuf, WriteBuf};
 
 /// Make a mutable buffer into a write adapter that implements [WriteBuf].
 ///
@@ -87,7 +87,7 @@ impl<B> Write<B> {
     /// ```rust
     /// use audio::{io, wrap};
     ///
-    /// let buffer: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let buffer: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
     /// let mut buffer = io::Write::new(buffer);
     ///
     /// io::copy_remaining(wrap::interleaved(&[0i16; 16][..], 4), &mut buffer);
@@ -106,7 +106,7 @@ impl<B> Write<B> {
     /// use audio::{io, wrap};
     /// use audio::Buf as _;
     ///
-    /// let buffer: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let buffer: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
     /// let mut buffer = io::Write::new(buffer);
     ///
     /// io::copy_remaining(wrap::interleaved(&[0i16; 16][..], 4), &mut buffer);
@@ -127,7 +127,7 @@ impl<B> Write<B> {
     /// use audio::Buf as _;
     /// use audio::io;
     ///
-    /// let buffer: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let buffer: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
     /// let mut buffer = io::Write::new(buffer);
     ///
     /// io::copy_remaining(audio::wrap::interleaved(&[0i16; 16][..], 4), &mut buffer);

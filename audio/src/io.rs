@@ -5,7 +5,7 @@
 //!
 //! The primary traits that govern this is [ReadBuf] and [WriteBuf].
 
-pub use audio_core::{ReadBuf, WriteBuf};
+pub use core::{ReadBuf, WriteBuf};
 
 #[macro_use]
 mod macros;

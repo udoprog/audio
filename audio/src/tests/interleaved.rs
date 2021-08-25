@@ -1,11 +1,11 @@
 /// Note: most of these tests are duplicated doc tests, but they're here so that
 /// we can run them through miri and get a good idea of the soundness of our
 /// implementations.
-use audio_core::{AsInterleavedMut, InterleavedBuf};
+use core::{AsInterleavedMut, Interleaved};
 
 #[test]
 fn test_init() {
-    let mut buffer = crate::Interleaved::<f32>::with_topology(2, 4);
+    let mut buffer = crate::buf::Interleaved::<f32>::with_topology(2, 4);
 
     for (c, s) in buffer
         .get_mut(0)
@@ -30,7 +30,7 @@ fn test_init() {
 
 #[test]
 fn test_complicated() {
-    let mut buffer = crate::Interleaved::<f32>::with_topology(2, 4);
+    let mut buffer = crate::buf::Interleaved::<f32>::with_topology(2, 4);
 
     let mut it = buffer.iter_mut();
 
@@ -53,7 +53,7 @@ fn test_complicated() {
 
 #[test]
 fn test_iter() {
-    let mut buffer = crate::Interleaved::<f32>::with_topology(2, 4);
+    let mut buffer = crate::buf::Interleaved::<f32>::with_topology(2, 4);
 
     let mut it = buffer.iter_mut();
 
@@ -79,7 +79,7 @@ fn test_iter() {
 
 #[test]
 fn test_iter_mut() {
-    let mut buffer = crate::Interleaved::<f32>::with_topology(2, 4);
+    let mut buffer = crate::buf::Interleaved::<f32>::with_topology(2, 4);
 
     let mut it = buffer.iter_mut();
 
@@ -105,7 +105,7 @@ fn test_iter_mut() {
 
 #[test]
 fn test_resize() {
-    let mut buffer = crate::Interleaved::<f32>::new();
+    let mut buffer = crate::buf::Interleaved::<f32>::new();
 
     assert_eq!(buffer.channels(), 0);
     assert_eq!(buffer.frames(), 0);
@@ -156,7 +156,7 @@ fn test_as_interleaved_mut_ptr() {
 
     fn test<B>(mut buffer: B)
     where
-        B: InterleavedBuf + AsInterleavedMut<i16>,
+        B: Interleaved + AsInterleavedMut<i16>,
     {
         buffer.reserve_frames(16);
         // Note: call fills the buffer with ones.
@@ -166,7 +166,7 @@ fn test_as_interleaved_mut_ptr() {
         buffer.set_topology(channels, frames);
     }
 
-    let mut buf = crate::Interleaved::new();
+    let mut buf = crate::buf::Interleaved::new();
     test(&mut buf);
 
     assert_eq! {

@@ -1,7 +1,7 @@
 //! Wrap an external type to implement [Buf][crate::Buf] and
 //! [BufMut][crate::BufMut].
 
-use audio_core::Slice;
+use core::Slice;
 
 mod interleaved;
 pub use self::interleaved::Interleaved;

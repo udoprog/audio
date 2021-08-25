@@ -26,10 +26,10 @@ mod channel_mut;
 pub use self::channel_mut::ChannelMut;
 
 pub mod interleaved;
-pub use self::interleaved::{InterleavedChannel, InterleavedChannelMut};
+pub use self::interleaved::{InterleavedMut, InterleavedRef};
 
 pub mod linear;
-pub use self::linear::{LinearChannel, LinearChannelMut};
+pub use self::linear::{LinearMut, LinearRef};
 
 mod translate;
 pub use self::translate::Translate;
@@ -47,7 +47,7 @@ mod resizable_buf;
 pub use self::resizable_buf::ResizableBuf;
 
 mod interleaved_buf;
-pub use self::interleaved_buf::InterleavedBuf;
+pub use self::interleaved_buf::Interleaved;
 
 mod as_interleaved;
 pub use self::as_interleaved::AsInterleaved;

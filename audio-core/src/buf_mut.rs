@@ -1,4 +1,4 @@
-use crate::{Buf, ChannelMut, LinearChannelMut};
+use crate::{Buf, ChannelMut, LinearMut};
 
 /// A trait describing a mutable audio buffer.
 pub trait BufMut: Buf {
@@ -30,7 +30,7 @@ pub trait BufMut: Buf {
     /// ```rust
     /// use audio::{Buf, BufMut};
     ///
-    /// let mut buffer: audio::Dynamic<i16> = audio::dynamic![[1, 2, 3, 4], [0, 0, 0, 0]];
+    /// let mut buffer: audio::buf::Dynamic<i16> = audio::dynamic![[1, 2, 3, 4], [0, 0, 0, 0]];
     /// buffer.copy_channels(0, 1);
     ///
     /// assert_eq!(buffer.get(1), buffer.get(0));
@@ -83,7 +83,7 @@ where
     type ChannelMut<'a>
     where
         Self::Sample: 'a,
-    = LinearChannelMut<'a, T>;
+    = LinearMut<'a, T>;
 
     type IterMut<'a>
     where
@@ -91,7 +91,7 @@ where
     = VecIterMut<'a, T>;
 
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
-        Some(LinearChannelMut::new((**self).get_mut(channel)?.as_mut()))
+        Some(LinearMut::new((**self).get_mut(channel)?.as_mut()))
     }
 
     fn copy_channels(&mut self, from: usize, to: usize) {
@@ -138,9 +138,9 @@ impl<'a, T> Iterator for VecIterMut<'a, T>
 where
     T: Copy,
 {
-    type Item = LinearChannelMut<'a, T>;
+    type Item = LinearMut<'a, T>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        Some(LinearChannelMut::new(self.iter.next()?))
+        Some(LinearMut::new(self.iter.next()?))
     }
 }

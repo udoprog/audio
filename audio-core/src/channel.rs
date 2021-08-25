@@ -1,12 +1,12 @@
-//! A channel buffer as created through [Buf::channel][crate::Buf::channel] or
-//! [BufMut::channel_mut][crate::BufMut::channel_mut].
+//! A channel buffer as created through [Buf::get][crate::Buf::get] or
+//! [BufMut::get_mut][crate::BufMut::get_mut].
 
 /// The buffer of a single channel.
 ///
 /// This doesn't provide direct access to the underlying buffer, but rather
 /// allows us to copy data usinga  number of utility functions.
 ///
-/// See [Buf::channel][crate::Buf::channel].
+/// See [Buf::get][crate::Buf::get].
 pub trait Channel {
     /// The sample of a channel.
     type Sample: Copy;

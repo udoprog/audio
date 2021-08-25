@@ -1,8 +1,8 @@
 //! A dynamically sized, multi-channel interleaved audio buffer.
 
-use audio_core::{
-    AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedChannel,
-    InterleavedChannelMut, ResizableBuf, Sample,
+use core::{
+    AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedMut, InterleavedRef,
+    ResizableBuf, Sample,
 };
 use std::cmp;
 use std::fmt;
@@ -26,7 +26,7 @@ pub use self::iter::{Iter, IterMut};
 /// to be visible after a resize.
 ///
 /// ```rust
-/// let mut buffer = audio::Interleaved::<f32>::with_topology(2, 4);
+/// let mut buffer = audio::buf::Interleaved::<f32>::with_topology(2, 4);
 ///
 /// for (c, s) in buffer
 ///     .get_mut(0)
@@ -61,7 +61,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::new();
+    /// let mut buffer = audio::buf::Interleaved::<f32>::new();
     ///
     /// assert_eq!(buffer.frames(), 0);
     /// ```
@@ -80,7 +80,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::with_topology(4, 256);
+    /// let mut buffer = audio::buf::Interleaved::<f32>::with_topology(4, 256);
     ///
     /// assert_eq!(buffer.frames(), 256);
     /// assert_eq!(buffer.channels(), 4);
@@ -128,7 +128,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::from_frames([1.0, 2.0, 3.0, 4.0], 4);
+    /// let mut buffer = audio::buf::Interleaved::from_frames([1.0, 2.0, 3.0, 4.0], 4);
     ///
     /// assert_eq!(buffer.frames(), 4);
     /// assert_eq!(buffer.channels(), 4);
@@ -166,7 +166,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::from_array([[1; 4]; 2]);
+    /// let mut buffer = audio::buf::Interleaved::from_array([[1; 4]; 2]);
     ///
     /// assert_eq!(buffer.frames(), 4);
     /// assert_eq!(buffer.channels(), 2);
@@ -180,7 +180,7 @@ impl<T> Interleaved<T> {
     /// Using a specific array topology.
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::from_array([[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// let mut buffer = audio::buf::Interleaved::from_array([[1, 2, 3, 4], [5, 6, 7, 8]]);
     ///
     /// assert_eq!(buffer.frames(), 4);
     /// assert_eq!(buffer.channels(), 2);
@@ -225,7 +225,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::with_topology(2, 4);
+    /// let mut buffer = audio::buf::Interleaved::<f32>::with_topology(2, 4);
     ///
     /// for (c, s) in buffer.get_mut(0).unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
     ///     *c = *s;
@@ -248,7 +248,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<i16>::with_topology(2, 4);
+    /// let mut buffer = audio::buf::Interleaved::<i16>::with_topology(2, 4);
     /// assert_eq!(buffer.as_slice(), &[0, 0, 0, 0, 0, 0, 0, 0]);
     /// ```
     pub fn as_slice(&self) -> &[T] {
@@ -262,7 +262,7 @@ impl<T> Interleaved<T> {
     /// ```rust
     /// use audio::{Buf, Channel};
     ///
-    /// let mut buffer = audio::Interleaved::<u32>::with_topology(2, 4);
+    /// let mut buffer = audio::buf::Interleaved::<u32>::with_topology(2, 4);
     /// buffer.as_slice_mut().copy_from_slice(&[1, 1, 2, 2, 3, 3, 4, 4]);
     ///
     /// assert_eq! {
@@ -286,7 +286,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::new();
+    /// let mut buffer = audio::buf::Interleaved::<f32>::new();
     ///
     /// assert_eq!(buffer.frames(), 0);
     /// buffer.resize(256);
@@ -304,7 +304,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::new();
+    /// let mut buffer = audio::buf::Interleaved::<f32>::new();
     ///
     /// assert_eq!(buffer.capacity(), 0);
     ///
@@ -333,7 +333,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::new();
+    /// let mut buffer = audio::buf::Interleaved::<f32>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// buffer.resize_channels(2);
@@ -352,7 +352,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::new();
+    /// let mut buffer = audio::buf::Interleaved::<f32>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// assert_eq!(buffer.frames(), 0);
@@ -380,7 +380,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::new();
+    /// let mut buffer = audio::buf::Interleaved::<f32>::new();
     ///
     /// assert_eq!(buffer.channels(), 0);
     /// assert_eq!(buffer.frames(), 0);
@@ -423,7 +423,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::with_topology(2, 4);
+    /// let mut buffer = audio::buf::Interleaved::<f32>::with_topology(2, 4);
     ///
     /// for (c, s) in buffer.get_mut(0).unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
     ///     *c = *s;
@@ -436,12 +436,12 @@ impl<T> Interleaved<T> {
     /// assert_eq!(buffer.get(0).unwrap().iter().nth(2), Some(3.0));
     /// assert_eq!(buffer.get(1).unwrap().iter().nth(2), Some(7.0));
     /// ```
-    pub fn get(&self, channel: usize) -> Option<InterleavedChannel<'_, T>> {
+    pub fn get(&self, channel: usize) -> Option<InterleavedRef<'_, T>> {
         if channel < self.channels {
             unsafe {
                 let ptr = ptr::NonNull::new_unchecked(self.data.as_ptr() as *mut _);
                 let len = self.data.len();
-                Some(InterleavedChannel::new_unchecked(
+                Some(InterleavedRef::new_unchecked(
                     ptr,
                     len,
                     channel,
@@ -458,7 +458,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::with_topology(2, 256);
+    /// let mut buffer = audio::buf::Interleaved::<f32>::with_topology(2, 256);
     ///
     /// assert_eq!(buffer.frame(1, 128), Some(0.0));
     /// *buffer.frame_mut(1, 128).unwrap() = 1.0;
@@ -476,7 +476,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::with_topology(2, 4);
+    /// let mut buffer = audio::buf::Interleaved::<f32>::with_topology(2, 4);
     ///
     /// for (c, s) in buffer.get_mut(0).unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
     ///     *c = *s;
@@ -488,12 +488,12 @@ impl<T> Interleaved<T> {
     ///
     /// assert_eq!(buffer.as_slice(), &[1.0, 5.0, 2.0, 6.0, 3.0, 7.0, 4.0, 8.0]);
     /// ```
-    pub fn get_mut(&mut self, channel: usize) -> Option<InterleavedChannelMut<'_, T>> {
+    pub fn get_mut(&mut self, channel: usize) -> Option<InterleavedMut<'_, T>> {
         if channel < self.channels {
             unsafe {
                 let ptr = ptr::NonNull::new_unchecked(self.data.as_mut_ptr());
                 let len = self.data.len();
-                Some(InterleavedChannelMut::new_unchecked(
+                Some(InterleavedMut::new_unchecked(
                     ptr,
                     len,
                     channel,
@@ -510,7 +510,7 @@ impl<T> Interleaved<T> {
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::with_topology(2, 256);
+    /// let mut buffer = audio::buf::Interleaved::<f32>::with_topology(2, 256);
     ///
     /// assert_eq!(buffer.frame(1, 128), Some(0.0));
     /// *buffer.frame_mut(1, 128).unwrap() = 1.0;
@@ -603,7 +603,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::with_topology(2, 4);
+    /// let mut buffer = audio::buf::Interleaved::<f32>::with_topology(2, 4);
     ///
     /// let mut it = buffer.iter_mut();
     ///
@@ -637,7 +637,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// let mut buffer = audio::Interleaved::<f32>::with_topology(2, 4);
+    /// let mut buffer = audio::buf::Interleaved::<f32>::with_topology(2, 4);
     ///
     /// let mut it = buffer.iter_mut();
     ///
@@ -736,7 +736,7 @@ where
     type Channel<'a>
     where
         Self::Sample: 'a,
-    = InterleavedChannel<'a, Self::Sample>;
+    = InterleavedRef<'a, Self::Sample>;
 
     type Iter<'a>
     where
@@ -752,7 +752,7 @@ where
     }
 
     fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        InterleavedChannel::from_slice(&self.data, channel, self.channels)
+        InterleavedRef::from_slice(&self.data, channel, self.channels)
     }
 
     fn iter(&self) -> Self::Iter<'_> {
@@ -774,7 +774,7 @@ where
     }
 }
 
-impl<T> InterleavedBuf for Interleaved<T>
+impl<T> core::Interleaved for Interleaved<T>
 where
     T: Sample,
 {
@@ -809,7 +809,7 @@ where
     type ChannelMut<'a>
     where
         Self::Sample: 'a,
-    = InterleavedChannelMut<'a, Self::Sample>;
+    = InterleavedMut<'a, Self::Sample>;
 
     type IterMut<'a>
     where
@@ -817,7 +817,7 @@ where
     = IterMut<'a, Self::Sample>;
 
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
-        InterleavedChannelMut::from_slice(&mut self.data, channel, self.channels)
+        InterleavedMut::from_slice(&mut self.data, channel, self.channels)
     }
 
     fn copy_channels(&mut self, from: usize, to: usize) {

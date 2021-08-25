@@ -9,7 +9,7 @@ use crate::Buf;
 /// This is usually used in combination with other traits, such as
 /// [AsInterleaved][crate::AsInterleaved] to allow for generically accessing a
 /// fixed linear buffer with a specific topology.
-pub trait InterleavedBuf: Buf {
+pub trait Interleaved: Buf {
     /// Make sure that the buffer has reserved exactly the given number of
     /// frames.
     ///
@@ -21,9 +21,9 @@ pub trait InterleavedBuf: Buf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Buf, ExactSizeBuf, InterleavedBuf};
+    /// use audio::{Buf, ExactSizeBuf, Interleaved};
     ///
-    /// fn test<B>(mut buffer: B) where B: InterleavedBuf {
+    /// fn test<B>(mut buffer: B) where B: Interleaved {
     ///     buffer.reserve_frames(4);
     ///     buffer.set_topology(2, 2);
     /// }
@@ -52,7 +52,7 @@ pub trait InterleavedBuf: Buf {
     ///
     /// # Panics
     ///
-    /// Calling [set_topology][InterleavedBuf::set_topology] will fail if the
+    /// Calling [set_topology][Interleaved::set_topology] will fail if the
     /// underlying buffer doesn't support the specified topology. Like if it's
     /// too small.
     ///
@@ -61,9 +61,9 @@ pub trait InterleavedBuf: Buf {
     /// instead.
     ///
     /// ```rust,should_panic
-    /// use audio::{Buf, ExactSizeBuf, InterleavedBuf};
+    /// use audio::{Buf, ExactSizeBuf, Interleaved};
     ///
-    /// fn test(mut buffer: impl InterleavedBuf) {
+    /// fn test(mut buffer: impl Interleaved) {
     ///     buffer.set_topology(2, 4); // panics because buffer is zero-sized.
     /// }
     ///
@@ -73,9 +73,9 @@ pub trait InterleavedBuf: Buf {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Buf, ExactSizeBuf, InterleavedBuf};
+    /// use audio::{Buf, ExactSizeBuf, Interleaved};
     ///
-    /// fn test(mut buffer: impl InterleavedBuf) {
+    /// fn test(mut buffer: impl Interleaved) {
     ///     buffer.set_topology(2, 4);
     /// }
     ///
@@ -92,9 +92,9 @@ pub trait InterleavedBuf: Buf {
     fn set_topology(&mut self, channels: usize, frames: usize);
 }
 
-impl<B> InterleavedBuf for &mut B
+impl<B> Interleaved for &mut B
 where
-    B: ?Sized + InterleavedBuf,
+    B: ?Sized + Interleaved,
 {
     fn reserve_frames(&mut self, frames: usize) {
         (**self).reserve_frames(frames);

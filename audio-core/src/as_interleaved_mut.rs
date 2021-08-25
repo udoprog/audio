@@ -41,12 +41,12 @@ pub trait AsInterleavedMut<T> {
     /// is guaranteed to be both allocated and initialized up until the number
     /// of frames as specified as argument to [reserve_frames].
     ///
-    /// [reserve_frames]: crate::InterleavedBuf::reserve_frames
+    /// [reserve_frames]: crate::buf::Interleaved::reserve_frames
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{AsInterleavedMut, InterleavedBuf, Buf, Channel};
+    /// use audio::{AsInterleavedMut, Interleaved, Buf, Channel};
     /// # unsafe fn fill_with_ones(buf: std::ptr::NonNull<i16>, len: usize) -> (usize, usize) {
     /// #     let buf = std::slice::from_raw_parts_mut(buf.as_ptr(), len);
     /// #
@@ -57,7 +57,7 @@ pub trait AsInterleavedMut<T> {
     /// #     (2, len / 2)
     /// # }
     ///
-    /// fn test(mut buffer: impl InterleavedBuf + AsInterleavedMut<i16>) {
+    /// fn test(mut buffer: impl Interleaved + AsInterleavedMut<i16>) {
     ///     buffer.reserve_frames(16);
     ///     // Note: call fills the buffer with ones.
     ///     // Safety: We've initialized exactly 16 frames before calling this
@@ -66,7 +66,7 @@ pub trait AsInterleavedMut<T> {
     ///     buffer.set_topology(channels, frames);
     /// }
     ///
-    /// let mut buf = audio::Interleaved::new();
+    /// let mut buf = audio::buf::Interleaved::new();
     /// test(&mut buf);
     ///
     /// assert_eq! {

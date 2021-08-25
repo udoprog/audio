@@ -1,4 +1,4 @@
-use audio_core::{Buf, BufMut, Channel, ExactSizeBuf, ReadBuf};
+use core::{Buf, BufMut, Channel, ExactSizeBuf, ReadBuf};
 
 /// Make a buffer into a read adapter that implements [ReadBuf].
 ///
@@ -84,7 +84,7 @@ impl<B> Read<B> {
     /// use audio::Buf;
     /// use audio::{io, wrap};
     ///
-    /// let from: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let from: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
     /// let mut from = io::Read::new(from);
     ///
     /// io::copy_remaining(&mut from, wrap::interleaved(&mut [0i16; 16][..], 4));
@@ -104,7 +104,7 @@ impl<B> Read<B> {
     /// use audio::Buf;
     /// use audio::{io, wrap};
     ///
-    /// let from: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let from: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
     /// let mut from = io::Read::new(from);
     ///
     /// io::copy_remaining(&mut from, wrap::interleaved(&mut [0i16; 16][..], 4));
@@ -126,7 +126,7 @@ impl<B> Read<B> {
     /// use audio::Buf;
     /// use audio::{io, wrap};
     ///
-    /// let from: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let from: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
     /// let mut from = io::Read::new(from);
     ///
     /// io::copy_remaining(&mut from, wrap::interleaved(&mut [0i16; 16][..], 4));

@@ -4,7 +4,7 @@
 
 #[test]
 fn test_channels_then_resize() {
-    let mut buffer = crate::Sequential::<f32>::new();
+    let mut buffer = crate::buf::Sequential::<f32>::new();
 
     buffer.resize_channels(4);
     buffer.resize(128);
@@ -20,7 +20,7 @@ fn test_channels_then_resize() {
 
 #[test]
 fn test_resize_then_channels() {
-    let mut buffer = crate::Sequential::<f32>::new();
+    let mut buffer = crate::buf::Sequential::<f32>::new();
 
     buffer.resize(128);
     buffer.resize_channels(4);
@@ -36,7 +36,7 @@ fn test_resize_then_channels() {
 
 #[test]
 fn test_empty_channels() {
-    let mut buffer = crate::Sequential::<f32>::new();
+    let mut buffer = crate::buf::Sequential::<f32>::new();
 
     buffer.resize_channels(4);
 
@@ -49,7 +49,7 @@ fn test_empty_channels() {
 
 #[test]
 fn test_empty() {
-    let buffer = crate::Sequential::<f32>::new();
+    let buffer = crate::buf::Sequential::<f32>::new();
 
     assert_eq!(buffer.frames(), 0);
     assert!(buffer.get(0).is_none());
@@ -57,7 +57,7 @@ fn test_empty() {
 
 #[test]
 fn test_multiple_resizes() {
-    let mut buffer = crate::Sequential::<f32>::new();
+    let mut buffer = crate::buf::Sequential::<f32>::new();
 
     buffer.resize_channels(4);
     buffer.resize(128);
@@ -73,7 +73,7 @@ fn test_multiple_resizes() {
 
 #[test]
 fn test_unaligned_resize() {
-    let mut buffer = crate::Sequential::<f32>::with_topology(2, 4);
+    let mut buffer = crate::buf::Sequential::<f32>::with_topology(2, 4);
     buffer[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
     buffer[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
 
@@ -90,7 +90,7 @@ fn test_unaligned_resize() {
 
 #[test]
 fn test_multiple_channel_resizes() {
-    let mut buffer = crate::Sequential::<f32>::new();
+    let mut buffer = crate::buf::Sequential::<f32>::new();
 
     buffer.resize_channels(4);
     buffer.resize(128);
@@ -140,7 +140,7 @@ fn test_multiple_channel_resizes() {
 
 #[test]
 fn test_drop_empty() {
-    let mut buffer = crate::Sequential::<f32>::new();
+    let mut buffer = crate::buf::Sequential::<f32>::new();
 
     assert_eq!(buffer.frames(), 0);
     buffer.resize(128);
@@ -149,7 +149,7 @@ fn test_drop_empty() {
 
 #[test]
 fn test_stale_allocation() {
-    let mut buffer = crate::Sequential::<f32>::with_topology(4, 256);
+    let mut buffer = crate::buf::Sequential::<f32>::with_topology(4, 256);
     assert_eq!(buffer[1][128], 0.0);
     buffer[1][128] = 42.0;
 

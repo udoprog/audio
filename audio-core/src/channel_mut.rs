@@ -5,7 +5,7 @@ use crate::Channel;
 /// This doesn't provide direct access to the underlying buffer, but rather
 /// allows us to copy data usinga  number of utility functions.
 ///
-/// See [BufMut::channel_mut][crate::BufMut::channel_mut].
+/// See [BufMut::get_mut][crate::BufMut::get_mut].
 pub trait ChannelMut: Channel {
     /// A mutable iterator over a channel.
     type IterMut<'a>: Iterator<Item = &'a mut Self::Sample>
@@ -49,7 +49,7 @@ pub trait ChannelMut: Channel {
     /// use audio::{Buf, BufMut, ChannelMut};
     ///
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
-    /// let mut to = audio::Interleaved::<f32>::with_topology(2, 4);
+    /// let mut to = audio::buf::Interleaved::<f32>::with_topology(2, 4);
     ///
     /// to.get_mut(0).unwrap().copy_from(from.limit(2).get(0).unwrap());
     /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
@@ -79,7 +79,7 @@ pub trait ChannelMut: Channel {
     /// ```rust
     /// use audio::{Buf, BufMut, ChannelMut};
     ///
-    /// let mut buffer = audio::Interleaved::with_topology(2, 4);
+    /// let mut buffer = audio::buf::Interleaved::with_topology(2, 4);
     ///
     /// (&mut buffer).skip(2).get_mut(0).unwrap().copy_from_iter([1.0, 1.0]);
     ///

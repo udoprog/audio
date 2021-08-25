@@ -64,7 +64,7 @@
 //! ```rust
 //! use rand::Rng;
 //!
-//! let mut buffer = audio::Dynamic::<f32>::new();
+//! let mut buffer = audio::buf::Dynamic::<f32>::new();
 //!
 //! buffer.resize_channels(2);
 //! buffer.resize(2048);
@@ -79,7 +79,7 @@
 //! forms of dynamic audio buffers. These should mostly be used for testing.
 //!
 //! ```rust
-//! let mut buf = audio::Dynamic::<f32>::with_topology(4, 8);
+//! let mut buf = audio::buf::Dynamic::<f32>::with_topology(4, 8);
 //!
 //! for mut channel in &mut buf {
 //!     for f in channel.iter_mut() {
@@ -122,18 +122,11 @@
 #[macro_use]
 mod macros;
 pub mod buf;
-pub mod dynamic;
-pub mod interleaved;
 pub mod io;
-pub mod sequential;
 mod utils;
 pub mod wrap;
 
 #[cfg(test)]
 mod tests;
 
-pub use self::dynamic::Dynamic;
-pub use self::interleaved::Interleaved;
-pub use self::sequential::Sequential;
-
-pub use audio_core::*;
+pub use core::*;

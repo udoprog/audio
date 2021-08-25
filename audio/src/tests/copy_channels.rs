@@ -4,11 +4,11 @@
 // maintained.
 
 use crate::wrap;
-use audio_core::{Buf, BufMut, Channel};
+use core::{Buf, BufMut, Channel};
 
 #[test]
 fn test_copy_channels_dynamic() {
-    let mut buffer: crate::Dynamic<i16> = crate::dynamic![[1, 2, 3, 4], [0, 0, 0, 0]];
+    let mut buffer: crate::buf::Dynamic<i16> = crate::dynamic![[1, 2, 3, 4], [0, 0, 0, 0]];
     buffer.copy_channels(0, 1);
 
     assert_eq!(buffer.get(1), buffer.get(0));
@@ -16,7 +16,7 @@ fn test_copy_channels_dynamic() {
 
 #[test]
 fn test_copy_channels_sequential() {
-    let mut buffer: crate::Sequential<i16> = crate::sequential![[1, 2, 3, 4], [0, 0, 0, 0]];
+    let mut buffer: crate::buf::Sequential<i16> = crate::sequential![[1, 2, 3, 4], [0, 0, 0, 0]];
     buffer.copy_channels(0, 1);
 
     assert_eq!(buffer.get(1), buffer.get(0));
@@ -36,7 +36,7 @@ fn test_copy_channels_wrap_sequential() {
 
 #[test]
 fn test_copy_channels_interleaved() {
-    let mut buffer: crate::Interleaved<i16> = crate::interleaved![[1, 2, 3, 4], [0, 0, 0, 0]];
+    let mut buffer: crate::buf::Interleaved<i16> = crate::interleaved![[1, 2, 3, 4], [0, 0, 0, 0]];
     buffer.copy_channels(0, 1);
 
     assert_eq!(buffer.get(1), buffer.get(0));

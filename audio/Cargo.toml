@@ -13,7 +13,7 @@ description = "A crate for working with audio in Rust"
 readme = "README.md"
 
 [dependencies]
-audio-core = {version = "0.2.0-alpha.3", path = "../audio-core"}
+core = {package = "audio-core", version = "0.2.0-alpha.3", path = "../audio-core"}
 
 [dev-dependencies]
 rand = "0.8.3"
