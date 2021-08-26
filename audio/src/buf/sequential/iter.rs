@@ -28,64 +28,6 @@ macro_rules! forward {
         fn count(self) -> usize {
             self.iter.count()
         }
-
-        #[inline]
-        fn for_each<F>(self, mut f: F)
-        where
-            Self: Sized,
-            F: FnMut(Self::Item),
-        {
-            self.iter.for_each(move |item| {
-                f($channel::new(item));
-            });
-        }
-
-        #[inline]
-        fn all<F>(&mut self, mut f: F) -> bool
-        where
-            Self: Sized,
-            F: FnMut(Self::Item) -> bool,
-        {
-            self.iter.all(move |item| f($channel::new(item)))
-        }
-
-        #[inline]
-        fn any<F>(&mut self, mut f: F) -> bool
-        where
-            Self: Sized,
-            F: FnMut(Self::Item) -> bool,
-        {
-            self.iter.any(move |item| f($channel::new(item)))
-        }
-
-        #[inline]
-        fn find_map<B, F>(&mut self, mut f: F) -> Option<B>
-        where
-            Self: Sized,
-            F: FnMut(Self::Item) -> Option<B>,
-        {
-            self.iter.find_map(move |item| f($channel::new(item)))
-        }
-
-        #[inline]
-        fn position<P>(&mut self, mut predicate: P) -> Option<usize>
-        where
-            Self: Sized,
-            P: FnMut(Self::Item) -> bool,
-        {
-            self.iter
-                .position(move |item| predicate($channel::new(item)))
-        }
-
-        #[inline]
-        fn rposition<P>(&mut self, mut predicate: P) -> Option<usize>
-        where
-            P: FnMut(Self::Item) -> bool,
-            Self: Sized,
-        {
-            self.iter
-                .rposition(move |item| predicate($channel::new(item)))
-        }
     };
 }
 

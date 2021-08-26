@@ -24,19 +24,6 @@ macro_rules! forward {
         }
 
         #[inline]
-        fn find<P>(&mut self, mut predicate: P) -> Option<Self::Item>
-        where
-            Self: Sized,
-            P: FnMut(&Self::Item) -> bool,
-        {
-            let len = self.len;
-            let buf = self
-                .iter
-                .find(move |buf| predicate(&unsafe { buf.$as(len) }))?;
-            Some(unsafe { buf.$as(self.len) })
-        }
-
-        #[inline]
         fn size_hint(&self) -> (usize, Option<usize>) {
             self.iter.size_hint()
         }
@@ -44,68 +31,6 @@ macro_rules! forward {
         #[inline]
         fn count(self) -> usize {
             self.iter.count()
-        }
-
-        #[inline]
-        fn for_each<F>(self, mut f: F)
-        where
-            Self: Sized,
-            F: FnMut(Self::Item),
-        {
-            let len = self.len;
-            self.iter.for_each(move |buf| f(unsafe { buf.$as(len) }));
-        }
-
-        #[inline]
-        fn all<F>(&mut self, mut f: F) -> bool
-        where
-            Self: Sized,
-            F: FnMut(Self::Item) -> bool,
-        {
-            let len = self.len;
-            self.iter.all(move |buf| f(unsafe { buf.$as(len) }))
-        }
-
-        #[inline]
-        fn any<F>(&mut self, mut f: F) -> bool
-        where
-            Self: Sized,
-            F: FnMut(Self::Item) -> bool,
-        {
-            let len = self.len;
-            self.iter.any(move |buf| f(unsafe { buf.$as(len) }))
-        }
-
-        #[inline]
-        fn find_map<B, F>(&mut self, mut f: F) -> Option<B>
-        where
-            Self: Sized,
-            F: FnMut(Self::Item) -> Option<B>,
-        {
-            let len = self.len;
-            self.iter.find_map(move |buf| f(unsafe { buf.$as(len) }))
-        }
-
-        #[inline]
-        fn position<P>(&mut self, mut predicate: P) -> Option<usize>
-        where
-            Self: Sized,
-            P: FnMut(Self::Item) -> bool,
-        {
-            let len = self.len;
-            self.iter
-                .position(move |buf| predicate(unsafe { buf.$as(len) }))
-        }
-
-        #[inline]
-        fn rposition<P>(&mut self, mut predicate: P) -> Option<usize>
-        where
-            P: FnMut(Self::Item) -> bool,
-            Self: Sized,
-        {
-            let len = self.len;
-            self.iter
-                .rposition(move |buf| predicate(unsafe { buf.$as(len) }))
         }
     };
 }

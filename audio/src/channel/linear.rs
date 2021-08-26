@@ -8,6 +8,9 @@ use std::fmt;
 #[macro_use]
 mod macros;
 
+mod iter;
+pub use self::iter::{Iter, IterMut};
+
 slice_comparisons!({'a, T, const N: usize}, LinearRef<'a, T>, [T; N]);
 slice_comparisons!({'a, T}, LinearRef<'a, T>, [T]);
 slice_comparisons!({'a, T}, LinearRef<'a, T>, &[T]);
@@ -68,8 +71,8 @@ where
     T: Copy,
 {
     /// Construct an immutable iterator over the linear channel.
-    pub fn iter(&self) -> std::iter::Copied<std::slice::Iter<'_, T>> {
-        self.buf.iter().copied()
+    pub fn iter(&self) -> Iter<'_, T> {
+        Iter::new(self.buf)
     }
 }
 
@@ -81,7 +84,7 @@ where
     type Iter<'i>
     where
         T: 'i,
-    = std::iter::Copied<std::slice::Iter<'i, T>>;
+    = Iter<'i, T>;
 
     fn len(&self) -> usize {
         self.buf.len()
@@ -158,8 +161,8 @@ impl<'a, T> LinearMut<'a, T> {
     }
 
     /// Construct an immutable iterator over the linear channel.
-    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
-        self.buf.iter_mut()
+    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+        IterMut::new(self.buf)
     }
 
     /// Convert the channel into the underlying buffer.
@@ -248,7 +251,7 @@ where
     type IterMut<'i>
     where
         Self::Sample: 'i,
-    = std::slice::IterMut<'i, T>;
+    = IterMut<'i, T>;
 
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         (*self).iter_mut()
