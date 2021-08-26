@@ -125,9 +125,4 @@ where
     }
 }
 
-iterators! {
-    n: usize,
-    window: usize,
-    =>
-    self.chunk(n, window)
-}
+iterators!(n: usize, window: usize => self.chunk(n, window));

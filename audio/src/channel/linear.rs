@@ -1,6 +1,7 @@
 //! Utilities for working with linear buffers.
 
-use crate::{Channel, ChannelMut, Slice};
+use crate::slice::Slice;
+use core::{Channel, ChannelMut};
 use std::cmp;
 use std::fmt;
 
@@ -37,7 +38,7 @@ impl<'a, T> LinearRef<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::LinearRef;
+    /// use audio::channel::LinearRef;
     ///
     /// let buf: &[u32] = &[1, 3, 5, 7];
     /// let channel = LinearRef::new(buf);
@@ -155,7 +156,7 @@ impl<'a, T> LinearMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::LinearMut;
+    /// use audio::channel::LinearMut;
     ///
     /// let buf: &mut [u32] = &mut [1, 3, 5, 7];
     /// let channel = LinearMut::new(buf);

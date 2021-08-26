@@ -1,4 +1,4 @@
-use core::{InterleavedMut, InterleavedRef};
+use crate::channel::{InterleavedMut, InterleavedRef};
 use std::marker;
 use std::ptr;
 

@@ -1,5 +1,5 @@
 use crate::buf::dynamic::RawSlice;
-use core::{LinearMut, LinearRef};
+use crate::channel::{LinearMut, LinearRef};
 use std::slice;
 
 // Helper to forward slice-optimized iterator functions.

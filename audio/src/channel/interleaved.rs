@@ -1,6 +1,6 @@
 //! Utilities for working with interleaved channels.
 
-use crate::{Channel, ChannelMut};
+use core::{Channel, ChannelMut};
 use std::cmp;
 use std::fmt;
 use std::marker;
@@ -61,7 +61,7 @@ impl<'a, T> InterleavedRef<'a, T> {
     /// selected `channel` does not fit within the specified `channels`.
     ///
     /// ```rust
-    /// use audio::InterleavedRef;
+    /// use audio::channel::InterleavedRef;
     ///
     /// let buf: &[u32] = &[1, 2];
     /// assert!(InterleavedRef::from_slice(buf, 1, 4).is_none());
@@ -70,7 +70,7 @@ impl<'a, T> InterleavedRef<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channel, InterleavedRef};
+    /// use audio::channel::InterleavedRef;
     ///
     /// let buf: &[u32] = &[1, 2, 3, 4, 5, 6, 7, 8];
     /// let channel = InterleavedRef::from_slice(buf, 1, 2).unwrap();
@@ -122,7 +122,7 @@ impl<'a, T> InterleavedMut<'a, T> {
     /// `channel` does not fit within the specified `channels`.
     ///
     /// ```rust
-    /// use audio::InterleavedMut;
+    /// use audio::channel::InterleavedMut;
     ///
     /// let buf: &mut [u32] = &mut [1, 2];
     /// assert!(InterleavedMut::from_slice(buf, 1, 4).is_none());
@@ -131,7 +131,7 @@ impl<'a, T> InterleavedMut<'a, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use audio::{Channel, InterleavedMut};
+    /// use audio::channel::InterleavedMut;
     ///
     /// let buf: &mut [u32] = &mut [1, 2, 3, 4, 5, 6, 7, 8];
     /// let channel = InterleavedMut::from_slice(buf, 1, 2).unwrap();

@@ -1,8 +1,7 @@
 use crate::buf::interleaved::{Iter, IterMut};
-use core::{
-    AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, InterleavedMut, InterleavedRef,
-    ReadBuf, Slice, SliceIndex, SliceMut, WriteBuf,
-};
+use crate::channel::{InterleavedMut, InterleavedRef};
+use crate::slice::{Slice, SliceIndex, SliceMut};
+use core::{AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, ReadBuf, WriteBuf};
 use std::ptr;
 
 /// A wrapper for an interleaved audio buffer.

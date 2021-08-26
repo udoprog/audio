@@ -122,7 +122,9 @@
 #[macro_use]
 mod macros;
 pub mod buf;
+pub mod channel;
 pub mod io;
+pub mod slice;
 mod utils;
 pub mod wrap;
 

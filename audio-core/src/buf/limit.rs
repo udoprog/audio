@@ -136,8 +136,4 @@ where
     }
 }
 
-iterators! {
-    limit: usize,
-    =>
-    self.limit(limit)
-}
+iterators!(limit: usize => self.limit(limit));

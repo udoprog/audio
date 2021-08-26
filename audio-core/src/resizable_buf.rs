@@ -1,4 +1,4 @@
-use crate::{Buf, Sample};
+use crate::Buf;
 
 /// Trait implemented for buffers that can be resized.
 pub trait ResizableBuf: Buf {
@@ -56,26 +56,5 @@ where
 
     fn resize_topology(&mut self, channels: usize, frames: usize) {
         (**self).resize_topology(channels, frames);
-    }
-}
-
-impl<T> ResizableBuf for Vec<Vec<T>>
-where
-    T: Sample,
-{
-    fn resize(&mut self, frames: usize) {
-        for buf in self.iter_mut() {
-            buf.resize(frames, T::ZERO);
-        }
-    }
-
-    fn resize_topology(&mut self, channels: usize, frames: usize) {
-        for buf in self.iter_mut() {
-            buf.resize(frames, T::ZERO);
-        }
-
-        for _ in self.len()..channels {
-            self.push(vec![T::ZERO; frames]);
-        }
     }
 }

@@ -1,4 +1,7 @@
 //! Traits used to generically describe and operate over slice-like types.
+//!
+//! This is used in for example [LinearRef][crate::channel::LinearRef] to allow
+//! it to abstract over its content.
 
 use std::ptr;
 

@@ -19,6 +19,34 @@ macro_rules! iterators {
             fn next(&mut $self) -> Option<Self::Item> {
                 Some($self.iter.next()?.$fn($($self.$arg),*))
             }
+
+            fn nth(&mut $self, n: usize) -> Option<Self::Item> {
+                Some($self.iter.nth(n)?.$fn($($self.$arg),*))
+            }
+        }
+
+        impl<I> DoubleEndedIterator for Iter<I>
+        where
+            I: DoubleEndedIterator,
+            I::Item: Channel,
+        {
+            fn next_back(&mut $self) -> Option<Self::Item> {
+                Some($self.iter.next_back()?.$fn($($self.$arg),*))
+            }
+
+            fn nth_back(&mut $self, n: usize) -> Option<Self::Item> {
+                Some($self.iter.nth_back(n)?.$fn($($self.$arg),*))
+            }
+        }
+
+        impl<I> ExactSizeIterator for Iter<I>
+        where
+            I: ExactSizeIterator,
+            I::Item: ChannelMut,
+        {
+            fn len(&$self) -> usize {
+                $self.iter.len()
+            }
         }
 
         pub struct IterMut<I> {
@@ -35,6 +63,34 @@ macro_rules! iterators {
 
             fn next(&mut $self) -> Option<Self::Item> {
                 Some($self.iter.next()?.$fn($($self . $arg),*))
+            }
+
+            fn nth(&mut $self, n: usize) -> Option<Self::Item> {
+                Some($self.iter.nth(n)?.$fn($($self . $arg),*))
+            }
+        }
+
+        impl<I> DoubleEndedIterator for IterMut<I>
+        where
+            I: DoubleEndedIterator,
+            I::Item: ChannelMut,
+        {
+            fn next_back(&mut $self) -> Option<Self::Item> {
+                Some($self.iter.next_back()?.$fn($($self . $arg),*))
+            }
+
+            fn nth_back(&mut $self, n: usize) -> Option<Self::Item> {
+                Some($self.iter.nth_back(n)?.$fn($($self . $arg),*))
+            }
+        }
+
+        impl<I> ExactSizeIterator for IterMut<I>
+        where
+            I: ExactSizeIterator,
+            I::Item: ChannelMut,
+        {
+            fn len(&$self) -> usize {
+                $self.iter.len()
             }
         }
     }

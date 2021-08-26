@@ -134,8 +134,4 @@ where
     }
 }
 
-iterators! {
-    n: usize,
-    =>
-    self.skip(n)
-}
+iterators!(n: usize => self.skip(n));

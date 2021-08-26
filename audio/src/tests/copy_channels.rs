@@ -55,7 +55,7 @@ fn test_copy_channels_wrap_interleaved() {
 
 #[test]
 fn test_copy_channels_vec_of_vecs() {
-    let mut buffer: Vec<Vec<i16>> = vec![vec![1, 2, 3, 4], vec![0, 0]];
+    let mut buffer = crate::wrap::dynamic(vec![vec![1, 2, 3, 4], vec![0, 0]]);
     buffer.copy_channels(0, 1);
 
     assert_eq!(buffer.get(1).unwrap(), buffer.get(0).unwrap().limit(2));

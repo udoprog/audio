@@ -10,9 +10,6 @@
 #![allow(clippy::should_implement_trait)]
 #![feature(generic_associated_types)]
 
-mod slice;
-pub use self::slice::{Slice, SliceIndex, SliceMut};
-
 pub mod buf;
 pub use self::buf::Buf;
 
@@ -25,20 +22,17 @@ pub use self::channel::Channel;
 mod channel_mut;
 pub use self::channel_mut::ChannelMut;
 
-pub mod interleaved;
-pub use self::interleaved::{InterleavedMut, InterleavedRef};
-
-pub mod linear;
-pub use self::linear::{LinearMut, LinearRef};
-
 mod translate;
 pub use self::translate::Translate;
 
 mod sample;
 pub use self::sample::Sample;
 
-mod io;
-pub use self::io::{ReadBuf, WriteBuf};
+mod read_buf;
+pub use self::read_buf::ReadBuf;
+
+mod write_buf;
+pub use self::write_buf::WriteBuf;
 
 mod exact_size_buf;
 pub use self::exact_size_buf::ExactSizeBuf;

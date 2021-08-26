@@ -140,8 +140,4 @@ where
     }
 }
 
-iterators! {
-    n: usize,
-    =>
-    self.tail(n)
-}
+iterators!(n: usize => self.tail(n));
