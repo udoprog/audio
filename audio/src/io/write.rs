@@ -33,7 +33,7 @@ impl<B> Write<B> {
     ///
     /// The constructed writer will be initialized so that the number of bytes
     /// available for writing are equal to what's reported by
-    /// [ExactSizeBuf::len].
+    /// [ExactSizeBuf::frames].
     ///
     /// # Examples
     ///

@@ -62,7 +62,7 @@ impl<B> ReadWrite<B> {
     ///
     /// The constructed reader will be initialized so that the number of bytes
     /// available for reading are equal to what's reported by
-    /// [ExactSizeBuf::len].
+    /// [ExactSizeBuf::frames].
     ///
     /// # Examples
     ///
