@@ -1,11 +1,11 @@
-# audio-device-alsa-sys
+# audio-device-pulse-sys
 
-[audio-device] system bindings for ALSA.
+[audio-device] system bindings for PulseAudio.
 
 These bindings are generated with:
 
 ```sh
-cargo run --package generate --bin generate-alsa
+cargo run --package generate --bin generate-pulse
 ```
 
 [audio-device]: https://docs.rs/audio-device
