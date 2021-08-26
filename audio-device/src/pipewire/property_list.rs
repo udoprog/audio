@@ -13,7 +13,7 @@ impl PropertyList {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio_device::pipewire;
     ///
     /// # fn main() -> anyhow::Result<()> {

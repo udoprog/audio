@@ -36,7 +36,7 @@ pub use self::bit_set::BitSet;
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// use bittle::Mask;
 ///
 /// let n = bittle::all();
@@ -52,7 +52,7 @@ pub fn all() -> self::mask::All {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// use bittle::Mask;
 ///
 /// let n = bittle::none();

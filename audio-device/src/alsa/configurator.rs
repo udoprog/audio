@@ -32,7 +32,7 @@ pub struct Config {
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use audio_device::alsa;
 ///
 /// # fn main() -> anyhow::Result<()> {
@@ -76,7 +76,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -101,7 +101,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -131,7 +131,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -153,7 +153,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -174,7 +174,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -196,7 +196,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {

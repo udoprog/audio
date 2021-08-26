@@ -10,7 +10,7 @@
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// use audio::WriteBuf;
 /// use audio::{io, wrap};
 /// # fn recv_data(buf: &mut [i16]) {}
@@ -44,16 +44,16 @@ pub trait WriteBuf {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::WriteBuf;
     ///
-    /// let mut buffer = [0, 1, 2, 3, 4, 5, 6, 7];
-    /// let mut buffer = audio::wrap::interleaved(&mut buffer[..], 2);
+    /// let mut buf = [0, 1, 2, 3, 4, 5, 6, 7];
+    /// let mut buf = audio::wrap::interleaved(&mut buf[..], 2);
     ///
-    /// assert!(buffer.has_remaining_mut());
-    /// assert_eq!(buffer.remaining_mut(), 4);
-    /// buffer.advance_mut(4);
-    /// assert_eq!(buffer.remaining_mut(), 0);
+    /// assert!(buf.has_remaining_mut());
+    /// assert_eq!(buf.remaining_mut(), 4);
+    /// buf.advance_mut(4);
+    /// assert_eq!(buf.remaining_mut(), 0);
     /// ```
     fn has_remaining_mut(&self) -> bool {
         self.remaining_mut() > 0
@@ -63,13 +63,13 @@ pub trait WriteBuf {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::WriteBuf;
     ///
-    /// let mut buffer = [0, 1, 2, 3, 4, 5, 6, 7];
-    /// let buffer = audio::wrap::interleaved(&mut buffer[..], 2);
+    /// let mut buf = [0, 1, 2, 3, 4, 5, 6, 7];
+    /// let buf = audio::wrap::interleaved(&mut buf[..], 2);
     ///
-    /// assert_eq!(buffer.remaining_mut(), 4);
+    /// assert_eq!(buf.remaining_mut(), 4);
     /// ```
     fn remaining_mut(&self) -> usize;
 
@@ -77,15 +77,15 @@ pub trait WriteBuf {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::WriteBuf;
     ///
-    /// let mut buffer = [0, 1, 2, 3, 4, 5, 6, 7];
-    /// let mut buffer = audio::wrap::interleaved(&mut buffer[..], 2);
+    /// let mut buf = [0, 1, 2, 3, 4, 5, 6, 7];
+    /// let mut buf = audio::wrap::interleaved(&mut buf[..], 2);
     ///
-    /// assert_eq!(buffer.remaining_mut(), 4);
-    /// buffer.advance_mut(2);
-    /// assert_eq!(buffer.remaining_mut(), 2);
+    /// assert_eq!(buf.remaining_mut(), 4);
+    /// buf.advance_mut(2);
+    /// assert_eq!(buf.remaining_mut(), 2);
     /// ```
     fn advance_mut(&mut self, n: usize);
 }

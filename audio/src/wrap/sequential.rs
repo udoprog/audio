@@ -36,9 +36,9 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let buffer = audio::wrap::sequential(&[1, 2, 3, 4], 2);
-    /// assert_eq!(buffer.into_inner(), &[1, 2, 3, 4]);
+    /// ```
+    /// let buf = audio::wrap::sequential(&[1, 2, 3, 4], 2);
+    /// assert_eq!(buf.into_inner(), &[1, 2, 3, 4]);
     /// ```
     pub fn into_inner(self) -> T {
         self.value
@@ -48,7 +48,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// let buf = audio::wrap::sequential(&[1, 2, 3, 4], 2);
     /// let mut it = buf.iter();
     ///

@@ -19,7 +19,7 @@ pub trait ChannelMut: Channel {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{BufMut, Channel, ChannelMut};
     ///
     /// fn test(buf: &mut impl BufMut<Sample = f32>) {
@@ -45,7 +45,7 @@ pub trait ChannelMut: Channel {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{Buf, BufMut, ChannelMut};
     ///
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
@@ -76,14 +76,14 @@ pub trait ChannelMut: Channel {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{Buf, BufMut, ChannelMut};
     ///
-    /// let mut buffer = audio::buf::Interleaved::with_topology(2, 4);
+    /// let mut buf = audio::buf::Interleaved::with_topology(2, 4);
     ///
-    /// (&mut buffer).skip(2).get_mut(0).unwrap().copy_from_iter([1.0, 1.0]);
+    /// (&mut buf).skip(2).get_mut(0).unwrap().copy_from_iter([1.0, 1.0]);
     ///
-    /// assert_eq!(buffer.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
+    /// assert_eq!(buf.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
     /// ```
     fn copy_from_iter<I>(&mut self, from: I)
     where

@@ -8,7 +8,7 @@ use std::mem;
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use audio_device::alsa;
 ///
 /// # fn main() -> anyhow::Result<()> {
@@ -57,7 +57,7 @@ impl Card {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CStr;
     ///
@@ -80,7 +80,7 @@ impl Card {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -98,7 +98,7 @@ impl Card {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -121,7 +121,7 @@ impl Card {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {

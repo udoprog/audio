@@ -50,7 +50,7 @@ cfg_poll_driver! {
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```no_run
 /// # async fn task() {}
 /// # #[tokio::main] async fn main() -> anyhow::Result<()> {
 /// let runtime = audio_device::runtime::Runtime::new()?;
@@ -90,7 +90,7 @@ impl Runtime {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # async fn task() {}
     /// # #[tokio::main] async fn main() -> anyhow::Result<()> {
     /// let runtime = audio_device::runtime::Runtime::new()?;

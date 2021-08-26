@@ -329,7 +329,7 @@ macro_rules! interleaved_channel {
                 $arg: 's,
             = Iter<'s, $arg>;
 
-            fn frames(&self) -> usize {
+            fn len(&self) -> usize {
                 len!(self)
             }
 
@@ -374,28 +374,6 @@ macro_rules! interleaved_channel {
                     // Safety: internal invariants in this structure ensures it
                     // doesn't go out of bounds.
                     self.end = self.end.wrapping_sub(len);
-                }
-
-                self
-            }
-
-            fn chunk(mut self, n: usize, window: usize) -> Self {
-                let n = n.saturating_mul(window);
-                let len = len!(self);
-
-                if mem::size_of::<T>() == 0 {
-                    let len = usize::min(len.saturating_sub(n), window);
-                    zst_set_len!(self, len);
-                } else {
-                    let ptr = usize::min(len, n).saturating_mul(self.step);
-                    let end = len.saturating_sub(n).saturating_sub(window).saturating_mul(self.step);
-
-                    // Safety: internal invariants in this structure ensures it
-                    // doesn't go out of bounds.
-                    unsafe {
-                        self.ptr = ptr::NonNull::new_unchecked(self.ptr.as_ptr().wrapping_add(ptr));
-                        self.end = self.end.wrapping_sub(end);
-                    };
                 }
 
                 self

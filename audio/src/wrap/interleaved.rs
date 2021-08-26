@@ -1,7 +1,9 @@
 use crate::buf::interleaved::{Iter, IterMut};
 use crate::channel::{InterleavedMut, InterleavedRef};
 use crate::slice::{Slice, SliceIndex, SliceMut};
-use core::{AsInterleaved, AsInterleavedMut, Buf, BufMut, ExactSizeBuf, ReadBuf, WriteBuf};
+use core::{
+    Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ReadBuf, ResizableBuf, WriteBuf,
+};
 use std::ptr;
 
 /// A wrapper for an interleaved audio buffer.
@@ -37,9 +39,9 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let buffer = audio::wrap::interleaved(&[1, 2, 3, 4], 2);
-    /// assert_eq!(buffer.into_inner(), &[1, 2, 3, 4]);
+    /// ```
+    /// let buf = audio::wrap::interleaved(&[1, 2, 3, 4], 2);
+    /// assert_eq!(buf.into_inner(), &[1, 2, 3, 4]);
     /// ```
     pub fn into_inner(self) -> T {
         self.value
@@ -49,7 +51,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// let buf = audio::wrap::interleaved(&[1, 2, 3, 4], 2);
     /// let mut it = buf.iter();
     ///
@@ -113,12 +115,25 @@ where
     }
 }
 
-impl<T> AsInterleaved<T::Item> for Interleaved<T>
+impl<T> InterleavedBuf for Interleaved<T>
 where
     T: Slice,
 {
     fn as_interleaved(&self) -> &[T::Item] {
         self.value.as_ref()
+    }
+}
+
+impl<T> InterleavedBufMut for Interleaved<T>
+where
+    T: SliceMut,
+{
+    fn as_interleaved_mut(&mut self) -> &mut [Self::Sample] {
+        self.value.as_mut()
+    }
+
+    fn as_interleaved_mut_ptr(&mut self) -> ptr::NonNull<Self::Sample> {
+        self.value.as_mut_ptr()
     }
 }
 
@@ -162,19 +177,6 @@ where
     }
 }
 
-impl<T> AsInterleavedMut<T::Item> for Interleaved<T>
-where
-    T: SliceMut,
-{
-    fn as_interleaved_mut(&mut self) -> &mut [T::Item] {
-        self.value.as_mut()
-    }
-
-    fn as_interleaved_mut_ptr(&mut self) -> ptr::NonNull<T::Item> {
-        self.value.as_mut_ptr()
-    }
-}
-
 impl<T> ReadBuf for Interleaved<T>
 where
     T: Default + SliceIndex,
@@ -208,11 +210,15 @@ where
     }
 }
 
-impl<T> core::Interleaved for Interleaved<&'_ mut [T]>
+impl<T> ResizableBuf for Interleaved<&'_ mut [T]>
 where
     T: Copy,
 {
-    fn reserve_frames(&mut self, frames: usize) {
+    fn try_reserve(&mut self, capacity: usize) -> bool {
+        capacity < self.value.len()
+    }
+
+    fn resize(&mut self, frames: usize) {
         if frames > self.value.len() {
             panic!(
                 "required number of frames {new_len} is larger than the wrapped buffer {len}",
@@ -222,7 +228,7 @@ where
         }
     }
 
-    fn set_topology(&mut self, channels: usize, frames: usize) {
+    fn resize_topology(&mut self, channels: usize, frames: usize) {
         let new_len = channels * frames;
         let len = self.value.len();
 

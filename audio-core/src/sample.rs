@@ -22,7 +22,7 @@ pub unsafe trait Sample: Copy + Default {
 ///
 /// Proof:
 ///
-/// ```rust
+/// ```
 /// use audio::Sample;
 ///
 /// assert_eq!((f64::ZERO).to_bits(), 0u64);
@@ -38,7 +38,7 @@ unsafe impl Sample for f32 {
 ///
 /// Proof:
 ///
-/// ```rust
+/// ```
 /// use audio::Sample;
 ///
 /// assert_eq!((f64::ZERO).to_bits(), 0u64);

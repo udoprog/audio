@@ -5,7 +5,7 @@ use crate::Buf;
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// use audio::ExactSizeBuf;
 ///
 /// fn test<T>(buf: T) where T: ExactSizeBuf {
@@ -23,7 +23,7 @@ pub trait ExactSizeBuf: Buf {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::ExactSizeBuf;
     ///
     /// fn test<T>(buf: T) where T: ExactSizeBuf {

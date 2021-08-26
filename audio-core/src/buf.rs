@@ -11,9 +11,6 @@ pub use self::skip::Skip;
 mod limit;
 pub use self::limit::Limit;
 
-mod chunk;
-pub use self::chunk::Chunk;
-
 mod tail;
 pub use self::tail::Tail;
 
@@ -22,26 +19,22 @@ pub use self::tail::Tail;
 /// This provides information which is available to all buffers, such as the
 /// number of channels.
 ///
-/// ```rust
-/// use audio::Buf;
-///
-/// let buffer = audio::interleaved![[0; 4]; 2];
-///
-/// assert_eq!(buffer.channels(), 2);
+/// ```
+/// let buf = audio::interleaved![[0; 4]; 2];
+/// assert_eq!(buf.channels(), 2);
 /// ```
 ///
 /// It also carries a number of slicing combinators, wuch as [skip][Buf::skip]
 /// and [limit][Buf::limit] which allows an audio buffer to be sliced as needed.
 ///
 ///
-/// ```rust
+/// ```
 /// use audio::{Buf, ExactSizeBuf};
 ///
-/// let buffer = audio::interleaved![[0; 4]; 2];
+/// let buf = audio::interleaved![[0; 4]; 2];
 ///
-/// assert_eq!(buffer.channels(), 2);
-/// assert_eq!(buffer.frames(), 4);
-/// assert_eq!(buffer.limit(2).frames(), 2);
+/// assert_eq!(buf.channels(), 2);
+/// assert_eq!(buf.limit(2).frames(), 2);
 /// ```
 pub trait Buf {
     /// The type of a single sample.
@@ -67,7 +60,7 @@ pub trait Buf {
     /// types which does not keep track of the exact number of frames it expects
     /// each channel to have such as `Vec<Vec<i16>>`.
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     ///
     /// fn test(buf: impl Buf) {
@@ -81,15 +74,15 @@ pub trait Buf {
     /// But it should be clear that such a buffer supports a variable number of
     /// frames in each channel.
     ///
-    /// ```rust
+    /// ```
     /// use audio::{Buf, Channel};
     ///
     /// fn test(buf: impl Buf<Sample = i16>) {
     ///     assert_eq!(buf.channels(), 2);
     ///     assert_eq!(buf.frames_hint(), Some(4));
     ///
-    ///     assert_eq!(buf.get(0).map(|c| c.frames()), Some(4));
-    ///     assert_eq!(buf.get(1).map(|c| c.frames()), Some(2));
+    ///     assert_eq!(buf.get(0).map(|c| c.len()), Some(4));
+    ///     assert_eq!(buf.get(1).map(|c| c.len()), Some(2));
     /// }
     ///
     /// test(audio::wrap::dynamic(vec![vec![1, 2, 3, 4], vec![5, 6]]));
@@ -100,7 +93,7 @@ pub trait Buf {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{Buf, Channel};
     ///
     /// fn test(buf: impl Buf<Sample = i16>) {
@@ -131,16 +124,46 @@ pub trait Buf {
     ///
     /// We must instead make use of the various utility functions found on
     /// [Channel] to copy data out of the channel.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use audio::{Buf, Channel};
+    ///
+    /// fn test(buf: impl Buf<Sample = i16>) {
+    ///     let chan = buf.get(1).unwrap();
+    ///     chan.iter().eq([5, 6, 7, 8]);
+    /// }
+    ///
+    /// test(audio::dynamic![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// test(audio::sequential![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// test(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// ```
     fn get(&self, channel: usize) -> Option<Self::Channel<'_>>;
 
     /// Construct an iterator over all the channels in the audio buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use audio::{Buf, Channel};
+    ///
+    /// fn test(buf: impl Buf<Sample = i16>) {
+    ///     let chan = buf.iter().nth(1).unwrap();
+    ///     chan.iter().eq([5, 6, 7, 8]);
+    /// }
+    ///
+    /// test(audio::dynamic![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// test(audio::sequential![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// test(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// ```
     fn iter(&self) -> Self::Iter<'_>;
 
     /// Construct a new buffer where `n` frames are skipped.
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     /// use audio::buf;
     ///
@@ -154,7 +177,7 @@ pub trait Buf {
     ///
     /// With a mutable buffer.
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     /// use audio::{buf, wrap};
     ///
@@ -176,7 +199,7 @@ pub trait Buf {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     /// use audio::buf;
     ///
@@ -186,6 +209,28 @@ pub trait Buf {
     /// buf::copy(from, (&mut to).tail(2));
     ///
     /// assert_eq!(to.as_slice(), &[0, 0, 0, 0, 1, 1, 1, 1]);
+    /// ```
+    ///
+    /// The [tail][Buf::tail] of a buffer adjusts all functions associated with
+    /// the [Buf]:
+    ///
+    /// ```
+    /// use audio::{Buf, ExactSizeBuf};
+    ///
+    /// let buf = audio::interleaved![[1, 2, 3, 4]; 2];
+    ///
+    /// assert_eq!((&buf).tail(0).channels(), 2);
+    /// assert_eq!((&buf).tail(0).frames_hint(), Some(0));
+    ///
+    /// assert_eq!((&buf).tail(1).channels(), 2);
+    /// assert_eq!((&buf).tail(1).frames_hint(), Some(1));
+    ///
+    /// assert_eq!((&buf).tail(5).channels(), 2);
+    /// assert_eq!((&buf).tail(5).frames_hint(), Some(4));
+    ///
+    /// for chan in buf.tail(2).iter() {
+    ///     assert!(chan.iter().eq([3, 4]));
+    /// }
     /// ```
     fn tail(self, n: usize) -> Tail<Self>
     where
@@ -198,7 +243,7 @@ pub trait Buf {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     /// use audio::buf;
     ///
@@ -209,36 +254,33 @@ pub trait Buf {
     ///
     /// assert_eq!(to.as_slice(), &[1, 1, 1, 1, 0, 0, 0, 0]);
     /// ```
+    ///
+    /// The [limit][Buf::limit] of a buffer adjusts all functions associated
+    /// with the [Buf]:
+    ///
+    /// ```
+    /// use audio::Buf;
+    ///
+    /// let buf = audio::interleaved![[1, 2, 3, 4]; 2];
+    ///
+    /// assert_eq!((&buf).limit(0).channels(), 2);
+    /// assert_eq!((&buf).limit(0).frames_hint(), Some(0));
+    ///
+    /// assert_eq!((&buf).limit(1).channels(), 2);
+    /// assert_eq!((&buf).limit(1).frames_hint(), Some(1));
+    ///
+    /// assert_eq!((&buf).limit(5).channels(), 2);
+    /// assert_eq!((&buf).limit(5).frames_hint(), Some(4));
+    ///
+    /// for chan in buf.limit(2).iter() {
+    ///     assert!(chan.iter().eq([1, 2]));
+    /// }
+    /// ```
     fn limit(self, limit: usize) -> Limit<Self>
     where
         Self: Sized,
     {
         Limit::new(self, limit)
-    }
-
-    /// Construct a range of frames corresponds to the chunk with `len` and
-    /// position `n`.
-    ///
-    /// Which is the range `n * len .. n * len + len`.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use audio::Buf;
-    /// use audio::buf;
-    ///
-    /// let from = audio::interleaved![[1; 4]; 2];
-    /// let mut to = audio::interleaved![[0; 4]; 2];
-    ///
-    /// buf::copy(from, (&mut to).chunk(1, 2));
-    ///
-    /// assert_eq!(to.as_slice(), &[0, 0, 0, 0, 1, 1, 1, 1]);
-    /// ```
-    fn chunk(self, n: usize, len: usize) -> Chunk<Self>
-    where
-        Self: Sized,
-    {
-        Chunk::new(self, n, len)
     }
 }
 

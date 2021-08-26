@@ -10,7 +10,7 @@
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// use audio::ReadBuf;
 /// use audio::{io, wrap};
 /// # fn send_data(buf: &mut [i16]) {}
@@ -43,15 +43,15 @@ pub trait ReadBuf {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::ReadBuf;
     ///
-    /// let mut buffer = audio::wrap::interleaved(&[0, 1, 2, 3, 4, 5, 6, 7][..], 2);
+    /// let mut buf = audio::wrap::interleaved(&[0, 1, 2, 3, 4, 5, 6, 7][..], 2);
     ///
-    /// assert!(buffer.has_remaining());
-    /// assert_eq!(buffer.remaining(), 4);
-    /// buffer.advance(4);
-    /// assert_eq!(buffer.remaining(), 0);
+    /// assert!(buf.has_remaining());
+    /// assert_eq!(buf.remaining(), 4);
+    /// buf.advance(4);
+    /// assert_eq!(buf.remaining(), 0);
     /// ```
     fn has_remaining(&self) -> bool {
         self.remaining() > 0
@@ -61,12 +61,11 @@ pub trait ReadBuf {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::ReadBuf;
     ///
-    /// let buffer = audio::wrap::interleaved(&[0, 1, 2, 3, 4, 5, 6, 7][..], 2);
-    ///
-    /// assert_eq!(buffer.remaining(), 4);
+    /// let buf = audio::wrap::interleaved(&[0, 1, 2, 3, 4, 5, 6, 7][..], 2);
+    /// assert_eq!(buf.remaining(), 4);
     /// ```
     fn remaining(&self) -> usize;
 
@@ -74,14 +73,14 @@ pub trait ReadBuf {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::ReadBuf;
     ///
-    /// let mut buffer = audio::wrap::interleaved(&[0, 1, 2, 3, 4, 5, 6, 7][..], 2);
+    /// let mut buf = audio::wrap::interleaved(&[0, 1, 2, 3, 4, 5, 6, 7][..], 2);
     ///
-    /// assert_eq!(buffer.remaining(), 4);
-    /// buffer.advance(2);
-    /// assert_eq!(buffer.remaining(), 2);
+    /// assert_eq!(buf.remaining(), 4);
+    /// buf.advance(2);
+    /// assert_eq!(buf.remaining(), 2);
     /// ```
     fn advance(&mut self, n: usize);
 }

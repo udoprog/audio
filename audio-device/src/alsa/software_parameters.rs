@@ -38,7 +38,7 @@ impl SoftwareParameters {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -59,7 +59,7 @@ impl SoftwareParameters {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -85,7 +85,7 @@ impl SoftwareParameters {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -114,7 +114,7 @@ impl SoftwareParameters {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -143,7 +143,7 @@ impl SoftwareParameters {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -166,7 +166,7 @@ impl SoftwareParameters {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -188,7 +188,7 @@ impl SoftwareParameters {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -210,7 +210,7 @@ impl SoftwareParameters {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -236,7 +236,7 @@ impl SoftwareParameters {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -258,7 +258,7 @@ impl SoftwareParameters {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -307,7 +307,7 @@ impl<'a> SoftwareParametersMut<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -332,7 +332,7 @@ impl<'a> SoftwareParametersMut<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -357,7 +357,7 @@ impl<'a> SoftwareParametersMut<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -388,7 +388,7 @@ impl<'a> SoftwareParametersMut<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -415,7 +415,7 @@ impl<'a> SoftwareParametersMut<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -440,7 +440,7 @@ impl<'a> SoftwareParametersMut<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -465,7 +465,7 @@ impl<'a> SoftwareParametersMut<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -490,7 +490,7 @@ impl<'a> SoftwareParametersMut<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -525,7 +525,7 @@ impl<'a> SoftwareParametersMut<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {

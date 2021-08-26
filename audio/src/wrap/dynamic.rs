@@ -15,7 +15,7 @@ impl<T> Dynamic<T> {
 
     /// Get a reference to the inner value.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// let buf = audio::wrap::dynamic(vec![vec![1, 2, 3, 4]]);
@@ -27,7 +27,7 @@ impl<T> Dynamic<T> {
 
     /// Get a mutable reference to the inner value.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// let mut buf = audio::wrap::dynamic(vec![vec![1, 2, 3, 4]]);
@@ -40,7 +40,7 @@ impl<T> Dynamic<T> {
 
     /// Get the inner wrapper value.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// let buf = audio::wrap::dynamic(vec![vec![1, 2, 3, 4]]);
@@ -166,6 +166,10 @@ impl<T> ResizableBuf for Dynamic<Vec<Vec<T>>>
 where
     T: Sample,
 {
+    fn try_reserve(&mut self, _capacity: usize) -> bool {
+        false
+    }
+
     fn resize(&mut self, frames: usize) {
         for buf in self.value.iter_mut() {
             buf.resize(frames, T::ZERO);

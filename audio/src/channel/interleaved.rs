@@ -60,7 +60,7 @@ impl<'a, T> InterleavedRef<'a, T> {
     /// true if the given number of `channels` cannot fit within it or if the
     /// selected `channel` does not fit within the specified `channels`.
     ///
-    /// ```rust
+    /// ```
     /// use audio::channel::InterleavedRef;
     ///
     /// let buf: &[u32] = &[1, 2];
@@ -69,7 +69,7 @@ impl<'a, T> InterleavedRef<'a, T> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::channel::InterleavedRef;
     ///
     /// let buf: &[u32] = &[1, 2, 3, 4, 5, 6, 7, 8];
@@ -121,7 +121,7 @@ impl<'a, T> InterleavedMut<'a, T> {
     /// the given number of `channels` cannot fit within it or if the selected
     /// `channel` does not fit within the specified `channels`.
     ///
-    /// ```rust
+    /// ```
     /// use audio::channel::InterleavedMut;
     ///
     /// let buf: &mut [u32] = &mut [1, 2];
@@ -130,7 +130,7 @@ impl<'a, T> InterleavedMut<'a, T> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::channel::InterleavedMut;
     ///
     /// let buf: &mut [u32] = &mut [1, 2, 3, 4, 5, 6, 7, 8];

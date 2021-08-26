@@ -41,7 +41,7 @@ where
 /// If all of the above is satifised, you can safely implement [Send] and [Sync]
 /// for the type. Make sure to include a comprehensive safety message such as:
 ///
-/// ```rust
+/// ```
 /// # struct Foo;
 /// // Safety: the structure is explicitly tagged with the thread that created
 /// // it, and we ensure everywhere (including drop implementations) where racy
@@ -57,7 +57,7 @@ where
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// use std::cell::Cell;
 ///
 /// struct Foo {
@@ -100,7 +100,7 @@ where
 ///
 /// Incorrect use of the tagged struct **must** panic:
 ///
-/// ```rust,should_panic
+/// ```should_panic
 /// # struct Foo { tag: ste::Tag }
 /// # impl Foo {
 /// #     fn new() -> Self { Self { tag: ste::Tag::current_thread() } }

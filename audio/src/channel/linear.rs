@@ -37,7 +37,7 @@ impl<'a, T> LinearRef<'a, T> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::channel::LinearRef;
     ///
     /// let buf: &[u32] = &[1, 3, 5, 7];
@@ -83,7 +83,7 @@ where
         T: 'i,
     = std::iter::Copied<std::slice::Iter<'i, T>>;
 
-    fn frames(&self) -> usize {
+    fn len(&self) -> usize {
         self.buf.len()
     }
 
@@ -108,17 +108,6 @@ where
     fn limit(self, limit: usize) -> Self {
         Self {
             buf: self.buf.get(..limit).unwrap_or_default(),
-        }
-    }
-
-    fn chunk(self, n: usize, window: usize) -> Self {
-        let n = n.saturating_mul(window);
-
-        Self {
-            buf: self
-                .buf
-                .get(n..n.saturating_add(window))
-                .unwrap_or_default(),
         }
     }
 
@@ -155,7 +144,7 @@ impl<'a, T> LinearMut<'a, T> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::channel::LinearMut;
     ///
     /// let buf: &mut [u32] = &mut [1, 3, 5, 7];
@@ -219,7 +208,7 @@ where
         T: 'i,
     = std::iter::Copied<std::slice::Iter<'i, T>>;
 
-    fn frames(&self) -> usize {
+    fn len(&self) -> usize {
         self.buf.len()
     }
 
@@ -244,18 +233,6 @@ where
     fn limit(self, limit: usize) -> Self {
         Self {
             buf: self.buf.get_mut(..limit).unwrap_or_default(),
-        }
-    }
-
-    fn chunk(self, n: usize, window: usize) -> Self {
-        let n = n.saturating_mul(window);
-
-        Self {
-            buf: self
-                .buf
-                .get_mut(n..)
-                .and_then(|b| b.get_mut(..window))
-                .unwrap_or_default(),
         }
     }
 

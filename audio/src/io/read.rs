@@ -4,7 +4,7 @@ use core::{Buf, BufMut, Channel, ExactSizeBuf, ReadBuf};
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// use audio::Buf;
 /// use audio::io;
 ///
@@ -28,21 +28,21 @@ impl<B> Read<B> {
     ///
     /// The constructed reader will be initialized so that the number of bytes
     /// available for reading are equal to what's reported by
-    /// [ExactSizeBuf::frames].
+    /// [ExactSizeBuf::len].
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{ReadBuf, ExactSizeBuf};
     /// use audio::io;
     ///
-    /// let buffer = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
-    /// assert_eq!(buffer.frames(), 4);
+    /// let buf = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
+    /// assert_eq!(buf.frames(), 4);
     ///
-    /// let buffer = io::Read::new(buffer);
+    /// let buf = io::Read::new(buf);
     ///
-    /// assert!(buffer.has_remaining());
-    /// assert_eq!(buffer.remaining(), 4);
+    /// assert!(buf.has_remaining());
+    /// assert_eq!(buf.remaining(), 4);
     /// ```
     #[inline]
     pub fn new(buf: B) -> Self
@@ -60,17 +60,17 @@ impl<B> Read<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{ReadBuf, ExactSizeBuf};
     /// use audio::io;
     ///
-    /// let buffer = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
-    /// assert_eq!(buffer.frames(), 4);
+    /// let buf = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
+    /// assert_eq!(buf.frames(), 4);
     ///
-    /// let buffer = io::Read::empty(buffer);
+    /// let buf = io::Read::empty(buf);
     ///
-    /// assert!(!buffer.has_remaining());
-    /// assert_eq!(buffer.remaining(), 0);
+    /// assert!(!buf.has_remaining());
+    /// assert_eq!(buf.remaining(), 0);
     /// ```
     pub fn empty(buf: B) -> Self {
         Self { buf, available: 0 }
@@ -80,7 +80,7 @@ impl<B> Read<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     /// use audio::{io, wrap};
     ///
@@ -100,7 +100,7 @@ impl<B> Read<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     /// use audio::{io, wrap};
     ///
@@ -122,7 +122,7 @@ impl<B> Read<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     /// use audio::{io, wrap};
     ///
@@ -148,7 +148,7 @@ impl<B> Read<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{Buf, ReadBuf};
     /// use audio::io;
     ///
@@ -157,14 +157,12 @@ impl<B> Read<B> {
     ///     io::copy_remaining(read, io::Write::new(&mut out));
     /// }
     ///
-    /// let mut buffer = io::Read::new(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
-    /// read_from_buf(&mut buffer);
+    /// let mut buf = io::Read::new(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// read_from_buf(&mut buf);
     ///
-    /// assert!(!buffer.has_remaining());
-    ///
-    /// buffer.set_read(0);
-    ///
-    /// assert!(buffer.has_remaining());
+    /// assert!(!buf.has_remaining());
+    /// buf.set_read(0);
+    /// assert!(buf.has_remaining());
     /// ```
     #[inline]
     pub fn set_read(&mut self, read: usize)

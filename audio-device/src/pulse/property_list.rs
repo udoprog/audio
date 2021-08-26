@@ -16,7 +16,7 @@ impl PropertyList {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio_device::pulse;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -35,7 +35,7 @@ impl PropertyList {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio_device::pulse;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -51,7 +51,7 @@ impl PropertyList {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio_device::pulse;
     ///
     /// # fn main() -> anyhow::Result<()> {

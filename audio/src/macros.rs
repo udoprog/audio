@@ -4,7 +4,7 @@
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// let buf = audio::dynamic![[0; 64]; 2];
 ///
 /// let mut expected = vec![0; 64];
@@ -15,7 +15,7 @@
 ///
 /// Calling the macro with a template channel.
 ///
-/// ```rust
+/// ```
 /// let buf = audio::dynamic![[0, 1, 2, 3]; 2];
 ///
 /// assert_eq!(&buf[0], &[0, 1, 2, 3]);
@@ -24,7 +24,7 @@
 ///
 /// Using an exact topology of channels.
 ///
-/// ```rust
+/// ```
 /// let buf = audio::dynamic![[0, 1, 2, 3], [4, 5, 6, 7]];
 ///
 /// assert_eq!(&buf[0], &[0, 1, 2, 3]);
@@ -48,15 +48,15 @@ macro_rules! dynamic {
     // `Copy`. `$frames` and `$channels` should evaluate to `usize`.
     ([$sample:expr; $frames:expr]; $channels:expr) => {{
         let value = $sample;
-        let mut buffer = $crate::buf::Dynamic::with_topology($channels, $frames);
+        let mut buf = $crate::buf::Dynamic::with_topology($channels, $frames);
 
-        for chan in &mut buffer {
+        for chan in &mut buf {
             for f in chan {
                 *f = value;
             }
         }
 
-        buffer
+        buf
     }};
 
     // Build a dynamic audio buffer with a template channel.
@@ -76,7 +76,7 @@ macro_rules! dynamic {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// let buf = audio::sequential![[0; 64]; 2];
 ///
 /// let mut expected = vec![0; 64];
@@ -87,7 +87,7 @@ macro_rules! dynamic {
 ///
 /// Calling the macro with a template channel.
 ///
-/// ```rust
+/// ```
 /// let buf = audio::sequential![[0, 1, 2, 3]; 2];
 ///
 /// assert_eq!(buf.as_slice(), &[0, 1, 2, 3, 0, 1, 2, 3])
@@ -95,7 +95,7 @@ macro_rules! dynamic {
 ///
 /// Using an exact topology of channels.
 ///
-/// ```rust
+/// ```
 /// let buf = audio::sequential![[0, 1, 2, 3], [4, 5, 6, 7]];
 ///
 /// assert_eq!(buf.as_slice(), &[0, 1, 2, 3, 4, 5, 6, 7])
@@ -128,7 +128,7 @@ macro_rules! sequential {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// let buf = audio::interleaved![[0; 64]; 2];
 ///
 /// let mut expected = vec![0; 64];
@@ -139,7 +139,7 @@ macro_rules! sequential {
 ///
 /// Calling the macro with a template channel.
 ///
-/// ```rust
+/// ```
 /// let buf = audio::interleaved![[0, 1, 2, 3]; 2];
 ///
 /// assert_eq!(buf.as_slice(), &[0, 0, 1, 1, 2, 2, 3, 3])
@@ -147,7 +147,7 @@ macro_rules! sequential {
 ///
 /// Using an exact topology of channels.
 ///
-/// ```rust
+/// ```
 /// let buf = audio::interleaved![[0, 1, 2, 3], [4, 5, 6, 7]];
 ///
 /// assert_eq!(buf.as_slice(), &[0, 4, 1, 5, 2, 6, 3, 7])

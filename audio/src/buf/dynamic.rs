@@ -46,10 +46,10 @@ impl<T> Dynamic<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
+    /// ```
+    /// let buf = audio::buf::Dynamic::<f32>::new();
     ///
-    /// assert_eq!(buffer.frames(), 0);
+    /// assert_eq!(buf.frames(), 0);
     /// ```
     pub fn new() -> Self {
         Self {
@@ -67,11 +67,11 @@ impl<T> Dynamic<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Dynamic::<f32>::with_topology(4, 256);
+    /// ```
+    /// let buf = audio::buf::Dynamic::<f32>::with_topology(4, 256);
     ///
-    /// assert_eq!(buffer.frames(), 256);
-    /// assert_eq!(buffer.channels(), 4);
+    /// assert_eq!(buf.frames(), 256);
+    /// assert_eq!(buf.channels(), 4);
     /// ```
     pub fn with_topology(channels: usize, frames: usize) -> Self
     where
@@ -103,14 +103,14 @@ impl<T> Dynamic<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Dynamic::<f32>::from_array([[2.0; 256]; 4]);
+    /// ```
+    /// let buf = audio::buf::Dynamic::<f32>::from_array([[2.0; 256]; 4]);
     ///
-    /// assert_eq!(buffer.frames(), 256);
-    /// assert_eq!(buffer.channels(), 4);
+    /// assert_eq!(buf.frames(), 256);
+    /// assert_eq!(buf.channels(), 4);
     ///
-    /// for chan in &buffer {
-    ///     assert_eq!(chan.as_ref(), vec![2.0; 256]);
+    /// for chan in &buf {
+    ///     assert_eq!(chan.as_ref(), [2.0; 256]);
     /// }
     /// ```
     pub fn from_array<const F: usize, const C: usize>(channels: [[T; F]; C]) -> Self
@@ -155,11 +155,11 @@ impl<T> Dynamic<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Dynamic::from_frames([1.0, 2.0, 3.0, 4.0], 4);
+    /// ```
+    /// let buf = audio::buf::Dynamic::from_frames([1.0, 2.0, 3.0, 4.0], 4);
     ///
-    /// assert_eq!(buffer.frames(), 4);
-    /// assert_eq!(buffer.channels(), 4);
+    /// assert_eq!(buf.frames(), 4);
+    /// assert_eq!(buf.channels(), 4);
     /// ```
     pub fn from_frames<const N: usize>(frames: [T; N], channels: usize) -> Self
     where
@@ -195,31 +195,31 @@ impl<T> Dynamic<T> {
         }
     }
 
-    /// Get the number of frames in the channels of an audio buffer.
+    /// Get how many frames there are in the buffer.
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
+    /// ```
+    /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
-    /// assert_eq!(buffer.frames(), 0);
-    /// buffer.resize(256);
-    /// assert_eq!(buffer.frames(), 256);
+    /// assert_eq!(buf.frames(), 0);
+    /// buf.resize(256);
+    /// assert_eq!(buf.frames(), 256);
     /// ```
     pub fn frames(&self) -> usize {
         self.frames
     }
 
-    /// Check how many channels there are in the buffer.
+    /// Get how many channels there are in the buffer.
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
+    /// ```
+    /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
-    /// assert_eq!(buffer.channels(), 0);
-    /// buffer.resize_channels(2);
-    /// assert_eq!(buffer.channels(), 2);
+    /// assert_eq!(buf.channels(), 0);
+    /// buf.resize_channels(2);
+    /// assert_eq!(buf.channels(), 2);
     /// ```
     pub fn channels(&self) -> usize {
         self.channels
@@ -230,13 +230,13 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```
-    /// use rand::Rng as _;
+    /// use rand::Rng;
     ///
-    /// let mut buffer = audio::buf::Dynamic::<f32>::with_topology(4, 256);
+    /// let mut buf = audio::buf::Dynamic::<f32>::with_topology(4, 256);
     ///
     /// let all_zeros = vec![0.0; 256];
     ///
-    /// for chan in buffer.iter() {
+    /// for chan in buf.iter() {
     ///     assert_eq!(chan.as_ref(), &all_zeros[..]);
     /// }
     /// ```
@@ -250,12 +250,12 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```
-    /// use rand::Rng as _;
+    /// use rand::Rng;
     ///
-    /// let mut buffer = audio::buf::Dynamic::<f32>::with_topology(4, 256);
+    /// let mut buf = audio::buf::Dynamic::<f32>::with_topology(4, 256);
     /// let mut rng = rand::thread_rng();
     ///
-    /// for mut chan in buffer.iter_mut() {
+    /// for mut chan in buf.iter_mut() {
     ///     rng.fill(chan.as_mut());
     /// }
     /// ```
@@ -273,35 +273,35 @@ impl<T> Dynamic<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
+    /// ```
+    /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
-    /// assert_eq!(buffer.channels(), 0);
-    /// assert_eq!(buffer.frames(), 0);
+    /// assert_eq!(buf.channels(), 0);
+    /// assert_eq!(buf.frames(), 0);
     ///
-    /// buffer.resize_channels(4);
-    /// buffer.resize(256);
+    /// buf.resize_channels(4);
+    /// buf.resize(256);
     ///
-    /// assert_eq!(buffer[1][128], 0.0);
-    /// buffer[1][128] = 42.0;
+    /// assert_eq!(buf[1][128], 0.0);
+    /// buf[1][128] = 42.0;
     ///
-    /// assert_eq!(buffer.channels(), 4);
-    /// assert_eq!(buffer.frames(), 256);
+    /// assert_eq!(buf.channels(), 4);
+    /// assert_eq!(buf.frames(), 256);
     /// ```
     ///
     /// Decreasing and increasing the size will not touch a buffer that has
     /// already been allocated.
     ///
-    /// ```rust
-    /// # let mut buffer = audio::buf::Dynamic::<f32>::with_topology(4, 256);
-    /// assert_eq!(buffer[1][128], 0.0);
-    /// buffer[1][128] = 42.0;
+    /// ```
+    /// # let mut buf = audio::buf::Dynamic::<f32>::with_topology(4, 256);
+    /// assert_eq!(buf[1][128], 0.0);
+    /// buf[1][128] = 42.0;
     ///
-    /// buffer.resize(64);
-    /// assert!(buffer[1].get(128).is_none());
+    /// buf.resize(64);
+    /// assert!(buf[1].get(128).is_none());
     ///
-    /// buffer.resize(256);
-    /// assert_eq!(buffer[1][128], 42.0);
+    /// buf.resize(256);
+    /// assert_eq!(buf[1][128], 42.0);
     /// ```
     pub fn resize(&mut self, frames: usize)
     where
@@ -339,17 +339,17 @@ impl<T> Dynamic<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
+    /// ```
+    /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
-    /// assert_eq!(buffer.channels(), 0);
-    /// assert_eq!(buffer.frames(), 0);
+    /// assert_eq!(buf.channels(), 0);
+    /// assert_eq!(buf.frames(), 0);
     ///
-    /// buffer.resize_channels(4);
-    /// buffer.resize(256);
+    /// buf.resize_channels(4);
+    /// buf.resize(256);
     ///
-    /// assert_eq!(buffer.channels(), 4);
-    /// assert_eq!(buffer.frames(), 256);
+    /// assert_eq!(buf.channels(), 4);
+    /// assert_eq!(buf.frames(), 256);
     /// ```
     pub fn resize_channels(&mut self, channels: usize)
     where
@@ -391,19 +391,19 @@ impl<T> Dynamic<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
+    /// ```
+    /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
-    /// buffer.resize_channels(4);
-    /// buffer.resize(256);
+    /// buf.resize_channels(4);
+    /// buf.resize(256);
     ///
     /// let expected = vec![0.0; 256];
     ///
-    /// assert_eq!(buffer.get(0).unwrap(), &expected[..]);
-    /// assert_eq!(buffer.get(1).unwrap(), &expected[..]);
-    /// assert_eq!(buffer.get(2).unwrap(), &expected[..]);
-    /// assert_eq!(buffer.get(3).unwrap(), &expected[..]);
-    /// assert!(buffer.get(4).is_none());
+    /// assert_eq!(buf.get(0).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get(1).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get(2).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get(3).unwrap(), &expected[..]);
+    /// assert!(buf.get(4).is_none());
     /// ```
     pub fn get(&self, channel: usize) -> Option<LinearRef<'_, T>> {
         if channel < self.channels {
@@ -420,17 +420,17 @@ impl<T> Dynamic<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
+    /// ```
+    /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
-    /// buffer.resize(256);
+    /// buf.resize(256);
     ///
     /// let expected = vec![0f32; 256];
     ///
-    /// assert_eq!(buffer.get_or_default(0), &expected[..]);
-    /// assert_eq!(buffer.get_or_default(1), &expected[..]);
+    /// assert_eq!(buf.get_or_default(0), &expected[..]);
+    /// assert_eq!(buf.get_or_default(1), &expected[..]);
     ///
-    /// assert_eq!(buffer.channels(), 2);
+    /// assert_eq!(buf.channels(), 2);
     /// ```
     pub fn get_or_default(&mut self, channel: usize) -> &[T]
     where
@@ -447,21 +447,21 @@ impl<T> Dynamic<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// use rand::Rng as _;
+    /// ```
+    /// use rand::Rng;
     ///
-    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
+    /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
-    /// buffer.resize_channels(2);
-    /// buffer.resize(256);
+    /// buf.resize_channels(2);
+    /// buf.resize(256);
     ///
     /// let mut rng = rand::thread_rng();
     ///
-    /// if let Some(mut left) = buffer.get_mut(0) {
+    /// if let Some(mut left) = buf.get_mut(0) {
     ///     rng.fill(left.as_mut());
     /// }
     ///
-    /// if let Some(mut right) = buffer.get_mut(1) {
+    /// if let Some(mut right) = buf.get_mut(1) {
     ///     rng.fill(right.as_mut());
     /// }
     /// ```
@@ -482,19 +482,19 @@ impl<T> Dynamic<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// use rand::Rng as _;
+    /// ```
+    /// use rand::Rng;
     ///
-    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
+    /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
-    /// buffer.resize(256);
+    /// buf.resize(256);
     ///
     /// let mut rng = rand::thread_rng();
     ///
-    /// rng.fill(buffer.get_or_default_mut(0));
-    /// rng.fill(buffer.get_or_default_mut(1));
+    /// rng.fill(buf.get_or_default_mut(0));
+    /// rng.fill(buf.get_or_default_mut(1));
     ///
-    /// assert_eq!(buffer.channels(), 2);
+    /// assert_eq!(buf.channels(), 2);
     /// ```
     pub fn get_or_default_mut(&mut self, channel: usize) -> &mut [T]
     where
@@ -515,14 +515,14 @@ impl<T> Dynamic<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
-    /// buffer.resize_channels(4);
-    /// buffer.resize(512);
+    /// ```
+    /// let mut buf = audio::buf::Dynamic::<f32>::new();
+    /// buf.resize_channels(4);
+    /// buf.resize(512);
     ///
     /// let expected = vec![0.0; 512];
     ///
-    /// let buffers = buffer.into_vectors();
+    /// let buffers = buf.into_vectors();
     /// assert_eq!(buffers.len(), 4);
     /// assert_eq!(buffers[0], &expected[..]);
     /// assert_eq!(buffers[1], &expected[..]);
@@ -544,14 +544,14 @@ impl<T> Dynamic<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Dynamic::<f32>::new();
-    /// buffer.resize_channels(4);
-    /// buffer.resize(512);
+    /// ```
+    /// let mut buf = audio::buf::Dynamic::<f32>::new();
+    /// buf.resize_channels(4);
+    /// buf.resize(512);
     ///
     /// let expected = vec![0.0; 512];
     ///
-    /// let buffers = buffer.into_vectors_if(|n| n != 1);
+    /// let buffers = buf.into_vectors_if(|n| n != 1);
     /// assert_eq!(buffers.len(), 4);
     /// assert_eq!(buffers[0], &expected[..]);
     /// assert_eq!(buffers[1], &[][..]);
@@ -735,7 +735,7 @@ where
     T: Copy,
 {
     fn frames(&self) -> usize {
-        self.frames
+        (*self).frames()
     }
 }
 
@@ -760,7 +760,7 @@ where
     }
 
     fn channels(&self) -> usize {
-        self.channels
+        (*self).channels()
     }
 
     fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
@@ -776,6 +776,10 @@ impl<T> ResizableBuf for Dynamic<T>
 where
     T: Sample,
 {
+    fn try_reserve(&mut self, _capacity: usize) -> bool {
+        false
+    }
+
     fn resize(&mut self, frames: usize) {
         Self::resize(self, frames);
     }

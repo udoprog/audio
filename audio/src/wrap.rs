@@ -23,7 +23,7 @@ pub use self::dynamic::Dynamic;
 ///
 /// # Example using a buffer for linear I/O
 ///
-/// ```rust
+/// ```
 /// use audio::{wrap, io};
 /// use audio::ReadBuf as _;
 ///
@@ -42,7 +42,7 @@ pub use self::dynamic::Dynamic;
 ///
 /// Or with a mutable slice for writing.
 ///
-/// ```rust
+/// ```
 /// use audio::{wrap, io};
 /// use audio::WriteBuf as _;
 ///

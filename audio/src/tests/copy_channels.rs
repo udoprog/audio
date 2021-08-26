@@ -8,55 +8,55 @@ use core::{Buf, BufMut, Channel};
 
 #[test]
 fn test_copy_channels_dynamic() {
-    let mut buffer: crate::buf::Dynamic<i16> = crate::dynamic![[1, 2, 3, 4], [0, 0, 0, 0]];
-    buffer.copy_channels(0, 1);
+    let mut buf: crate::buf::Dynamic<i16> = crate::dynamic![[1, 2, 3, 4], [0, 0, 0, 0]];
+    buf.copy_channels(0, 1);
 
-    assert_eq!(buffer.get(1), buffer.get(0));
+    assert_eq!(buf.get(1), buf.get(0));
 }
 
 #[test]
 fn test_copy_channels_sequential() {
-    let mut buffer: crate::buf::Sequential<i16> = crate::sequential![[1, 2, 3, 4], [0, 0, 0, 0]];
-    buffer.copy_channels(0, 1);
+    let mut buf: crate::buf::Sequential<i16> = crate::sequential![[1, 2, 3, 4], [0, 0, 0, 0]];
+    buf.copy_channels(0, 1);
 
-    assert_eq!(buffer.get(1), buffer.get(0));
-    assert_eq!(buffer.as_slice(), &[1, 2, 3, 4, 1, 2, 3, 4]);
+    assert_eq!(buf.get(1), buf.get(0));
+    assert_eq!(buf.as_slice(), &[1, 2, 3, 4, 1, 2, 3, 4]);
 }
 
 #[test]
 fn test_copy_channels_wrap_sequential() {
     let mut data = [1, 2, 3, 4, 0, 0, 0, 0];
     let data = &mut data[..];
-    let mut buffer: wrap::Sequential<&mut [i16]> = wrap::sequential(data, 2);
-    buffer.copy_channels(0, 1);
+    let mut buf: wrap::Sequential<&mut [i16]> = wrap::sequential(data, 2);
+    buf.copy_channels(0, 1);
 
-    assert_eq!(buffer.get(1), buffer.get(0));
+    assert_eq!(buf.get(1), buf.get(0));
     assert_eq!(data, &[1, 2, 3, 4, 1, 2, 3, 4]);
 }
 
 #[test]
 fn test_copy_channels_interleaved() {
-    let mut buffer: crate::buf::Interleaved<i16> = crate::interleaved![[1, 2, 3, 4], [0, 0, 0, 0]];
-    buffer.copy_channels(0, 1);
+    let mut buf: crate::buf::Interleaved<i16> = crate::interleaved![[1, 2, 3, 4], [0, 0, 0, 0]];
+    buf.copy_channels(0, 1);
 
-    assert_eq!(buffer.get(1), buffer.get(0));
-    assert_eq!(buffer.as_slice(), &[1, 1, 2, 2, 3, 3, 4, 4]);
+    assert_eq!(buf.get(1), buf.get(0));
+    assert_eq!(buf.as_slice(), &[1, 1, 2, 2, 3, 3, 4, 4]);
 }
 
 #[test]
 fn test_copy_channels_wrap_interleaved() {
     let mut data = [1, 0, 2, 0, 3, 0, 4, 0];
-    let mut buffer: wrap::Interleaved<&mut [i16]> = wrap::interleaved(&mut data[..], 2);
-    buffer.copy_channels(0, 1);
+    let mut buf: wrap::Interleaved<&mut [i16]> = wrap::interleaved(&mut data[..], 2);
+    buf.copy_channels(0, 1);
 
-    assert_eq!(buffer.get(1), buffer.get(0));
+    assert_eq!(buf.get(1), buf.get(0));
     assert_eq!(&data[..], &[1, 1, 2, 2, 3, 3, 4, 4]);
 }
 
 #[test]
 fn test_copy_channels_vec_of_vecs() {
-    let mut buffer = crate::wrap::dynamic(vec![vec![1, 2, 3, 4], vec![0, 0]]);
-    buffer.copy_channels(0, 1);
+    let mut buf = crate::wrap::dynamic(vec![vec![1, 2, 3, 4], vec![0, 0]]);
+    buf.copy_channels(0, 1);
 
-    assert_eq!(buffer.get(1).unwrap(), buffer.get(0).unwrap().limit(2));
+    assert_eq!(buf.get(1).unwrap(), buf.get(0).unwrap().limit(2));
 }

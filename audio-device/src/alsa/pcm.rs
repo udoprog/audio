@@ -22,7 +22,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CStr;
     ///
@@ -40,7 +40,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CStr;
     ///
@@ -60,7 +60,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CStr;
     ///
@@ -78,7 +78,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CStr;
     ///
@@ -116,7 +116,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -143,7 +143,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -163,7 +163,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -184,7 +184,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -205,7 +205,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -226,7 +226,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -246,7 +246,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -269,7 +269,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -288,7 +288,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -308,7 +308,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -329,7 +329,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -367,7 +367,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -461,7 +461,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -510,7 +510,7 @@ impl Pcm {
         ///
         /// # Examples
         ///
-        /// ```rust,no_run
+        /// ```no_run
         /// use audio_device::alsa;
         ///
         /// # fn main() -> anyhow::Result<()> {
@@ -557,7 +557,7 @@ impl Pcm {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {

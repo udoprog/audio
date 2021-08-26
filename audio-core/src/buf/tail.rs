@@ -15,22 +15,6 @@ impl<B> Tail<B> {
     }
 }
 
-/// [Tail] adjusts the implementation of [Buf].
-///
-/// ```rust
-/// use audio::{Buf, ExactSizeBuf};
-///
-/// let buf = audio::interleaved![[0; 4]; 2];
-///
-/// assert_eq!((&buf).tail(0).channels(), 2);
-/// assert_eq!((&buf).tail(0).frames_hint(), Some(0));
-///
-/// assert_eq!((&buf).tail(1).channels(), 2);
-/// assert_eq!((&buf).tail(1).frames_hint(), Some(1));
-///
-/// assert_eq!((&buf).tail(5).channels(), 2);
-/// assert_eq!((&buf).tail(5).frames_hint(), Some(4));
-/// ```
 impl<B> Buf for Tail<B>
 where
     B: Buf,
@@ -103,7 +87,7 @@ where
 
 /// [Tail] adjusts the implementation of [ExactSizeBuf].
 ///
-/// ```rust
+/// ```
 /// use audio::{Buf, ExactSizeBuf};
 ///
 /// let buf = audio::interleaved![[0; 4]; 2];

@@ -2,7 +2,7 @@
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// let mask: bittle::BitSet<u128> = bittle::bit_set![0, 1, 3];
 ///
 /// assert!(mask.test(0));

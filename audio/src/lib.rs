@@ -64,15 +64,15 @@
 //! ```rust
 //! use rand::Rng;
 //!
-//! let mut buffer = audio::buf::Dynamic::<f32>::new();
+//! let mut buf = audio::buf::Dynamic::<f32>::new();
 //!
-//! buffer.resize_channels(2);
-//! buffer.resize(2048);
+//! buf.resize_channels(2);
+//! buf.resize(2048);
 //!
 //! /// Fill both channels with random noise.
 //! let mut rng = rand::thread_rng();
-//! rng.fill(&mut buffer[0]);
-//! rng.fill(&mut buffer[1]);
+//! rng.fill(&mut buf[0]);
+//! rng.fill(&mut buf[1]);
 //! ```
 //!
 //! For convenience we also provide several macros for constructing various

@@ -17,7 +17,7 @@ impl<B> Skip<B> {
 
 /// [Skip] adjusts the implementation of [Buf].
 ///
-/// ```rust
+/// ```
 /// use audio::{Buf, ExactSizeBuf};
 ///
 /// let buf = audio::interleaved![[0; 4]; 2];
@@ -103,7 +103,7 @@ where
 
 /// [Skip] adjusts the implementation of [ExactSizeBuf].
 ///
-/// ```rust
+/// ```
 /// use audio::{Buf, ExactSizeBuf};
 ///
 /// let buf = audio::interleaved![[0; 4]; 2];

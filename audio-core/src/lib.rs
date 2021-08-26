@@ -41,10 +41,7 @@ mod resizable_buf;
 pub use self::resizable_buf::ResizableBuf;
 
 mod interleaved_buf;
-pub use self::interleaved_buf::Interleaved;
+pub use self::interleaved_buf::InterleavedBuf;
 
-mod as_interleaved;
-pub use self::as_interleaved::AsInterleaved;
-
-mod as_interleaved_mut;
-pub use self::as_interleaved_mut::AsInterleavedMut;
+mod interleaved_buf_mut;
+pub use self::interleaved_buf_mut::InterleavedBufMut;

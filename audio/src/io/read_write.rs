@@ -5,7 +5,7 @@ use core::{Buf, BufMut, Channel, ExactSizeBuf, ReadBuf, WriteBuf};
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// use audio::{Buf, ReadBuf, WriteBuf};
 /// use audio::io;
 ///
@@ -62,21 +62,21 @@ impl<B> ReadWrite<B> {
     ///
     /// The constructed reader will be initialized so that the number of bytes
     /// available for reading are equal to what's reported by
-    /// [ExactSizeBuf::frames].
+    /// [ExactSizeBuf::len].
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{ReadBuf, ExactSizeBuf};
     /// use audio::io;
     ///
-    /// let buffer = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
-    /// assert_eq!(buffer.frames(), 4);
+    /// let buf = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
+    /// assert_eq!(buf.frames(), 4);
     ///
-    /// let buffer = io::ReadWrite::new(buffer);
+    /// let buf = io::ReadWrite::new(buf);
     ///
-    /// assert!(buffer.has_remaining());
-    /// assert_eq!(buffer.remaining(), 4);
+    /// assert!(buf.has_remaining());
+    /// assert_eq!(buf.remaining(), 4);
     /// ```
     pub fn new(buf: B) -> Self
     where
@@ -99,17 +99,17 @@ impl<B> ReadWrite<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{ReadBuf, ExactSizeBuf};
     /// use audio::io;
     ///
-    /// let buffer = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
-    /// assert_eq!(buffer.frames(), 4);
+    /// let buf = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
+    /// assert_eq!(buf.frames(), 4);
     ///
-    /// let buffer = io::ReadWrite::empty(buffer);
+    /// let buf = io::ReadWrite::empty(buf);
     ///
-    /// assert!(!buffer.has_remaining());
-    /// assert_eq!(buffer.remaining(), 0);
+    /// assert!(!buf.has_remaining());
+    /// assert_eq!(buf.remaining(), 0);
     /// ```
     pub fn empty(buf: B) -> Self {
         Self {
@@ -123,18 +123,18 @@ impl<B> ReadWrite<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     /// use audio::io;
     ///
-    /// let buffer: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = io::ReadWrite::new(buffer);
+    /// let buf: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut buf = io::ReadWrite::new(buf);
     ///
     /// let from = audio::wrap::interleaved(&[1i16, 2i16, 3i16, 4i16][..], 2);
     ///
-    /// io::translate_remaining(from, &mut buffer);
+    /// io::translate_remaining(from, &mut buf);
     ///
-    /// assert_eq!(buffer.as_ref().channels(), 4);
+    /// assert_eq!(buf.as_ref().channels(), 4);
     /// ```
     #[inline]
     pub fn as_ref(&self) -> &B {
@@ -145,7 +145,7 @@ impl<B> ReadWrite<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     /// use audio::io;
     ///
@@ -169,20 +169,20 @@ impl<B> ReadWrite<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     /// use audio::io;
     ///
-    /// let buffer: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = io::ReadWrite::new(buffer);
+    /// let buf: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut buf = io::ReadWrite::new(buf);
     ///
     /// let from = audio::wrap::interleaved(&[1i16, 2i16, 3i16, 4i16][..], 2);
     ///
-    /// io::translate_remaining(from, &mut buffer);
+    /// io::translate_remaining(from, &mut buf);
     ///
-    /// let buffer = buffer.into_inner();
+    /// let buf = buf.into_inner();
     ///
-    /// assert_eq!(buffer.channels(), 4);
+    /// assert_eq!(buf.channels(), 4);
     /// ```
     #[inline]
     pub fn into_inner(self) -> B {
@@ -205,7 +205,7 @@ impl<B> ReadWrite<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{Buf, ReadBuf};
     /// use audio::io;
     ///
@@ -214,14 +214,14 @@ impl<B> ReadWrite<B> {
     ///     io::copy_remaining(read, io::Write::new(&mut out));
     /// }
     ///
-    /// let mut buffer = io::ReadWrite::new(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
-    /// read_from_buf(&mut buffer);
+    /// let mut buf = io::ReadWrite::new(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// read_from_buf(&mut buf);
     ///
-    /// assert!(!buffer.has_remaining());
+    /// assert!(!buf.has_remaining());
     ///
-    /// buffer.set_read(0);
+    /// buf.set_read(0);
     ///
-    /// assert!(buffer.has_remaining());
+    /// assert!(buf.has_remaining());
     /// ```
     #[inline]
     pub fn set_read(&mut self, read: usize) {
@@ -236,7 +236,7 @@ impl<B> ReadWrite<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{BufMut, WriteBuf};
     /// use audio::io;
     ///
@@ -245,14 +245,14 @@ impl<B> ReadWrite<B> {
     ///     io::copy_remaining(io::Read::new(&mut from), write);
     /// }
     ///
-    /// let mut buffer = io::ReadWrite::new(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
-    /// write_to_buf(&mut buffer);
+    /// let mut buf = io::ReadWrite::new(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// write_to_buf(&mut buf);
     ///
-    /// assert!(!buffer.has_remaining_mut());
+    /// assert!(!buf.has_remaining_mut());
     ///
-    /// buffer.set_written(0);
+    /// buf.set_written(0);
     ///
-    /// assert!(buffer.has_remaining_mut());
+    /// assert!(buf.has_remaining_mut());
     /// ```
     #[inline]
     pub fn set_written(&mut self, written: usize) {

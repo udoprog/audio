@@ -44,6 +44,27 @@ pub trait BufMut: Buf {
     fn iter_mut(&mut self) -> Self::IterMut<'_>;
 
     /// Return a mutable handler to the buffer associated with the channel.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use audio::{BufMut, ChannelMut};
+    ///
+    /// fn test(mut buf: impl BufMut<Sample = i32>) {
+    ///     if let Some(mut chan) = buf.get_mut(1) {
+    ///         for f in chan.iter_mut() {
+    ///             *f += 1;
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// let mut buf = audio::dynamic![[0; 4]; 2];
+    /// test(&mut buf);
+    /// assert_eq!(
+    ///     buf.iter().collect::<Vec<_>>(),
+    ///     vec![[0, 0, 0, 0], [1, 1, 1, 1]],
+    /// );
+    /// ```
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>>;
 
     /// Copy one channel into another.
@@ -58,13 +79,12 @@ pub trait BufMut: Buf {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{Buf, BufMut};
     ///
-    /// let mut buffer = audio::dynamic![[1, 2, 3, 4], [0, 0, 0, 0]];
-    /// buffer.copy_channels(0, 1);
-    ///
-    /// assert_eq!(buffer.get(1), buffer.get(0));
+    /// let mut buf = audio::dynamic![[1, 2, 3, 4], [0, 0, 0, 0]];
+    /// buf.copy_channels(0, 1);
+    /// assert_eq!(buf.get(1), buf.get(0));
     /// ```
     fn copy_channels(&mut self, from: usize, to: usize)
     where

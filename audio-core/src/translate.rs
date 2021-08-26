@@ -5,7 +5,7 @@ mod tests;
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// use audio::Translate;
 ///
 /// assert_eq!(i16::translate(-1.0f32), i16::MIN);

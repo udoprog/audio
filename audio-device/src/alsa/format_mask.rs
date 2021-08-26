@@ -8,7 +8,7 @@ use std::ptr;
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// use audio_device::alsa;
 ///
 /// # fn main() -> anyhow::Result<()> {
@@ -34,7 +34,7 @@ impl FormatMask {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {

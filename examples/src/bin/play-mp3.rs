@@ -166,7 +166,7 @@ where
                     )?;
 
                     self.resample.clear();
-                    let frames = self.output.as_ref().frames();
+                    let frames = self.output.as_ref().len();
 
                     self.output.set_read(0);
                     self.output.set_written(frames);

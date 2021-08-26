@@ -9,7 +9,7 @@ use std::hash;
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// let mut set = bittle::BitSet::<u128>::empty();
 ///
 /// assert!(!set.test(1));
@@ -21,7 +21,7 @@ use std::hash;
 ///
 /// The bit set can also use arrays as its backing storage.
 ///
-/// ```rust
+/// ```
 /// let mut set = bittle::BitSet::<[u64; 16]>::empty();
 ///
 /// assert!(!set.test(172));
@@ -33,7 +33,7 @@ use std::hash;
 ///
 /// Two bit sets of different kinds can be compared to each other.
 ///
-/// ```rust
+/// ```
 /// let mut a = bittle::BitSet::<[u64; 2]>::empty();
 /// let mut b = bittle::BitSet::<u128>::empty();
 ///
@@ -73,7 +73,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// let set = bittle::BitSet::<u128>::empty();
     ///
     /// assert_eq!(set.iter().collect::<Vec<_>>(), vec![])
@@ -87,7 +87,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// let set = bittle::BitSet::<u128>::full();
     ///
     /// assert_eq!(set.iter().collect::<Vec<_>>(), (0..128usize).collect::<Vec<_>>())
@@ -100,7 +100,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// let mut set = bittle::BitSet::<u128>::full();
     ///
     /// assert!(set.test(0));
@@ -121,7 +121,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// let mut set = bittle::BitSet::<u128>::full();
     ///
     /// assert!(set.test(0));
@@ -148,7 +148,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// let mut set = bittle::BitSet::<u128>::full();
     ///
     /// assert!(set.test(0));
@@ -175,7 +175,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// let mut set = bittle::BitSet::<u128>::empty();
     ///
     /// set.set(3);
@@ -186,7 +186,7 @@ where
     ///
     /// A larger bit set:
     ///
-    /// ```rust
+    /// ```
     /// use bittle::Mask as _;
     ///
     /// let mut set = bittle::BitSet::<[u32; 4]>::empty();

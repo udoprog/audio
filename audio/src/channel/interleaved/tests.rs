@@ -220,37 +220,6 @@ fn test_limit() {
 }
 
 #[test]
-fn test_chunk() {
-    slice_tests! {
-        u32,
-        (1, 2) => &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10][..],
-        chunk(0, 2) => [2, 4],
-        chunk(1, 2) => [6, 8],
-        chunk(2, 2) => [10],
-        chunk(3, 2) => [],
-    }
-
-    slice_tests! {
-        u32,
-        (0, 2) => &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10][..],
-        chunk(0, 2) => [1, 3],
-        chunk(1, 2) => [5, 7],
-        chunk(2, 2) => [9],
-        chunk(3, 2) => [],
-    }
-
-    // ZST
-    slice_tests! {
-        (),
-        (0, 2) => &[(), (), (), (), (), (), (), (), (), ()][..],
-        chunk(0, 2) => [(), ()],
-        chunk(1, 2) => [(), ()],
-        chunk(2, 2) => [()],
-        chunk(3, 2) => [],
-    }
-}
-
-#[test]
 fn test_interleaved_channel_count() {
     macro_rules! test {
         (

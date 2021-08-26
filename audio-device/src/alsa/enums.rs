@@ -158,7 +158,7 @@ impl Format {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {

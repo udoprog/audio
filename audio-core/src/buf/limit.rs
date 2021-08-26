@@ -15,23 +15,6 @@ impl<B> Limit<B> {
     }
 }
 
-/// [Limit] adjusts various implementations to report sensible values, such
-/// as [Buf].
-///
-/// ```rust
-/// use audio::Buf;
-///
-/// let buf = audio::interleaved![[0; 4]; 2];
-///
-/// assert_eq!((&buf).limit(0).channels(), 2);
-/// assert_eq!((&buf).limit(0).frames_hint(), Some(0));
-///
-/// assert_eq!((&buf).limit(1).channels(), 2);
-/// assert_eq!((&buf).limit(1).frames_hint(), Some(1));
-///
-/// assert_eq!((&buf).limit(5).channels(), 2);
-/// assert_eq!((&buf).limit(5).frames_hint(), Some(4));
-/// ```
 impl<B> Buf for Limit<B>
 where
     B: Buf,
@@ -105,7 +88,7 @@ where
 /// [Limit] adjusts the implementation of [ExactSizeBuf] to take the frame
 /// limiting into account.
 ///
-/// ```rust
+/// ```
 /// use audio::{Buf, ExactSizeBuf};
 ///
 /// let buf = audio::interleaved![[0; 4]; 2];

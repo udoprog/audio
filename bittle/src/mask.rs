@@ -20,7 +20,7 @@ pub trait Mask: Sized {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use bittle::Mask as _;
     ///
     /// let mask: bittle::BitSet<u128> = bittle::bit_set![0, 1, 3];

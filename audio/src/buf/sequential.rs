@@ -26,33 +26,33 @@ pub use self::iter::{Iter, IterMut};
 /// Resized regions also aren't zeroed, so certain operations might cause stale
 /// data to be visible after a resize.
 ///
-/// ```rust
-/// let mut buffer = audio::buf::Sequential::<f32>::with_topology(2, 4);
-/// buffer[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
-/// buffer[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
+/// ```
+/// let mut buf = audio::buf::Sequential::<f32>::with_topology(2, 4);
+/// buf[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
+/// buf[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
 ///
-/// buffer.resize(3);
+/// buf.resize(3);
 ///
-/// assert_eq!(&buffer[0], &[1.0, 2.0, 3.0]);
-/// assert_eq!(&buffer[1], &[2.0, 3.0, 4.0]);
+/// assert_eq!(&buf[0], &[1.0, 2.0, 3.0]);
+/// assert_eq!(&buf[1], &[2.0, 3.0, 4.0]);
 ///
-/// buffer.resize(4);
+/// buf.resize(4);
 ///
-/// assert_eq!(&buffer[0], &[1.0, 2.0, 3.0, 2.0]); // <- 2.0 is stale data.
-/// assert_eq!(&buffer[1], &[2.0, 3.0, 4.0, 5.0]); // <- 5.0 is stale data.
+/// assert_eq!(&buf[0], &[1.0, 2.0, 3.0, 2.0]); // <- 2.0 is stale data.
+/// assert_eq!(&buf[1], &[2.0, 3.0, 4.0, 5.0]); // <- 5.0 is stale data.
 /// ```
 ///
 /// To access the full, currently assumed *valid* slice you can use
 /// [Sequential::as_slice] or [Sequential::into_vec].
 ///
-/// ```rust
-/// let mut buffer = audio::buf::Sequential::<f32>::with_topology(2, 4);
-/// buffer[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
-/// buffer[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
+/// ```
+/// let mut buf = audio::buf::Sequential::<f32>::with_topology(2, 4);
+/// buf[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
+/// buf[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
 ///
-/// buffer.resize(3);
+/// buf.resize(3);
 ///
-/// assert_eq!(buffer.as_slice(), &[1.0, 2.0, 3.0, 2.0, 3.0, 4.0]);
+/// assert_eq!(buf.as_slice(), &[1.0, 2.0, 3.0, 2.0, 3.0, 4.0]);
 /// ```
 #[derive(Default)]
 pub struct Sequential<T> {
@@ -66,10 +66,10 @@ impl<T> Sequential<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::<f32>::new();
+    /// ```
+    /// let buf = audio::buf::Sequential::<f32>::new();
     ///
-    /// assert_eq!(buffer.frames(), 0);
+    /// assert_eq!(buf.frames(), 0);
     /// ```
     pub fn new() -> Self {
         Self {
@@ -85,11 +85,11 @@ impl<T> Sequential<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::<f32>::with_topology(4, 256);
+    /// ```
+    /// let mut buf = audio::buf::Sequential::<f32>::with_topology(4, 256);
     ///
-    /// assert_eq!(buffer.frames(), 256);
-    /// assert_eq!(buffer.channels(), 4);
+    /// assert_eq!(buf.frames(), 256);
+    /// assert_eq!(buf.channels(), 4);
     /// ```
     pub fn with_topology(channels: usize, frames: usize) -> Self
     where
@@ -108,13 +108,13 @@ impl<T> Sequential<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::sequential![[2.0; 256]; 4];
+    /// ```
+    /// let buf = audio::sequential![[2.0; 256]; 4];
     ///
-    /// assert_eq!(buffer.frames(), 256);
-    /// assert_eq!(buffer.channels(), 4);
+    /// assert_eq!(buf.frames(), 256);
+    /// assert_eq!(buf.channels(), 4);
     ///
-    /// for chan in &buffer {
+    /// for chan in &buf {
     ///     assert_eq!(chan.as_ref(), vec![2.0; 256]);
     /// }
     /// ```
@@ -133,13 +133,13 @@ impl<T> Sequential<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::from_frames([1.0, 2.0, 3.0, 4.0], 2);
+    /// ```
+    /// let buf = audio::buf::Sequential::from_frames([1.0, 2.0, 3.0, 4.0], 2);
     ///
-    /// assert_eq!(buffer.frames(), 4);
-    /// assert_eq!(buffer.channels(), 2);
+    /// assert_eq!(buf.frames(), 4);
+    /// assert_eq!(buf.channels(), 2);
     ///
-    /// assert_eq!(buffer.as_slice(), &[1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0, 4.0]);
+    /// assert_eq!(buf.as_slice(), &[1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0, 4.0]);
     /// ```
     pub fn from_frames<const N: usize>(frames: [T; N], channels: usize) -> Self
     where
@@ -171,28 +171,28 @@ impl<T> Sequential<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::from_array([[1; 4]; 2]);
+    /// ```
+    /// let buf = audio::buf::Sequential::from_array([[1; 4]; 2]);
     ///
-    /// assert_eq!(buffer.frames(), 4);
-    /// assert_eq!(buffer.channels(), 2);
+    /// assert_eq!(buf.frames(), 4);
+    /// assert_eq!(buf.channels(), 2);
     ///
     /// assert_eq! {
-    ///     buffer.as_slice(),
+    ///     buf.as_slice(),
     ///     &[1, 1, 1, 1, 1, 1, 1, 1],
     /// }
     /// ```
     ///
     /// Using a specific array topology.
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::from_array([[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// ```
+    /// let buf = audio::buf::Sequential::from_array([[1, 2, 3, 4], [5, 6, 7, 8]]);
     ///
-    /// assert_eq!(buffer.frames(), 4);
-    /// assert_eq!(buffer.channels(), 2);
+    /// assert_eq!(buf.frames(), 4);
+    /// assert_eq!(buf.channels(), 2);
     ///
     /// assert_eq! {
-    ///     buffer.as_slice(),
+    ///     buf.as_slice(),
     ///     &[1, 2, 3, 4, 5, 6, 7, 8],
     /// }
     /// ```
@@ -224,14 +224,14 @@ impl<T> Sequential<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::<f32>::with_topology(2, 4);
-    /// buffer[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
-    /// buffer[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
+    /// ```
+    /// let mut buf = audio::buf::Sequential::<f32>::with_topology(2, 4);
+    /// buf[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
+    /// buf[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
     ///
-    /// buffer.resize(3);
+    /// buf.resize(3);
     ///
-    /// assert_eq!(buffer.into_vec(), vec![1.0, 2.0, 3.0, 2.0, 3.0, 4.0])
+    /// assert_eq!(buf.into_vec(), vec![1.0, 2.0, 3.0, 2.0, 3.0, 4.0])
     /// ```
     pub fn into_vec(self) -> Vec<T> {
         self.data
@@ -241,45 +241,73 @@ impl<T> Sequential<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::<f32>::with_topology(2, 4);
+    /// ```
+    /// let mut buf = audio::buf::Sequential::<f32>::with_topology(2, 4);
     ///
-    /// buffer[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
-    /// buffer[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
+    /// buf[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
+    /// buf[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
     ///
-    /// buffer.resize(3);
+    /// buf.resize(3);
     ///
-    /// assert_eq!(buffer.as_slice(), &[1.0, 2.0, 3.0, 2.0, 3.0, 4.0])
+    /// assert_eq!(buf.as_slice(), &[1.0, 2.0, 3.0, 2.0, 3.0, 4.0])
     /// ```
     pub fn as_slice(&self) -> &[T] {
         &self.data
     }
 
-    /// Get the number of frames in the channels of an audio buffer.
+    /// Get the capacity of the buffer in number of frames.
+    ///
+    /// The underlying buffer over-allocates a bit, so this will report the
+    /// exact capacity available in the buffer.
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::<f32>::new();
+    /// ```
+    /// let mut buf = audio::buf::Sequential::<f32>::new();
     ///
-    /// assert_eq!(buffer.frames(), 0);
-    /// buffer.resize(256);
-    /// assert_eq!(buffer.frames(), 256);
+    /// assert_eq!(buf.capacity(), 0);
+    ///
+    /// buf.resize(11);
+    /// assert_eq!(buf.capacity(), 0);
+    ///
+    /// buf.resize_channels(2);
+    /// assert_eq!(buf.capacity(), 22);
+    ///
+    /// buf.resize(12);
+    /// assert_eq!(buf.capacity(), 44);
+    ///
+    /// buf.resize(24);
+    /// assert_eq!(buf.capacity(), 44);
+    /// ```
+    pub fn capacity(&self) -> usize {
+        self.data.capacity()
+    }
+
+    /// Get how many frames there are in the buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut buf = audio::buf::Sequential::<f32>::new();
+    ///
+    /// assert_eq!(buf.frames(), 0);
+    /// buf.resize(256);
+    /// assert_eq!(buf.frames(), 256);
     /// ```
     pub fn frames(&self) -> usize {
         self.frames
     }
 
-    /// Check how many channels there are in the buffer.
+    /// Get how many channels there are in the buffer.
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::<f32>::new();
+    /// ```
+    /// let mut buf = audio::buf::Sequential::<f32>::new();
     ///
-    /// assert_eq!(buffer.channels(), 0);
-    /// buffer.resize_channels(2);
-    /// assert_eq!(buffer.channels(), 2);
+    /// assert_eq!(buf.channels(), 0);
+    /// buf.resize_channels(2);
+    /// assert_eq!(buf.channels(), 2);
     /// ```
     pub fn channels(&self) -> usize {
         self.channels
@@ -292,11 +320,11 @@ impl<T> Sequential<T> {
     /// ```
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = audio::buf::Sequential::<f32>::with_topology(4, 256);
+    /// let buf = audio::buf::Sequential::<f32>::with_topology(4, 256);
     ///
     /// let all_zeros = vec![0.0; 256];
     ///
-    /// for chan in buffer.iter() {
+    /// for chan in buf.iter() {
     ///     assert_eq!(chan.as_ref(), &all_zeros[..]);
     /// }
     /// ```
@@ -311,10 +339,10 @@ impl<T> Sequential<T> {
     /// ```
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = audio::buf::Sequential::<f32>::with_topology(4, 256);
+    /// let mut buf = audio::buf::Sequential::<f32>::with_topology(4, 256);
     /// let mut rng = rand::thread_rng();
     ///
-    /// for mut chan in buffer.iter_mut() {
+    /// for mut chan in buf.iter_mut() {
     ///     rng.fill(chan.as_mut());
     /// }
     /// ```
@@ -330,17 +358,17 @@ impl<T> Sequential<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::<f32>::new();
+    /// ```
+    /// let mut buf = audio::buf::Sequential::<f32>::new();
     ///
-    /// assert_eq!(buffer.channels(), 0);
-    /// assert_eq!(buffer.frames(), 0);
+    /// assert_eq!(buf.channels(), 0);
+    /// assert_eq!(buf.frames(), 0);
     ///
-    /// buffer.resize_channels(4);
-    /// buffer.resize(256);
+    /// buf.resize_channels(4);
+    /// buf.resize(256);
     ///
-    /// assert_eq!(buffer.channels(), 4);
-    /// assert_eq!(buffer.frames(), 256);
+    /// assert_eq!(buf.channels(), 4);
+    /// assert_eq!(buf.frames(), 256);
     /// ```
     pub fn resize_channels(&mut self, channels: usize)
     where
@@ -358,34 +386,34 @@ impl<T> Sequential<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::<f32>::new();
+    /// ```
+    /// let mut buf = audio::buf::Sequential::<f32>::new();
     ///
-    /// assert_eq!(buffer.channels(), 0);
-    /// assert_eq!(buffer.frames(), 0);
+    /// assert_eq!(buf.channels(), 0);
+    /// assert_eq!(buf.frames(), 0);
     ///
-    /// buffer.resize_channels(4);
-    /// buffer.resize(256);
+    /// buf.resize_channels(4);
+    /// buf.resize(256);
     ///
-    /// assert_eq!(buffer[1][128], 0.0);
-    /// buffer[1][128] = 42.0;
+    /// assert_eq!(buf[1][128], 0.0);
+    /// buf[1][128] = 42.0;
     ///
-    /// assert_eq!(buffer.channels(), 4);
-    /// assert_eq!(buffer.frames(), 256);
+    /// assert_eq!(buf.channels(), 4);
+    /// assert_eq!(buf.frames(), 256);
     /// ```
     ///
     /// Decreasing and increasing the size will modify the underlying buffer:
     ///
-    /// ```rust
-    /// # let mut buffer = audio::buf::Sequential::<f32>::with_topology(4, 256);
-    /// assert_eq!(buffer[1][128], 0.0);
-    /// buffer[1][128] = 42.0;
+    /// ```
+    /// # let mut buf = audio::buf::Sequential::<f32>::with_topology(4, 256);
+    /// assert_eq!(buf[1][128], 0.0);
+    /// buf[1][128] = 42.0;
     ///
-    /// buffer.resize(64);
-    /// assert!(buffer[1].get(128).is_none());
+    /// buf.resize(64);
+    /// assert!(buf[1].get(128).is_none());
     ///
-    /// buffer.resize(256);
-    /// assert_eq!(buffer[1][128], 0.0);
+    /// buf.resize(256);
+    /// assert_eq!(buf[1][128], 0.0);
     /// ```
     ///
     /// # Stale data
@@ -397,41 +425,41 @@ impl<T> Sequential<T> {
     /// stale data from previous uses. So this should be kept in mind when
     /// resizing this buffer dynamically.
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::<f32>::new();
+    /// ```
+    /// let mut buf = audio::buf::Sequential::<f32>::new();
     ///
-    /// buffer.resize_channels(4);
-    /// buffer.resize(128);
+    /// buf.resize_channels(4);
+    /// buf.resize(128);
     ///
     /// let expected = (0..128).map(|v| v as f32).collect::<Vec<_>>();
     ///
-    /// for mut chan in buffer.iter_mut() {
+    /// for mut chan in buf.iter_mut() {
     ///     for (s, v) in chan.iter_mut().zip(&expected) {
     ///         *s = *v;
     ///     }
     /// }
     ///
-    /// assert_eq!(buffer.get(0).unwrap(), &expected[..]);
-    /// assert_eq!(buffer.get(1).unwrap(), &expected[..]);
-    /// assert_eq!(buffer.get(2).unwrap(), &expected[..]);
-    /// assert_eq!(buffer.get(3).unwrap(), &expected[..]);
-    /// assert!(buffer.get(4).is_none());
+    /// assert_eq!(buf.get(0).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get(1).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get(2).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get(3).unwrap(), &expected[..]);
+    /// assert!(buf.get(4).is_none());
     ///
-    /// buffer.resize_channels(2);
+    /// buf.resize_channels(2);
     ///
-    /// assert_eq!(buffer.get(0).unwrap(), &expected[..]);
-    /// assert_eq!(buffer.get(1).unwrap(), &expected[..]);
-    /// assert!(buffer.get(2).is_none());
+    /// assert_eq!(buf.get(0).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get(1).unwrap(), &expected[..]);
+    /// assert!(buf.get(2).is_none());
     ///
     /// // shrink
-    /// buffer.resize(64);
+    /// buf.resize(64);
     ///
-    /// assert_eq!(buffer.get(0).unwrap(), &expected[..64]);
-    /// assert_eq!(buffer.get(1).unwrap(), &expected[..64]);
-    /// assert!(buffer.get(2).is_none());
+    /// assert_eq!(buf.get(0).unwrap(), &expected[..64]);
+    /// assert_eq!(buf.get(1).unwrap(), &expected[..64]);
+    /// assert!(buf.get(2).is_none());
     ///
     /// // increase - this causes some weirdness.
-    /// buffer.resize(128);
+    /// buf.resize(128);
     ///
     /// let first_overlapping = expected[..64]
     ///     .iter()
@@ -439,11 +467,11 @@ impl<T> Sequential<T> {
     ///     .copied()
     ///     .collect::<Vec<_>>();
     ///
-    /// assert_eq!(buffer.get(0).unwrap(), &first_overlapping[..]);
+    /// assert_eq!(buf.get(0).unwrap(), &first_overlapping[..]);
     /// // Note: second channel matches perfectly up with an old channel that was
     /// // masked out.
-    /// assert_eq!(buffer.get(1).unwrap(), &expected[..]);
-    /// assert!(buffer.get(2).is_none());
+    /// assert_eq!(buf.get(1).unwrap(), &expected[..]);
+    /// assert!(buf.get(2).is_none());
     /// ```
     pub fn resize(&mut self, frames: usize)
     where
@@ -452,55 +480,23 @@ impl<T> Sequential<T> {
         self.resize_inner(self.channels, self.frames, self.channels, frames);
     }
 
-    /// Get the capacity of the interleaved buffer in number of frames.
-    ///
-    /// The underlying buffer over-allocates a bit, so this will report the
-    /// exact capacity available in the interleaved buffer.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::<f32>::new();
-    ///
-    /// assert_eq!(buffer.capacity(), 0);
-    ///
-    /// buffer.resize(11);
-    /// assert_eq!(buffer.capacity(), 0);
-    ///
-    /// buffer.resize_channels(2);
-    /// assert_eq!(buffer.capacity(), 11);
-    ///
-    /// buffer.resize(12);
-    /// assert_eq!(buffer.capacity(), 22);
-    ///
-    /// buffer.resize(22);
-    /// assert_eq!(buffer.capacity(), 22);
-    /// ```
-    pub fn capacity(&self) -> usize {
-        if self.channels == 0 {
-            0
-        } else {
-            self.data.capacity() / self.channels
-        }
-    }
-
     /// Get a reference to the buffer of the given channel.
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// let mut buffer = audio::buf::Sequential::<f32>::new();
+    /// ```
+    /// let mut buf = audio::buf::Sequential::<f32>::new();
     ///
-    /// buffer.resize_channels(4);
-    /// buffer.resize(256);
+    /// buf.resize_channels(4);
+    /// buf.resize(256);
     ///
     /// let expected = vec![0.0; 256];
     ///
-    /// assert_eq!(buffer.get(0).unwrap(), &expected[..]);
-    /// assert_eq!(buffer.get(1).unwrap(), &expected[..]);
-    /// assert_eq!(buffer.get(2).unwrap(), &expected[..]);
-    /// assert_eq!(buffer.get(3).unwrap(), &expected[..]);
-    /// assert!(buffer.get(4).is_none());
+    /// assert_eq!(buf.get(0).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get(1).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get(2).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get(3).unwrap(), &expected[..]);
+    /// assert!(buf.get(4).is_none());
     /// ```
     pub fn get(&self, channel: usize) -> Option<LinearRef<'_, T>> {
         if channel >= self.channels {
@@ -515,21 +511,21 @@ impl<T> Sequential<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use rand::Rng as _;
     ///
-    /// let mut buffer = audio::buf::Sequential::<f32>::new();
+    /// let mut buf = audio::buf::Sequential::<f32>::new();
     ///
-    /// buffer.resize_channels(2);
-    /// buffer.resize(256);
+    /// buf.resize_channels(2);
+    /// buf.resize(256);
     ///
     /// let mut rng = rand::thread_rng();
     ///
-    /// if let Some(mut left) = buffer.get_mut(0) {
+    /// if let Some(mut left) = buf.get_mut(0) {
     ///     rng.fill(left.as_mut());
     /// }
     ///
-    /// if let Some(mut right) = buffer.get_mut(1) {
+    /// if let Some(mut right) = buf.get_mut(1) {
     ///     rng.fill(right.as_mut());
     /// }
     /// ```
@@ -544,6 +540,16 @@ impl<T> Sequential<T> {
             .get_mut(..self.frames)?;
 
         Some(LinearMut::new(data))
+    }
+
+    /// Reserve the given capacity in this buffer ensuring it can take at least
+    /// `capacity` elements in total before needing to re-allocate again.
+    pub fn reserve(&mut self, capacity: usize) {
+        let old_cap = self.data.capacity();
+
+        if old_cap < capacity {
+            self.data.reserve(capacity - old_cap);
+        }
     }
 
     fn resize_inner(
@@ -725,7 +731,7 @@ where
     }
 
     fn channels(&self) -> usize {
-        self.channels
+        (*self).channels()
     }
 
     fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
@@ -741,6 +747,11 @@ impl<T> ResizableBuf for Sequential<T>
 where
     T: Sample,
 {
+    fn try_reserve(&mut self, capacity: usize) -> bool {
+        self.reserve(capacity);
+        true
+    }
+
     fn resize(&mut self, frames: usize) {
         Self::resize(self, frames);
     }

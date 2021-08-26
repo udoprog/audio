@@ -16,7 +16,7 @@ impl MainLoop {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::pulse;
     ///
     /// # fn main() -> anyhow::Result<()> {
@@ -37,7 +37,7 @@ impl MainLoop {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::pulse;
     /// use std::ffi::CString;
     ///
