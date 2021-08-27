@@ -204,7 +204,7 @@ where
             }
 
             for to in frame.channels..usize::min(data.channels(), 2) {
-                data.copy_channels(0, to);
+                data.copy_channel(0, to);
             }
         }
 

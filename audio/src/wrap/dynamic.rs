@@ -119,7 +119,7 @@ macro_rules! impl_buf_mut {
                 Some(LinearMut::new(self.value.get_mut(channel)?.as_mut()))
             }
 
-            fn copy_channels(&mut self, from: usize, to: usize) {
+            fn copy_channel(&mut self, from: usize, to: usize) {
                 assert! {
                     from < self.value.len(),
                     "copy from channel {} is out of bounds 0-{}",

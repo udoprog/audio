@@ -780,7 +780,7 @@ where
         (*self).get_mut(channel)
     }
 
-    fn copy_channels(&mut self, from: usize, to: usize) {
+    fn copy_channel(&mut self, from: usize, to: usize) {
         // Safety: We're calling the copy function with internal parameters
         // which are guaranteed to be correct.
         unsafe {

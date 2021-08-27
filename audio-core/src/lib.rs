@@ -45,3 +45,9 @@ pub use self::interleaved_buf::InterleavedBuf;
 
 mod interleaved_buf_mut;
 pub use self::interleaved_buf_mut::InterleavedBufMut;
+
+mod linear_channel;
+pub use self::linear_channel::LinearChannel;
+
+mod linear_channel_mut;
+pub use self::linear_channel_mut::LinearChannelMut;

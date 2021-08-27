@@ -1,9 +1,11 @@
 //! Utilities for working with linear buffers.
 
 use crate::slice::Slice;
-use core::{Channel, ChannelMut};
+use core::{Channel, ChannelMut, LinearChannel, LinearChannelMut};
 use std::cmp;
 use std::fmt;
+use std::ops;
+use std::slice;
 
 #[macro_use]
 mod macros;
@@ -53,6 +55,22 @@ impl<'a, T> LinearRef<'a, T> {
         Self { buf }
     }
 
+    /// Get the given frame in the linear channel.
+    pub fn get(&self, n: usize) -> Option<T>
+    where
+        T: Copy,
+    {
+        self.buf.get(n).copied()
+    }
+
+    /// Construct an immutable iterator over the linear channel.
+    pub fn iter(&self) -> Iter<'_, T>
+    where
+        T: Copy,
+    {
+        Iter::new(self.buf)
+    }
+
     /// Convert the channel into the underlying buffer.
     #[inline]
     pub fn into_ref(self) -> &'a [T] {
@@ -66,28 +84,32 @@ impl<'a, T> LinearRef<'a, T> {
     }
 }
 
-impl<'a, T> LinearRef<'a, T>
-where
-    T: Copy,
-{
-    /// Construct an immutable iterator over the linear channel.
-    pub fn iter(&self) -> Iter<'_, T> {
-        Iter::new(self.buf)
-    }
-}
-
 impl<'a, T> Channel for LinearRef<'a, T>
 where
     T: Copy,
 {
     type Sample = T;
-    type Iter<'i>
+
+    type Channel<'s>
     where
-        T: 'i,
-    = Iter<'i, T>;
+        Self::Sample: 's,
+    = LinearRef<'s, Self::Sample>;
+
+    type Iter<'s>
+    where
+        Self::Sample: 's,
+    = Iter<'s, Self::Sample>;
+
+    fn as_channel(&self) -> Self::Channel<'_> {
+        Self { buf: self.buf }
+    }
 
     fn len(&self) -> usize {
         self.buf.len()
+    }
+
+    fn get(&self, n: usize) -> Option<Self::Sample> {
+        (*self).get(n)
     }
 
     fn iter(&self) -> Self::Iter<'_> {
@@ -114,7 +136,7 @@ where
         }
     }
 
-    fn as_linear(&self) -> Option<&[T]> {
+    fn try_as_linear(&self) -> Option<&[T]> {
         Some(self.buf)
     }
 }
@@ -160,6 +182,24 @@ impl<'a, T> LinearMut<'a, T> {
         Self { buf }
     }
 
+    /// Get the given frame.
+    pub fn get(&self, n: usize) -> Option<T>
+    where
+        T: Copy,
+    {
+        self.buf.get(n).copied()
+    }
+
+    /// Construct an iterator over the linear channel.
+    pub fn iter(&self) -> Iter<'_, T> {
+        Iter::new(self.buf)
+    }
+
+    /// Get a mutable reference to the given frame.
+    pub fn get_mut(&mut self, n: usize) -> Option<&mut T> {
+        self.buf.get_mut(n)
+    }
+
     /// Construct an immutable iterator over the linear channel.
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
         IterMut::new(self.buf)
@@ -190,13 +230,23 @@ impl<'a, T> LinearMut<'a, T> {
     }
 }
 
-impl<'a, T> LinearMut<'a, T>
+impl<T> LinearChannel for LinearRef<'_, T>
 where
     T: Copy,
 {
-    /// Construct an immutable iterator over the linear channel.
-    pub fn iter(&self) -> std::iter::Copied<std::slice::Iter<'_, T>> {
-        self.buf.iter().copied()
+    fn as_linear_channel(&self) -> &[Self::Sample] {
+        self.buf
+    }
+}
+
+impl<T, I> ops::Index<I> for LinearRef<'_, T>
+where
+    I: slice::SliceIndex<[T]>,
+{
+    type Output = I::Output;
+
+    fn index(&self, index: I) -> &Self::Output {
+        self.buf.index(index)
     }
 }
 
@@ -206,17 +256,30 @@ where
 {
     type Sample = T;
 
-    type Iter<'i>
+    type Channel<'s>
     where
-        T: 'i,
-    = std::iter::Copied<std::slice::Iter<'i, T>>;
+        Self::Sample: 's,
+    = LinearRef<'s, Self::Sample>;
+
+    type Iter<'s>
+    where
+        Self::Sample: 's,
+    = Iter<'s, Self::Sample>;
+
+    fn as_channel(&self) -> Self::Channel<'_> {
+        LinearRef { buf: &self.buf[..] }
+    }
 
     fn len(&self) -> usize {
         self.buf.len()
     }
 
+    fn get(&self, n: usize) -> Option<Self::Sample> {
+        (*self).get(n)
+    }
+
     fn iter(&self) -> Self::Iter<'_> {
-        self.buf.iter().copied()
+        (*self).iter()
     }
 
     fn skip(self, n: usize) -> Self {
@@ -239,7 +302,7 @@ where
         }
     }
 
-    fn as_linear(&self) -> Option<&[T]> {
+    fn try_as_linear(&self) -> Option<&[T]> {
         Some(self.buf)
     }
 }
@@ -248,17 +311,48 @@ impl<'a, T> ChannelMut for LinearMut<'a, T>
 where
     T: Copy,
 {
-    type IterMut<'i>
+    type ChannelMut<'s>
     where
-        Self::Sample: 'i,
-    = IterMut<'i, T>;
+        Self::Sample: 's,
+    = LinearMut<'s, T>;
+
+    type IterMut<'s>
+    where
+        Self::Sample: 's,
+    = IterMut<'s, T>;
+
+    fn as_channel_mut(&mut self) -> Self::ChannelMut<'_> {
+        LinearMut { buf: self.buf }
+    }
+
+    fn get_mut(&mut self, n: usize) -> Option<&mut Self::Sample> {
+        (*self).get_mut(n)
+    }
 
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         (*self).iter_mut()
     }
 
-    fn as_linear_mut(&mut self) -> Option<&mut [Self::Sample]> {
+    fn try_as_linear_mut(&mut self) -> Option<&mut [Self::Sample]> {
         Some(self.buf)
+    }
+}
+
+impl<T> LinearChannel for LinearMut<'_, T>
+where
+    T: Copy,
+{
+    fn as_linear_channel(&self) -> &[Self::Sample] {
+        self.buf
+    }
+}
+
+impl<T> LinearChannelMut for LinearMut<'_, T>
+where
+    T: Copy,
+{
+    fn as_linear_channel_mut(&mut self) -> &mut [Self::Sample] {
+        self.buf
     }
 }
 
@@ -268,5 +362,25 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.buf.iter()).finish()
+    }
+}
+
+impl<T, I> ops::Index<I> for LinearMut<'_, T>
+where
+    I: slice::SliceIndex<[T]>,
+{
+    type Output = I::Output;
+
+    fn index(&self, index: I) -> &Self::Output {
+        self.buf.index(index)
+    }
+}
+
+impl<T, I> ops::IndexMut<I> for LinearMut<'_, T>
+where
+    I: slice::SliceIndex<[T]>,
+{
+    fn index_mut(&mut self, index: I) -> &mut Self::Output {
+        self.buf.index_mut(index)
     }
 }

@@ -32,7 +32,7 @@ where
     O: ChannelMut<Sample = I::Sample>,
     I::Sample: Copy,
 {
-    match (from.as_linear(), to.as_linear_mut()) {
+    match (from.try_as_linear(), to.try_as_linear_mut()) {
         (Some(from), Some(to)) => {
             let len = usize::min(to.len(), from.len());
             to[..len].copy_from_slice(&from[..len]);

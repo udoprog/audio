@@ -790,7 +790,7 @@ where
         InterleavedMut::from_slice(&mut self.data, channel, self.channels)
     }
 
-    fn copy_channels(&mut self, from: usize, to: usize) {
+    fn copy_channel(&mut self, from: usize, to: usize) {
         // Safety: We're making sure not to access any mutable buffers which
         // are not initialized.
         unsafe {

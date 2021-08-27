@@ -168,13 +168,13 @@ impl<'a, T> InterleavedMut<'a, T> {
         }
     }
 
-    /// Get the given frame if it's in bound.
-    pub fn get_mut(&mut self, frame: usize) -> Option<&mut T> {
-        if frame < len!(self) {
+    /// Get the given frame mutably if it's in bound.
+    pub fn get_mut(&mut self, n: usize) -> Option<&mut T> {
+        if n < len!(self) {
             if mem::size_of::<T>() == 0 {
                 Some(unsafe { &mut *(self.ptr.as_ptr() as *mut _) })
             } else {
-                let add = frame.saturating_mul(self.step);
+                let add = n.saturating_mul(self.step);
                 Some(unsafe { &mut *(self.ptr.as_ptr() as *mut T).add(add) })
             }
         } else {
@@ -197,16 +197,34 @@ impl<'a, T> ChannelMut for InterleavedMut<'a, T>
 where
     T: Copy,
 {
+    type ChannelMut<'s>
+    where
+        Self::Sample: 's,
+    = InterleavedMut<'s, Self::Sample>;
+
     type IterMut<'s>
     where
-        T: 's,
-    = IterMut<'s, T>;
+        Self::Sample: 's,
+    = IterMut<'s, Self::Sample>;
+
+    fn as_channel_mut(&mut self) -> Self::ChannelMut<'_> {
+        InterleavedMut {
+            ptr: self.ptr,
+            end: self.end,
+            step: self.step,
+            _marker: marker::PhantomData,
+        }
+    }
+
+    fn get_mut(&mut self, n: usize) -> Option<&mut T> {
+        (*self).get_mut(n)
+    }
 
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         (*self).iter_mut()
     }
 
-    fn as_linear_mut(&mut self) -> Option<&mut [T]> {
+    fn try_as_linear_mut(&mut self) -> Option<&mut [T]> {
         None
     }
 }

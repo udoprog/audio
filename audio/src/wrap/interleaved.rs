@@ -155,7 +155,7 @@ where
         InterleavedMut::from_slice(self.value.as_mut(), channel, self.channels)
     }
 
-    fn copy_channels(&mut self, from: usize, to: usize) {
+    fn copy_channel(&mut self, from: usize, to: usize) {
         // Safety: We're calling the copy function with internal
         // parameters which are guaranteed to be correct. `frames` is
         // guaranteed to reflect a valid subset of the buffer based on

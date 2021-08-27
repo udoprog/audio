@@ -324,13 +324,31 @@ macro_rules! interleaved_channel {
         {
             type Sample = $arg;
 
+            type Channel<'s>
+            where
+                Self::Sample: 's
+            = $name<'s, Self::Sample>;
+
             type Iter<'s>
             where
-                $arg: 's,
-            = Iter<'s, $arg>;
+                Self::Sample: 's,
+            = Iter<'s, Self::Sample>;
+
+            fn as_channel(&self) -> $name<'_, $arg> {
+                Self {
+                    ptr: self.ptr,
+                    end: self.end,
+                    step: self.step,
+                    _marker: marker::PhantomData,
+                }
+            }
 
             fn len(&self) -> usize {
                 len!(self)
+            }
+
+            fn get(&self, n: usize) -> Option<Self::Sample> {
+                (*self).get(n)
             }
 
             fn iter(&self) -> Self::Iter<'_> {
@@ -379,7 +397,7 @@ macro_rules! interleaved_channel {
                 self
             }
 
-            fn as_linear(&self) -> Option<&[T]> {
+            fn try_as_linear(&self) -> Option<&[T]> {
                 None
             }
         }

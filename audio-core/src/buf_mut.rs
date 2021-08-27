@@ -83,10 +83,10 @@ pub trait BufMut: Buf {
     /// use audio::{Buf, BufMut};
     ///
     /// let mut buf = audio::dynamic![[1, 2, 3, 4], [0, 0, 0, 0]];
-    /// buf.copy_channels(0, 1);
+    /// buf.copy_channel(0, 1);
     /// assert_eq!(buf.get(1), buf.get(0));
     /// ```
-    fn copy_channels(&mut self, from: usize, to: usize)
+    fn copy_channel(&mut self, from: usize, to: usize)
     where
         Self::Sample: Copy;
 }
@@ -111,11 +111,11 @@ where
     }
 
     #[inline]
-    fn copy_channels(&mut self, from: usize, to: usize)
+    fn copy_channel(&mut self, from: usize, to: usize)
     where
         Self::Sample: Copy,
     {
-        (**self).copy_channels(from, to);
+        (**self).copy_channel(from, to);
     }
 
     #[inline]

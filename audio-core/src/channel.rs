@@ -11,10 +11,18 @@ pub trait Channel {
     /// The sample of a channel.
     type Sample: Copy;
 
+    /// The type the channel assumes when coerced into a reference.
+    type Channel<'a>: Channel<Sample = Self::Sample>
+    where
+        Self::Sample: 'a;
+
     /// A borrowing iterator over the channel.
     type Iter<'a>: Iterator<Item = Self::Sample>
     where
         Self::Sample: 'a;
+
+    /// Reborrow the current channel as a reference.
+    fn as_channel(&self) -> Self::Channel<'_>;
 
     /// Get the length which indicates number of frames in the current channel.
     ///
@@ -74,9 +82,7 @@ pub trait Channel {
     /// test(&audio::sequential![[0.0; 16]; 2]);
     /// test(&audio::interleaved![[0.0; 16]; 2]);
     /// ```
-    fn get(&self, n: usize) -> Option<Self::Sample> {
-        self.iter().nth(n)
-    }
+    fn get(&self, n: usize) -> Option<Self::Sample>;
 
     /// Construct an iterator over the channel.
     ///
@@ -113,14 +119,14 @@ pub trait Channel {
     /// use audio::{Buf, Channel};
     ///
     /// fn test(buf: &impl Buf<Sample = f32>, expected: Option<&[f32]>) {
-    ///     assert_eq!(buf.get(0).unwrap().as_linear(), expected);
+    ///     assert_eq!(buf.get(0).unwrap().try_as_linear(), expected);
     /// }
     ///
     /// test(&audio::dynamic![[1.0; 16]; 2], Some(&[1.0; 16]));
     /// test(&audio::sequential![[1.0; 16]; 2], Some(&[1.0; 16]));
     /// test(&audio::interleaved![[1.0; 16]; 2], None);
     /// ```
-    fn as_linear(&self) -> Option<&[Self::Sample]>;
+    fn try_as_linear(&self) -> Option<&[Self::Sample]>;
 
     /// Construct a channel buffer where the first `n` frames are skipped.
     ///

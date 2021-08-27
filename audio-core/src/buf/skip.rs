@@ -86,11 +86,11 @@ where
         Some(self.buf.get_mut(channel)?.skip(self.n))
     }
 
-    fn copy_channels(&mut self, from: usize, to: usize)
+    fn copy_channel(&mut self, from: usize, to: usize)
     where
         Self::Sample: Copy,
     {
-        self.buf.copy_channels(from, to);
+        self.buf.copy_channel(from, to);
     }
 
     fn iter_mut(&mut self) -> Self::IterMut<'_> {

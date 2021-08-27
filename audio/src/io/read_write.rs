@@ -357,11 +357,11 @@ where
     }
 
     #[inline]
-    fn copy_channels(&mut self, from: usize, to: usize)
+    fn copy_channel(&mut self, from: usize, to: usize)
     where
         Self::Sample: Copy,
     {
-        self.buf.copy_channels(from, to);
+        self.buf.copy_channel(from, to);
     }
 
     #[inline]

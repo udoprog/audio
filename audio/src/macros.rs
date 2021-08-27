@@ -50,8 +50,8 @@ macro_rules! dynamic {
         let value = $sample;
         let mut buf = $crate::buf::Dynamic::with_topology($channels, $frames);
 
-        for chan in &mut buf {
-            for f in chan {
+        for mut chan in buf.iter_mut() {
+            for f in chan.iter_mut() {
                 *f = value;
             }
         }

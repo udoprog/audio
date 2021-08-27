@@ -808,7 +808,7 @@ where
         (*self).get_mut(channel)
     }
 
-    fn copy_channels(&mut self, from: usize, to: usize) {
+    fn copy_channel(&mut self, from: usize, to: usize) {
         assert! {
             from < self.channels,
             "copy from channel {} is out of bounds 0-{}",
