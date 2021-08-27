@@ -32,9 +32,9 @@ this crate:
 * [sequential][Sequential] - where each channel is stored in a linear
   buffer, one after another. Like `0:0, 0:1, 1:0, 1:0`.
 
-These all implement the [Buf] and [BufMut] traits, allowing
-library authors to abstract over any one specific format. The exact channel
-and frame count of a buffer is known as its *topology*.
+These all implement the [Buf] and [BufMut] traits, allowing library authors
+to abstract over any one specific format. The exact channel and frame count
+of a buffer is known as its *topology*.
 
 ```rust
 use audio::{BufMut, ChannelMut};
@@ -43,9 +43,9 @@ let mut dynamic = audio::dynamic![[0i16; 4]; 2];
 let mut interleaved = audio::interleaved![[0i16; 4]; 2];
 let mut sequential = audio::sequential![[0i16; 4]; 2];
 
-dynamic.get_mut(0).unwrap().copy_from_iter(0i16..);
-interleaved.get_mut(0).unwrap().copy_from_iter(0i16..);
-sequential.get_mut(0).unwrap().copy_from_iter(0i16..);
+audio::channel::copy_iter(0i16.., dynamic.get_mut(0).unwrap());
+audio::channel::copy_iter(0i16.., interleaved.get_mut(0).unwrap());
+audio::channel::copy_iter(0i16.., sequential.get_mut(0).unwrap());
 ```
 
 We also support [wrapping][wrap] external buffers so that they can

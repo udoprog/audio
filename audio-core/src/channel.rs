@@ -103,7 +103,9 @@ pub trait Channel {
     /// ```
     fn iter(&self) -> Self::Iter<'_>;
 
-    /// Try to coerce the channel the channel into a linear sequence of memory.
+    /// Try to access the current channel as a linear buffer.
+    ///
+    /// This is available because it could permit for some optimizations.
     ///
     /// # Examples
     ///
@@ -119,17 +121,6 @@ pub trait Channel {
     /// test(&audio::interleaved![[1.0; 16]; 2], None);
     /// ```
     fn as_linear(&self) -> Option<&[Self::Sample]>;
-
-    /// Copy the contents of a channel into an iterator.
-    fn copy_into_iter<'a, I>(&self, to: I)
-    where
-        Self::Sample: 'a + Copy,
-        I: IntoIterator<Item = &'a mut Self::Sample>,
-    {
-        for (from, to) in self.iter().zip(to) {
-            *to = from;
-        }
-    }
 
     /// Construct a channel buffer where the first `n` frames are skipped.
     ///
@@ -157,8 +148,8 @@ pub trait Channel {
     ///
     /// let mut to = audio::interleaved![[0.0f32; 4]; 2];
     ///
-    /// if let (Some(mut to), Some(from)) = (to.get_mut(0), from.get(0)) {
-    ///     to.copy_from(from.skip(2));
+    /// if let (Some(from), Some(to)) = (from.get(0), to.get_mut(0)) {
+    ///     audio::channel::copy(from.skip(2), to);
     /// }
     ///
     /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
@@ -175,8 +166,8 @@ pub trait Channel {
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
     /// let mut to = audio::interleaved![[0.0f32; 4]; 2];
     ///
-    /// if let (Some(mut to), Some(from)) = (to.get_mut(0), from.get(0)) {
-    ///     to.tail(2).copy_from(from);
+    /// if let (Some(from), Some(to)) = (from.get(0), to.get_mut(0)) {
+    ///     audio::channel::copy(from, to.tail(2));
     /// }
     ///
     /// assert_eq!(to.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0]);
@@ -193,8 +184,8 @@ pub trait Channel {
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
     /// let mut to = audio::interleaved![[0.0f32; 4]; 2];
     ///
-    /// if let (Some(mut to), Some(from)) = (to.get_mut(0), from.get(0)) {
-    ///     to.copy_from(from.limit(2));
+    /// if let (Some(from), Some(to)) = (from.get(0), to.get_mut(0)) {
+    ///     audio::channel::copy(from.limit(2), to);
     /// }
     ///
     /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);

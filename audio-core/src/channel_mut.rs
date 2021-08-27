@@ -15,7 +15,9 @@ pub trait ChannelMut: Channel {
     /// Construct a mutable iterator over the channel
     fn iter_mut(&mut self) -> Self::IterMut<'_>;
 
-    /// Copy from the given slice.
+    /// Try to access the current channel as a mutable linear buffer.
+    ///
+    /// This is available because it could permit for some optimizations.
     ///
     /// # Examples
     ///
@@ -40,57 +42,4 @@ pub trait ChannelMut: Channel {
     /// test(&mut audio::interleaved![[0.0; 8]; 2]);
     /// ```
     fn as_linear_mut(&mut self) -> Option<&mut [Self::Sample]>;
-
-    /// Copy the content of one channel to another.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use audio::{Buf, BufMut, ChannelMut};
-    ///
-    /// let from = audio::interleaved![[1.0f32; 4]; 2];
-    /// let mut to = audio::buf::Interleaved::<f32>::with_topology(2, 4);
-    ///
-    /// to.get_mut(0).unwrap().copy_from(from.limit(2).get(0).unwrap());
-    /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
-    /// ```
-    fn copy_from<I>(&mut self, from: I)
-    where
-        Self::Sample: Copy,
-        I: Channel<Sample = Self::Sample>,
-    {
-        match (self.as_linear_mut(), from.as_linear()) {
-            (Some(to), Some(from)) => {
-                let len = usize::min(to.len(), from.len());
-                to[..len].copy_from_slice(&from[..len]);
-            }
-            _ => {
-                for (t, f) in self.iter_mut().zip(from.iter()) {
-                    *t = f;
-                }
-            }
-        }
-    }
-
-    /// Copy an iterator into a channel.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use audio::{Buf, BufMut, ChannelMut};
-    ///
-    /// let mut buf = audio::buf::Interleaved::with_topology(2, 4);
-    ///
-    /// (&mut buf).skip(2).get_mut(0).unwrap().copy_from_iter([1.0, 1.0]);
-    ///
-    /// assert_eq!(buf.as_slice(), &[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0])
-    /// ```
-    fn copy_from_iter<I>(&mut self, from: I)
-    where
-        I: IntoIterator<Item = Self::Sample>,
-    {
-        for (to, from) in self.iter_mut().zip(from) {
-            *to = from;
-        }
-    }
 }

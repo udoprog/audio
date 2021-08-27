@@ -20,8 +20,8 @@ where
     O: BufMut<Sample = I::Sample>,
     I::Sample: Copy,
 {
-    for (mut to, from) in to.iter_mut().zip(from.iter()) {
-        to.copy_from(from);
+    for (from, to) in from.iter().zip(to.iter_mut()) {
+        crate::channel::copy(from, to);
     }
 }
 
