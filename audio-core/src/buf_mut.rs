@@ -3,14 +3,14 @@ use crate::{Buf, ChannelMut};
 /// A trait describing a mutable audio buffer.
 pub trait BufMut: Buf {
     /// The type of the mutable channel container.
-    type ChannelMut<'a>: ChannelMut<Sample = Self::Sample>
+    type ChannelMut<'this>: ChannelMut<Sample = Self::Sample>
     where
-        Self::Sample: 'a;
+        Self: 'this;
 
     /// A mutable iterator over available channels.
-    type IterMut<'a>: Iterator<Item = Self::ChannelMut<'a>>
+    type IterMut<'this>: Iterator<Item = Self::ChannelMut<'this>>
     where
-        Self::Sample: 'a;
+        Self: 'this;
 
     /// Construct a mutable iterator over available channels.
     ///
@@ -95,15 +95,13 @@ impl<B> BufMut for &mut B
 where
     B: ?Sized + BufMut,
 {
-    type ChannelMut<'a>
+    type ChannelMut<'this> = B::ChannelMut<'this>
     where
-        Self::Sample: 'a,
-    = B::ChannelMut<'a>;
+        Self: 'this;
 
-    type IterMut<'a>
+    type IterMut<'this> = B::IterMut<'this>
     where
-        Self::Sample: 'a,
-    = B::IterMut<'a>;
+        Self: 'this;
 
     #[inline]
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {

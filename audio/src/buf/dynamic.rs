@@ -136,7 +136,7 @@ impl<T> Dynamic<T> {
         {
             let mut data = Vec::with_capacity(C);
 
-            for frames in std::array::IntoIter::new(values) {
+            for frames in values {
                 let slice = Box::<[T]>::from(frames);
                 let slice = ptr::NonNull::new_unchecked(Box::into_raw(slice) as *mut T);
                 data.push(RawSlice { data: slice });
@@ -745,28 +745,30 @@ where
 {
     type Sample = T;
 
-    type Channel<'a>
+    type Channel<'this> = LinearRef<'this, Self::Sample>
     where
-        Self::Sample: 'a,
-    = LinearRef<'a, Self::Sample>;
+        Self::Sample: 'this;
 
-    type Iter<'a>
+    type Iter<'this> = Iter<'this, T>
     where
-        Self::Sample: 'a,
-    = Iter<'a, T>;
+        Self::Sample: 'this;
 
+    #[inline]
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
     }
 
+    #[inline]
     fn channels(&self) -> usize {
         (*self).channels()
     }
 
+    #[inline]
     fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
         (*self).get(channel)
     }
 
+    #[inline]
     fn iter(&self) -> Self::Iter<'_> {
         (*self).iter()
     }
@@ -794,15 +796,13 @@ impl<T> BufMut for Dynamic<T>
 where
     T: Copy,
 {
-    type ChannelMut<'a>
+    type ChannelMut<'this> = LinearMut<'this, Self::Sample>
     where
-        Self::Sample: 'a,
-    = LinearMut<'a, Self::Sample>;
+        Self: 'this;
 
-    type IterMut<'a>
+    type IterMut<'this> = IterMut<'this, T>
     where
-        Self::Sample: 'a,
-    = IterMut<'a, T>;
+        Self: 'this;
 
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         (*self).get_mut(channel)

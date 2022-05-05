@@ -76,15 +76,13 @@ where
 {
     type Sample = T::Item;
 
-    type Channel<'a>
+    type Channel<'this> = LinearRef<'this, Self::Sample>
     where
-        Self::Sample: 'a,
-    = LinearRef<'a, Self::Sample>;
+        Self: 'this;
 
-    type Iter<'a>
+    type Iter<'this> = Iter<'this, Self::Sample>
     where
-        Self::Sample: 'a,
-    = Iter<'a, Self::Sample>;
+        Self: 'this;
 
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
@@ -123,15 +121,13 @@ impl<T> BufMut for Sequential<T>
 where
     T: SliceMut,
 {
-    type ChannelMut<'a>
+    type ChannelMut<'a> = LinearMut<'a, Self::Sample>
     where
-        Self::Sample: 'a,
-    = LinearMut<'a, Self::Sample>;
+        Self: 'a;
 
-    type IterMut<'a>
+    type IterMut<'a> = IterMut<'a, Self::Sample>
     where
-        Self::Sample: 'a,
-    = IterMut<'a, Self::Sample>;
+        Self: 'a;
 
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         let value = self

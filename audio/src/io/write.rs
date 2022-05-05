@@ -229,15 +229,13 @@ where
 {
     type Sample = B::Sample;
 
-    type Channel<'a>
+    type Channel<'this> = B::Channel<'this>
     where
-        Self::Sample: 'a,
-    = B::Channel<'a>;
+        Self: 'this;
 
-    type Iter<'a>
+    type Iter<'this> = Iter<'this, B>
     where
-        Self::Sample: 'a,
-    = Iter<'a, B>;
+        Self: 'this;
 
     fn frames_hint(&self) -> Option<usize> {
         self.buf.frames_hint()
@@ -260,15 +258,13 @@ impl<B> BufMut for Write<B>
 where
     B: BufMut,
 {
-    type ChannelMut<'a>
+    type ChannelMut<'a> = B::ChannelMut<'a>
     where
-        Self::Sample: 'a,
-    = B::ChannelMut<'a>;
+        Self: 'a;
 
-    type IterMut<'a>
+    type IterMut<'a> = IterMut<'a, B>
     where
-        Self::Sample: 'a,
-    = IterMut<'a, B>;
+        Self: 'a;
 
     #[inline]
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {

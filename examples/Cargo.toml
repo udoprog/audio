@@ -7,8 +7,8 @@ publish = false
 
 [dependencies]
 audio = "0.2.0-alpha.3"
-bittle = "0.1.0"
-cpal = "0.13.3"
+bittle = "0.2.1"
+cpal = "0.13.5"
 minimp3 = {git = "https://github.com/udoprog/minimp3-rs", branch = "next"}
 rubato = {git = "https://github.com/udoprog/rubato", branch = "next"}
-anyhow = "1.0.40"
+anyhow = "1.0.57"

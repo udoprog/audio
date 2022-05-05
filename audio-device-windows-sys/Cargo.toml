@@ -17,4 +17,4 @@ wasapi = []
 xaudio2 = []
 
 [dependencies]
-windows = {version = "0.19.0", default-features = false}
+windows = { version = "0.36.1", default-features = false }

@@ -8,14 +8,14 @@ use crate::Channel;
 /// See [BufMut::get_mut][crate::BufMut::get_mut].
 pub trait ChannelMut: Channel {
     /// A reborrowed mutable channel.
-    type ChannelMut<'a>: ChannelMut<Sample = Self::Sample>
+    type ChannelMut<'this>: ChannelMut<Sample = Self::Sample>
     where
-        Self::Sample: 'a;
+        Self: 'this;
 
     /// A mutable iterator over a channel.
-    type IterMut<'a>: Iterator<Item = &'a mut Self::Sample>
+    type IterMut<'this>: Iterator<Item = &'this mut Self::Sample>
     where
-        Self::Sample: 'a;
+        Self: 'this;
 
     /// Reborrow the channel mutably.
     fn as_channel_mut(&mut self) -> Self::ChannelMut<'_>;

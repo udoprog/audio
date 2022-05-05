@@ -125,7 +125,7 @@ fn test_enabled_mut() {
     use bittle::Mask as _;
 
     let mut buf = crate::buf::Dynamic::<f32>::with_topology(4, 1024);
-    let mask: bittle::BitSet<u128> = bittle::bit_set![0, 2, 3];
+    let mask: bittle::FixedSet<u128> = bittle::fixed_set![0, 2, 3];
 
     for mut chan in mask.join(buf.iter_mut()) {
         for b in chan.iter_mut() {

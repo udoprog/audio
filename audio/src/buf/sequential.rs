@@ -158,7 +158,7 @@ impl<T> Sequential<T> {
             let mut data = Vec::with_capacity(N * channels);
 
             for _ in 0..channels {
-                data.extend(std::array::IntoIter::new(frames));
+                data.extend(frames);
             }
 
             data
@@ -210,8 +210,8 @@ impl<T> Sequential<T> {
         fn data_from_array<T, const F: usize, const C: usize>(channels: [[T; F]; C]) -> Vec<T> {
             let mut data = Vec::with_capacity(C * F);
 
-            for frames in std::array::IntoIter::new(channels) {
-                for f in std::array::IntoIter::new(frames) {
+            for frames in channels {
+                for f in frames {
                     data.push(f);
                 }
             }
@@ -716,15 +716,13 @@ where
 {
     type Sample = T;
 
-    type Channel<'a>
+    type Channel<'this> = LinearRef<'this, Self::Sample>
     where
-        Self::Sample: 'a,
-    = LinearRef<'a, Self::Sample>;
+        Self::Sample: 'this;
 
-    type Iter<'a>
+    type Iter<'this> = Iter<'this, T>
     where
-        Self::Sample: 'a,
-    = Iter<'a, T>;
+        Self: 'this;
 
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
@@ -766,15 +764,13 @@ impl<T> BufMut for Sequential<T>
 where
     T: Copy,
 {
-    type ChannelMut<'a>
+    type ChannelMut<'this> = LinearMut<'this, Self::Sample>
     where
-        Self::Sample: 'a,
-    = LinearMut<'a, Self::Sample>;
+        Self: 'this;
 
-    type IterMut<'a>
+    type IterMut<'this> = IterMut<'this, T>
     where
-        Self::Sample: 'a,
-    = IterMut<'a, T>;
+        Self: 'this;
 
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         (*self).get_mut(channel)

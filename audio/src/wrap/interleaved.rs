@@ -79,15 +79,13 @@ where
 {
     type Sample = T::Item;
 
-    type Channel<'a>
+    type Channel<'this> = InterleavedRef<'this, Self::Sample>
     where
-        Self::Sample: 'a,
-    = InterleavedRef<'a, Self::Sample>;
+        Self: 'this;
 
-    type Iter<'a>
+    type Iter<'this> = Iter<'this, Self::Sample>
     where
-        Self::Sample: 'a,
-    = Iter<'a, Self::Sample>;
+        Self: 'this;
 
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
@@ -141,15 +139,13 @@ impl<T> BufMut for Interleaved<T>
 where
     T: SliceMut,
 {
-    type ChannelMut<'a>
+    type ChannelMut<'this> = InterleavedMut<'this, T::Item>
     where
-        T::Item: 'a,
-    = InterleavedMut<'a, T::Item>;
+        Self: 'this;
 
-    type IterMut<'a>
+    type IterMut<'this> = IterMut<'this, Self::Sample>
     where
-        Self::Sample: 'a,
-    = IterMut<'a, Self::Sample>;
+        Self: 'this;
 
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         InterleavedMut::from_slice(self.value.as_mut(), channel, self.channels)

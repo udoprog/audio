@@ -12,14 +12,14 @@ pub trait Channel {
     type Sample: Copy;
 
     /// The type the channel assumes when coerced into a reference.
-    type Channel<'a>: Channel<Sample = Self::Sample>
+    type Channel<'this>: Channel<Sample = Self::Sample>
     where
-        Self::Sample: 'a;
+        Self: 'this;
 
     /// A borrowing iterator over the channel.
-    type Iter<'a>: Iterator<Item = Self::Sample>
+    type Iter<'this>: Iterator<Item = Self::Sample>
     where
-        Self::Sample: 'a;
+        Self: 'this;
 
     /// Reborrow the current channel as a reference.
     fn as_channel(&self) -> Self::Channel<'_>;

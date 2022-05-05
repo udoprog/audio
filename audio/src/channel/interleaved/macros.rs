@@ -324,15 +324,13 @@ macro_rules! interleaved_channel {
         {
             type Sample = $arg;
 
-            type Channel<'s>
+            type Channel<'this> = $name<'this, Self::Sample>
             where
-                Self::Sample: 's
-            = $name<'s, Self::Sample>;
+                Self: 'this;
 
-            type Iter<'s>
+            type Iter<'this> = Iter<'this, Self::Sample>
             where
-                Self::Sample: 's,
-            = Iter<'s, Self::Sample>;
+                Self: 'this;
 
             fn as_channel(&self) -> $name<'_, $arg> {
                 Self {

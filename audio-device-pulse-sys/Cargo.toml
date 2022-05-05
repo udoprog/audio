@@ -13,8 +13,8 @@ description = "audio-device system bindings for PulseAudio"
 readme = "README.md"
 
 [dependencies]
-libc = "0.2.93"
+libc = "0.2.125"
 
 [build-dependencies]
-anyhow = "1.0"
-pkg-config = "0.3.19"
+anyhow = "1.0.57"
+pkg-config = "0.3.25"

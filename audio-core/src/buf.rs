@@ -41,14 +41,14 @@ pub trait Buf {
     type Sample;
 
     /// The type of the channel container.
-    type Channel<'a>: Channel<Sample = Self::Sample>
+    type Channel<'this>: Channel<Sample = Self::Sample>
     where
-        Self::Sample: 'a;
+        Self: 'this;
 
     /// An iterator over available channels.
-    type Iter<'a>: Iterator<Item = Self::Channel<'a>>
+    type Iter<'this>: Iterator<Item = Self::Channel<'this>>
     where
-        Self::Sample: 'a;
+        Self: 'this;
 
     /// A typical number of frames for each channel in the buffer, if known.
     ///
@@ -290,15 +290,13 @@ where
 {
     type Sample = B::Sample;
 
-    type Channel<'a>
+    type Channel<'a> = B::Channel<'a>
     where
-        Self::Sample: 'a,
-    = B::Channel<'a>;
+        Self: 'a;
 
-    type Iter<'a>
+    type Iter<'a> = B::Iter<'a>
     where
-        Self::Sample: 'a,
-    = B::Iter<'a>;
+        Self: 'a;
 
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
@@ -326,15 +324,13 @@ where
 {
     type Sample = B::Sample;
 
-    type Channel<'a>
+    type Channel<'this> = B::Channel<'this>
     where
-        Self::Sample: 'a,
-    = B::Channel<'a>;
+        Self: 'this;
 
-    type Iter<'a>
+    type Iter<'this> = B::Iter<'this>
     where
-        Self::Sample: 'a,
-    = B::Iter<'a>;
+        Self: 'this;
 
     #[inline]
     fn frames_hint(&self) -> Option<usize> {

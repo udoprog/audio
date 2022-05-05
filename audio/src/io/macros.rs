@@ -6,8 +6,7 @@ macro_rules! iter {
     ) => {
         pub struct Iter<'a, B>
         where
-            B: Buf,
-            B::Sample: 'a,
+            B: 'a + Buf,
         {
             iter: B::Iter<'a>,
             $($field: $field_ty,)*
@@ -15,8 +14,7 @@ macro_rules! iter {
 
         impl<'a, B> Iterator for Iter<'a, B>
         where
-            B: Buf,
-            B::Sample: 'a,
+            B: 'a + Buf,
         {
             type Item = B::Channel<'a>;
 
@@ -36,8 +34,7 @@ macro_rules! iter_mut {
     ) => {
         pub struct IterMut<'a, B>
         where
-            B: BufMut,
-            B::Sample: 'a,
+            B: 'a + BufMut,
         {
             iter: B::IterMut<'a>,
             $($field: $field_ty,)*
@@ -45,8 +42,7 @@ macro_rules! iter_mut {
 
         impl<'a, B> Iterator for IterMut<'a, B>
         where
-            B: BufMut,
-            B::Sample: 'a,
+            B: 'a + BufMut,
         {
             type Item = B::ChannelMut<'a>;
 

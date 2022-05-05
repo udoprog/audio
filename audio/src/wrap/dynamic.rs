@@ -59,15 +59,13 @@ macro_rules! impl_buf {
         {
             type Sample = T;
 
-            type Channel<'a>
+            type Channel<'this> = LinearRef<'this, Self::Sample>
             where
-                Self::Sample: 'a,
-            = LinearRef<'a, Self::Sample>;
+                Self: 'this;
 
-            type Iter<'a>
+            type Iter<'this> = Iter<'this, T>
             where
-                Self::Sample: 'a,
-            = Iter<'a, T>;
+                Self: 'this;
 
             fn frames_hint(&self) -> Option<usize> {
                 Some(self.value.get(0)?.len())
@@ -105,15 +103,13 @@ macro_rules! impl_buf_mut {
         where
             T: Copy,
         {
-            type ChannelMut<'a>
+            type ChannelMut<'this> = LinearMut<'this, T>
             where
-                Self::Sample: 'a,
-            = LinearMut<'a, T>;
+                Self: 'this;
 
-            type IterMut<'a>
+            type IterMut<'this> = IterMut<'this, T>
             where
-                Self::Sample: 'a,
-            = IterMut<'a, T>;
+                Self: 'this;
 
             fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
                 Some(LinearMut::new(self.value.get_mut(channel)?.as_mut()))

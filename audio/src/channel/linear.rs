@@ -90,15 +90,13 @@ where
 {
     type Sample = T;
 
-    type Channel<'s>
+    type Channel<'this> = LinearRef<'this, Self::Sample>
     where
-        Self::Sample: 's,
-    = LinearRef<'s, Self::Sample>;
+        Self: 'this;
 
-    type Iter<'s>
+    type Iter<'this> = Iter<'this, Self::Sample>
     where
-        Self::Sample: 's,
-    = Iter<'s, Self::Sample>;
+        Self: 'this;
 
     fn as_channel(&self) -> Self::Channel<'_> {
         Self { buf: self.buf }
@@ -256,15 +254,13 @@ where
 {
     type Sample = T;
 
-    type Channel<'s>
+    type Channel<'this> = LinearRef<'this, Self::Sample>
     where
-        Self::Sample: 's,
-    = LinearRef<'s, Self::Sample>;
+        Self: 'this;
 
-    type Iter<'s>
+    type Iter<'this> = Iter<'this, Self::Sample>
     where
-        Self::Sample: 's,
-    = Iter<'s, Self::Sample>;
+        Self: 'this;
 
     fn as_channel(&self) -> Self::Channel<'_> {
         LinearRef { buf: &self.buf[..] }
@@ -311,15 +307,13 @@ impl<'a, T> ChannelMut for LinearMut<'a, T>
 where
     T: Copy,
 {
-    type ChannelMut<'s>
+    type ChannelMut<'this> = LinearMut<'this, T>
     where
-        Self::Sample: 's,
-    = LinearMut<'s, T>;
+        Self: 'this;
 
-    type IterMut<'s>
+    type IterMut<'this> = IterMut<'this, T>
     where
-        Self::Sample: 's,
-    = IterMut<'s, T>;
+        Self: 'this;
 
     fn as_channel_mut(&mut self) -> Self::ChannelMut<'_> {
         LinearMut { buf: self.buf }

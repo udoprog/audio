@@ -304,15 +304,13 @@ where
 {
     type Sample = B::Sample;
 
-    type Channel<'a>
+    type Channel<'this> = B::Channel<'this>
     where
-        Self::Sample: 'a,
-    = B::Channel<'a>;
+        Self: 'this;
 
-    type Iter<'a>
+    type Iter<'this> = Iter<'this, B>
     where
-        Self::Sample: 'a,
-    = Iter<'a, B>;
+        Self: 'this;
 
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
@@ -341,15 +339,13 @@ impl<B> BufMut for ReadWrite<B>
 where
     B: ExactSizeBuf + BufMut,
 {
-    type ChannelMut<'a>
+    type ChannelMut<'this> = B::ChannelMut<'this>
     where
-        Self::Sample: 'a,
-    = B::ChannelMut<'a>;
+        Self: 'this;
 
-    type IterMut<'a>
+    type IterMut<'this> = IterMut<'this, B>
     where
-        Self::Sample: 'a,
-    = IterMut<'a, B>;
+        Self: 'this;
 
     #[inline]
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {

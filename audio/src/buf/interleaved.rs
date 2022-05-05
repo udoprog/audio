@@ -147,7 +147,7 @@ impl<T> Interleaved<T> {
         {
             let mut data = Vec::with_capacity(N * channels);
 
-            for f in std::array::IntoIter::new(frames) {
+            for f in frames {
                 for _ in 0..channels {
                     data.push(f);
                 }
@@ -204,8 +204,8 @@ impl<T> Interleaved<T> {
 
             // TODO: It would be nice to avoid this heap allocation! Could be
             // done w/ ArrayVec, but we don't want to pull that dependency.
-            let mut vecs: Vec<std::array::IntoIter<T, F>> = std::array::IntoIter::new(channels)
-                .map(std::array::IntoIter::new)
+            let mut vecs: Vec<_> = IntoIterator::into_iter(channels)
+                .map(IntoIterator::into_iter)
                 .collect();
 
             for _ in 0..F {
@@ -727,15 +727,13 @@ where
 {
     type Sample = T;
 
-    type Channel<'a>
+    type Channel<'this> = InterleavedRef<'this, Self::Sample>
     where
-        Self::Sample: 'a,
-    = InterleavedRef<'a, Self::Sample>;
+        Self::Sample: 'this;
 
-    type Iter<'a>
+    type Iter<'this> = Iter<'this, Self::Sample>
     where
-        Self::Sample: 'a,
-    = Iter<'a, Self::Sample>;
+        Self::Sample: 'this;
 
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
@@ -776,15 +774,13 @@ impl<T> BufMut for Interleaved<T>
 where
     T: Copy,
 {
-    type ChannelMut<'a>
+    type ChannelMut<'this> = InterleavedMut<'this, Self::Sample>
     where
-        Self::Sample: 'a,
-    = InterleavedMut<'a, Self::Sample>;
+        Self::Sample: 'this;
 
-    type IterMut<'a>
+    type IterMut<'this> = IterMut<'this, Self::Sample>
     where
-        Self::Sample: 'a,
-    = IterMut<'a, Self::Sample>;
+        Self::Sample: 'this;
 
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         InterleavedMut::from_slice(&mut self.data, channel, self.channels)
