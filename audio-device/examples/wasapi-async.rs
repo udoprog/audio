@@ -51,6 +51,10 @@ async fn generate_audio() -> Result<()> {
 
 #[tokio::main]
 pub async fn main() -> Result<()> {
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
+        .init();
+
     println!("WARNING: This program will generate audio and we do our best to avoid them being too loud.");
     println!("Please make sure your volume is turned down!");
     println!();
