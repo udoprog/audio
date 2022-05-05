@@ -1,6 +1,6 @@
 use std::mem;
-use windows_sys::Windows::Win32::Media::Audio::CoreAudio as core;
-use windows_sys::Windows::Win32::Media::Multimedia as mm;
+use windows::Win32::Media::Audio::CoreAudio as core;
+use windows::Win32::Media::Multimedia as mm;
 
 use super::ClientConfig;
 

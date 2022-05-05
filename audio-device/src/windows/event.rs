@@ -1,7 +1,7 @@
 use crate::windows::RawEvent;
 use std::ptr;
-use windows_sys::Windows::Win32::System::Threading as th;
-use windows_sys::Windows::Win32::Foundation as f;
+use windows::Win32::System::Threading as th;
+use windows::Win32::Foundation as f;
 
 /// A managed ewvent object.
 #[repr(transparent)]
@@ -10,22 +10,15 @@ pub struct Event {
 }
 
 impl Event {
-    pub(crate) fn new(manual_reset: bool, initial_state: bool) -> windows::Result<Self> {
+    pub(crate) fn new(manual_reset: bool, initial_state: bool) -> windows::core::Result<Self> {
         let handle = unsafe {
             th::CreateEventA(
                 ptr::null_mut(),
                 manual_reset,
                 initial_state,
                 f::PSTR::NULL,
-            )
+            )?
         };
-
-        if handle.is_null() {
-            return Err(windows::Error::new(
-                windows::HRESULT::from_thread(),
-                "failed to create event handle",
-            ));
-        }
 
         Ok(Self { handle })
     }

@@ -2,7 +2,7 @@ use crate::wasapi::Error;
 use std::marker;
 use std::ops;
 use std::slice;
-use windows_sys::Windows::Win32::Media::Audio::CoreAudio as core;
+use windows::Win32::Media::Audio::CoreAudio as core;
 
 /// A typed mutable data buffer.
 pub struct BufferMut<'a, T> {

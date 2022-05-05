@@ -1,6 +1,6 @@
 //! Shared helpers for windows programming.
 
-use windows_sys::Windows::Win32::Foundation as f;
+use windows::Win32::Foundation as f;
 mod event;
 pub use self::event::Event;
 

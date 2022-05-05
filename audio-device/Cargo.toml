@@ -20,11 +20,11 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = []
-wasapi = ["windows-sys/wasapi", "events-driver"]
+wasapi = ["windows", "events-driver"]
 alsa = ["alsa-sys", "poll-driver"]
 pulse = ["pulse-sys", "libc", "unix"]
 pipewire = ["pipewire-sys", "libc"]
-events-driver = ["windows", "windows-sys"]
+events-driver = ["windows"]
 poll-driver = ["unix"]
 unix = ["libc", "nix"]
 
@@ -34,10 +34,6 @@ core = {package = "audio-core", version = "0.2.0-alpha.3", path = "../audio-core
 thiserror = "1.0.31"
 rand = "0.8.5"
 ste = {version = "0.1.0-alpha.9", path = "../ste"}
-
-# windows
-windows-sys = {package = "audio-device-windows-sys", version = "0.1.0-alpha.1", path = "../audio-device-windows-sys", optional = true}
-windows = { version = "0.36.1", default-features = false, optional = true }
 
 pulse-sys = {package = "audio-device-pulse-sys", version = "0.1.0-alpha.1", path = "../audio-device-pulse-sys", optional = true}
 pipewire-sys = {package = "audio-device-pipewire-sys", version = "0.1.0-alpha.1", path = "../audio-device-pipewire-sys", optional = true}
@@ -52,6 +48,17 @@ audio = { version = "0.2.0-alpha.3" }
 audio-generator = {path = "../audio-generator"}
 anyhow = "1.0.57"
 tokio = { version = "1.18.1", features = ["full"] }
+
+[dependencies.windows]
+version = "0.36.1"
+optional = true
+features = [
+    "Win32_System_Threading",
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_System_WindowsProgramming",
+    "Win32_Media_Audio",
+]
 
 [[example]]
 name = "alsa-list"

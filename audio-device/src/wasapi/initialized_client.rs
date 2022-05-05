@@ -1,7 +1,7 @@
 use crate::loom::sync::Arc;
 use crate::wasapi::{ClientConfig, Error, RenderClient, Sample};
 use std::marker;
-use windows_sys::Windows::Win32::Media::Audio::CoreAudio as core;
+use windows::Win32::Media::Audio::CoreAudio as core;
 
 /// A client that has been initialized with the given type `T`.
 ///

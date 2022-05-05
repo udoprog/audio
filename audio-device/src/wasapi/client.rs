@@ -4,9 +4,9 @@ use crate::windows::{AsyncEvent, Event, RawEvent};
 use std::marker;
 use std::mem;
 use std::ptr;
-use windows_sys::Windows::Win32::System::Com as com;
-use windows_sys::Windows::Win32::Media::Audio::CoreAudio as core;
-use windows_sys::Windows::Win32::Media::Multimedia as mm;
+use windows::Win32::System::Com as com;
+use windows::Win32::Media::Audio as core;
+use windows::Win32::Media::Multimedia as mm;
 
 /// An audio client.
 pub struct Client {
@@ -103,7 +103,7 @@ impl Client {
     ) -> Result<InitializedClient<T, E>, Error>
     where
         T: Sample,
-        F: FnOnce() -> windows::Result<E>,
+        F: FnOnce() -> windows::core::Result<E>,
         E: RawEvent,
     {
         unsafe {

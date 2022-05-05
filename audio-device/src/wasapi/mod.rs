@@ -4,8 +4,8 @@ use std::mem;
 use std::ptr;
 use thiserror::Error;
 use windows::Interface;
-use windows_sys::Windows::Win32::System::Com as com;
-use windows_sys::Windows::Win32::Media::Audio::CoreAudio as core;
+use windows::Win32::System::Com as com;
+use windows::Win32::Media::Audio::CoreAudio as core;
 
 mod initialized_client;
 pub use self::initialized_client::InitializedClient;
@@ -30,7 +30,7 @@ pub enum Error {
     Sys(
         #[from]
         #[source]
-        windows::Error,
+        windows::core::Error,
     ),
     /// Trying to use a mix format which is not supported by the device.
     #[error("Device doesn't support a compatible mix format")]

@@ -13,7 +13,7 @@ pub enum Error {
     Windows(
         #[from]
         #[source]
-        windows::Error,
+        windows::core::Error,
     ),
 }
 
