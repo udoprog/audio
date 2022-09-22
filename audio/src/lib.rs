@@ -117,7 +117,6 @@
 
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 #![allow(clippy::should_implement_trait)]
-#![feature(generic_associated_types)]
 
 #[macro_use]
 mod macros;

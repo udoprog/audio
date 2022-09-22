@@ -185,7 +185,7 @@ impl<T> Dynamic<T> {
                 let mut data = RawSlice::uninit(channels);
 
                 for c in 0..channels {
-                    let slice = RawSlice::uninit(N);
+                    let mut slice = RawSlice::uninit(N);
                     ptr::copy_nonoverlapping(frames.as_ptr(), slice.as_ptr(), N);
                     data.write(c, slice);
                 }
@@ -935,7 +935,7 @@ impl<T> RawSlice<T> {
     ///
     /// The caller is resonsible for asserting that the value at the given
     /// location has an initialized bit pattern and is not out of bounds.
-    unsafe fn get_unchecked(&self, n: usize) -> &T {
+    unsafe fn get_unchecked<'a>(&self, n: usize) -> &'a T {
         &*self.data.as_ptr().add(n)
     }
 
@@ -945,7 +945,7 @@ impl<T> RawSlice<T> {
     ///
     /// The caller is resonsible for asserting that the value at the given
     /// location has an initialized bit pattern and is not out of bounds.
-    unsafe fn get_unchecked_mut(&mut self, n: usize) -> &mut T {
+    unsafe fn get_unchecked_mut<'a>(&mut self, n: usize) -> &'a mut T {
         &mut *self.data.as_ptr().add(n)
     }
 
@@ -970,7 +970,7 @@ impl<T> RawSlice<T> {
     }
 
     /// Get the raw base pointer of the slice.
-    fn as_ptr(self) -> *mut T {
+    fn as_ptr(&mut self) -> *mut T {
         self.data.as_ptr()
     }
 
@@ -980,7 +980,7 @@ impl<T> RawSlice<T> {
     ///
     /// The incoming len must represent a valid slice of initialized data.
     /// The produced lifetime must be bounded to something valid!
-    unsafe fn as_ref<'a>(self, len: usize) -> &'a [T] {
+    unsafe fn as_ref(&self, len: usize) -> &[T] {
         slice::from_raw_parts(self.data.as_ptr() as *const _, len)
     }
 
@@ -990,7 +990,7 @@ impl<T> RawSlice<T> {
     ///
     /// The incoming len must represent a valid slice of initialized data.
     /// The produced lifetime must be bounded to something valid!
-    unsafe fn as_linear_channel<'a>(self, len: usize) -> LinearRef<'a, T> {
+    unsafe fn as_linear_channel(&self, len: usize) -> LinearRef<'_, T> {
         LinearRef::new(self.as_ref(len))
     }
 
@@ -1000,7 +1000,7 @@ impl<T> RawSlice<T> {
     ///
     /// The incoming len must represent a valid slice of initialized data.
     /// The produced lifetime must be bounded to something valid!
-    unsafe fn as_mut<'a>(self, len: usize) -> &'a mut [T] {
+    unsafe fn as_mut(&mut self, len: usize) -> &mut [T] {
         slice::from_raw_parts_mut(self.data.as_ptr(), len)
     }
 
@@ -1010,7 +1010,7 @@ impl<T> RawSlice<T> {
     ///
     /// The incoming len must represent a valid slice of initialized data. The
     /// produced lifetime must be bounded to something valid!
-    unsafe fn as_linear_channel_mut<'a>(self, len: usize) -> LinearMut<'a, T> {
+    unsafe fn as_linear_channel_mut(&mut self, len: usize) -> LinearMut<'_, T> {
         LinearMut::new(self.as_mut(len))
     }
 
@@ -1039,13 +1039,3 @@ impl<T> RawSlice<T> {
         Vec::from_raw_parts(self.data.as_ptr(), len, cap)
     }
 }
-
-// Note: no auto impl cause of `T`.
-impl<T> Clone for RawSlice<T> {
-    #[inline]
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-
-impl<T> Copy for RawSlice<T> {}

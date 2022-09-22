@@ -8,7 +8,6 @@
 
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 #![allow(clippy::should_implement_trait)]
-#![feature(generic_associated_types)]
 
 pub mod buf;
 pub use self::buf::Buf;
