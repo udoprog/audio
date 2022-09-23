@@ -117,7 +117,9 @@ impl<T> InterleavedBuf for Interleaved<T>
 where
     T: Slice,
 {
-    fn as_interleaved(&self) -> &[T::Item] {
+    type Sample = T::Item;
+
+    fn as_interleaved(&self) -> &[Self::Sample] {
         self.value.as_ref()
     }
 }
@@ -126,12 +128,20 @@ impl<T> InterleavedBufMut for Interleaved<T>
 where
     T: SliceMut,
 {
+    #[inline]
     fn as_interleaved_mut(&mut self) -> &mut [Self::Sample] {
         self.value.as_mut()
     }
 
+    #[inline]
     fn as_interleaved_mut_ptr(&mut self) -> ptr::NonNull<Self::Sample> {
         self.value.as_mut_ptr()
+    }
+
+    #[inline]
+    unsafe fn set_interleaved_topology(&mut self, channels: usize, frames: usize) {
+        self.channels = channels;
+        self.frames = frames;
     }
 }
 

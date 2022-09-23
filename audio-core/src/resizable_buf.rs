@@ -1,7 +1,5 @@
-use crate::Buf;
-
 /// Trait implemented for buffers that can be resized.
-pub trait ResizableBuf: Buf {
+pub trait ResizableBuf {
     /// Ensure that the audio buffer has space for at least the given `capacity`
     /// of contiguous memory. The `capacity` is specified in number of
     /// [Samples][Buf::Sample].

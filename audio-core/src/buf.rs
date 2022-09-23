@@ -313,6 +313,7 @@ where
         (**self).get(channel)
     }
 
+    #[inline]
     fn iter(&self) -> Self::Iter<'_> {
         (**self).iter()
     }

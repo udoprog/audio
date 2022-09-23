@@ -43,6 +43,7 @@ impl<B> ExactSizeBuf for &B
 where
     B: ?Sized + ExactSizeBuf,
 {
+    #[inline]
     fn frames(&self) -> usize {
         (**self).frames()
     }
@@ -52,6 +53,7 @@ impl<B> ExactSizeBuf for &mut B
 where
     B: ?Sized + ExactSizeBuf,
 {
+    #[inline]
     fn frames(&self) -> usize {
         (**self).frames()
     }

@@ -89,14 +89,17 @@ impl<B> ReadBuf for &mut B
 where
     B: ReadBuf,
 {
+    #[inline]
     fn has_remaining(&self) -> bool {
         (**self).has_remaining()
     }
 
+    #[inline]
     fn remaining(&self) -> usize {
         (**self).remaining()
     }
 
+    #[inline]
     fn advance(&mut self, n: usize) {
         (**self).advance(n);
     }

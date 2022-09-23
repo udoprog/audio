@@ -1,9 +1,10 @@
-use crate::Buf;
-
 /// A trait describing a buffer that is interleaved.
 ///
 /// This allows for accessing the raw underlying interleaved buffer.
-pub trait InterleavedBuf: Buf {
+pub trait InterleavedBuf {
+    /// The type of a single sample.
+    type Sample;
+
     /// Access the underlying raw interleaved buffer.
     ///
     /// # Examples
@@ -24,6 +25,9 @@ impl<B> InterleavedBuf for &B
 where
     B: ?Sized + InterleavedBuf,
 {
+    type Sample = B::Sample;
+
+    #[inline]
     fn as_interleaved(&self) -> &[Self::Sample] {
         (**self).as_interleaved()
     }
@@ -33,6 +37,9 @@ impl<B> InterleavedBuf for &mut B
 where
     B: ?Sized + InterleavedBuf,
 {
+    type Sample = B::Sample;
+
+    #[inline]
     fn as_interleaved(&self) -> &[Self::Sample] {
         (**self).as_interleaved()
     }

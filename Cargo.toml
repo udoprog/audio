@@ -23,6 +23,6 @@ default-members = [
     "ste",
 ]
 
-[patch.crates-io]
-audio = {path = "audio"}
-audio-core = {path = "audio-core"}
+[patch.'https://github.com/udoprog/audio']
+audio = { path = "audio" }
+audio-core = { path = "audio-core" }

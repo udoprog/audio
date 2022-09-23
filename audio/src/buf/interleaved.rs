@@ -716,6 +716,7 @@ impl<T> ExactSizeBuf for Interleaved<T>
 where
     T: Copy,
 {
+    #[inline]
     fn frames(&self) -> usize {
         (*self).frames()
     }
@@ -735,18 +736,22 @@ where
     where
         Self::Sample: 'this;
 
+    #[inline]
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
     }
 
+    #[inline]
     fn channels(&self) -> usize {
         self.channels
     }
 
+    #[inline]
     fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
         InterleavedRef::from_slice(&self.data, channel, self.channels)
     }
 
+    #[inline]
     fn iter(&self) -> Self::Iter<'_> {
         (*self).iter()
     }
@@ -756,15 +761,18 @@ impl<T> ResizableBuf for Interleaved<T>
 where
     T: Sample,
 {
+    #[inline]
     fn try_reserve(&mut self, capacity: usize) -> bool {
         self.inner_reserve_cap(capacity);
         true
     }
 
+    #[inline]
     fn resize(&mut self, frames: usize) {
         (*self).resize(frames);
     }
 
+    #[inline]
     fn resize_topology(&mut self, channels: usize, frames: usize) {
         self.inner_resize(channels, frames);
     }
@@ -782,6 +790,7 @@ where
     where
         Self::Sample: 'this;
 
+    #[inline]
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         InterleavedMut::from_slice(&mut self.data, channel, self.channels)
     }
@@ -800,6 +809,7 @@ where
         }
     }
 
+    #[inline]
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         (*self).iter_mut()
     }
@@ -812,6 +822,7 @@ where
     type IntoIter = Iter<'a, T>;
     type Item = <Self::IntoIter as Iterator>::Item;
 
+    #[inline]
     fn into_iter(self) -> Self::IntoIter {
         (*self).iter()
     }
@@ -821,6 +832,9 @@ impl<T> InterleavedBuf for Interleaved<T>
 where
     T: Copy,
 {
+    type Sample = T;
+
+    #[inline]
     fn as_interleaved(&self) -> &[Self::Sample] {
         self.as_slice()
     }
@@ -830,11 +844,19 @@ impl<T> InterleavedBufMut for Interleaved<T>
 where
     T: Copy,
 {
+    #[inline]
     fn as_interleaved_mut(&mut self) -> &mut [Self::Sample] {
         self.as_slice_mut()
     }
 
+    #[inline]
     fn as_interleaved_mut_ptr(&mut self) -> ptr::NonNull<Self::Sample> {
         unsafe { ptr::NonNull::new_unchecked(self.data.as_mut_ptr()) }
+    }
+
+    #[inline]
+    unsafe fn set_interleaved_topology(&mut self, channels: usize, frames: usize) {
+        self.channels = channels;
+        self.frames = frames;
     }
 }

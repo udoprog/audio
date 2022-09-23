@@ -9,6 +9,10 @@ use std::path::{Path, PathBuf};
 const CHUNK_SIZE: usize = 1024;
 
 fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
+        .init();
+
     let mut args = std::env::args_os();
     args.next();
 
@@ -130,9 +134,16 @@ where
             //
             // cpal's data buffer expects the output to be interleaved.
             if self.output.has_remaining() {
+                tracing::trace! {
+                    remaining = self.output.remaining(),
+                    remaining_mut = data.remaining_mut(),
+                    "translate remaining",
+                };
                 io::translate_remaining(&mut self.output, &mut data);
                 continue;
             }
+
+            tracing::trace!(remaining_mut = data.remaining_mut(), "writing data");
 
             // If we have collected exactly one CHUNK_SIZE of resample buffer,
             // process it through the resampler and translate its result to the
@@ -159,6 +170,8 @@ where
                         )
                     });
 
+                    tracing::trace!("processing resample chunk");
+
                     resampler.process_with_buffer(
                         self.resample.as_ref(),
                         self.output.as_mut(),
@@ -166,7 +179,7 @@ where
                     )?;
 
                     self.resample.clear();
-                    let frames = self.output.as_ref().len();
+                    let frames = self.output.as_ref().frames();
 
                     self.output.set_read(0);
                     self.output.set_written(frames);
@@ -177,9 +190,19 @@ where
             // If we have information on a decoded frame, translate it into the
             // resample buffer until its filled up to its frames cap.
             if self.pcm.has_remaining() {
+                tracing::trace! {
+                    remaining_mut = self.pcm.remaining(),
+                    remaining = self.resample.remaining_mut(),
+                    "translate remaining from pcm to resample buffer",
+                };
                 io::translate_remaining(&mut self.pcm, &mut self.resample);
                 continue;
             }
+
+            tracing::trace! {
+                frames = self.pcm.as_ref().frames(),
+                "decode frame",
+            };
 
             let frame = self.decoder.next_frame_with_pcm(self.pcm.as_mut())?;
             self.pcm.set_read(0);
@@ -189,6 +212,11 @@ where
             // output exactly, copy it directly to the output frame without
             // resampling.
             if frame.sample_rate as u32 == self.device_sample_rate {
+                tracing::trace! {
+                    remaining_mut = self.pcm.remaining(),
+                    remaining = self.resample.remaining_mut(),
+                    "translate remaining from pcm directly to output",
+                };
                 io::translate_remaining(&mut self.pcm, &mut self.output);
                 continue;
             }
