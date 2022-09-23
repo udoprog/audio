@@ -13,4 +13,4 @@ description = "The core audio traits"
 readme = "README.md"
 
 [dev-dependencies]
-audio = {version = "0.2.0-alpha.3", path = "../audio"}
+audio = { version = "0.2.0-alpha.3" }

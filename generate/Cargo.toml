@@ -6,8 +6,9 @@ edition = "2018"
 publish = false
 
 [dependencies]
-anyhow = "1.0"
-windows_macros = {version = "0.8.0"}
-windows_gen = {version = "0.8.0"}
-bindgen = "0.58.1"
-pkg-config = "0.3.19"
+anyhow = "1.0.57"
+windows_macros = "0.31.0"
+windows_gen = "0.31.0"
+windows_reader = "0.31.0"
+bindgen = "0.59.2"
+pkg-config = "0.3.25"

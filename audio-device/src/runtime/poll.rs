@@ -3,7 +3,7 @@ use crate::loom::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
 use crate::runtime::atomic_waker::AtomicWaker;
-use crate::unix::errno::Errno;
+use crate::unix::Errno;
 use crate::Result;
 use std::collections::HashMap;
 use std::mem;
@@ -37,7 +37,7 @@ impl Drop for PollEventsGuard<'_> {
         self.shared.holders.lock().released.push(self.token);
 
         if let Err(e) = self.shared.parker.send(1) {
-            log::error!("failed to unpark background thread: {}", e);
+            tracing::error!("failed to unpark background thread: {}", e);
         }
     }
 }
@@ -124,7 +124,7 @@ impl Drop for AsyncPoll {
         self.shared.holders.lock().removed.push(self.waker.token());
 
         if let Err(e) = self.shared.parker.send(1) {
-            log::error!("failed to unpark background thread: {}", e);
+            tracing::error!("failed to unpark background thread: {}", e);
         }
     }
 }

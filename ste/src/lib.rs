@@ -164,7 +164,7 @@ use self::misc::RawSend;
 ///
 /// These both do the same thing, except the builder allows you to catch an OS error:
 ///
-/// ```rust
+/// ```
 /// # fn main() -> anyhow::Result<()> {
 /// let thread1 = ste::spawn();
 /// let thread2 = ste::Builder::new().build()?;
@@ -195,7 +195,7 @@ pub fn spawn() -> Thread {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// use std::sync::Arc;
 /// use std::panic::{AssertUnwindSafe, catch_unwind};
 ///
@@ -263,7 +263,7 @@ impl Thread {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// # fn main() -> anyhow::Result<()> {
     /// let thread = ste::spawn();
     ///
@@ -277,7 +277,7 @@ impl Thread {
     ///
     /// Unwinding panics as isolated on a per-task basis.
     ///
-    /// ```rust
+    /// ```
     /// use std::panic::{AssertUnwindSafe, catch_unwind};
     ///
     /// # #[tokio::main(flavor = "current_thread")]
@@ -357,7 +357,7 @@ impl Thread {
     /// assuming they are `Send`. The actual in the `async` task itself though
     /// will run on the background thread.
     ///
-    /// ```rust
+    /// ```
     /// # #[tokio::main(flavor = "current_thread")]
     /// # async fn main() -> anyhow::Result<()> {
     /// let thread = ste::Builder::new().with_tokio().build()?;
@@ -379,7 +379,7 @@ impl Thread {
     /// [submit][Thread::submit]. They are propagated as a different panic to
     /// the calling thread.
     ///
-    /// ```rust,should_panic
+    /// ```should_panic
     /// # #[tokio::main(flavor = "current_thread")]
     /// # async fn main() -> anyhow::Result<()> {
     /// let thread = ste::spawn();
@@ -419,7 +419,7 @@ impl Thread {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// struct Foo(ste::Tag);
     ///
     /// impl Drop for Foo {
@@ -454,7 +454,7 @@ impl Thread {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// # fn main() -> anyhow::Result<()> {
     /// let thread = ste::spawn();
     ///
@@ -480,7 +480,7 @@ impl Thread {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// struct Foo(ste::Tag);
     ///
     /// impl Foo {
@@ -552,7 +552,7 @@ impl Builder {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// # #[tokio::main(flavor = "current_thread")]
     /// # async fn main() -> anyhow::Result<()> {
     /// let thread = ste::Builder::new().with_tokio().build()?;
@@ -579,7 +579,7 @@ impl Builder {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// fn say_hello(main_thread: std::thread::ThreadId) {
     ///     println!("Hello from the prelude!");
     ///     assert_ne!(main_thread, std::thread::current().id());
@@ -605,7 +605,7 @@ impl Builder {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// # fn main() -> anyhow::Result<()> {
     /// let thread = ste::Builder::new().build()?;
     /// thread.join();

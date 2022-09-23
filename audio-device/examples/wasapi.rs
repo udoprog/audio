@@ -4,7 +4,7 @@ use audio_generator::{self as gen, Generator as _};
 
 fn run_output<T>(client: wasapi::Client, mut config: wasapi::ClientConfig) -> Result<()>
 where
-    T: Copy + wasapi::Sample + audio_core::Translate<f32>,
+    T: Copy + wasapi::Sample + core::Translate<f32>,
     [T]: rand::Fill,
 {
     config.sample_rate = 120000;
@@ -50,6 +50,10 @@ fn generate_audio() -> Result<()> {
 }
 
 pub fn main() -> Result<()> {
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
+        .init();
+
     println!("WARNING: This program will generate audio and we do our best to avoid them being too loud.");
     println!("Please make sure your volume is turned down!");
     println!();

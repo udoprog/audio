@@ -1,6 +1,4 @@
-use crate::buf::{Buf, Channels, ChannelsMut, ExactSizeBuf};
-use crate::channel::{Channel, ChannelMut};
-use crate::io::ReadBuf;
+use crate::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, ReadBuf};
 
 /// The tail of a buffer.
 ///
@@ -17,26 +15,20 @@ impl<B> Tail<B> {
     }
 }
 
-/// [Tail] adjusts the implementation of [Buf].
-///
-/// ```rust
-/// use audio::{Buf, ExactSizeBuf};
-///
-/// let buf = audio::interleaved![[0; 4]; 2];
-///
-/// assert_eq!((&buf).tail(0).channels(), 2);
-/// assert_eq!((&buf).tail(0).frames_hint(), Some(0));
-///
-/// assert_eq!((&buf).tail(1).channels(), 2);
-/// assert_eq!((&buf).tail(1).frames_hint(), Some(1));
-///
-/// assert_eq!((&buf).tail(5).channels(), 2);
-/// assert_eq!((&buf).tail(5).frames_hint(), Some(4));
-/// ```
 impl<B> Buf for Tail<B>
 where
     B: Buf,
 {
+    type Sample = B::Sample;
+
+    type Channel<'this> = B::Channel<'this>
+    where
+        Self: 'this;
+
+    type Iter<'this> = Iter<B::Iter<'this>>
+    where
+        Self: 'this;
+
     fn frames_hint(&self) -> Option<usize> {
         let frames = self.buf.frames_hint()?;
         Some(usize::min(frames, self.n))
@@ -45,11 +37,53 @@ where
     fn channels(&self) -> usize {
         self.buf.channels()
     }
+
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(self.buf.get(channel)?.tail(self.n))
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        Iter {
+            iter: self.buf.iter(),
+            n: self.n,
+        }
+    }
+}
+
+impl<B> BufMut for Tail<B>
+where
+    B: BufMut,
+{
+    type ChannelMut<'a> = B::ChannelMut<'a>
+    where
+        Self: 'a;
+
+    type IterMut<'a> = IterMut<B::IterMut<'a>>
+    where
+        Self: 'a;
+
+    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.get_mut(channel)?.tail(self.n))
+    }
+
+    fn copy_channel(&mut self, from: usize, to: usize)
+    where
+        Self::Sample: Copy,
+    {
+        self.buf.copy_channel(from, to);
+    }
+
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        IterMut {
+            iter: self.buf.iter_mut(),
+            n: self.n,
+        }
+    }
 }
 
 /// [Tail] adjusts the implementation of [ExactSizeBuf].
 ///
-/// ```rust
+/// ```
 /// use audio::{Buf, ExactSizeBuf};
 ///
 /// let buf = audio::interleaved![[0; 4]; 2];
@@ -64,31 +98,6 @@ where
 {
     fn frames(&self) -> usize {
         usize::min(self.buf.frames(), self.n)
-    }
-}
-
-impl<B, T> Channels<T> for Tail<B>
-where
-    B: Channels<T>,
-{
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
-        self.buf.channel(channel).tail(self.n)
-    }
-}
-
-impl<B, T> ChannelsMut<T> for Tail<B>
-where
-    B: ChannelsMut<T>,
-{
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
-        self.buf.channel_mut(channel).tail(self.n)
-    }
-
-    fn copy_channels(&mut self, from: usize, to: usize)
-    where
-        T: Copy,
-    {
-        self.buf.copy_channels(from, to);
     }
 }
 
@@ -110,3 +119,5 @@ where
         self.buf.advance(n);
     }
 }
+
+iterators!(n: usize => self.tail(n));

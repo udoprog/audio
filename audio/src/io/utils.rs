@@ -1,18 +1,18 @@
 //! Utilities for manipulating audio buffers.
 
-use audio_core::Translate;
-use audio_core::{Channels, ChannelsMut, ReadBuf, WriteBuf};
+use core::Translate;
+use core::{Buf, BufMut, ReadBuf, WriteBuf};
 
 /// Copy the shared remaining frames from `from` into `to`.
 ///
 /// This will copy the minimum number of frames between [ReadBuf::remaining] and
 /// [WriteBuf::remaining_mut], and advance the provided buffers appropriately
 /// using [ReadBuf::advance] and [WriteBuf::advance_mut].
-pub fn copy_remaining<I, O, T>(mut from: I, mut to: O)
+pub fn copy_remaining<I, O>(mut from: I, mut to: O)
 where
-    I: ReadBuf + Channels<T>,
-    O: WriteBuf + ChannelsMut<T>,
-    T: Copy,
+    I: ReadBuf + Buf,
+    O: WriteBuf + BufMut<Sample = I::Sample>,
+    I::Sample: Copy,
 {
     let len = usize::min(from.remaining(), to.remaining_mut());
     crate::buf::copy(&from, &mut to);
@@ -27,12 +27,12 @@ where
 /// This will translate the minimum number of frames between
 /// [ReadBuf::remaining] and [WriteBuf::remaining_mut], and advance the provided
 /// buffers appropriately using [ReadBuf::advance] and [WriteBuf::advance_mut].
-pub fn translate_remaining<I, O, T, U>(mut from: I, mut to: O)
+pub fn translate_remaining<I, O>(mut from: I, mut to: O)
 where
-    U: Translate<T>,
-    I: ReadBuf + Channels<T>,
-    O: WriteBuf + ChannelsMut<U>,
-    T: Copy,
+    I: ReadBuf + Buf,
+    O: WriteBuf + BufMut,
+    O::Sample: Translate<I::Sample>,
+    I::Sample: Copy,
 {
     let len = usize::min(from.remaining(), to.remaining_mut());
     crate::buf::translate(&from, &mut to);

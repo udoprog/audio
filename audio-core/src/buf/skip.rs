@@ -1,6 +1,4 @@
-use crate::buf::{Buf, Channels, ChannelsMut, ExactSizeBuf};
-use crate::channel::{Channel, ChannelMut};
-use crate::io::ReadBuf;
+use crate::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, ReadBuf};
 
 /// A buffer where a number of frames have been skipped over.
 ///
@@ -19,7 +17,7 @@ impl<B> Skip<B> {
 
 /// [Skip] adjusts the implementation of [Buf].
 ///
-/// ```rust
+/// ```
 /// use audio::{Buf, ExactSizeBuf};
 ///
 /// let buf = audio::interleaved![[0; 4]; 2];
@@ -37,6 +35,16 @@ impl<B> Buf for Skip<B>
 where
     B: Buf,
 {
+    type Sample = B::Sample;
+
+    type Channel<'this> = B::Channel<'this>
+    where
+        Self: 'this;
+
+    type Iter<'this> = Iter<B::Iter<'this>>
+    where
+        Self: 'this;
+
     fn frames_hint(&self) -> Option<usize> {
         let frames = self.buf.frames_hint()?;
         Some(frames.saturating_sub(self.n))
@@ -45,11 +53,53 @@ where
     fn channels(&self) -> usize {
         self.buf.channels()
     }
+
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(self.buf.get(channel)?.skip(self.n))
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        Iter {
+            iter: self.buf.iter(),
+            n: self.n,
+        }
+    }
+}
+
+impl<B> BufMut for Skip<B>
+where
+    B: BufMut,
+{
+    type ChannelMut<'a> = B::ChannelMut<'a>
+    where
+        Self: 'a;
+
+    type IterMut<'a> = IterMut<B::IterMut<'a>>
+    where
+        Self: 'a;
+
+    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.get_mut(channel)?.skip(self.n))
+    }
+
+    fn copy_channel(&mut self, from: usize, to: usize)
+    where
+        Self::Sample: Copy,
+    {
+        self.buf.copy_channel(from, to);
+    }
+
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        IterMut {
+            iter: self.buf.iter_mut(),
+            n: self.n,
+        }
+    }
 }
 
 /// [Skip] adjusts the implementation of [ExactSizeBuf].
 ///
-/// ```rust
+/// ```
 /// use audio::{Buf, ExactSizeBuf};
 ///
 /// let buf = audio::interleaved![[0; 4]; 2];
@@ -67,31 +117,6 @@ where
     }
 }
 
-impl<B, T> Channels<T> for Skip<B>
-where
-    B: Channels<T>,
-{
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
-        self.buf.channel(channel).skip(self.n)
-    }
-}
-
-impl<B, T> ChannelsMut<T> for Skip<B>
-where
-    B: ChannelsMut<T>,
-{
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
-        self.buf.channel_mut(channel).skip(self.n)
-    }
-
-    fn copy_channels(&mut self, from: usize, to: usize)
-    where
-        T: Copy,
-    {
-        self.buf.copy_channels(from, to);
-    }
-}
-
 impl<B> ReadBuf for Skip<B>
 where
     B: ReadBuf,
@@ -104,3 +129,5 @@ where
         self.buf.advance(self.n.saturating_add(n));
     }
 }
+
+iterators!(n: usize => self.skip(n));

@@ -42,7 +42,7 @@ impl<T> LinkedList<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use ste::linked_list::LinkedList;
     /// let mut list = LinkedList::<u32>::new();
     /// assert!(list.is_empty());
@@ -77,7 +77,7 @@ impl<T> LinkedList<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use std::ptr;
     /// use ste::linked_list::{Node, LinkedList};
     ///
@@ -131,7 +131,7 @@ impl<T> LinkedList<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use std::ptr;
     /// use ste::linked_list::{Node, LinkedList};
     ///
@@ -172,7 +172,7 @@ impl<T> LinkedList<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use std::ptr;
     /// use ste::linked_list::{Node, LinkedList};
     ///
@@ -216,7 +216,7 @@ impl<T> LinkedList<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use std::ptr;
     /// use ste::linked_list::{Node, LinkedList};
     ///

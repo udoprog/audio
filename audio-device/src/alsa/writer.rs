@@ -1,6 +1,6 @@
 use crate::alsa::{Error, Pcm, Result};
 use crate::libc as c;
-use audio_core as core;
+use core as core;
 use std::marker;
 
 /// A interleaved type-checked PCM writer.
@@ -30,7 +30,7 @@ impl<'a, T> Writer<'a, T> {
     /// Write an interleaved buffer.
     pub fn write_interleaved<B>(&mut self, mut buf: B) -> Result<()>
     where
-        B: core::ReadBuf + core::ExactSizeBuf + core::AsInterleaved<T>,
+        B: core::Buf<Sample = T> + core::ReadBuf + core::ExactSizeBuf + core::InterleavedBuf,
     {
         if buf.channels() != self.channels {
             return Err(Error::ChannelsMismatch {

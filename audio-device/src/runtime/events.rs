@@ -6,14 +6,15 @@ use crate::windows::{Event, RawEvent};
 use crate::Result;
 use std::io;
 use std::mem;
-use windows_sys::Windows::Win32::SystemServices as ss;
-use windows_sys::Windows::Win32::WindowsProgramming as wp;
+use windows::Win32::Foundation as f;
+use windows::Win32::System::Threading as th;
+use windows::Win32::System::WindowsProgramming as wp;
 
 /// Data on the waker for a handle.
 struct Waker {
     ready: AtomicBool,
     waker: AtomicWaker,
-    handle: ss::HANDLE,
+    handle: f::HANDLE,
 }
 
 struct Shared {
@@ -92,7 +93,7 @@ impl Drop for EventsDriver {
 }
 
 struct Driver {
-    events: Vec<ss::HANDLE>,
+    events: Vec<f::HANDLE>,
     wakers: Vec<Arc<Waker>>,
     shared: Arc<Shared>,
 }
@@ -106,23 +107,21 @@ impl Driver {
 
         while self.shared.running.load(Ordering::Acquire) {
             let result = unsafe {
-                ss::WaitForMultipleObjects(
-                    self.events.len() as u32,
-                    self.events.as_ptr(),
-                    ss::FALSE,
+                th::WaitForMultipleObjects(
+                    &self.events,
+                    false,
                     wp::INFINITE,
                 )
             };
 
             match result {
-                ss::WAIT_RETURN_CAUSE::WAIT_ABANDONED_0 => panic!("wait abandoned"),
-                ss::WAIT_RETURN_CAUSE::WAIT_TIMEOUT => panic!("timed out"),
-                ss::WAIT_RETURN_CAUSE::WAIT_FAILED => {
+                f::WAIT_ABANDONED_0 => panic!("wait abandoned"),
+                f::WAIT_TIMEOUT => panic!("timed out"),
+                f::WAIT_FAILED => {
                     panic!("wait failed: {}", io::Error::last_os_error())
                 }
-                other => {
-                    let base = ss::WAIT_RETURN_CAUSE::WAIT_OBJECT_0.0;
-                    let other = other.0;
+                f::WIN32_ERROR(other) => {
+                    let base = f::WAIT_OBJECT_0.0;
 
                     if other < base {
                         panic!("other out of bounds; other = {}", other);
@@ -221,7 +220,7 @@ impl AsyncEvent {
     /// Panics unless an audio runtime is available.
     ///
     /// See [Runtime][crate::runtime::Runtime].
-    pub fn new(initial_state: bool) -> windows::Result<AsyncEvent> {
+    pub fn new(initial_state: bool) -> windows::core::Result<AsyncEvent> {
         crate::runtime::with_events(|events| {
             let event = Event::new(false, initial_state)?;
             let handle = unsafe { event.raw_event() };
@@ -285,7 +284,7 @@ impl AsyncEvent {
 }
 
 impl RawEvent for AsyncEvent {
-    unsafe fn raw_event(&self) -> ss::HANDLE {
+    unsafe fn raw_event(&self) -> f::HANDLE {
         self.event.as_ref().unwrap().raw_event()
     }
 }

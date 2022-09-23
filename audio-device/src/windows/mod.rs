@@ -1,11 +1,10 @@
 //! Shared helpers for windows programming.
 
-use windows_sys::Windows::Win32::SystemServices as ss;
+use windows::Win32::Foundation as f;
 mod event;
 pub use self::event::Event;
 
 cfg_events_driver! {
-    #[doc(inherit)]
     pub use crate::runtime::events::AsyncEvent;
 }
 
@@ -17,5 +16,5 @@ pub trait RawEvent {
     ///
     /// Caller must ensure that the raw handle stays alive for the duration of
     /// whatever its being associated with.
-    unsafe fn raw_event(&self) -> ss::HANDLE;
+    unsafe fn raw_event(&self) -> f::HANDLE;
 }

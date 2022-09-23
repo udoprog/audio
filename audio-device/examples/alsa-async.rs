@@ -1,7 +1,7 @@
-use audio_core::ReadBuf;
-use audio_core::Translate as _;
 use audio_device::alsa;
 use audio_generator::{self as gen, Generator as _};
+use core::ReadBuf;
+use core::Translate as _;
 
 async fn generate_audio() -> anyhow::Result<()> {
     let mut pcm = alsa::Pcm::open_default_nonblocking(alsa::Stream::Playback)?;

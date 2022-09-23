@@ -16,12 +16,12 @@ readme = "README.md"
 default = ["tokio"]
 
 [dependencies]
-tokio = {version = "1.4", features = ["rt"], optional = true}
+tokio = { version = "1.18.1", features = ["rt"], optional = true }
 
 [dev-dependencies]
-anyhow = "1.0"
-tokio = {version = "1.4", features = ["rt", "macros", "sync", "time"]}
-futures = "0.3"
+anyhow = "1.0.57"
+tokio = { version = "1.18.1", features = ["rt", "macros", "sync", "time"] }
+futures = "0.3.21"
 
 [target.'cfg(loom)'.dependencies]
-loom = "0.4"
+loom = "0.5.4"

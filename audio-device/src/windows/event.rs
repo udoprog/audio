@@ -1,33 +1,25 @@
-use crate::windows::RawEvent;
-use std::ptr;
-use windows_sys::Windows::Win32::SystemServices as ss;
-use windows_sys::Windows::Win32::WindowsProgramming as wp;
+use windows::Win32::System::Threading as th;
+use windows::Win32::Foundation as f;
+use windows::core::PCSTR;
 
-const NULL: ss::HANDLE = ss::HANDLE(0);
+use crate::windows::RawEvent;
 
 /// A managed ewvent object.
 #[repr(transparent)]
 pub struct Event {
-    handle: ss::HANDLE,
+    handle: f::HANDLE,
 }
 
 impl Event {
-    pub(crate) fn new(manual_reset: bool, initial_state: bool) -> windows::Result<Self> {
+    pub(crate) fn new(manual_reset: bool, initial_state: bool) -> windows::core::Result<Self> {
         let handle = unsafe {
-            ss::CreateEventA(
-                ptr::null_mut(),
+            th::CreateEventA(
+                None,
                 manual_reset,
                 initial_state,
-                ss::PSTR::default(),
-            )
+                PCSTR::null(),
+            )?
         };
-
-        if handle == NULL {
-            return Err(windows::Error::new(
-                windows::HRESULT::from_thread(),
-                "failed to create event handle",
-            ));
-        }
 
         Ok(Self { handle })
     }
@@ -35,20 +27,20 @@ impl Event {
     /// Set the event.
     pub fn set(&self) {
         unsafe {
-            ss::SetEvent(self.handle);
+            th::SetEvent(self.handle);
         }
     }
 
     /// Reset the event.
     pub fn reset(&self) {
         unsafe {
-            ss::ResetEvent(self.handle);
+            th::ResetEvent(self.handle);
         }
     }
 }
 
 impl RawEvent for Event {
-    unsafe fn raw_event(&self) -> ss::HANDLE {
+    unsafe fn raw_event(&self) -> f::HANDLE {
         self.handle
     }
 }
@@ -57,7 +49,7 @@ impl Drop for Event {
     fn drop(&mut self) {
         unsafe {
             // NB: We intentionally ignore errors here.
-            let _ = wp::CloseHandle(self.handle).ok();
+            let _ = f::CloseHandle(self.handle).ok();
         }
     }
 }

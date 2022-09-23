@@ -1,5 +1,5 @@
 use anyhow::{anyhow, bail, Result};
-use audio::ChannelsMut;
+use audio::BufMut;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use rubato::{InterpolationParameters, InterpolationType, SincFixedIn, WindowFunction};
 use std::fs;
@@ -9,6 +9,10 @@ use std::path::{Path, PathBuf};
 const CHUNK_SIZE: usize = 1024;
 
 fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
+        .init();
+
     let mut args = std::env::args_os();
     args.next();
 
@@ -43,9 +47,9 @@ where
         buffer_size: cpal::BufferSize::Default,
     };
 
-    let pcm = audio::Interleaved::new();
-    let output = audio::Interleaved::with_topology(config.channels as usize, 1024);
-    let resample = audio::Sequential::with_topology(config.channels as usize, CHUNK_SIZE);
+    let pcm = audio::buf::Interleaved::new();
+    let output = audio::buf::Interleaved::with_topology(config.channels as usize, 1024);
+    let resample = audio::buf::Sequential::with_topology(config.channels as usize, CHUNK_SIZE);
 
     let mut writer = Writer {
         frames: 0,
@@ -92,16 +96,16 @@ where
     // The open mp3 decoder.
     decoder: minimp3::Decoder<R>,
     // Buffer used for mp3 decoding.
-    pcm: audio::io::Read<audio::Interleaved<i16>>,
+    pcm: audio::io::Read<audio::buf::Interleaved<i16>>,
     // The last mp3 frame decoded.
     last_frame: Option<minimp3::FrameInfo>,
     // Sampler that is used in case the sample rate of a decoded frame needs to
     // be resampled.
     resampler: Option<rubato::SincFixedIn<f32>>,
     // Output buffer to flush to device buffer.
-    output: audio::io::ReadWrite<audio::Interleaved<f32>>,
+    output: audio::io::ReadWrite<audio::buf::Interleaved<f32>>,
     // Resample buffer.
-    resample: audio::io::ReadWrite<audio::Sequential<f32>>,
+    resample: audio::io::ReadWrite<audio::buf::Sequential<f32>>,
     // Sample rate expected to be written to the device.
     device_sample_rate: u32,
     // Number of channels in the device.
@@ -130,9 +134,16 @@ where
             //
             // cpal's data buffer expects the output to be interleaved.
             if self.output.has_remaining() {
+                tracing::trace! {
+                    remaining = self.output.remaining(),
+                    remaining_mut = data.remaining_mut(),
+                    "translate remaining",
+                };
                 io::translate_remaining(&mut self.output, &mut data);
                 continue;
             }
+
+            tracing::trace!(remaining_mut = data.remaining_mut(), "writing data");
 
             // If we have collected exactly one CHUNK_SIZE of resample buffer,
             // process it through the resampler and translate its result to the
@@ -159,6 +170,8 @@ where
                         )
                     });
 
+                    tracing::trace!("processing resample chunk");
+
                     resampler.process_with_buffer(
                         self.resample.as_ref(),
                         self.output.as_mut(),
@@ -177,9 +190,19 @@ where
             // If we have information on a decoded frame, translate it into the
             // resample buffer until its filled up to its frames cap.
             if self.pcm.has_remaining() {
+                tracing::trace! {
+                    remaining_mut = self.pcm.remaining(),
+                    remaining = self.resample.remaining_mut(),
+                    "translate remaining from pcm to resample buffer",
+                };
                 io::translate_remaining(&mut self.pcm, &mut self.resample);
                 continue;
             }
+
+            tracing::trace! {
+                frames = self.pcm.as_ref().frames(),
+                "decode frame",
+            };
 
             let frame = self.decoder.next_frame_with_pcm(self.pcm.as_mut())?;
             self.pcm.set_read(0);
@@ -189,6 +212,11 @@ where
             // output exactly, copy it directly to the output frame without
             // resampling.
             if frame.sample_rate as u32 == self.device_sample_rate {
+                tracing::trace! {
+                    remaining_mut = self.pcm.remaining(),
+                    remaining = self.resample.remaining_mut(),
+                    "translate remaining from pcm directly to output",
+                };
                 io::translate_remaining(&mut self.pcm, &mut self.output);
                 continue;
             }
@@ -204,7 +232,7 @@ where
             }
 
             for to in frame.channels..usize::min(data.channels(), 2) {
-                data.copy_channels(0, to);
+                data.copy_channel(0, to);
             }
         }
 

@@ -20,38 +20,50 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = []
-wasapi = ["windows-sys/wasapi", "events-driver"]
 alsa = ["alsa-sys", "poll-driver"]
 pulse = ["pulse-sys", "libc", "unix"]
 pipewire = ["pipewire-sys", "libc"]
-events-driver = ["windows", "windows-sys"]
+events-driver = ["windows"]
 poll-driver = ["unix"]
-unix = ["libc", "nix"]
+unix = ["libc"]
+wasapi = [
+    "windows",
+    "events-driver",
+    "windows?/Win32_System_Threading",
+    "windows?/Win32_Foundation",
+    "windows?/Win32_System_Com_StructuredStorage",
+    "windows?/Win32_Security",
+    "windows?/Win32_System_WindowsProgramming",
+    "windows?/Win32_System_Com",
+    "windows?/Win32_Media_Audio",
+    "windows?/Win32_Media_KernelStreaming",
+    "windows?/Win32_Media_Multimedia",
+]
 
 [dependencies]
-log = "0.4.14"
-audio-core = {version = "0.2.0-alpha.3", path = "../audio-core"}
-thiserror = "1.0.24"
-rand = "0.8.3"
+tracing = "0.1.36"
+core = {package = "audio-core", version = "0.2.0-alpha.3", path = "../audio-core"}
+thiserror = "1.0.31"
+rand = "0.8.5"
 ste = {version = "0.1.0-alpha.9", path = "../ste"}
-
-# windows
-windows-sys = {package = "audio-device-windows-sys", version = "0.1.0-alpha.1", path = "../audio-device-windows-sys", optional = true}
-windows = {version = "0.8.0", default-features = false, optional = true}
 
 pulse-sys = {package = "audio-device-pulse-sys", version = "0.1.0-alpha.1", path = "../audio-device-pulse-sys", optional = true}
 pipewire-sys = {package = "audio-device-pipewire-sys", version = "0.1.0-alpha.1", path = "../audio-device-pipewire-sys", optional = true}
 
 # unix
 alsa-sys = {package = "audio-device-alsa-sys", version = "0.1.0-alpha.1", path = "../audio-device-alsa-sys", optional = true}
-libc = {version = "0.2.93", optional = true}
-nix = {version = "0.20.0", optional = true}
+libc = { version = "0.2.125", optional = true }
 
 [dev-dependencies]
-audio = {version = "0.2.0-alpha.3", path = "../audio"}
-audio-generator = {path = "../audio-generator"}
-anyhow = "1.0"
-tokio = {version = "1.4.0", features = ["full"]}
+audio = { version = "0.2.0-alpha.3", path = "../audio" }
+audio-generator = { version = "0.1.0-alpha.2", path = "../audio-generator" }
+anyhow = "1.0.57"
+tokio = { version = "1.18.1", features = ["full"] }
+tracing-subscriber = { version = "0.3.3", features = ["env-filter"] }
+
+[dependencies.windows]
+version = "0.40.0"
+optional = true
 
 [[example]]
 name = "alsa-list"

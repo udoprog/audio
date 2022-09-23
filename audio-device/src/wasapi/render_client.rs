@@ -2,16 +2,16 @@ use crate::loom::sync::Arc;
 use crate::wasapi::{BufferMut, Error};
 use crate::windows::{Event, RawEvent};
 use std::marker;
-use std::mem;
-use windows_sys::Windows::Win32::CoreAudio as core;
-use windows_sys::Windows::Win32::SystemServices as ss;
-use windows_sys::Windows::Win32::WindowsProgramming as wp;
+use windows::Win32::Media::Audio as audio;
+use windows::Win32::System::Threading as th;
+use windows::Win32::System::WindowsProgramming as wp;
+use windows::Win32::Foundation as f;
 
 /// A typed render client.
 pub struct RenderClient<T, E> {
     pub(super) tag: ste::Tag,
-    pub(super) audio_client: core::IAudioClient,
-    pub(super) render_client: core::IAudioRenderClient,
+    pub(super) audio_client: audio::IAudioClient,
+    pub(super) render_client: audio::IAudioRenderClient,
     pub(super) buffer_size: u32,
     pub(super) channels: usize,
     pub(super) event: Arc<E>,
@@ -21,24 +21,19 @@ pub struct RenderClient<T, E> {
 impl<T, E> RenderClient<T, E> {
     fn get_current_padding(&self) -> Result<u32, Error> {
         unsafe {
-            let mut padding = mem::MaybeUninit::uninit();
-            self.audio_client
-                .GetCurrentPadding(padding.as_mut_ptr())
-                .ok()?;
-            Ok(padding.assume_init())
+            let padding = self.audio_client
+                .GetCurrentPadding()?;
+            Ok(padding)
         }
     }
 
     /// Get the buffer associated with the render client.
     fn get_buffer(&self, frames: u32) -> Result<*mut T, Error> {
         unsafe {
-            let mut data = mem::MaybeUninit::uninit();
+            let data = self.render_client
+                .GetBuffer(frames)?;
 
-            self.render_client
-                .GetBuffer(frames, data.as_mut_ptr())
-                .ok()?;
-
-            Ok(data.assume_init() as *mut T)
+            Ok(data as *mut T)
         }
     }
 }
@@ -52,13 +47,10 @@ impl<T> RenderClient<T, Event> {
 
         unsafe {
             loop {
-                match ss::WaitForSingleObject(self.event.raw_event(), wp::INFINITE) {
-                    ss::WAIT_RETURN_CAUSE::WAIT_OBJECT_0 => (),
+                match th::WaitForSingleObject(self.event.raw_event(), wp::INFINITE) {
+                    f::WAIT_OBJECT_0 => (),
                     _ => {
-                        return Err(Error::from(windows::Error::new(
-                            windows::HRESULT::from_thread(),
-                            "waiting for event failed",
-                        )));
+                        return Err(Error::from(windows::core::Error::from_win32()));
                     }
                 }
 

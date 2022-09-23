@@ -1,9 +1,7 @@
 use crate::loom::sync::Arc;
 use crate::wasapi::{ClientConfig, Error, RenderClient, Sample};
 use std::marker;
-use std::mem;
-use windows::Interface as _;
-use windows_sys::Windows::Win32::CoreAudio as core;
+use windows::Win32::Media::Audio as audio;
 
 /// A client that has been initialized with the given type `T`.
 ///
@@ -11,7 +9,7 @@ use windows_sys::Windows::Win32::CoreAudio as core;
 /// use with WASAPI.
 pub struct InitializedClient<T, E> {
     pub(super) tag: ste::Tag,
-    pub(super) audio_client: core::IAudioClient,
+    pub(super) audio_client: audio::IAudioClient,
     pub(super) config: ClientConfig,
     pub(super) buffer_size: u32,
     pub(super) event: Arc<E>,
@@ -28,18 +26,14 @@ where
     }
 
     /// Construct a render client used for writing output into.
+    #[tracing::instrument(skip_all)]
     pub fn render_client(&self) -> Result<RenderClient<T, E>, Error> {
+        tracing::trace!("initializing render client");
+
         self.tag.ensure_on_thread();
 
-        let render_client: core::IAudioRenderClient = unsafe {
-            let mut render_client = std::ptr::null_mut();
-
-            self.audio_client
-                .GetService(&core::IAudioRenderClient::IID, &mut render_client)
-                .ok()?;
-
-            debug_assert!(!render_client.is_null());
-            mem::transmute(render_client)
+        let render_client: audio::IAudioRenderClient = unsafe {
+            self.audio_client.GetService()?
         };
 
         Ok(RenderClient {

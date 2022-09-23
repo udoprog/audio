@@ -4,7 +4,7 @@ use crate::generator::Generator;
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// use audio_generator::{Generator, Sine};
 ///
 /// let mut g = Sine::new(440.0, 44100.0);
@@ -23,7 +23,7 @@ impl Sine {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio_generator::{Generator, Sine};
     ///
     /// let mut g = Sine::new(440.0, 44100.0);

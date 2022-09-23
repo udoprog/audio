@@ -8,11 +8,9 @@ members = [
     "audio-device",
     "audio-generator",
     "generate",
-    "audio-device-windows-sys",
     "audio-device-alsa-sys",
     "audio-device-pulse-sys",
     "audio-device-pipewire-sys",
-    "bittle",
     "ste",
 ]
 
@@ -22,10 +20,9 @@ default-members = [
     "audio-device",
     "audio-generator",
     "generate",
-    "bittle",
     "ste",
 ]
 
-[patch.crates-io]
-audio = {path = "audio"}
-audio-core = {path = "audio-core"}
+[patch.'https://github.com/udoprog/audio']
+audio = { path = "audio" }
+audio-core = { path = "audio-core" }

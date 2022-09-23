@@ -30,20 +30,20 @@
 //! * [sequential][Sequential] - where each channel is stored in a linear
 //!   buffer, one after another. Like `0:0, 0:1, 1:0, 1:0`.
 //!
-//! These all implement the [Channels] and [ChannelsMut] traits, allowing
-//! library authors to abstract over any one specific format. The exact channel
-//! and frame count of a buffer is known as its *topology*.
+//! These all implement the [Buf] and [BufMut] traits, allowing library authors
+//! to abstract over any one specific format. The exact channel and frame count
+//! of a buffer is known as its *topology*.
 //!
 //! ```rust
-//! use audio::ChannelsMut as _;
+//! use audio::{BufMut, ChannelMut};
 //!
 //! let mut dynamic = audio::dynamic![[0i16; 4]; 2];
 //! let mut interleaved = audio::interleaved![[0i16; 4]; 2];
 //! let mut sequential = audio::sequential![[0i16; 4]; 2];
 //!
-//! dynamic.channel_mut(0).copy_from_iter(0i16..);
-//! interleaved.channel_mut(0).copy_from_iter(0i16..);
-//! sequential.channel_mut(0).copy_from_iter(0i16..);
+//! audio::channel::copy_iter(0i16.., dynamic.get_mut(0).unwrap());
+//! audio::channel::copy_iter(0i16.., interleaved.get_mut(0).unwrap());
+//! audio::channel::copy_iter(0i16.., sequential.get_mut(0).unwrap());
 //! ```
 //!
 //! We also support [wrapping][wrap] external buffers so that they can
@@ -62,27 +62,27 @@
 //! # Examples
 //!
 //! ```rust
-//! use rand::Rng as _;
+//! use rand::Rng;
 //!
-//! let mut buffer = audio::Dynamic::<f32>::new();
+//! let mut buf = audio::buf::Dynamic::<f32>::new();
 //!
-//! buffer.resize_channels(2);
-//! buffer.resize(2048);
+//! buf.resize_channels(2);
+//! buf.resize(2048);
 //!
 //! /// Fill both channels with random noise.
 //! let mut rng = rand::thread_rng();
-//! rng.fill(&mut buffer[0]);
-//! rng.fill(&mut buffer[1]);
+//! rng.fill(&mut buf[0]);
+//! rng.fill(&mut buf[1]);
 //! ```
 //!
 //! For convenience we also provide several macros for constructing various
 //! forms of dynamic audio buffers. These should mostly be used for testing.
 //!
 //! ```rust
-//! let mut buf = audio::Dynamic::<f32>::with_topology(4, 8);
+//! let mut buf = audio::buf::Dynamic::<f32>::with_topology(4, 8);
 //!
-//! for channel in &mut buf {
-//!     for f in channel {
+//! for mut channel in &mut buf {
+//!     for f in channel.iter_mut() {
 //!         *f = 2.0;
 //!     }
 //! }
@@ -102,8 +102,8 @@
 //! [audio-device]: https://docs.rs/audio-device
 //! [audio-generator]: https://docs.rs/audio-generator
 //! [audio]: https://docs.rs/audio
-//! [Channels]: https://docs.rs/audio-core/*/audio_core/trait.Channels.html
-//! [ChannelsMut]: https://docs.rs/audio-core/*/audio_core/trait.ChannelsMut.html
+//! [Buf]: https://docs.rs/audio-core/*/audio_core/trait.Buf.html
+//! [BufMut]: https://docs.rs/audio-core/*/audio_core/trait.BufMut.html
 //! [cpal]: https://github.com/RustAudio/cpal
 //! [Dynamic::resize]: https://docs.rs/audio/*/audio/dynamic/struct.Dynamic.html#method.resize
 //! [dynamic!]: https://docs.rs/audio/*/audio/macros/macro.dynamic.html
@@ -115,24 +115,19 @@
 //! [Sequential]: https://docs.rs/audio/*/audio/sequential/struct.Sequential.html
 //! [wrap]: https://docs.rs/audio/*/audio/wrap/index.html
 
-#![deny(missing_docs, broken_intra_doc_links)]
+#![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 #![allow(clippy::should_implement_trait)]
 
 #[macro_use]
 mod macros;
 pub mod buf;
-pub mod dynamic;
-pub mod interleaved;
+pub mod channel;
 pub mod io;
-pub mod sequential;
+pub mod slice;
 mod utils;
 pub mod wrap;
 
 #[cfg(test)]
 mod tests;
 
-pub use self::dynamic::Dynamic;
-pub use self::interleaved::Interleaved;
-pub use self::sequential::Sequential;
-
-pub use audio_core::*;
+pub use core::*;

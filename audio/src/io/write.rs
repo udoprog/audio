@@ -1,11 +1,11 @@
-use audio_core::{Buf, Channel, ChannelMut, Channels, ChannelsMut, ExactSizeBuf, WriteBuf};
+use core::{Buf, BufMut, Channel, ExactSizeBuf, WriteBuf};
 
 /// Make a mutable buffer into a write adapter that implements [WriteBuf].
 ///
 /// # Examples
 ///
-/// ```rust
-/// use audio::{Buf as _, ReadBuf as _, WriteBuf as _};
+/// ```
+/// use audio::{Buf, ReadBuf, WriteBuf};
 /// use audio::io;
 ///
 /// let from = audio::interleaved![[1.0f32, 2.0f32, 3.0f32, 4.0f32]; 2];
@@ -37,17 +37,17 @@ impl<B> Write<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{WriteBuf, ExactSizeBuf};
     /// use audio::io;
     ///
-    /// let buffer = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
-    /// assert_eq!(buffer.frames(), 4);
+    /// let buf = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
+    /// assert_eq!(buf.frames(), 4);
     ///
-    /// let buffer = io::Write::new(buffer);
+    /// let buf = io::Write::new(buf);
     ///
-    /// assert!(buffer.has_remaining_mut());
-    /// assert_eq!(buffer.remaining_mut(), 4);
+    /// assert!(buf.has_remaining_mut());
+    /// assert_eq!(buf.remaining_mut(), 4);
     /// ```
     pub fn new(buf: B) -> Self
     where
@@ -64,17 +64,17 @@ impl<B> Write<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{WriteBuf, ExactSizeBuf};
     /// use audio::io;
     ///
-    /// let buffer = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
-    /// assert_eq!(buffer.frames(), 4);
+    /// let buf = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
+    /// assert_eq!(buf.frames(), 4);
     ///
-    /// let buffer = io::Write::empty(buffer);
+    /// let buf = io::Write::empty(buf);
     ///
-    /// assert!(!buffer.has_remaining_mut());
-    /// assert_eq!(buffer.remaining_mut(), 0);
+    /// assert!(!buf.has_remaining_mut());
+    /// assert_eq!(buf.remaining_mut(), 0);
     /// ```
     pub fn empty(buf: B) -> Self {
         Self { buf, available: 0 }
@@ -84,15 +84,15 @@ impl<B> Write<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{io, wrap};
     ///
-    /// let buffer: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = io::Write::new(buffer);
+    /// let buf: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut buf = io::Write::new(buf);
     ///
-    /// io::copy_remaining(wrap::interleaved(&[0i16; 16][..], 4), &mut buffer);
+    /// io::copy_remaining(wrap::interleaved(&[0i16; 16][..], 4), &mut buf);
     ///
-    /// assert_eq!(buffer.as_ref().channels(), 4);
+    /// assert_eq!(buf.as_ref().channels(), 4);
     /// ```
     pub fn as_ref(&self) -> &B {
         &self.buf
@@ -102,18 +102,18 @@ impl<B> Write<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{io, wrap};
-    /// use audio::Buf as _;
+    /// use audio::Buf;
     ///
-    /// let buffer: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = io::Write::new(buffer);
+    /// let buf: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut buf = io::Write::new(buf);
     ///
-    /// io::copy_remaining(wrap::interleaved(&[0i16; 16][..], 4), &mut buffer);
+    /// io::copy_remaining(wrap::interleaved(&[0i16; 16][..], 4), &mut buf);
     ///
-    /// buffer.as_mut().resize_channels(2);
+    /// buf.as_mut().resize_channels(2);
     ///
-    /// assert_eq!(buffer.channels(), 2);
+    /// assert_eq!(buf.channels(), 2);
     /// ```
     pub fn as_mut(&mut self) -> &mut B {
         &mut self.buf
@@ -123,18 +123,18 @@ impl<B> Write<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// use audio::Buf as _;
+    /// ```
+    /// use audio::Buf;
     /// use audio::io;
     ///
-    /// let buffer: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
-    /// let mut buffer = io::Write::new(buffer);
+    /// let buf: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let mut buf = io::Write::new(buf);
     ///
-    /// io::copy_remaining(audio::wrap::interleaved(&[0i16; 16][..], 4), &mut buffer);
+    /// io::copy_remaining(audio::wrap::interleaved(&[0i16; 16][..], 4), &mut buf);
     ///
-    /// let buffer = buffer.into_inner();
+    /// let buf = buf.into_inner();
     ///
-    /// assert_eq!(buffer.channels(), 4);
+    /// assert_eq!(buf.channels(), 4);
     /// ```
     pub fn into_inner(self) -> B {
         self.buf
@@ -148,23 +148,23 @@ impl<B> Write<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// use audio::{Buf, ChannelsMut, WriteBuf};
+    /// ```
+    /// use audio::{BufMut, WriteBuf};
     /// use audio::io;
     ///
-    /// fn write_to_buf(mut write: impl Buf + ChannelsMut<i16> + WriteBuf) {
+    /// fn write_to_buf(mut write: impl BufMut<Sample = i16> + WriteBuf) {
     ///     let mut from = audio::interleaved![[0; 4]; 2];
     ///     io::copy_remaining(io::Read::new(&mut from), write);
     /// }
     ///
-    /// let mut buffer = io::Write::new(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
-    /// write_to_buf(&mut buffer);
+    /// let mut buf = io::Write::new(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// write_to_buf(&mut buf);
     ///
-    /// assert!(!buffer.has_remaining_mut());
+    /// assert!(!buf.has_remaining_mut());
     ///
-    /// buffer.set_written(0);
+    /// buf.set_written(0);
     ///
-    /// assert!(buffer.has_remaining_mut());
+    /// assert!(buf.has_remaining_mut());
     /// ```
     #[inline]
     pub fn set_written(&mut self, written: usize)
@@ -172,6 +172,32 @@ impl<B> Write<B> {
         B: ExactSizeBuf,
     {
         self.available = self.buf.frames().saturating_sub(written);
+    }
+}
+
+impl<B> Write<B>
+where
+    B: Buf,
+{
+    /// Construct an iterator over all available channels.
+    pub fn iter(&self) -> Iter<B> {
+        Iter {
+            iter: self.buf.iter(),
+            available: self.available,
+        }
+    }
+}
+
+impl<B> Write<B>
+where
+    B: BufMut,
+{
+    /// Construct a mutable iterator over all available channels.
+    pub fn iter_mut(&mut self) -> IterMut<B> {
+        IterMut {
+            iter: self.buf.iter_mut(),
+            available: self.available,
+        }
     }
 }
 
@@ -201,6 +227,16 @@ impl<B> Buf for Write<B>
 where
     B: Buf,
 {
+    type Sample = B::Sample;
+
+    type Channel<'this> = B::Channel<'this>
+    where
+        Self: 'this;
+
+    type Iter<'this> = Iter<'this, B>
+    where
+        Self: 'this;
+
     fn frames_hint(&self) -> Option<usize> {
         self.buf.frames_hint()
     }
@@ -208,31 +244,55 @@ where
     fn channels(&self) -> usize {
         self.buf.channels()
     }
-}
 
-impl<B, T> Channels<T> for Write<B>
-where
-    B: Channels<T>,
-{
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
-        self.buf.channel(channel).tail(self.available)
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(self.buf.get(channel)?.tail(self.available))
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        (*self).iter()
     }
 }
 
-impl<B, T> ChannelsMut<T> for Write<B>
+impl<B> BufMut for Write<B>
 where
-    B: ChannelsMut<T>,
+    B: BufMut,
 {
-    #[inline]
-    fn channel_mut(&mut self, channel: usize) -> ChannelMut<'_, T> {
-        self.buf.channel_mut(channel).tail(self.available)
-    }
-
-    #[inline]
-    fn copy_channels(&mut self, from: usize, to: usize)
+    type ChannelMut<'a> = B::ChannelMut<'a>
     where
-        T: Copy,
-    {
-        self.buf.copy_channels(from, to);
+        Self: 'a;
+
+    type IterMut<'a> = IterMut<'a, B>
+    where
+        Self: 'a;
+
+    #[inline]
+    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.get_mut(channel)?.tail(self.available))
     }
+
+    #[inline]
+    fn copy_channel(&mut self, from: usize, to: usize)
+    where
+        Self::Sample: Copy,
+    {
+        self.buf.copy_channel(from, to);
+    }
+
+    #[inline]
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        (*self).iter_mut()
+    }
+}
+
+iter! {
+    available: usize,
+    =>
+    self.tail(available)
+}
+
+iter_mut! {
+    available: usize,
+    =>
+    self.tail(available)
 }

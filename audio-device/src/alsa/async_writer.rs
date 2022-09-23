@@ -1,9 +1,8 @@
 use crate::alsa::{Error, Pcm, Result};
 use crate::libc as c;
-use crate::unix::errno;
-use crate::unix::poll;
+use crate::unix::{Errno, PollFlags};
 use crate::unix::AsyncPoll;
-use audio_core as core;
+use core as core;
 use std::marker;
 
 /// An interleaved type-checked async PCM writer.
@@ -37,7 +36,7 @@ impl<'a, T> AsyncWriter<'a, T> {
     /// Write an interleaved buffer.
     pub async fn write_interleaved<B>(&mut self, mut buf: B) -> Result<()>
     where
-        B: core::ReadBuf + core::ExactSizeBuf + core::AsInterleaved<T>,
+        B: core::Buf<Sample = T> + core::ReadBuf + core::ExactSizeBuf + core::InterleavedBuf,
     {
         if buf.channels() != self.channels {
             return Err(Error::ChannelsMismatch {
@@ -58,7 +57,7 @@ impl<'a, T> AsyncWriter<'a, T> {
 
                 let written = match result {
                     Ok(written) => written as usize,
-                    Err(Error::Sys(errno::EWOULDBLOCK)) => {
+                    Err(Error::Sys(Errno::EWOULDBLOCK)) => {
                         loop {
                             let guard = self.poll_handle.returned_events().await;
                             self.pollfd.revents = guard.events();
@@ -66,7 +65,7 @@ impl<'a, T> AsyncWriter<'a, T> {
                             let mut fds = [self.pollfd];
                             let flags = self.pcm.poll_descriptors_revents(&mut fds)?;
 
-                            if flags == poll::PollFlags::POLLOUT {
+                            if flags.test(PollFlags::POLLOUT) {
                                 break;
                             }
 

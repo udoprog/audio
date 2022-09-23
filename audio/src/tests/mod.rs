@@ -1,4 +1,4 @@
-mod copy_channels;
+mod copy_channel;
 mod dynamic;
 mod interleaved;
 mod io;

@@ -18,7 +18,7 @@ impl Control {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CString;
     ///
@@ -44,7 +44,7 @@ impl Control {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CString;
     ///
@@ -64,7 +64,7 @@ impl Control {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CString;
     ///
@@ -140,7 +140,7 @@ impl ControlElement<'_> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CString;
     ///
@@ -165,7 +165,7 @@ impl ControlElement<'_> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CString;
     ///
@@ -192,7 +192,7 @@ impl ControlElement<'_> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CString;
     ///
@@ -224,7 +224,7 @@ impl ControlElementList {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CString;
     ///
@@ -243,7 +243,7 @@ impl ControlElementList {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CString;
     ///
@@ -262,7 +262,7 @@ impl ControlElementList {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CString;
     ///
@@ -291,7 +291,7 @@ impl ControlElementList {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::alsa;
     /// use std::ffi::CString;
     ///

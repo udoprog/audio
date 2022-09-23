@@ -2,7 +2,7 @@
 // Documentation: https://www.alsa-project.org/alsa-doc/alsa-lib/
 
 use crate::libc as c;
-use crate::unix::errno::Errno;
+use crate::unix::Errno;
 use std::io;
 use std::ops;
 use thiserror::Error;

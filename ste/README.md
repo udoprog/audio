@@ -23,10 +23,10 @@ below.
 let thread = ste::spawn();
 
 let mut n = 10;
-thread.submit(|| n += 10)?;
+thread.submit(|| n += 10);
 assert_eq!(20, n);
 
-thread.join()?;
+thread.join();
 ```
 
 ## Restricting thread access using tags
@@ -64,13 +64,13 @@ impl Foo {
 
 let thread = ste::spawn();
 
-let foo = thread.submit(|| Foo::new())?;
+let foo = thread.submit(|| Foo::new());
 
 thread.submit(|| {
     foo.say_hello(); // <- OK!
-})?;
+});
 
-thread.join()?;
+thread.join();
 ```
 
 Using `say_hello` outside of the thread that created it is not fine and will
@@ -79,11 +79,11 @@ panic to prevent racy access:
 ```rust
 let thread = ste::spawn();
 
-let foo = thread.submit(|| Foo::new())?;
+let foo = thread.submit(|| Foo::new());
 
 foo.say_hello(); // <- Oops, panics!
 
-thread.join()?;
+thread.join();
 ```
 
 ## Known unsafety and soundness issues

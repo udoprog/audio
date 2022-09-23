@@ -1,11 +1,16 @@
-//! Wrap an external type to implement [Channels][crate::Channels] and
-//! [ChannelsMut][crate::ChannelsMut].
+//! Wrap an external type to implement [Buf][crate::Buf] and
+//! [BufMut][crate::BufMut].
+
+use crate::slice::Slice;
 
 mod interleaved;
 pub use self::interleaved::Interleaved;
 
 mod sequential;
 pub use self::sequential::Sequential;
+
+mod dynamic;
+pub use self::dynamic::Dynamic;
 
 /// Wrap a `value` as an interleaved buffer with the given number of channels.
 ///
@@ -18,7 +23,7 @@ pub use self::sequential::Sequential;
 ///
 /// # Example using a buffer for linear I/O
 ///
-/// ```rust
+/// ```
 /// use audio::{wrap, io};
 /// use audio::ReadBuf as _;
 ///
@@ -37,7 +42,7 @@ pub use self::sequential::Sequential;
 ///
 /// Or with a mutable slice for writing.
 ///
-/// ```rust
+/// ```
 /// use audio::{wrap, io};
 /// use audio::WriteBuf as _;
 ///
@@ -55,7 +60,10 @@ pub use self::sequential::Sequential;
 ///     &[0, 0, 1, 1, 2, 2, 3, 3],
 /// };
 /// ```
-pub fn interleaved<T>(value: T, channels: usize) -> Interleaved<T> {
+pub fn interleaved<T>(value: T, channels: usize) -> Interleaved<T>
+where
+    T: Slice,
+{
     Interleaved::new(value, channels)
 }
 
@@ -68,6 +76,31 @@ pub fn interleaved<T>(value: T, channels: usize) -> Interleaved<T> {
 ///
 /// You can instead use the [Read][crate::io::Read] or [Write][crate::io::Write]
 /// adapters available to accomplish this.
-pub fn sequential<T>(value: T, channels: usize) -> Sequential<T> {
+pub fn sequential<T>(value: T, channels: usize) -> Sequential<T>
+where
+    T: Slice,
+{
     Sequential::new(value, channels)
+}
+
+/// Wrap a dynamically sized buffer where each channel must not necessarily be
+/// equally sized.
+///
+/// This should only be used for external types which you have no control over
+/// or if you legitimately need a buffer which doesn't have uniformly sized
+/// channels. Otherwise you should prefer to use [Dynamic][crate::buf::Dynamic]
+/// instead since it's more memory efficient.
+///
+/// # Example
+///
+/// ```
+/// use audio::Buf;
+///
+/// let buf = [vec![1, 2, 3, 4], vec![5, 6]];
+/// let buf = audio::wrap::dynamic(&buf[..]);
+/// assert_eq!(buf.channels(), 2);
+/// assert_eq!(buf.frames_hint(), Some(4));
+/// ```
+pub fn dynamic<T>(value: T) -> Dynamic<T> {
+    Dynamic::new(value)
 }

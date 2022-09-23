@@ -1,7 +1,7 @@
 #[test]
 fn test_read_write() {
     use crate::io::{Read, ReadWrite, Write};
-    use crate::{Buf as _, ReadBuf as _, WriteBuf as _};
+    use core::{Buf, ReadBuf, WriteBuf};
 
     let from = crate::interleaved![[1.0f32, 2.0f32, 3.0f32, 4.0f32]; 2];
     let to = crate::interleaved![[0.0f32; 4]; 2];
@@ -21,7 +21,7 @@ fn test_read_write() {
     };
 
     // Note: 4 channels, 2 frames each.
-    let mut read_out = Write::new(crate::Interleaved::with_topology(4, 2));
+    let mut read_out = Write::new(crate::buf::Interleaved::with_topology(4, 2));
 
     assert_eq!(read_out.remaining_mut(), 2);
     assert!(read_out.has_remaining_mut());
@@ -47,14 +47,14 @@ fn test_read_write() {
 fn test_simple_io() {
     use crate::io::ReadWrite;
 
-    let buffer: crate::Interleaved<i16> = crate::interleaved![[1, 2, 3, 4]; 4];
-    let mut buffer = ReadWrite::new(buffer);
+    let buf: crate::buf::Interleaved<i16> = crate::interleaved![[1, 2, 3, 4]; 4];
+    let mut buf = ReadWrite::new(buf);
 
     let from = crate::wrap::interleaved(&[1i16, 2i16, 3i16, 4i16][..], 2);
 
-    crate::io::translate_remaining(from, &mut buffer);
+    crate::io::translate_remaining(from, &mut buf);
 
-    let buffer = buffer.into_inner();
+    let buf = buf.into_inner();
 
-    assert_eq!(buffer.channels(), 4);
+    assert_eq!(buf.channels(), 4);
 }

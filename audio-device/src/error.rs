@@ -6,14 +6,14 @@ pub enum Error {
     #[cfg(feature = "unix")]
     #[error("system error: {0}")]
     /// A unix system error.
-    Unix(#[from] crate::unix::errno::Errno),
+    Unix(#[from] crate::unix::Errno),
     #[cfg(feature = "windows")]
     #[error("system error: {0}")]
     /// A windows system error.
     Windows(
         #[from]
         #[source]
-        windows::Error,
+        windows::core::Error,
     ),
 }
 

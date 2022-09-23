@@ -1,10 +1,10 @@
-use audio_core::{Buf, Channel, Channels, ExactSizeBuf, ReadBuf};
+use core::{Buf, BufMut, Channel, ExactSizeBuf, ReadBuf};
 
 /// Make a buffer into a read adapter that implements [ReadBuf].
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// use audio::Buf;
 /// use audio::io;
 ///
@@ -32,17 +32,17 @@ impl<B> Read<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{ReadBuf, ExactSizeBuf};
     /// use audio::io;
     ///
-    /// let buffer = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
-    /// assert_eq!(buffer.frames(), 4);
+    /// let buf = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
+    /// assert_eq!(buf.frames(), 4);
     ///
-    /// let buffer = io::Read::new(buffer);
+    /// let buf = io::Read::new(buf);
     ///
-    /// assert!(buffer.has_remaining());
-    /// assert_eq!(buffer.remaining(), 4);
+    /// assert!(buf.has_remaining());
+    /// assert_eq!(buf.remaining(), 4);
     /// ```
     #[inline]
     pub fn new(buf: B) -> Self
@@ -60,17 +60,17 @@ impl<B> Read<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::{ReadBuf, ExactSizeBuf};
     /// use audio::io;
     ///
-    /// let buffer = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
-    /// assert_eq!(buffer.frames(), 4);
+    /// let buf = audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]];
+    /// assert_eq!(buf.frames(), 4);
     ///
-    /// let buffer = io::Read::empty(buffer);
+    /// let buf = io::Read::empty(buf);
     ///
-    /// assert!(!buffer.has_remaining());
-    /// assert_eq!(buffer.remaining(), 0);
+    /// assert!(!buf.has_remaining());
+    /// assert_eq!(buf.remaining(), 0);
     /// ```
     pub fn empty(buf: B) -> Self {
         Self { buf, available: 0 }
@@ -80,11 +80,11 @@ impl<B> Read<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     /// use audio::{io, wrap};
     ///
-    /// let from: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let from: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
     /// let mut from = io::Read::new(from);
     ///
     /// io::copy_remaining(&mut from, wrap::interleaved(&mut [0i16; 16][..], 4));
@@ -100,11 +100,11 @@ impl<B> Read<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     /// use audio::{io, wrap};
     ///
-    /// let from: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let from: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
     /// let mut from = io::Read::new(from);
     ///
     /// io::copy_remaining(&mut from, wrap::interleaved(&mut [0i16; 16][..], 4));
@@ -122,11 +122,11 @@ impl<B> Read<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio::Buf;
     /// use audio::{io, wrap};
     ///
-    /// let from: audio::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
+    /// let from: audio::buf::Interleaved<i16> = audio::interleaved![[1, 2, 3, 4]; 4];
     /// let mut from = io::Read::new(from);
     ///
     /// io::copy_remaining(&mut from, wrap::interleaved(&mut [0i16; 16][..], 4));
@@ -148,23 +148,21 @@ impl<B> Read<B> {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// use audio::{Buf, Channels, ReadBuf};
+    /// ```
+    /// use audio::{Buf, ReadBuf};
     /// use audio::io;
     ///
-    /// fn read_from_buf(mut read: impl Buf + Channels<i16> + ReadBuf) {
+    /// fn read_from_buf(mut read: impl Buf<Sample = i16> + ReadBuf) {
     ///     let mut out = audio::interleaved![[0; 4]; 2];
     ///     io::copy_remaining(read, io::Write::new(&mut out));
     /// }
     ///
-    /// let mut buffer = io::Read::new(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
-    /// read_from_buf(&mut buffer);
+    /// let mut buf = io::Read::new(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// read_from_buf(&mut buf);
     ///
-    /// assert!(!buffer.has_remaining());
-    ///
-    /// buffer.set_read(0);
-    ///
-    /// assert!(buffer.has_remaining());
+    /// assert!(!buf.has_remaining());
+    /// buf.set_read(0);
+    /// assert!(buf.has_remaining());
     /// ```
     #[inline]
     pub fn set_read(&mut self, read: usize)
@@ -172,6 +170,32 @@ impl<B> Read<B> {
         B: ExactSizeBuf,
     {
         self.available = self.buf.frames().saturating_sub(read);
+    }
+}
+
+impl<B> Read<B>
+where
+    B: Buf,
+{
+    /// Construct an iterator over all available channels.
+    pub fn iter(&self) -> Iter<B> {
+        Iter {
+            iter: self.buf.iter(),
+            available: self.available,
+        }
+    }
+}
+
+impl<B> Read<B>
+where
+    B: BufMut,
+{
+    /// Construct a mutable iterator over all available channels.
+    pub fn iter_mut(&mut self) -> IterMut<B> {
+        IterMut {
+            iter: self.buf.iter_mut(),
+            available: self.available,
+        }
     }
 }
 
@@ -198,6 +222,16 @@ impl<B> Buf for Read<B>
 where
     B: Buf,
 {
+    type Sample = B::Sample;
+
+    type Channel<'this> = B::Channel<'this>
+    where
+        Self: 'this;
+
+    type Iter<'this> = Iter<'this, B>
+    where
+        Self: 'this;
+
     fn frames_hint(&self) -> Option<usize> {
         self.buf.frames_hint()
     }
@@ -205,13 +239,55 @@ where
     fn channels(&self) -> usize {
         self.buf.channels()
     }
+
+    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(self.buf.get(channel)?.tail(self.available))
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        (*self).iter()
+    }
 }
 
-impl<B, T> Channels<T> for Read<B>
+impl<B> BufMut for Read<B>
 where
-    B: Channels<T>,
+    B: ExactSizeBuf + BufMut,
 {
-    fn channel(&self, channel: usize) -> Channel<'_, T> {
-        self.buf.channel(channel).tail(self.available)
+    type ChannelMut<'a> = B::ChannelMut<'a>
+    where
+        Self: 'a;
+
+    type IterMut<'a> = IterMut<'a, B>
+    where
+        Self: 'a;
+
+    #[inline]
+    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.get_mut(channel)?.tail(self.available))
     }
+
+    #[inline]
+    fn copy_channel(&mut self, from: usize, to: usize)
+    where
+        Self::Sample: Copy,
+    {
+        self.buf.copy_channel(from, to);
+    }
+
+    #[inline]
+    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+        (*self).iter_mut()
+    }
+}
+
+iter! {
+    available: usize,
+    =>
+    self.tail(available)
+}
+
+iter_mut! {
+    available: usize,
+    =>
+    self.tail(available)
 }

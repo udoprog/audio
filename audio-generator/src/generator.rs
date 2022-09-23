@@ -14,7 +14,7 @@ pub trait Generator {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio_generator::{Generator, Sine};
     ///
     /// let mut g = Sine::new(440.0, 44100.0);
@@ -25,7 +25,7 @@ pub trait Generator {
 
     /// Construct an iterator from this generator.
     ///
-    /// ```rust
+    /// ```
     /// use audio_generator::{Generator, Sine};
     ///
     /// let mut g = Sine::new(440.0, 44100.0).amplitude(0.5);
@@ -44,7 +44,7 @@ pub trait Generator {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use audio_generator::{Generator, Sine};
     ///
     /// let mut a = Sine::new(440.0, 44100.0).amplitude(0.1);

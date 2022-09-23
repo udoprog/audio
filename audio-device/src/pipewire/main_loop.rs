@@ -13,7 +13,7 @@ impl MainLoop {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use audio_device::pipewire;
     ///
     /// # fn main() -> anyhow::Result<()> {

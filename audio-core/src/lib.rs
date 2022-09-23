@@ -6,17 +6,20 @@
 //!
 //! [audio]: https://docs.rs/audio
 
-#![deny(missing_docs, broken_intra_doc_links)]
+#![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 #![allow(clippy::should_implement_trait)]
 
-mod buf;
-pub use self::buf::{
-    AsInterleaved, AsInterleavedMut, Buf, Channels, ChannelsMut, ExactSizeBuf, InterleavedBuf,
-    ResizableBuf,
-};
+pub mod buf;
+pub use self::buf::Buf;
+
+mod buf_mut;
+pub use self::buf_mut::BufMut;
 
 mod channel;
-pub use self::channel::{Channel, ChannelMut};
+pub use self::channel::Channel;
+
+mod channel_mut;
+pub use self::channel_mut::ChannelMut;
 
 mod translate;
 pub use self::translate::Translate;
@@ -24,5 +27,26 @@ pub use self::translate::Translate;
 mod sample;
 pub use self::sample::Sample;
 
-mod io;
-pub use self::io::{ReadBuf, WriteBuf};
+mod read_buf;
+pub use self::read_buf::ReadBuf;
+
+mod write_buf;
+pub use self::write_buf::WriteBuf;
+
+mod exact_size_buf;
+pub use self::exact_size_buf::ExactSizeBuf;
+
+mod resizable_buf;
+pub use self::resizable_buf::ResizableBuf;
+
+mod interleaved_buf;
+pub use self::interleaved_buf::InterleavedBuf;
+
+mod interleaved_buf_mut;
+pub use self::interleaved_buf_mut::InterleavedBufMut;
+
+mod linear_channel;
+pub use self::linear_channel::LinearChannel;
+
+mod linear_channel_mut;
+pub use self::linear_channel_mut::LinearChannelMut;
