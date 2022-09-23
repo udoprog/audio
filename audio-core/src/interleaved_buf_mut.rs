@@ -13,7 +13,7 @@ pub trait InterleavedBufMut: InterleavedBuf {
     /// use audio::{InterleavedBuf, InterleavedBufMut, Buf, Channel};
     /// use audio::wrap;
     ///
-    /// fn test(mut buffer: impl InterleavedBufMut<Sample = i16>) {
+    /// fn test(mut buffer: impl Buf<Sample = i16> + InterleavedBufMut<Sample = i16>) {
     ///     buffer.as_interleaved_mut().copy_from_slice(&[1, 1, 2, 2, 3, 3, 4, 4]);
     ///
     ///     assert_eq! {
@@ -63,8 +63,10 @@ pub trait InterleavedBufMut: InterleavedBuf {
     ///     // Note: call fills the buffer with ones.
     ///     // Safety: We've initialized exactly 16 frames before calling this
     ///     // function.
-    ///     let (channels, frames) = unsafe { fill_with_ones(buffer.as_interleaved_mut_ptr(), 16) };
-    ///     buffer.set_interleaved_topology(channels, frames);
+    ///     unsafe {
+    ///         let (channels, frames) = fill_with_ones(buffer.as_interleaved_mut_ptr(), 16);
+    ///         buffer.set_interleaved_topology(channels, frames);
+    ///     }
     /// }
     ///
     /// let mut buf = audio::buf::Interleaved::new();

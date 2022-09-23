@@ -8,6 +8,18 @@ use crate::Result;
 use std::collections::HashMap;
 use std::mem;
 
+macro_rules! errno {
+    ($expr:expr) => {{
+        let result = $expr;
+
+        if result < 0 {
+            Err(crate::unix::Errno::new(-result as i32))
+        } else {
+            Ok(result)
+        }
+    }};
+}
+
 /// The token associated with the current waiter.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]

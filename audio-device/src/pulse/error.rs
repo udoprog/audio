@@ -1,5 +1,5 @@
 use crate::libc as c;
-use crate::unix::errno::Errno;
+use crate::unix::Errno;
 use std::cell::Cell;
 use std::ptr;
 use thiserror::Error;
@@ -12,7 +12,7 @@ macro_rules! error {
             let errno = { pulse::pa_context_errno($s.handle.as_ptr()) };
 
             Err(crate::pulse::Error::Sys(
-                crate::unix::errno::Errno::from_i32(errno),
+                crate::unix::Errno::new(errno),
             ))
         } else {
             ffi_error!(result)

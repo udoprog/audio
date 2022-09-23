@@ -62,7 +62,7 @@ pub trait ChannelMut: Channel {
     ///     };
     ///
     ///     if is_linear {
-    ///         assert_eq!(buf.get(2).and_then(|c| c.get(0)), Some(1.0));
+    ///         assert_eq!(buf.get(0).and_then(|c| c.get(2)), Some(1.0));
     ///     }
     /// }
     ///

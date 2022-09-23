@@ -7,6 +7,18 @@ use std::io;
 use std::ops;
 use thiserror::Error;
 
+macro_rules! errno {
+    ($expr:expr) => {{
+        let result = $expr;
+
+        if result < 0 {
+            Err(crate::unix::Errno::new(-result as i32))
+        } else {
+            Ok(result)
+        }
+    }};
+}   
+
 /// A string allocated through libc.
 #[repr(transparent)]
 pub struct CString {
