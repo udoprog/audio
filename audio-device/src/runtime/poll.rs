@@ -3,7 +3,7 @@ use crate::loom::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
 use crate::runtime::atomic_waker::AtomicWaker;
-use crate::unix::errno::Errno;
+use crate::unix::Errno;
 use crate::Result;
 use std::collections::HashMap;
 use std::mem;

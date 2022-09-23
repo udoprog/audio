@@ -1,9 +1,52 @@
 //! Unix-specific types and definitions.
 
-pub mod errno;
-pub mod poll;
-#[doc(inline)]
-pub use nix::Error;
+use std::{fmt, error};
+
+/// A unix error number.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(transparent)]
+pub struct Errno(i32);
+
+impl Errno {
+    pub(crate) const EWOULDBLOCK: Self = Self(libc::EWOULDBLOCK);
+
+    pub(crate) fn new(value: i32) -> Self {
+        Self(value)
+    }
+}
+
+impl fmt::Display for Errno {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            Self::EWOULDBLOCK => {
+                write!(f, "EWOULDBLOCK")
+            }
+            errno => {
+                write!(f, "({})", errno)
+            }
+        }
+    }
+}
+
+impl error::Error for Errno {
+}
+
+/// Poll flags.
+#[derive(Debug, Clone, Copy)]
+#[repr(transparent)]
+pub struct PollFlags(libc::c_short);
+
+impl PollFlags {
+    pub(crate) const POLLOUT: Self = Self(crate::libc::POLLOUT);
+
+    pub(crate) fn from_bits_truncate(bits: libc::c_short) -> Self {
+        Self(bits)
+    }
+
+    pub(crate) fn test(self, bits: PollFlags) -> bool {
+        (self.0 & bits.0) != 0
+    }
+}
 
 cfg_poll_driver! {
     pub use crate::runtime::poll::{AsyncPoll, PollEventsGuard};
@@ -14,7 +57,7 @@ macro_rules! errno {
         let result = $expr;
 
         if result < 0 {
-            Err($crate::unix::errno::Errno::from_i32(-result as i32))
+            Err(crate::unix::Errno::new(-result as i32))
         } else {
             Ok(result)
         }

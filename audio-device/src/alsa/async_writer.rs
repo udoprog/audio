@@ -1,7 +1,6 @@
 use crate::alsa::{Error, Pcm, Result};
 use crate::libc as c;
-use crate::unix::errno::Errno;
-use crate::unix::poll;
+use crate::unix::{Errno, PollFlags};
 use crate::unix::AsyncPoll;
 use core as core;
 use std::marker;
@@ -66,7 +65,7 @@ impl<'a, T> AsyncWriter<'a, T> {
                             let mut fds = [self.pollfd];
                             let flags = self.pcm.poll_descriptors_revents(&mut fds)?;
 
-                            if flags == poll::PollFlags::POLLOUT {
+                            if flags.test(PollFlags::POLLOUT) {
                                 break;
                             }
 

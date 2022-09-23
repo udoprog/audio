@@ -5,7 +5,7 @@ use crate::alsa::{
     SoftwareParameters, SoftwareParametersMut, State, Stream, Writer,
 };
 use crate::libc as c;
-use crate::unix::poll::PollFlags;
+use crate::unix::PollFlags;
 use alsa_sys as alsa;
 use std::ffi::CStr;
 use std::mem;
