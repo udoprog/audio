@@ -157,6 +157,7 @@ where
     where
         Self: 'this;
 
+    #[inline]
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         InterleavedMut::from_slice(self.value.as_mut(), channel, self.channels)
     }
@@ -187,6 +188,7 @@ impl<T> ReadBuf for Interleaved<T>
 where
     T: Default + SliceIndex,
 {
+    #[inline]
     fn remaining(&self) -> usize {
         self.frames
     }
@@ -202,6 +204,7 @@ impl<T> WriteBuf for Interleaved<&'_ mut [T]>
 where
     T: Copy,
 {
+    #[inline]
     fn remaining_mut(&self) -> usize {
         self.frames
     }
@@ -220,8 +223,9 @@ impl<T> ResizableBuf for Interleaved<&'_ mut [T]>
 where
     T: Copy,
 {
+    #[inline]
     fn try_reserve(&mut self, capacity: usize) -> bool {
-        capacity < self.value.len()
+        capacity <= self.value.len()
     }
 
     fn resize(&mut self, frames: usize) {

@@ -56,8 +56,8 @@ libc = { version = "0.2.125", optional = true }
 nix = { version = "0.24.1", optional = true }
 
 [dev-dependencies]
-audio = { version = "0.2.0-alpha.3" }
-audio-generator = {path = "../audio-generator"}
+audio = { version = "0.2.0-alpha.3", path = "../audio" }
+audio-generator = { version = "0.1.0-alpha.2", path = "../audio-generator" }
 anyhow = "1.0.57"
 tokio = { version = "1.18.1", features = ["full"] }
 tracing-subscriber = { version = "0.3.3", features = ["env-filter"] }

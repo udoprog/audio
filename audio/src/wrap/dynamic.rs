@@ -21,6 +21,7 @@ impl<T> Dynamic<T> {
     /// let buf = audio::wrap::dynamic(vec![vec![1, 2, 3, 4]]);
     /// assert_eq!(buf.as_ref(), &[vec![1, 2, 3, 4]]);
     /// ```
+    #[inline]
     pub fn as_ref(&self) -> &T {
         &self.value
     }
@@ -34,6 +35,7 @@ impl<T> Dynamic<T> {
     /// *buf.as_mut() = vec![vec![5, 6, 7, 8]];
     /// assert_eq!(buf.as_ref(), &[vec![5, 6, 7, 8]]);
     /// ```
+    #[inline]
     pub fn as_mut(&mut self) -> &mut T {
         &mut self.value
     }
@@ -46,6 +48,7 @@ impl<T> Dynamic<T> {
     /// let buf = audio::wrap::dynamic(vec![vec![1, 2, 3, 4]]);
     /// assert_eq!(buf.into_inner(), vec![vec![1, 2, 3, 4]]);
     /// ```
+    #[inline]
     pub fn into_inner(self) -> T {
         self.value
     }
@@ -67,18 +70,22 @@ macro_rules! impl_buf {
             where
                 Self: 'this;
 
+            #[inline]
             fn frames_hint(&self) -> Option<usize> {
                 Some(self.value.get(0)?.len())
             }
 
+            #[inline]
             fn channels(&self) -> usize {
                 self.value.len()
             }
 
+            #[inline]
             fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
                 Some(LinearRef::new(self.value.get(channel)?))
             }
 
+            #[inline]
             fn iter(&self) -> Self::Iter<'_> {
                 Iter {
                     iter: self.value[..].iter(),
@@ -111,6 +118,7 @@ macro_rules! impl_buf_mut {
             where
                 Self: 'this;
 
+            #[inline]
             fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
                 Some(LinearMut::new(self.value.get_mut(channel)?.as_mut()))
             }
@@ -162,10 +170,12 @@ impl<T> ResizableBuf for Dynamic<Vec<Vec<T>>>
 where
     T: Sample,
 {
+    #[inline]
     fn try_reserve(&mut self, _capacity: usize) -> bool {
         false
     }
 
+    #[inline]
     fn resize(&mut self, frames: usize) {
         for buf in self.value.iter_mut() {
             buf.resize(frames, T::ZERO);
@@ -194,10 +204,12 @@ where
 {
     type Item = LinearRef<'a, T>;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         Some(LinearRef::new(self.iter.next()?))
     }
 
+    #[inline]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
         Some(LinearRef::new(self.iter.nth(n)?))
     }
@@ -207,10 +219,12 @@ impl<'a, T> DoubleEndedIterator for Iter<'a, T>
 where
     T: Copy,
 {
+    #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         Some(LinearRef::new(self.iter.next_back()?))
     }
 
+    #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
         Some(LinearRef::new(self.iter.nth_back(n)?))
     }
@@ -220,6 +234,7 @@ impl<'a, T> ExactSizeIterator for Iter<'a, T>
 where
     T: Copy,
 {
+    #[inline]
     fn len(&self) -> usize {
         self.iter.len()
     }
@@ -236,10 +251,12 @@ where
 {
     type Item = LinearMut<'a, T>;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         Some(LinearMut::new(self.iter.next()?))
     }
 
+    #[inline]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
         Some(LinearMut::new(self.iter.nth(n)?))
     }
@@ -249,10 +266,12 @@ impl<'a, T> DoubleEndedIterator for IterMut<'a, T>
 where
     T: Copy,
 {
+    #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         Some(LinearMut::new(self.iter.next_back()?))
     }
 
+    #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
         Some(LinearMut::new(self.iter.nth_back(n)?))
     }
@@ -262,6 +281,7 @@ impl<'a, T> ExactSizeIterator for IterMut<'a, T>
 where
     T: Copy,
 {
+    #[inline]
     fn len(&self) -> usize {
         self.iter.len()
     }
