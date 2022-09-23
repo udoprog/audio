@@ -1,6 +1,6 @@
 use crate::alsa::{Error, Pcm, Result};
 use crate::libc as c;
-use crate::unix::errno;
+use crate::unix::errno::Errno;
 use crate::unix::poll;
 use crate::unix::AsyncPoll;
 use core as core;
@@ -37,7 +37,7 @@ impl<'a, T> AsyncWriter<'a, T> {
     /// Write an interleaved buffer.
     pub async fn write_interleaved<B>(&mut self, mut buf: B) -> Result<()>
     where
-        B: core::ReadBuf + core::ExactSizeBuf + core::InterleavedBuf<T>,
+        B: core::Buf<Sample = T> + core::ReadBuf + core::ExactSizeBuf + core::InterleavedBuf,
     {
         if buf.channels() != self.channels {
             return Err(Error::ChannelsMismatch {
@@ -58,7 +58,7 @@ impl<'a, T> AsyncWriter<'a, T> {
 
                 let written = match result {
                     Ok(written) => written as usize,
-                    Err(Error::Sys(errno::EWOULDBLOCK)) => {
+                    Err(Error::Sys(Errno::EWOULDBLOCK)) => {
                         loop {
                             let guard = self.poll_handle.returned_events().await;
                             self.pollfd.revents = guard.events();

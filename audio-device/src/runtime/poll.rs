@@ -37,7 +37,7 @@ impl Drop for PollEventsGuard<'_> {
         self.shared.holders.lock().released.push(self.token);
 
         if let Err(e) = self.shared.parker.send(1) {
-            log::error!("failed to unpark background thread: {}", e);
+            tracing::error!("failed to unpark background thread: {}", e);
         }
     }
 }
@@ -124,7 +124,7 @@ impl Drop for AsyncPoll {
         self.shared.holders.lock().removed.push(self.waker.token());
 
         if let Err(e) = self.shared.parker.send(1) {
-            log::error!("failed to unpark background thread: {}", e);
+            tracing::error!("failed to unpark background thread: {}", e);
         }
     }
 }

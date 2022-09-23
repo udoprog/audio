@@ -1,4 +1,4 @@
 //! Error handling.
 
 #[doc(inline)]
-pub use ::nix::errno::{Errno, EWOULDBLOCK};
+pub use ::nix::errno::Errno;

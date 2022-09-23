@@ -30,7 +30,7 @@ impl<'a, T> Writer<'a, T> {
     /// Write an interleaved buffer.
     pub fn write_interleaved<B>(&mut self, mut buf: B) -> Result<()>
     where
-        B: core::ReadBuf + core::ExactSizeBuf + core::InterleavedBuf<T>,
+        B: core::Buf<Sample = T> + core::ReadBuf + core::ExactSizeBuf + core::InterleavedBuf,
     {
         if buf.channels() != self.channels {
             return Err(Error::ChannelsMismatch {
