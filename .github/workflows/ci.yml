@@ -12,7 +12,7 @@ jobs:
     - uses: actions/checkout@v1
     - uses: actions-rs/toolchain@v1
       with:
-        toolchain: stable
+        toolchain: beta
         override: true
     - name: cargo test
       uses: actions-rs/cargo@v1
@@ -24,7 +24,6 @@ jobs:
           --package audio-core
           --package audio-generator
           --package ste
-          --package bittle
   build-wasapi:
     runs-on: windows-latest
     steps:
