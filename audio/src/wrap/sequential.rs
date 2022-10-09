@@ -1,7 +1,7 @@
 use crate::buf::sequential::{Iter, IterMut};
 use crate::channel::{LinearMut, LinearRef};
 use crate::slice::{Slice, SliceMut};
-use core::{Buf, BufMut, ExactSizeBuf};
+use audio_core::{Buf, BufMut, ExactSizeBuf};
 
 /// A wrapper for a sequential audio buffer.
 ///

@@ -1,5 +1,5 @@
 use crate::generator::Generator;
-use core::Translate;
+use audio_core::Translate;
 use std::ops;
 
 /// A generator combinator that adjusts the amplitude of the generated value.

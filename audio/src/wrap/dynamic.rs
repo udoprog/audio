@@ -1,5 +1,5 @@
 use crate::channel::{LinearMut, LinearRef};
-use core::{Buf, BufMut, ResizableBuf, Sample};
+use audio_core::{Buf, BufMut, ResizableBuf, Sample};
 
 /// A wrapper for an external dynamic audio buffer.
 ///

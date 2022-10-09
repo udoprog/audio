@@ -1,7 +1,7 @@
 //! A dynamically sized, multi-channel audio buffer.
 
 use crate::channel::{LinearMut, LinearRef};
-use core::{Buf, BufMut, ExactSizeBuf, ResizableBuf, Sample};
+use audio_core::{Buf, BufMut, ExactSizeBuf, ResizableBuf, Sample};
 use std::cmp;
 use std::fmt;
 use std::hash;

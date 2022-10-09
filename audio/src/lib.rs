@@ -130,4 +130,4 @@ pub mod wrap;
 #[cfg(test)]
 mod tests;
 
-pub use core::*;
+pub use audio_core::*;

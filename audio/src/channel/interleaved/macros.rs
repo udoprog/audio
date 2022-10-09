@@ -224,7 +224,7 @@ macro_rules! iterator {
 }
 
 macro_rules! interleaved_channel {
-    ($lt:lifetime, $arg:ident, $raw_mut:tt, $name:ident) => {
+    ($lt:lifetime, $arg:ident, $raw_mut:tt, $name:ident, $align:ident) => {
         macro_rules! zst_set_len {
             ($self:ident, $n:ident) => {
                 $self.end = ($self.ptr.as_ptr() as *$raw_mut u8).wrapping_add($n) as *$raw_mut T;
@@ -253,38 +253,10 @@ macro_rules! interleaved_channel {
                 channel: usize,
                 channels: usize,
             ) -> Self {
-                debug_assert!(
-                    channel < channels,
-                    "referencing channel out of bounds; channel={}, channels={}",
-                    channel,
-                    channels,
-                );
-                debug_assert!(
-                    len % channels == 0,
-                    "number of channels misaligned with length; channels={}, len={}",
-                    channels,
-                    len,
-                );
-                debug_assert!(
-                    channels <= len,
-                    "number of channels out of bounds; channels={}, len={}",
-                    channels,
-                    len,
-                );
-
-                let ptr = ptr.as_ptr();
-
-                let (ptr, end) = if mem::size_of::<T>() == 0 {
-                    let end = (ptr as *$raw_mut u8).wrapping_add(len / channels) as *$raw_mut $arg;
-                    (ptr, end)
-                } else {
-                    let ptr = ptr.add(channel);
-                    let end = ptr.wrapping_add(len) as *$raw_mut $arg;
-                    (ptr, end)
-                };
+                let (ptr, end) = $align(ptr, len, channel, channels);
 
                 Self {
-                    ptr: ptr::NonNull::new_unchecked(ptr),
+                    ptr,
                     end,
                     step: channels,
                     _marker: marker::PhantomData,

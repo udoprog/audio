@@ -1,6 +1,6 @@
 //! Utilities for working with audio buffers.
 
-use core::{Buf, BufMut, Channel, ChannelMut, Translate};
+use audio_core::{Buf, BufMut, Channel, ChannelMut, Translate};
 
 pub mod dynamic;
 pub use self::dynamic::Dynamic;

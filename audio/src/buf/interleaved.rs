@@ -1,7 +1,9 @@
 //! A dynamically sized, multi-channel interleaved audio buffer.
 
 use crate::channel::{InterleavedMut, InterleavedRef};
-use core::{Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ResizableBuf, Sample};
+use audio_core::{
+    Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ResizableBuf, Sample,
+};
 use std::cmp;
 use std::fmt;
 use std::hash;

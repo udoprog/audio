@@ -1,7 +1,7 @@
 #[test]
 fn test_read_write() {
     use crate::io::{Read, ReadWrite, Write};
-    use core::{Buf, ReadBuf, WriteBuf};
+    use audio_core::{Buf, ReadBuf, WriteBuf};
 
     let from = crate::interleaved![[1.0f32, 2.0f32, 3.0f32, 4.0f32]; 2];
     let to = crate::interleaved![[0.0f32; 4]; 2];

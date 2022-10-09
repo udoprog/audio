@@ -1,7 +1,7 @@
 use crate::buf::interleaved::{Iter, IterMut};
 use crate::channel::{InterleavedMut, InterleavedRef};
 use crate::slice::{Slice, SliceIndex, SliceMut};
-use core::{
+use audio_core::{
     Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ReadBuf, ResizableBuf, WriteBuf,
 };
 use std::ptr;

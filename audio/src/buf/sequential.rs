@@ -1,15 +1,21 @@
 //! A dynamically sized, multi-channel sequential audio buffer.
 
 use crate::channel::{LinearMut, LinearRef};
-use core::{Buf, BufMut, ExactSizeBuf, ResizableBuf, Sample};
+use audio_core::{Buf, BufMut, ExactSizeBuf, ResizableBuf, Sample, UniformBuf};
 use std::cmp;
 use std::fmt;
 use std::hash;
 use std::ops;
 use std::ptr;
 
+mod raw;
+pub(crate) use self::raw::RawSequential;
+
 mod iter;
 pub use self::iter::{Iter, IterMut};
+
+mod uniform;
+pub use self::uniform::{SequentialFrame, SequentialFramesIter};
 
 /// A dynamically sized, multi-channel sequential audio buffer.
 ///
@@ -552,6 +558,12 @@ impl<T> Sequential<T> {
         }
     }
 
+    /// Access the raw sequential buffer.
+    fn as_raw(&self) -> RawSequential<T> {
+        // SAFETY: construction of the current buffer ensures this is safe.
+        unsafe { RawSequential::new(&self.data, self.frames, self.channels) }
+    }
+
     fn resize_inner(
         &mut self,
         from_channels: usize,
@@ -738,6 +750,33 @@ where
 
     fn iter(&self) -> Self::Iter<'_> {
         (*self).iter()
+    }
+}
+
+impl<T> UniformBuf for Sequential<T>
+where
+    T: Copy,
+{
+    type Frame<'this> = SequentialFrame<'this, T>
+    where
+        Self: 'this;
+
+    type FramesIter<'this> = SequentialFramesIter<'this, T>
+    where
+        Self: 'this;
+
+    #[inline]
+    fn get_frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+        if frame >= self.frames {
+            return None;
+        }
+
+        Some(SequentialFrame::new(frame, self.as_raw()))
+    }
+
+    #[inline]
+    fn iter_frames(&self) -> Self::FramesIter<'_> {
+        SequentialFramesIter::new(0, self.as_raw())
     }
 }
 

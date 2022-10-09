@@ -1,7 +1,7 @@
 /// Note: most of these tests are duplicated doc tests, but they're here so that
 /// we can run them through miri and get a good idea of the soundness of our
 /// implementations.
-use core::{InterleavedBufMut, ResizableBuf};
+use audio_core::{InterleavedBufMut, ResizableBuf};
 
 #[test]
 fn test_init() {

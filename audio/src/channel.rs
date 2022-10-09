@@ -5,13 +5,13 @@
 //! * [InterleavedMut] and [InterleavedRef] wraps mutable and immutable
 //!   *interleaved* channel buffers respectively.
 
+use audio_core::{Channel, ChannelMut};
+
 pub mod linear;
 pub use self::linear::{LinearMut, LinearRef};
 
 pub mod interleaved;
 pub use self::interleaved::{InterleavedMut, InterleavedRef};
-
-use core::{Channel, ChannelMut};
 
 /// Copy the content of one channel to another.
 ///

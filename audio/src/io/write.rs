@@ -1,4 +1,4 @@
-use core::{Buf, BufMut, Channel, ExactSizeBuf, WriteBuf};
+use audio_core::{Buf, BufMut, Channel, ExactSizeBuf, WriteBuf};
 
 /// Make a mutable buffer into a write adapter that implements [WriteBuf].
 ///
