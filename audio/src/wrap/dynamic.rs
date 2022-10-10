@@ -1,5 +1,5 @@
-use crate::channel::{LinearMut, LinearRef};
-use core::{Buf, BufMut, ResizableBuf, Sample};
+use crate::channel::{LinearChannel, LinearChannelMut};
+use audio_core::{Buf, BufMut, ResizableBuf, Sample};
 
 /// A wrapper for an external dynamic audio buffer.
 ///
@@ -62,7 +62,7 @@ macro_rules! impl_buf {
         {
             type Sample = T;
 
-            type Channel<'this> = LinearRef<'this, Self::Sample>
+            type Channel<'this> = LinearChannel<'this, Self::Sample>
             where
                 Self: 'this;
 
@@ -82,7 +82,7 @@ macro_rules! impl_buf {
 
             #[inline]
             fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-                Some(LinearRef::new(self.value.get(channel)?))
+                Some(LinearChannel::new(self.value.get(channel)?))
             }
 
             #[inline]
@@ -110,7 +110,7 @@ macro_rules! impl_buf_mut {
         where
             T: Copy,
         {
-            type ChannelMut<'this> = LinearMut<'this, T>
+            type ChannelMut<'this> = LinearChannelMut<'this, T>
             where
                 Self: 'this;
 
@@ -120,7 +120,7 @@ macro_rules! impl_buf_mut {
 
             #[inline]
             fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
-                Some(LinearMut::new(self.value.get_mut(channel)?.as_mut()))
+                Some(LinearChannelMut::new(self.value.get_mut(channel)?.as_mut()))
             }
 
             fn copy_channel(&mut self, from: usize, to: usize) {
@@ -202,16 +202,16 @@ impl<'a, T> Iterator for Iter<'a, T>
 where
     T: Copy,
 {
-    type Item = LinearRef<'a, T>;
+    type Item = LinearChannel<'a, T>;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        Some(LinearRef::new(self.iter.next()?))
+        Some(LinearChannel::new(self.iter.next()?))
     }
 
     #[inline]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        Some(LinearRef::new(self.iter.nth(n)?))
+        Some(LinearChannel::new(self.iter.nth(n)?))
     }
 }
 
@@ -221,12 +221,12 @@ where
 {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        Some(LinearRef::new(self.iter.next_back()?))
+        Some(LinearChannel::new(self.iter.next_back()?))
     }
 
     #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        Some(LinearRef::new(self.iter.nth_back(n)?))
+        Some(LinearChannel::new(self.iter.nth_back(n)?))
     }
 }
 
@@ -249,16 +249,16 @@ impl<'a, T> Iterator for IterMut<'a, T>
 where
     T: Copy,
 {
-    type Item = LinearMut<'a, T>;
+    type Item = LinearChannelMut<'a, T>;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        Some(LinearMut::new(self.iter.next()?))
+        Some(LinearChannelMut::new(self.iter.next()?))
     }
 
     #[inline]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        Some(LinearMut::new(self.iter.nth(n)?))
+        Some(LinearChannelMut::new(self.iter.nth(n)?))
     }
 }
 
@@ -268,12 +268,12 @@ where
 {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        Some(LinearMut::new(self.iter.next_back()?))
+        Some(LinearChannelMut::new(self.iter.next_back()?))
     }
 
     #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        Some(LinearMut::new(self.iter.nth_back(n)?))
+        Some(LinearChannelMut::new(self.iter.nth_back(n)?))
     }
 }
 

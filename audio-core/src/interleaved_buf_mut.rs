@@ -1,5 +1,6 @@
+use core::ptr;
+
 use crate::InterleavedBuf;
-use std::ptr;
 
 /// A trait describing a buffer that is interleaved and mutable.
 ///

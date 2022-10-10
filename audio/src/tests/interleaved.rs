@@ -1,7 +1,7 @@
 /// Note: most of these tests are duplicated doc tests, but they're here so that
 /// we can run them through miri and get a good idea of the soundness of our
 /// implementations.
-use core::{InterleavedBufMut, ResizableBuf};
+use audio_core::{InterleavedBufMut, ResizableBuf};
 
 #[test]
 fn test_init() {
@@ -125,16 +125,16 @@ fn test_resize() {
     }
 
     buf.resize(128);
-    assert_eq!(buf.frame(1, 127), Some(42.0));
+    assert_eq!(buf.sample(1, 127), Some(42.0));
 
     buf.resize(256);
-    assert_eq!(buf.frame(1, 127), Some(42.0));
+    assert_eq!(buf.sample(1, 127), Some(42.0));
 
     buf.resize_channels(2);
-    assert_eq!(buf.frame(1, 127), Some(42.0));
+    assert_eq!(buf.sample(1, 127), Some(42.0));
 
     buf.resize(64);
-    assert_eq!(buf.frame(1, 127), None);
+    assert_eq!(buf.sample(1, 127), None);
 }
 
 // Miri: Grabbing a mutable pointer out of a slice has many potential issues.

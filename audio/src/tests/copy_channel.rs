@@ -4,7 +4,7 @@
 // maintained.
 
 use crate::{buf, wrap};
-use core::{Buf, BufMut, Channel};
+use audio_core::{Buf, BufMut, Channel};
 
 #[test]
 fn test_copy_channels_dynamic() {

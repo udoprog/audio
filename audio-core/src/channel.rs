@@ -149,8 +149,8 @@ pub trait Channel {
     /// use audio::{Buf, BufMut, Channel, ChannelMut};
     ///
     /// let mut from = audio::interleaved![[0.0f32; 4]; 2];
-    /// *from.frame_mut(0, 2).unwrap() = 1.0;
-    /// *from.frame_mut(0, 3).unwrap() = 1.0;
+    /// *from.sample_mut(0, 2).unwrap() = 1.0;
+    /// *from.sample_mut(0, 3).unwrap() = 1.0;
     ///
     /// let mut to = audio::interleaved![[0.0f32; 4]; 2];
     ///

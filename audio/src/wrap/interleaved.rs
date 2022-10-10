@@ -1,10 +1,15 @@
-use crate::buf::interleaved::{Iter, IterMut};
-use crate::channel::{InterleavedMut, InterleavedRef};
-use crate::slice::{Slice, SliceIndex, SliceMut};
-use core::{
-    Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ReadBuf, ResizableBuf, WriteBuf,
+use core::mem;
+use core::ptr;
+
+use audio_core::{
+    Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ReadBuf, ResizableBuf,
+    UniformBuf, WriteBuf,
 };
-use std::ptr;
+
+use crate::buf::interleaved::{Iter, IterMut};
+use crate::channel::{InterleavedChannel, InterleavedChannelMut};
+use crate::frame::{InterleavedFrame, InterleavedFramesIter, RawInterleaved};
+use crate::slice::{Slice, SliceIndex, SliceMut};
 
 /// A wrapper for an interleaved audio buffer.
 ///
@@ -43,6 +48,7 @@ where
     /// let buf = audio::wrap::interleaved(&[1, 2, 3, 4], 2);
     /// assert_eq!(buf.into_inner(), &[1, 2, 3, 4]);
     /// ```
+    #[inline]
     pub fn into_inner(self) -> T {
         self.value
     }
@@ -58,8 +64,19 @@ where
     /// assert_eq!(it.next().unwrap(), [1, 3]);
     /// assert_eq!(it.next().unwrap(), [2, 4]);
     /// ```
+    #[inline]
     pub fn iter(&self) -> Iter<'_, T::Item> {
         unsafe { Iter::new_unchecked(self.value.as_ptr(), self.value.len(), self.channels) }
+    }
+
+    /// Access the raw sequential buffer.
+    #[inline]
+    fn as_raw(&self) -> RawInterleaved<T::Item>
+    where
+        T: Slice,
+    {
+        // SAFETY: construction of the current buffer ensures this is safe.
+        unsafe { RawInterleaved::new(self.value.as_ref(), self.channels, self.frames) }
     }
 }
 
@@ -68,6 +85,7 @@ where
     T: SliceMut,
 {
     /// Construct an iterator over the interleaved wrapper.
+    #[inline]
     pub fn iter_mut(&mut self) -> IterMut<'_, T::Item> {
         unsafe { IterMut::new_unchecked(self.value.as_mut_ptr(), self.value.len(), self.channels) }
     }
@@ -79,7 +97,7 @@ where
 {
     type Sample = T::Item;
 
-    type Channel<'this> = InterleavedRef<'this, Self::Sample>
+    type Channel<'this> = InterleavedChannel<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -87,20 +105,51 @@ where
     where
         Self: 'this;
 
+    #[inline]
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
     }
 
+    #[inline]
     fn channels(&self) -> usize {
         self.channels
     }
 
+    #[inline]
     fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        InterleavedRef::from_slice(self.value.as_ref(), channel, self.channels)
+        InterleavedChannel::from_slice(self.value.as_ref(), channel, self.channels)
     }
 
+    #[inline]
     fn iter(&self) -> Self::Iter<'_> {
         (*self).iter()
+    }
+}
+
+impl<T> UniformBuf for Interleaved<T>
+where
+    T: Slice,
+{
+    type Frame<'this> = InterleavedFrame<'this, T::Item>
+    where
+        Self: 'this;
+
+    type FramesIter<'this> = InterleavedFramesIter<'this, T::Item>
+    where
+        Self: 'this;
+
+    #[inline]
+    fn get_frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+        if frame >= self.frames {
+            return None;
+        }
+
+        Some(InterleavedFrame::new(frame, self.as_raw()))
+    }
+
+    #[inline]
+    fn iter_frames(&self) -> Self::FramesIter<'_> {
+        InterleavedFramesIter::new(0, self.as_raw())
     }
 }
 
@@ -119,6 +168,7 @@ where
 {
     type Sample = T::Item;
 
+    #[inline]
     fn as_interleaved(&self) -> &[Self::Sample] {
         self.value.as_ref()
     }
@@ -149,7 +199,7 @@ impl<T> BufMut for Interleaved<T>
 where
     T: SliceMut,
 {
-    type ChannelMut<'this> = InterleavedMut<'this, T::Item>
+    type ChannelMut<'this> = InterleavedChannelMut<'this, T::Item>
     where
         Self: 'this;
 
@@ -159,9 +209,10 @@ where
 
     #[inline]
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
-        InterleavedMut::from_slice(self.value.as_mut(), channel, self.channels)
+        InterleavedChannelMut::from_slice(self.value.as_mut(), channel, self.channels)
     }
 
+    #[inline]
     fn copy_channel(&mut self, from: usize, to: usize) {
         // Safety: We're calling the copy function with internal
         // parameters which are guaranteed to be correct. `frames` is
@@ -179,6 +230,7 @@ where
         }
     }
 
+    #[inline]
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         (*self).iter_mut()
     }
@@ -195,7 +247,7 @@ where
 
     fn advance(&mut self, n: usize) {
         self.frames = self.frames.saturating_sub(n);
-        let value = std::mem::take(&mut self.value);
+        let value = mem::take(&mut self.value);
         self.value = value.index_from(n.saturating_mul(self.channels));
     }
 }
@@ -212,7 +264,7 @@ where
     fn advance_mut(&mut self, n: usize) {
         self.frames = self.frames.saturating_sub(n);
 
-        let value = std::mem::take(&mut self.value);
+        let value = mem::take(&mut self.value);
         self.value = value
             .get_mut(n.saturating_mul(self.channels)..)
             .unwrap_or_default();
@@ -242,7 +294,7 @@ where
         let new_len = channels * frames;
         let len = self.value.len();
 
-        let value = std::mem::take(&mut self.value);
+        let value = mem::take(&mut self.value);
 
         let value = match value.get_mut(..new_len) {
             Some(value) => value,

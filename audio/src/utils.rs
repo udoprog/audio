@@ -1,4 +1,4 @@
-use std::ptr;
+use core::ptr;
 
 /// Utility functions to copy a channel in-place in a sequential audio buffer
 /// from one place to another.

@@ -6,6 +6,7 @@
 //!
 //! [audio]: https://docs.rs/audio
 
+#![cfg_attr(not(feature = "std"), no_std)]
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 #![allow(clippy::should_implement_trait)]
 
@@ -20,6 +21,12 @@ pub use self::channel::Channel;
 
 mod channel_mut;
 pub use self::channel_mut::ChannelMut;
+
+mod frame;
+pub use self::frame::Frame;
+
+mod frame_mut;
+pub use self::frame_mut::FrameMut;
 
 mod translate;
 pub use self::translate::Translate;
@@ -50,3 +57,6 @@ pub use self::linear_channel::LinearChannel;
 
 mod linear_channel_mut;
 pub use self::linear_channel_mut::LinearChannelMut;
+
+mod uniform_buf;
+pub use self::uniform_buf::UniformBuf;

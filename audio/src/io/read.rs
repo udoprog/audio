@@ -1,4 +1,4 @@
-use core::{Buf, BufMut, Channel, ExactSizeBuf, ReadBuf};
+use audio_core::{Buf, BufMut, Channel, ExactSizeBuf, ReadBuf};
 
 /// Make a buffer into a read adapter that implements [ReadBuf].
 ///

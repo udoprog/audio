@@ -1,11 +1,12 @@
 //! Utilities for working with interleaved channels.
 
-use core::{Channel, ChannelMut};
-use std::cmp;
-use std::fmt;
-use std::marker;
-use std::mem;
-use std::ptr;
+use core::cmp;
+use core::fmt;
+use core::marker;
+use core::mem;
+use core::ptr;
+
+use audio_core::{Channel, ChannelMut};
 
 #[macro_use]
 mod macros;
@@ -18,20 +19,20 @@ fn size_from_ptr<T>(_: *const T) -> usize {
     mem::size_of::<T>()
 }
 
-interleaved_channel!('a, T, const, InterleavedRef);
-interleaved_channel!('a, T, mut, InterleavedMut);
+interleaved_channel!('a, T, const, InterleavedChannel, align_iterable_ref);
+interleaved_channel!('a, T, mut, InterleavedChannelMut, align_iterable_mut);
 
-comparisons!({'a, T}, InterleavedRef<'a, T>, InterleavedMut<'a, T>);
-comparisons!({'a, T}, InterleavedMut<'a, T>, InterleavedRef<'a, T>);
+comparisons!({'a, T}, InterleavedChannel<'a, T>, InterleavedChannelMut<'a, T>);
+comparisons!({'a, T}, InterleavedChannelMut<'a, T>, InterleavedChannel<'a, T>);
 
-slice_comparisons!({'a, T, const N: usize}, InterleavedRef<'a, T>, [T; N]);
-slice_comparisons!({'a, T}, InterleavedRef<'a, T>, [T]);
-slice_comparisons!({'a, T}, InterleavedRef<'a, T>, &[T]);
-slice_comparisons!({'a, T}, InterleavedRef<'a, T>, Vec<T>);
-slice_comparisons!({'a, T, const N: usize}, InterleavedMut<'a, T>, [T; N]);
-slice_comparisons!({'a, T}, InterleavedMut<'a, T>, [T]);
-slice_comparisons!({'a, T}, InterleavedMut<'a, T>, &[T]);
-slice_comparisons!({'a, T}, InterleavedMut<'a, T>, Vec<T>);
+slice_comparisons!({'a, T, const N: usize}, InterleavedChannel<'a, T>, [T; N]);
+slice_comparisons!({'a, T}, InterleavedChannel<'a, T>, [T]);
+slice_comparisons!({'a, T}, InterleavedChannel<'a, T>, &[T]);
+slice_comparisons!(#[cfg(feature = "std")] {'a, T}, InterleavedChannel<'a, T>, Vec<T>);
+slice_comparisons!({'a, T, const N: usize}, InterleavedChannelMut<'a, T>, [T; N]);
+slice_comparisons!({'a, T}, InterleavedChannelMut<'a, T>, [T]);
+slice_comparisons!({'a, T}, InterleavedChannelMut<'a, T>, &[T]);
+slice_comparisons!(#[cfg(feature = "std")] {'a, T}, InterleavedChannelMut<'a, T>, Vec<T>);
 
 /// The buffer of a single interleaved channel.
 ///
@@ -39,7 +40,7 @@ slice_comparisons!({'a, T}, InterleavedMut<'a, T>, Vec<T>);
 /// allows us to copy data usinga  number of utility functions.
 ///
 /// See [Buf::get][crate::Buf::get].
-pub struct InterleavedRef<'a, T> {
+pub struct InterleavedChannel<'a, T> {
     /// The base pointer of the buffer.
     ptr: ptr::NonNull<T>,
     /// The end pointer of the buffer.
@@ -50,7 +51,7 @@ pub struct InterleavedRef<'a, T> {
     _marker: marker::PhantomData<&'a [T]>,
 }
 
-impl<'a, T> InterleavedRef<'a, T> {
+impl<'a, T> InterleavedChannel<'a, T> {
     /// Construct an interleaved channel buffer from a slice.
     ///
     /// This is a safe function since the data being referenced is both bounds
@@ -61,19 +62,19 @@ impl<'a, T> InterleavedRef<'a, T> {
     /// selected `channel` does not fit within the specified `channels`.
     ///
     /// ```
-    /// use audio::channel::InterleavedRef;
+    /// use audio::channel::InterleavedChannel;
     ///
     /// let buf: &[u32] = &[1, 2];
-    /// assert!(InterleavedRef::from_slice(buf, 1, 4).is_none());
+    /// assert!(InterleavedChannel::from_slice(buf, 1, 4).is_none());
     /// ```
     ///
     /// # Examples
     ///
     /// ```
-    /// use audio::channel::InterleavedRef;
+    /// use audio::channel::InterleavedChannel;
     ///
     /// let buf: &[u32] = &[1, 2, 3, 4, 5, 6, 7, 8];
-    /// let channel = InterleavedRef::from_slice(buf, 1, 2).unwrap();
+    /// let channel = InterleavedChannel::from_slice(buf, 1, 2).unwrap();
     ///
     /// assert_eq!(channel.get(1), Some(4));
     /// assert_eq!(channel.get(2), Some(6));
@@ -100,7 +101,7 @@ impl<'a, T> InterleavedRef<'a, T> {
 /// allows us to copy data usinga  number of utility functions.
 ///
 /// See [BufMut::get_mut][crate::BufMut::get_mut].
-pub struct InterleavedMut<'a, T> {
+pub struct InterleavedChannelMut<'a, T> {
     /// The base pointer of the buffer.
     ptr: ptr::NonNull<T>,
     /// The size of the buffer.
@@ -111,7 +112,7 @@ pub struct InterleavedMut<'a, T> {
     _marker: marker::PhantomData<&'a mut [T]>,
 }
 
-impl<'a, T> InterleavedMut<'a, T> {
+impl<'a, T> InterleavedChannelMut<'a, T> {
     /// Construct an interleaved channel buffer from a slice.
     ///
     /// This is a safe function since the data being referenced is both bounds
@@ -122,19 +123,19 @@ impl<'a, T> InterleavedMut<'a, T> {
     /// `channel` does not fit within the specified `channels`.
     ///
     /// ```
-    /// use audio::channel::InterleavedMut;
+    /// use audio::channel::InterleavedChannelMut;
     ///
     /// let buf: &mut [u32] = &mut [1, 2];
-    /// assert!(InterleavedMut::from_slice(buf, 1, 4).is_none());
+    /// assert!(InterleavedChannelMut::from_slice(buf, 1, 4).is_none());
     /// ```
     ///
     /// # Examples
     ///
     /// ```
-    /// use audio::channel::InterleavedMut;
+    /// use audio::channel::InterleavedChannelMut;
     ///
     /// let buf: &mut [u32] = &mut [1, 2, 3, 4, 5, 6, 7, 8];
-    /// let channel = InterleavedMut::from_slice(buf, 1, 2).unwrap();
+    /// let channel = InterleavedChannelMut::from_slice(buf, 1, 2).unwrap();
     ///
     /// assert_eq!(channel.get(1), Some(4));
     /// assert_eq!(channel.get(2), Some(6));
@@ -183,6 +184,7 @@ impl<'a, T> InterleavedMut<'a, T> {
     }
 
     /// Construct a mutable iterator over the channel.
+    #[inline]
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
         IterMut {
             ptr: self.ptr,
@@ -193,11 +195,11 @@ impl<'a, T> InterleavedMut<'a, T> {
     }
 }
 
-impl<'a, T> ChannelMut for InterleavedMut<'a, T>
+impl<'a, T> ChannelMut for InterleavedChannelMut<'a, T>
 where
     T: Copy,
 {
-    type ChannelMut<'this> = InterleavedMut<'this, Self::Sample>
+    type ChannelMut<'this> = InterleavedChannelMut<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -205,8 +207,9 @@ where
     where
         Self: 'this;
 
+    #[inline]
     fn as_channel_mut(&mut self) -> Self::ChannelMut<'_> {
-        InterleavedMut {
+        InterleavedChannelMut {
             ptr: self.ptr,
             end: self.end,
             step: self.step,
@@ -214,20 +217,23 @@ where
         }
     }
 
+    #[inline]
     fn get_mut(&mut self, n: usize) -> Option<&mut T> {
         (*self).get_mut(n)
     }
 
+    #[inline]
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         (*self).iter_mut()
     }
 
+    #[inline]
     fn try_as_linear_mut(&mut self) -> Option<&mut [T]> {
         None
     }
 }
 
-impl<T> Clone for InterleavedRef<'_, T> {
+impl<T> Clone for InterleavedChannel<'_, T> {
     fn clone(&self) -> Self {
         Self {
             ptr: self.ptr,
@@ -238,9 +244,9 @@ impl<T> Clone for InterleavedRef<'_, T> {
     }
 }
 
-/// Note: InterleavedRef is always Copy since it represents an immutable
+/// Note: InterleavedChannel is always Copy since it represents an immutable
 /// buffer.
-impl<T> Copy for InterleavedRef<'_, T> {}
+impl<T> Copy for InterleavedChannel<'_, T> {}
 
 /// An immutable iterator.
 pub struct Iter<'a, T> {
@@ -248,6 +254,115 @@ pub struct Iter<'a, T> {
     end: *const T,
     step: usize,
     _marker: marker::PhantomData<&'a [T]>,
+}
+
+impl<'a, T> Iter<'a, T> {
+    /// Construct a new aligned iterator.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the provided pointer points to an appropriately sized buffer.
+    #[inline]
+    pub(crate) unsafe fn new_aligned(
+        ptr: ptr::NonNull<T>,
+        len: usize,
+        offset: usize,
+        channels: usize,
+        step: usize,
+    ) -> Self {
+        let (ptr, end) = align_iterable_ref(ptr, len, offset, channels);
+
+        Self {
+            ptr,
+            end,
+            step,
+            _marker: marker::PhantomData,
+        }
+    }
+}
+
+/// Allign an iterable reference with the given length.
+///
+/// # Safety
+///
+/// The caller is responsible for ensuring that the buffer is valid up until the
+/// maximum of `len` and `offset` and that no exclusive access to the specified
+/// range (by step) is already in use.
+unsafe fn align_iterable_ref<T>(
+    ptr: ptr::NonNull<T>,
+    len: usize,
+    offset: usize,
+    max: usize,
+) -> (ptr::NonNull<T>, *const T) {
+    debug_assert!(
+        offset <= max,
+        "referencing channel out of bounds; offset={}, max={}",
+        offset,
+        max,
+    );
+    debug_assert!(
+        len % max == 0,
+        "number of channels misaligned with length; max={}, len={}",
+        max,
+        len,
+    );
+    debug_assert!(max <= len, "max out of bounds; max={}, len={}", max, len,);
+
+    let ptr = ptr.as_ptr();
+
+    let (ptr, end) = if mem::size_of::<T>() == 0 {
+        let end = (ptr as *const u8).wrapping_add(len / max) as *const T;
+        (ptr, end)
+    } else {
+        let ptr = ptr.add(offset);
+        let end = ptr.wrapping_add(len) as *const T;
+        (ptr, end)
+    };
+
+    let ptr = ptr::NonNull::new_unchecked(ptr);
+    (ptr, end)
+}
+
+/// Allign a mutable reference with the given length.
+///
+/// # Safety
+///
+/// The caller is responsible for ensuring that the buffer is valid up until the
+/// maximum of `len` and `offset` and that no exclusive access to the specified
+/// range (by step) is already in use.
+unsafe fn align_iterable_mut<T>(
+    ptr: ptr::NonNull<T>,
+    len: usize,
+    offset: usize,
+    max: usize,
+) -> (ptr::NonNull<T>, *mut T) {
+    debug_assert!(
+        offset <= max,
+        "referencing channel out of bounds; offset={}, max={}",
+        offset,
+        max,
+    );
+    debug_assert!(
+        len % max == 0,
+        "number of channels misaligned with length; max={}, len={}",
+        max,
+        len,
+    );
+    debug_assert!(max <= len, "max out of bounds; max={}, len={}", max, len,);
+
+    let ptr = ptr.as_ptr();
+
+    let (ptr, end) = if mem::size_of::<T>() == 0 {
+        let end = (ptr as *mut u8).wrapping_add(len / max) as *mut T;
+        (ptr, end)
+    } else {
+        let ptr = ptr.add(offset);
+        let end = ptr.wrapping_add(len) as *mut T;
+        (ptr, end)
+    };
+
+    let ptr = ptr::NonNull::new_unchecked(ptr);
+    (ptr, end)
 }
 
 /// A mutable iterator.

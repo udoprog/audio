@@ -1,6 +1,7 @@
-use crate::channel::{InterleavedMut, InterleavedRef};
-use std::marker;
-use std::ptr;
+use core::marker;
+use core::ptr;
+
+use crate::channel::{InterleavedChannel, InterleavedChannelMut};
 
 /// An immutable iterator over an interleaved buffer.
 pub struct Iter<'a, T> {
@@ -33,7 +34,7 @@ impl<'a, T> Iterator for Iter<'a, T>
 where
     T: Copy,
 {
-    type Item = InterleavedRef<'a, T>;
+    type Item = InterleavedChannel<'a, T>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.channel == self.channels {
@@ -44,7 +45,7 @@ where
         self.channel += 1;
 
         unsafe {
-            Some(InterleavedRef::new_unchecked(
+            Some(InterleavedChannel::new_unchecked(
                 self.ptr,
                 self.len,
                 channel,
@@ -85,7 +86,7 @@ impl<'a, T> Iterator for IterMut<'a, T>
 where
     T: Copy,
 {
-    type Item = InterleavedMut<'a, T>;
+    type Item = InterleavedChannelMut<'a, T>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.channel == self.channels {
@@ -96,7 +97,7 @@ where
         self.channel += 1;
 
         unsafe {
-            Some(InterleavedMut::new_unchecked(
+            Some(InterleavedChannelMut::new_unchecked(
                 self.ptr,
                 self.len,
                 channel,

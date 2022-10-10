@@ -1,11 +1,13 @@
 //! Utilities for working with linear buffers.
 
+use core::cmp;
+use core::fmt;
+use core::ops;
+use core::slice;
+
+use audio_core::{Channel, ChannelMut};
+
 use crate::slice::Slice;
-use core::{Channel, ChannelMut, LinearChannel, LinearChannelMut};
-use std::cmp;
-use std::fmt;
-use std::ops;
-use std::slice;
 
 #[macro_use]
 mod macros;
@@ -13,14 +15,14 @@ mod macros;
 mod iter;
 pub use self::iter::{Iter, IterMut};
 
-slice_comparisons!({'a, T, const N: usize}, LinearRef<'a, T>, [T; N]);
-slice_comparisons!({'a, T}, LinearRef<'a, T>, [T]);
-slice_comparisons!({'a, T}, LinearRef<'a, T>, &[T]);
-slice_comparisons!({'a, T}, LinearRef<'a, T>, Vec<T>);
-slice_comparisons!({'a, T, const N: usize}, LinearMut<'a, T>, [T; N]);
-slice_comparisons!({'a, T}, LinearMut<'a, T>, [T]);
-slice_comparisons!({'a, T}, LinearMut<'a, T>, &[T]);
-slice_comparisons!({'a, T}, LinearMut<'a, T>, Vec<T>);
+slice_comparisons!({'a, T, const N: usize}, LinearChannel<'a, T>, [T; N]);
+slice_comparisons!({'a, T}, LinearChannel<'a, T>, [T]);
+slice_comparisons!({'a, T}, LinearChannel<'a, T>, &[T]);
+slice_comparisons!(#[cfg(feature = "std")] {'a, T}, LinearChannel<'a, T>, Vec<T>);
+slice_comparisons!({'a, T, const N: usize}, LinearChannelMut<'a, T>, [T; N]);
+slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, [T]);
+slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, &[T]);
+slice_comparisons!(#[cfg(feature = "std")] {'a, T}, LinearChannelMut<'a, T>, Vec<T>);
 
 /// The buffer of a single linear channel.
 ///
@@ -30,12 +32,12 @@ slice_comparisons!({'a, T}, LinearMut<'a, T>, Vec<T>);
 /// See [Buf::get][crate::Buf::get].
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct LinearRef<'a, T> {
+pub struct LinearChannel<'a, T> {
     /// The underlying channel buffer.
     buf: &'a [T],
 }
 
-impl<'a, T> LinearRef<'a, T> {
+impl<'a, T> LinearChannel<'a, T> {
     /// Construct a linear channel buffer.
     ///
     /// The buffer provided as-is constitutes the frames of the channel.
@@ -43,19 +45,21 @@ impl<'a, T> LinearRef<'a, T> {
     /// # Examples
     ///
     /// ```
-    /// use audio::channel::LinearRef;
+    /// use audio::channel::LinearChannel;
     ///
     /// let buf: &[u32] = &[1, 3, 5, 7];
-    /// let channel = LinearRef::new(buf);
+    /// let channel = LinearChannel::new(buf);
     ///
     /// assert_eq!(channel.iter().nth(1), Some(3));
     /// assert_eq!(channel.iter().nth(2), Some(5));
     /// ```
+    #[inline]
     pub fn new(buf: &'a [T]) -> Self {
         Self { buf }
     }
 
     /// Get the given frame in the linear channel.
+    #[inline]
     pub fn get(&self, n: usize) -> Option<T>
     where
         T: Copy,
@@ -64,6 +68,7 @@ impl<'a, T> LinearRef<'a, T> {
     }
 
     /// Construct an immutable iterator over the linear channel.
+    #[inline]
     pub fn iter(&self) -> Iter<'_, T>
     where
         T: Copy,
@@ -84,13 +89,13 @@ impl<'a, T> LinearRef<'a, T> {
     }
 }
 
-impl<'a, T> Channel for LinearRef<'a, T>
+impl<'a, T> Channel for LinearChannel<'a, T>
 where
     T: Copy,
 {
     type Sample = T;
 
-    type Channel<'this> = LinearRef<'this, Self::Sample>
+    type Channel<'this> = LinearChannel<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -98,28 +103,34 @@ where
     where
         Self: 'this;
 
+    #[inline]
     fn as_channel(&self) -> Self::Channel<'_> {
         Self { buf: self.buf }
     }
 
+    #[inline]
     fn len(&self) -> usize {
         self.buf.len()
     }
 
+    #[inline]
     fn get(&self, n: usize) -> Option<Self::Sample> {
         (*self).get(n)
     }
 
+    #[inline]
     fn iter(&self) -> Self::Iter<'_> {
         (*self).iter()
     }
 
+    #[inline]
     fn skip(self, n: usize) -> Self {
         Self {
             buf: self.buf.get(n..).unwrap_or_default(),
         }
     }
 
+    #[inline]
     fn tail(self, n: usize) -> Self {
         let start = self.buf.len().saturating_sub(n);
 
@@ -128,18 +139,20 @@ where
         }
     }
 
+    #[inline]
     fn limit(self, limit: usize) -> Self {
         Self {
             buf: self.buf.get(..limit).unwrap_or_default(),
         }
     }
 
+    #[inline]
     fn try_as_linear(&self) -> Option<&[T]> {
         Some(self.buf)
     }
 }
 
-impl<T> fmt::Debug for LinearRef<'_, T>
+impl<T> fmt::Debug for LinearChannel<'_, T>
 where
     T: fmt::Debug,
 {
@@ -155,12 +168,12 @@ where
 ///
 /// See [Buf::get][crate::Buf::get].
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct LinearMut<'a, T> {
+pub struct LinearChannelMut<'a, T> {
     /// The underlying channel buffer.
     buf: &'a mut [T],
 }
 
-impl<'a, T> LinearMut<'a, T> {
+impl<'a, T> LinearChannelMut<'a, T> {
     /// Construct a linear channel buffer.
     ///
     /// The buffer provided as-is constitutes the frames of the channel.
@@ -168,19 +181,21 @@ impl<'a, T> LinearMut<'a, T> {
     /// # Examples
     ///
     /// ```
-    /// use audio::channel::LinearMut;
+    /// use audio::channel::LinearChannelMut;
     ///
     /// let buf: &mut [u32] = &mut [1, 3, 5, 7];
-    /// let channel = LinearMut::new(buf);
+    /// let channel = LinearChannelMut::new(buf);
     ///
     /// assert_eq!(channel.iter().nth(1), Some(3));
     /// assert_eq!(channel.iter().nth(2), Some(5));
     /// ```
+    #[inline]
     pub fn new(buf: &'a mut [T]) -> Self {
         Self { buf }
     }
 
     /// Get the given frame.
+    #[inline]
     pub fn get(&self, n: usize) -> Option<T>
     where
         T: Copy,
@@ -189,16 +204,19 @@ impl<'a, T> LinearMut<'a, T> {
     }
 
     /// Construct an iterator over the linear channel.
+    #[inline]
     pub fn iter(&self) -> Iter<'_, T> {
         Iter::new(self.buf)
     }
 
     /// Get a mutable reference to the given frame.
+    #[inline]
     pub fn get_mut(&mut self, n: usize) -> Option<&mut T> {
         self.buf.get_mut(n)
     }
 
     /// Construct an immutable iterator over the linear channel.
+    #[inline]
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
         IterMut::new(self.buf)
     }
@@ -228,33 +246,35 @@ impl<'a, T> LinearMut<'a, T> {
     }
 }
 
-impl<T> LinearChannel for LinearRef<'_, T>
+impl<T> audio_core::LinearChannel for LinearChannel<'_, T>
 where
     T: Copy,
 {
+    #[inline]
     fn as_linear_channel(&self) -> &[Self::Sample] {
         self.buf
     }
 }
 
-impl<T, I> ops::Index<I> for LinearRef<'_, T>
+impl<T, I> ops::Index<I> for LinearChannel<'_, T>
 where
     I: slice::SliceIndex<[T]>,
 {
     type Output = I::Output;
 
+    #[inline]
     fn index(&self, index: I) -> &Self::Output {
         self.buf.index(index)
     }
 }
 
-impl<'a, T> Channel for LinearMut<'a, T>
+impl<'a, T> Channel for LinearChannelMut<'a, T>
 where
     T: Copy,
 {
     type Sample = T;
 
-    type Channel<'this> = LinearRef<'this, Self::Sample>
+    type Channel<'this> = LinearChannel<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -262,28 +282,34 @@ where
     where
         Self: 'this;
 
+    #[inline]
     fn as_channel(&self) -> Self::Channel<'_> {
-        LinearRef { buf: &self.buf[..] }
+        LinearChannel { buf: self.buf }
     }
 
+    #[inline]
     fn len(&self) -> usize {
         self.buf.len()
     }
 
+    #[inline]
     fn get(&self, n: usize) -> Option<Self::Sample> {
         (*self).get(n)
     }
 
+    #[inline]
     fn iter(&self) -> Self::Iter<'_> {
         (*self).iter()
     }
 
+    #[inline]
     fn skip(self, n: usize) -> Self {
         Self {
             buf: self.buf.get_mut(n..).unwrap_or_default(),
         }
     }
 
+    #[inline]
     fn tail(self, n: usize) -> Self {
         let start = self.buf.len().saturating_sub(n);
 
@@ -292,22 +318,24 @@ where
         }
     }
 
+    #[inline]
     fn limit(self, limit: usize) -> Self {
         Self {
             buf: self.buf.get_mut(..limit).unwrap_or_default(),
         }
     }
 
+    #[inline]
     fn try_as_linear(&self) -> Option<&[T]> {
         Some(self.buf)
     }
 }
 
-impl<'a, T> ChannelMut for LinearMut<'a, T>
+impl<'a, T> ChannelMut for LinearChannelMut<'a, T>
 where
     T: Copy,
 {
-    type ChannelMut<'this> = LinearMut<'this, T>
+    type ChannelMut<'this> = LinearChannelMut<'this, T>
     where
         Self: 'this;
 
@@ -315,42 +343,48 @@ where
     where
         Self: 'this;
 
+    #[inline]
     fn as_channel_mut(&mut self) -> Self::ChannelMut<'_> {
-        LinearMut { buf: self.buf }
+        LinearChannelMut { buf: self.buf }
     }
 
+    #[inline]
     fn get_mut(&mut self, n: usize) -> Option<&mut Self::Sample> {
         (*self).get_mut(n)
     }
 
+    #[inline]
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         (*self).iter_mut()
     }
 
+    #[inline]
     fn try_as_linear_mut(&mut self) -> Option<&mut [Self::Sample]> {
         Some(self.buf)
     }
 }
 
-impl<T> LinearChannel for LinearMut<'_, T>
+impl<T> audio_core::LinearChannel for LinearChannelMut<'_, T>
 where
     T: Copy,
 {
+    #[inline]
     fn as_linear_channel(&self) -> &[Self::Sample] {
         self.buf
     }
 }
 
-impl<T> LinearChannelMut for LinearMut<'_, T>
+impl<T> audio_core::LinearChannelMut for LinearChannelMut<'_, T>
 where
     T: Copy,
 {
+    #[inline]
     fn as_linear_channel_mut(&mut self) -> &mut [Self::Sample] {
         self.buf
     }
 }
 
-impl<T> fmt::Debug for LinearMut<'_, T>
+impl<T> fmt::Debug for LinearChannelMut<'_, T>
 where
     T: fmt::Debug,
 {
@@ -359,21 +393,23 @@ where
     }
 }
 
-impl<T, I> ops::Index<I> for LinearMut<'_, T>
+impl<T, I> ops::Index<I> for LinearChannelMut<'_, T>
 where
     I: slice::SliceIndex<[T]>,
 {
     type Output = I::Output;
 
+    #[inline]
     fn index(&self, index: I) -> &Self::Output {
         self.buf.index(index)
     }
 }
 
-impl<T, I> ops::IndexMut<I> for LinearMut<'_, T>
+impl<T, I> ops::IndexMut<I> for LinearChannelMut<'_, T>
 where
     I: slice::SliceIndex<[T]>,
 {
+    #[inline]
     fn index_mut(&mut self, index: I) -> &mut Self::Output {
         self.buf.index_mut(index)
     }

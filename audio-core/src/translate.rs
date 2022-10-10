@@ -53,6 +53,7 @@ macro_rules! int_to_float {
             }
         }
 
+        #[cfg(feature = "std")]
         impl Translate<$float> for $unsigned {
             #[inline]
             fn translate(value: $float) -> Self {

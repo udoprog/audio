@@ -9,7 +9,9 @@ pub use self::interleaved::Interleaved;
 mod sequential;
 pub use self::sequential::Sequential;
 
+#[cfg(feature = "std")]
 mod dynamic;
+#[cfg(feature = "std")]
 pub use self::dynamic::Dynamic;
 
 /// Wrap a `value` as an interleaved buffer with the given number of channels.
@@ -101,6 +103,7 @@ where
 /// assert_eq!(buf.channels(), 2);
 /// assert_eq!(buf.frames_hint(), Some(4));
 /// ```
+#[cfg(feature = "std")]
 pub fn dynamic<T>(value: T) -> Dynamic<T> {
     Dynamic::new(value)
 }

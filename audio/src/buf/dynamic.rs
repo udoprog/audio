@@ -1,7 +1,7 @@
 //! A dynamically sized, multi-channel audio buffer.
 
-use crate::channel::{LinearMut, LinearRef};
-use core::{Buf, BufMut, ExactSizeBuf, ResizableBuf, Sample};
+use crate::channel::{LinearChannel, LinearChannelMut};
+use audio_core::{Buf, BufMut, ExactSizeBuf, ResizableBuf, Sample};
 use std::cmp;
 use std::fmt;
 use std::hash;
@@ -405,12 +405,12 @@ impl<T> Dynamic<T> {
     /// assert_eq!(buf.get(3).unwrap(), &expected[..]);
     /// assert!(buf.get(4).is_none());
     /// ```
-    pub fn get(&self, channel: usize) -> Option<LinearRef<'_, T>> {
+    pub fn get(&self, channel: usize) -> Option<LinearChannel<'_, T>> {
         if channel < self.channels {
             // Safety: We control the length of each channel so we can assert that
             // it is both allocated and initialized up to `len`.
             let data = unsafe { self.data.get_unchecked(channel).as_ref(self.frames) };
-            Some(LinearRef::new(data))
+            Some(LinearChannel::new(data))
         } else {
             None
         }
@@ -465,12 +465,12 @@ impl<T> Dynamic<T> {
     ///     rng.fill(right.as_mut());
     /// }
     /// ```
-    pub fn get_mut(&mut self, channel: usize) -> Option<LinearMut<'_, T>> {
+    pub fn get_mut(&mut self, channel: usize) -> Option<LinearChannelMut<'_, T>> {
         if channel < self.channels {
             // Safety: We control the length of each channel so we can assert that
             // it is both allocated and initialized up to `len`.
             let data = unsafe { self.data.get_unchecked_mut(channel).as_mut(self.frames) };
-            Some(LinearMut::new(data))
+            Some(LinearChannelMut::new(data))
         } else {
             None
         }
@@ -745,7 +745,7 @@ where
 {
     type Sample = T;
 
-    type Channel<'this> = LinearRef<'this, Self::Sample>
+    type Channel<'this> = LinearChannel<'this, Self::Sample>
     where
         Self::Sample: 'this;
 
@@ -796,7 +796,7 @@ impl<T> BufMut for Dynamic<T>
 where
     T: Copy,
 {
-    type ChannelMut<'this> = LinearMut<'this, Self::Sample>
+    type ChannelMut<'this> = LinearChannelMut<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -990,8 +990,8 @@ impl<T> RawSlice<T> {
     ///
     /// The incoming len must represent a valid slice of initialized data.
     /// The produced lifetime must be bounded to something valid!
-    unsafe fn as_linear_channel(&self, len: usize) -> LinearRef<'_, T> {
-        LinearRef::new(self.as_ref(len))
+    unsafe fn as_linear_channel(&self, len: usize) -> LinearChannel<'_, T> {
+        LinearChannel::new(self.as_ref(len))
     }
 
     /// Get the raw slice as a mutable slice.
@@ -1010,8 +1010,8 @@ impl<T> RawSlice<T> {
     ///
     /// The incoming len must represent a valid slice of initialized data. The
     /// produced lifetime must be bounded to something valid!
-    unsafe fn as_linear_channel_mut(&mut self, len: usize) -> LinearMut<'_, T> {
-        LinearMut::new(self.as_mut(len))
+    unsafe fn as_linear_channel_mut(&mut self, len: usize) -> LinearChannelMut<'_, T> {
+        LinearChannelMut::new(self.as_mut(len))
     }
 
     /// Drop the slice in place.
