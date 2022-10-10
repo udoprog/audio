@@ -1,4 +1,4 @@
-//! A frame buffer as created through [Buf::get_frame][crate::Buf::get_frame] or
+//! A frame buffer as created through [Buf::frame][crate::Buf::frame] or
 //! [BufMut::get_sample_mut][crate::BufMut::get_sample_mut].
 
 use crate::frame::Frame;

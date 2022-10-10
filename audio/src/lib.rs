@@ -41,9 +41,9 @@
 //! let mut interleaved = audio::interleaved![[0i16; 4]; 2];
 //! let mut sequential = audio::sequential![[0i16; 4]; 2];
 //!
-//! audio::channel::copy_iter(0i16.., dynamic.get_mut(0).unwrap());
-//! audio::channel::copy_iter(0i16.., interleaved.get_mut(0).unwrap());
-//! audio::channel::copy_iter(0i16.., sequential.get_mut(0).unwrap());
+//! audio::channel::copy_iter(0i16.., dynamic.channel_mut(0).unwrap());
+//! audio::channel::copy_iter(0i16.., interleaved.channel_mut(0).unwrap());
+//! audio::channel::copy_iter(0i16.., sequential.channel_mut(0).unwrap());
 //! ```
 //!
 //! We also support [wrapping][wrap] external buffers so that they can

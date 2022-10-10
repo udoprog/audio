@@ -51,7 +51,7 @@ macro_rules! dynamic {
         let value = $sample;
         let mut buf = $crate::buf::Dynamic::with_topology($channels, $frames);
 
-        for mut chan in buf.iter_mut() {
+        for mut chan in buf.iter_channels_mut() {
             for f in chan.iter_mut() {
                 *f = value;
             }
@@ -135,8 +135,8 @@ macro_rules! sequential {
 ///
 /// let mut expected = vec![0; 64];
 ///
-/// assert!(buf.get(0).unwrap().iter().eq(expected.iter().copied()));
-/// assert!(buf.get(1).unwrap().iter().eq(expected.iter().copied()));
+/// assert!(buf.channel(0).unwrap().iter().eq(expected.iter().copied()));
+/// assert!(buf.channel(1).unwrap().iter().eq(expected.iter().copied()));
 /// ```
 ///
 /// Calling the macro with a template channel.

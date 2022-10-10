@@ -31,7 +31,7 @@ pub trait ChannelMut: Channel {
     /// use audio::{BufMut, ChannelMut};
     ///
     /// fn test(mut buf: impl BufMut<Sample = i16>) {
-    ///     for mut chan in buf.iter_mut() {
+    ///     for mut chan in buf.iter_channels_mut() {
     ///         if let Some(f) = chan.get_mut(2) {
     ///             *f = 1;
     ///         }
@@ -54,7 +54,7 @@ pub trait ChannelMut: Channel {
     /// use audio::{BufMut, Channel, ChannelMut};
     ///
     /// fn test(buf: &mut impl BufMut<Sample = f32>) {
-    ///     let is_linear = if let Some(linear) = buf.get_mut(0).unwrap().try_as_linear_mut() {
+    ///     let is_linear = if let Some(linear) = buf.channel_mut(0).unwrap().try_as_linear_mut() {
     ///         linear[2] = 1.0;
     ///         true
     ///     } else {
@@ -62,7 +62,7 @@ pub trait ChannelMut: Channel {
     ///     };
     ///
     ///     if is_linear {
-    ///         assert_eq!(buf.get(0).and_then(|c| c.get(2)), Some(1.0));
+    ///         assert_eq!(buf.channel(0).and_then(|c| c.get(2)), Some(1.0));
     ///     }
     /// }
     ///

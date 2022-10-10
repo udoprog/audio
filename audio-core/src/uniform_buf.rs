@@ -9,7 +9,7 @@ pub trait UniformBuf: Buf {
         Self: 'this;
 
     /// A borrowing iterator over the channel.
-    type FramesIter<'this>: Iterator<Item = Self::Frame<'this, Sample = Self::Sample>>
+    type IterFrames<'this>: Iterator<Item = Self::Frame<'this>>
     where
         Self: 'this;
 
@@ -24,15 +24,15 @@ pub trait UniformBuf: Buf {
     /// where
     ///     B: UniformBuf<Sample = u32>,
     /// {
-    ///     let frame = buf.get_frame(0).unwrap();
+    ///     let frame = buf.frame(0).unwrap();
     ///     assert_eq!(frame.get(1), Some(5));
     ///     assert_eq!(frame.iter().collect::<Vec<_>>(), [1, 5]);
     ///
-    ///     let frame = buf.get_frame(2).unwrap();
+    ///     let frame = buf.frame(2).unwrap();
     ///     assert_eq!(frame.get(1), Some(7));
     ///     assert_eq!(frame.iter().collect::<Vec<_>>(), [3, 7]);
     ///
-    ///     assert!(buf.get_frame(4).is_none());
+    ///     assert!(buf.frame(4).is_none());
     /// }
     ///
     /// test(audio::sequential![[1, 2, 3, 4], [5, 6, 7, 8]]);
@@ -41,7 +41,7 @@ pub trait UniformBuf: Buf {
     /// test(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
     /// test(audio::wrap::interleaved([1, 5, 2, 6, 3, 7, 4, 8], 2));
     /// ```
-    fn get_frame(&self, frame: usize) -> Option<Self::Frame<'_>>;
+    fn frame(&self, frame: usize) -> Option<Self::Frame<'_>>;
 
     /// Construct an iterator over all the frames in the audio buffer.
     ///
@@ -76,5 +76,5 @@ pub trait UniformBuf: Buf {
     /// test(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
     /// test(audio::wrap::sequential([1, 2, 3, 4, 5, 6, 7, 8], 2));
     /// ```
-    fn iter_frames(&self) -> Self::FramesIter<'_>;
+    fn iter_frames(&self) -> Self::IterFrames<'_>;
 }

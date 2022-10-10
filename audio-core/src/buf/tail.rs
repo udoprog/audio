@@ -10,6 +10,7 @@ pub struct Tail<B> {
 
 impl<B> Tail<B> {
     /// Construct a new buffer tail.
+    #[inline]
     pub(crate) fn new(buf: B, n: usize) -> Self {
         Self { buf, n }
     }
@@ -25,26 +26,30 @@ where
     where
         Self: 'this;
 
-    type Iter<'this> = Iter<B::Iter<'this>>
+    type IterChannels<'this> = IterChannels<B::IterChannels<'this>>
     where
         Self: 'this;
 
+    #[inline]
     fn frames_hint(&self) -> Option<usize> {
         let frames = self.buf.frames_hint()?;
         Some(usize::min(frames, self.n))
     }
 
+    #[inline]
     fn channels(&self) -> usize {
         self.buf.channels()
     }
 
-    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        Some(self.buf.get(channel)?.tail(self.n))
+    #[inline]
+    fn channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(self.buf.channel(channel)?.tail(self.n))
     }
 
-    fn iter(&self) -> Self::Iter<'_> {
-        Iter {
-            iter: self.buf.iter(),
+    #[inline]
+    fn iter_channels(&self) -> Self::IterChannels<'_> {
+        IterChannels {
+            iter: self.buf.iter_channels(),
             n: self.n,
         }
     }
@@ -58,14 +63,16 @@ where
     where
         Self: 'a;
 
-    type IterMut<'a> = IterMut<B::IterMut<'a>>
+    type IterChannelsMut<'a> = IterChannelsMut<B::IterChannelsMut<'a>>
     where
         Self: 'a;
 
-    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
-        Some(self.buf.get_mut(channel)?.tail(self.n))
+    #[inline]
+    fn channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.channel_mut(channel)?.tail(self.n))
     }
 
+    #[inline]
     fn copy_channel(&mut self, from: usize, to: usize)
     where
         Self::Sample: Copy,
@@ -73,9 +80,10 @@ where
         self.buf.copy_channel(from, to);
     }
 
-    fn iter_mut(&mut self) -> Self::IterMut<'_> {
-        IterMut {
-            iter: self.buf.iter_mut(),
+    #[inline]
+    fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
+        IterChannelsMut {
+            iter: self.buf.iter_channels_mut(),
             n: self.n,
         }
     }
@@ -96,6 +104,7 @@ impl<B> ExactSizeBuf for Tail<B>
 where
     B: ExactSizeBuf,
 {
+    #[inline]
     fn frames(&self) -> usize {
         usize::min(self.buf.frames(), self.n)
     }
@@ -105,6 +114,7 @@ impl<B> ReadBuf for Tail<B>
 where
     B: ReadBuf,
 {
+    #[inline]
     fn remaining(&self) -> usize {
         usize::min(self.buf.remaining(), self.n)
     }
@@ -120,4 +130,4 @@ where
     }
 }
 
-iterators!(n: usize => self.tail(n));
+iterators!(IterChannels, IterChannelsMut, n: usize => self.tail(n));

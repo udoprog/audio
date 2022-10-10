@@ -6,7 +6,7 @@ use audio_core::{
     UniformBuf, WriteBuf,
 };
 
-use crate::buf::interleaved::{Iter, IterMut};
+use crate::buf::interleaved::{Iter, IterChannelsMut};
 use crate::channel::{InterleavedChannel, InterleavedChannelMut};
 use crate::frame::{InterleavedFrame, InterleavedFramesIter, RawInterleaved};
 use crate::slice::{Slice, SliceIndex, SliceMut};
@@ -86,8 +86,10 @@ where
 {
     /// Construct an iterator over the interleaved wrapper.
     #[inline]
-    pub fn iter_mut(&mut self) -> IterMut<'_, T::Item> {
-        unsafe { IterMut::new_unchecked(self.value.as_mut_ptr(), self.value.len(), self.channels) }
+    pub fn iter_mut(&mut self) -> IterChannelsMut<'_, T::Item> {
+        unsafe {
+            IterChannelsMut::new_unchecked(self.value.as_mut_ptr(), self.value.len(), self.channels)
+        }
     }
 }
 
@@ -101,7 +103,7 @@ where
     where
         Self: 'this;
 
-    type Iter<'this> = Iter<'this, Self::Sample>
+    type IterChannels<'this> = Iter<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -116,12 +118,12 @@ where
     }
 
     #[inline]
-    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+    fn channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
         InterleavedChannel::from_slice(self.value.as_ref(), channel, self.channels)
     }
 
     #[inline]
-    fn iter(&self) -> Self::Iter<'_> {
+    fn iter_channels(&self) -> Self::IterChannels<'_> {
         (*self).iter()
     }
 }
@@ -134,12 +136,12 @@ where
     where
         Self: 'this;
 
-    type FramesIter<'this> = InterleavedFramesIter<'this, T::Item>
+    type IterFrames<'this> = InterleavedFramesIter<'this, T::Item>
     where
         Self: 'this;
 
     #[inline]
-    fn get_frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+    fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
         if frame >= self.frames {
             return None;
         }
@@ -148,7 +150,7 @@ where
     }
 
     #[inline]
-    fn iter_frames(&self) -> Self::FramesIter<'_> {
+    fn iter_frames(&self) -> Self::IterFrames<'_> {
         InterleavedFramesIter::new(0, self.as_raw())
     }
 }
@@ -203,12 +205,12 @@ where
     where
         Self: 'this;
 
-    type IterMut<'this> = IterMut<'this, Self::Sample>
+    type IterChannelsMut<'this> = IterChannelsMut<'this, Self::Sample>
     where
         Self: 'this;
 
     #[inline]
-    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+    fn channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         InterleavedChannelMut::from_slice(self.value.as_mut(), channel, self.channels)
     }
 
@@ -231,7 +233,7 @@ where
     }
 
     #[inline]
-    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+    fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
         (*self).iter_mut()
     }
 }

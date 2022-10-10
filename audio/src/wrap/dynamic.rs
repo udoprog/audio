@@ -66,7 +66,7 @@ macro_rules! impl_buf {
             where
                 Self: 'this;
 
-            type Iter<'this> = Iter<'this, T>
+            type IterChannels<'this> = Iter<'this, T>
             where
                 Self: 'this;
 
@@ -81,12 +81,12 @@ macro_rules! impl_buf {
             }
 
             #[inline]
-            fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+            fn channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
                 Some(LinearChannel::new(self.value.get(channel)?))
             }
 
             #[inline]
-            fn iter(&self) -> Self::Iter<'_> {
+            fn iter_channels(&self) -> Self::IterChannels<'_> {
                 Iter {
                     iter: self.value[..].iter(),
                 }
@@ -114,12 +114,12 @@ macro_rules! impl_buf_mut {
             where
                 Self: 'this;
 
-            type IterMut<'this> = IterMut<'this, T>
+            type IterChannelsMut<'this> = IterMut<'this, T>
             where
                 Self: 'this;
 
             #[inline]
-            fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+            fn channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
                 Some(LinearChannelMut::new(self.value.get_mut(channel)?.as_mut()))
             }
 
@@ -151,7 +151,7 @@ macro_rules! impl_buf_mut {
             }
 
             #[inline]
-            fn iter_mut(&mut self) -> Self::IterMut<'_> {
+            fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
                 IterMut {
                     iter: self.value[..].iter_mut(),
                 }

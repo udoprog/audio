@@ -58,13 +58,13 @@ impl<'a, T> LinearChannel<'a, T> {
         Self { buf }
     }
 
-    /// Get the given frame in the linear channel.
+    /// Get the sample at the given offset in the linear channel.
     #[inline]
-    pub fn get(&self, n: usize) -> Option<T>
+    pub fn get(&self, offset: usize) -> Option<T>
     where
         T: Copy,
     {
-        self.buf.get(n).copied()
+        self.buf.get(offset).copied()
     }
 
     /// Construct an immutable iterator over the linear channel.
@@ -114,8 +114,8 @@ where
     }
 
     #[inline]
-    fn get(&self, n: usize) -> Option<Self::Sample> {
-        (*self).get(n)
+    fn get(&self, offset: usize) -> Option<Self::Sample> {
+        (*self).get(offset)
     }
 
     #[inline]

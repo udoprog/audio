@@ -18,12 +18,12 @@ pub trait InterleavedBufMut: InterleavedBuf {
     ///     buffer.as_interleaved_mut().copy_from_slice(&[1, 1, 2, 2, 3, 3, 4, 4]);
     ///
     ///     assert_eq! {
-    ///         buffer.get(0).unwrap().iter().collect::<Vec<_>>(),
+    ///         buffer.channel(0).unwrap().iter().collect::<Vec<_>>(),
     ///         &[1, 2, 3, 4],
     ///     };
     ///
     ///     assert_eq! {
-    ///         buffer.get(1).unwrap().iter().collect::<Vec<_>>(),
+    ///         buffer.channel(1).unwrap().iter().collect::<Vec<_>>(),
     ///         &[1, 2, 3, 4],
     ///     };
     ///
@@ -74,11 +74,11 @@ pub trait InterleavedBufMut: InterleavedBuf {
     /// test(&mut buf);
     ///
     /// assert_eq! {
-    ///     buf.get(0).unwrap().iter().collect::<Vec<_>>(),
+    ///     buf.channel(0).unwrap().iter().collect::<Vec<_>>(),
     ///     &[1, 1, 1, 1, 1, 1, 1, 1],
     /// };
     /// assert_eq! {
-    ///     buf.get(1).unwrap().iter().collect::<Vec<_>>(),
+    ///     buf.channel(1).unwrap().iter().collect::<Vec<_>>(),
     ///     &[1, 1, 1, 1, 1, 1, 1, 1],
     /// };
     /// ```
@@ -120,11 +120,11 @@ pub trait InterleavedBufMut: InterleavedBuf {
     /// test(&mut buf);
     ///
     /// assert_eq! {
-    ///     buf.get(0).unwrap().iter().collect::<Vec<_>>(),
+    ///     buf.channel(0).unwrap().iter().collect::<Vec<_>>(),
     ///     &[1, 1, 1, 1, 1, 1, 1, 1],
     /// };
     /// assert_eq! {
-    ///     buf.get(1).unwrap().iter().collect::<Vec<_>>(),
+    ///     buf.channel(1).unwrap().iter().collect::<Vec<_>>(),
     ///     &[1, 1, 1, 1, 1, 1, 1, 1],
     /// };
     /// ```

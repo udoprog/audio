@@ -278,7 +278,7 @@ where
         let len = self.remaining();
 
         Iter {
-            iter: self.buf.iter(),
+            iter: self.buf.iter_channels(),
             len,
             read: self.read,
         }
@@ -292,7 +292,7 @@ where
     /// Construct a mutable iterator over all available channels.
     pub fn iter_mut(&mut self) -> IterMut<B> {
         IterMut {
-            iter: self.buf.iter_mut(),
+            iter: self.buf.iter_channels_mut(),
             written: self.written,
         }
     }
@@ -308,7 +308,7 @@ where
     where
         Self: 'this;
 
-    type Iter<'this> = Iter<'this, B>
+    type IterChannels<'this> = Iter<'this, B>
     where
         Self: 'this;
 
@@ -323,14 +323,14 @@ where
     }
 
     #[inline]
-    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        let channel = self.buf.get(channel)?;
+    fn channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        let channel = self.buf.channel(channel)?;
         let len = self.remaining();
         Some(channel.skip(self.read).limit(len))
     }
 
     #[inline]
-    fn iter(&self) -> Self::Iter<'_> {
+    fn iter_channels(&self) -> Self::IterChannels<'_> {
         (*self).iter()
     }
 }
@@ -343,13 +343,13 @@ where
     where
         Self: 'this;
 
-    type IterMut<'this> = IterMut<'this, B>
+    type IterChannelsMut<'this> = IterMut<'this, B>
     where
         Self: 'this;
 
     #[inline]
-    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
-        Some(self.buf.get_mut(channel)?.skip(self.written))
+    fn channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.channel_mut(channel)?.skip(self.written))
     }
 
     #[inline]
@@ -361,7 +361,7 @@ where
     }
 
     #[inline]
-    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+    fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
         (*self).iter_mut()
     }
 }

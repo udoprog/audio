@@ -8,7 +8,7 @@ macro_rules! iter {
         where
             B: 'a + Buf,
         {
-            iter: B::Iter<'a>,
+            iter: B::IterChannels<'a>,
             $($field: $field_ty,)*
         }
 
@@ -36,7 +36,7 @@ macro_rules! iter_mut {
         where
             B: 'a + BufMut,
         {
-            iter: B::IterMut<'a>,
+            iter: B::IterChannelsMut<'a>,
             $($field: $field_ty,)*
         }
 

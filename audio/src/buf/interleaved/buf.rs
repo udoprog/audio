@@ -7,7 +7,7 @@ use audio_core::{
     Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ResizableBuf, Sample, UniformBuf,
 };
 
-use crate::buf::interleaved::{Iter, IterMut};
+use crate::buf::interleaved::{Iter, IterChannelsMut};
 use crate::channel::{InterleavedChannel, InterleavedChannelMut};
 use crate::frame::{InterleavedFrame, InterleavedFramesIter, RawInterleaved};
 
@@ -28,7 +28,7 @@ use crate::frame::{InterleavedFrame, InterleavedFramesIter, RawInterleaved};
 /// let mut buf = audio::buf::Interleaved::<f32>::with_topology(2, 4);
 ///
 /// for (c, s) in buf
-///     .get_mut(0)
+///     .channel_mut(0)
 ///     .unwrap()
 ///     .iter_mut()
 ///     .zip(&[1.0, 2.0, 3.0, 4.0])
@@ -37,7 +37,7 @@ use crate::frame::{InterleavedFrame, InterleavedFramesIter, RawInterleaved};
 /// }
 ///
 /// for (c, s) in buf
-///     .get_mut(1)
+///     .channel_mut(1)
 ///     .unwrap()
 ///     .iter_mut()
 ///     .zip(&[5.0, 6.0, 7.0, 8.0])
@@ -226,11 +226,11 @@ impl<T> Interleaved<T> {
     /// ```
     /// let mut buf = audio::buf::Interleaved::<f32>::with_topology(2, 4);
     ///
-    /// for (c, s) in buf.get_mut(0).unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
+    /// for (c, s) in buf.channel_mut(0).unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
     ///     *c = *s;
     /// }
     ///
-    /// for (c, s) in buf.get_mut(1).unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
+    /// for (c, s) in buf.channel_mut(1).unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
     ///     *c = *s;
     /// }
     ///
@@ -265,12 +265,12 @@ impl<T> Interleaved<T> {
     /// buf.as_slice_mut().copy_from_slice(&[1, 1, 2, 2, 3, 3, 4, 4]);
     ///
     /// assert_eq! {
-    ///     buf.get(0).unwrap(),
+    ///     buf.channel(0).unwrap(),
     ///     [1u32, 2, 3, 4],
     /// };
     ///
     /// assert_eq! {
-    ///     buf.get(1).unwrap(),
+    ///     buf.channel(1).unwrap(),
     ///     [1u32, 2, 3, 4],
     /// };
     ///
@@ -387,7 +387,7 @@ impl<T> Interleaved<T> {
     /// assert_eq!(buf.frames(), 256);
     ///
     /// {
-    ///     let mut chan = buf.get_mut(1).unwrap();
+    ///     let mut chan = buf.channel_mut(1).unwrap();
     ///
     ///     assert_eq!(chan.get(127), Some(0.0));
     ///     *chan.get_mut(127).unwrap() = 42.0;
@@ -420,18 +420,18 @@ impl<T> Interleaved<T> {
     /// ```
     /// let mut buf = audio::buf::Interleaved::<f32>::with_topology(2, 4);
     ///
-    /// for (c, s) in buf.get_mut(0).unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
+    /// for (c, s) in buf.channel_mut(0).unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
     ///     *c = *s;
     /// }
     ///
-    /// for (c, s) in buf.get_mut(1).unwrap().iter_mut().zip(&[5.0, 6.0, 7.0, 8.0]) {
+    /// for (c, s) in buf.channel_mut(1).unwrap().iter_mut().zip(&[5.0, 6.0, 7.0, 8.0]) {
     ///     *c = *s;
     /// }
     ///
-    /// assert_eq!(buf.get(0).unwrap().iter().nth(2), Some(3.0));
-    /// assert_eq!(buf.get(1).unwrap().iter().nth(2), Some(7.0));
+    /// assert_eq!(buf.channel(0).unwrap().iter().nth(2), Some(3.0));
+    /// assert_eq!(buf.channel(1).unwrap().iter().nth(2), Some(7.0));
     /// ```
-    pub fn get(&self, channel: usize) -> Option<InterleavedChannel<'_, T>> {
+    pub fn channel(&self, channel: usize) -> Option<InterleavedChannel<'_, T>> {
         if channel < self.channels {
             unsafe {
                 let ptr = ptr::NonNull::new_unchecked(self.data.as_ptr() as *mut _);
@@ -463,7 +463,7 @@ impl<T> Interleaved<T> {
     where
         T: Copy,
     {
-        self.get(channel)?.get(frame)
+        self.channel(channel)?.get(frame)
     }
 
     /// Get a mutable reference to a channel.
@@ -473,17 +473,17 @@ impl<T> Interleaved<T> {
     /// ```
     /// let mut buf = audio::buf::Interleaved::<f32>::with_topology(2, 4);
     ///
-    /// for (c, s) in buf.get_mut(0).unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
+    /// for (c, s) in buf.channel_mut(0).unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
     ///     *c = *s;
     /// }
     ///
-    /// for (c, s) in buf.get_mut(1).unwrap().iter_mut().zip(&[5.0, 6.0, 7.0, 8.0]) {
+    /// for (c, s) in buf.channel_mut(1).unwrap().iter_mut().zip(&[5.0, 6.0, 7.0, 8.0]) {
     ///     *c = *s;
     /// }
     ///
     /// assert_eq!(buf.as_slice(), &[1.0, 5.0, 2.0, 6.0, 3.0, 7.0, 4.0, 8.0]);
     /// ```
-    pub fn get_mut(&mut self, channel: usize) -> Option<InterleavedChannelMut<'_, T>> {
+    pub fn channel_mut(&mut self, channel: usize) -> Option<InterleavedChannelMut<'_, T>> {
         if channel < self.channels {
             unsafe {
                 let ptr = ptr::NonNull::new_unchecked(self.data.as_mut_ptr());
@@ -513,7 +513,7 @@ impl<T> Interleaved<T> {
     /// ```
     #[inline]
     pub fn sample_mut(&mut self, channel: usize, frame: usize) -> Option<&mut T> {
-        self.get_mut(channel)?.into_mut(frame)
+        self.channel_mut(channel)?.into_mut(frame)
     }
 
     /// Access the raw sequential buffer.
@@ -608,7 +608,7 @@ where
     /// ```
     /// let mut buf = audio::buf::Interleaved::<f32>::with_topology(2, 4);
     ///
-    /// let mut it = buf.iter_mut();
+    /// let mut it = buf.iter_channels_mut();
     ///
     /// for (c, f) in it.next().unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
     ///     *c = *f;
@@ -618,14 +618,14 @@ where
     ///     *c = *f;
     /// }
     ///
-    /// let channels = buf.iter().collect::<Vec<_>>();
+    /// let channels = buf.iter_channels().collect::<Vec<_>>();
     /// let left = channels[0].iter().collect::<Vec<_>>();
     /// let right = channels[1].iter().collect::<Vec<_>>();
     ///
     /// assert_eq!(left, &[1.0, 2.0, 3.0, 4.0]);
     /// assert_eq!(right, &[5.0, 6.0, 7.0, 8.0]);
     /// ```
-    pub fn iter(&self) -> Iter<'_, T> {
+    pub fn iter_channels(&self) -> Iter<'_, T> {
         unsafe {
             Iter::new_unchecked(
                 ptr::NonNull::new_unchecked(self.data.as_ptr() as *mut _),
@@ -642,7 +642,7 @@ where
     /// ```
     /// let mut buf = audio::buf::Interleaved::<f32>::with_topology(2, 4);
     ///
-    /// let mut it = buf.iter_mut();
+    /// let mut it = buf.iter_channels_mut();
     ///
     /// for (c, f) in it.next().unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
     ///     *c = *f;
@@ -652,16 +652,16 @@ where
     ///     *c = *f;
     /// }
     ///
-    /// let channels = buf.iter().collect::<Vec<_>>();
+    /// let channels = buf.iter_channels().collect::<Vec<_>>();
     /// let left = channels[0].iter().collect::<Vec<_>>();
     /// let right = channels[1].iter().collect::<Vec<_>>();
     ///
     /// assert_eq!(left, &[1.0, 2.0, 3.0, 4.0]);
     /// assert_eq!(right, &[5.0, 6.0, 7.0, 8.0]);
     /// ```
-    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+    pub fn iter_channels_mut(&mut self) -> IterChannelsMut<'_, T> {
         unsafe {
-            IterMut::new_unchecked(
+            IterChannelsMut::new_unchecked(
                 ptr::NonNull::new_unchecked(self.data.as_mut_ptr()),
                 self.data.len(),
                 self.channels,
@@ -675,7 +675,7 @@ where
     T: Copy + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_list().entries(self.iter()).finish()
+        f.debug_list().entries(self.iter_channels()).finish()
     }
 }
 
@@ -684,7 +684,7 @@ where
     T: Copy + cmp::PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
-        self.iter().eq(other.iter())
+        self.iter_channels().eq(other.iter_channels())
     }
 }
 
@@ -695,7 +695,7 @@ where
     T: Copy + cmp::PartialOrd,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-        self.iter().partial_cmp(other.iter())
+        self.iter_channels().partial_cmp(other.iter_channels())
     }
 }
 
@@ -704,7 +704,7 @@ where
     T: Copy + cmp::Ord,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
-        self.iter().cmp(other.iter())
+        self.iter_channels().cmp(other.iter_channels())
     }
 }
 
@@ -713,7 +713,7 @@ where
     T: Copy + hash::Hash,
 {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
-        for channel in self.iter() {
+        for channel in self.iter_channels() {
             for f in channel.iter() {
                 f.hash(state);
             }
@@ -741,7 +741,7 @@ where
     where
         Self::Sample: 'this;
 
-    type Iter<'this> = Iter<'this, Self::Sample>
+    type IterChannels<'this> = Iter<'this, Self::Sample>
     where
         Self::Sample: 'this;
 
@@ -756,13 +756,13 @@ where
     }
 
     #[inline]
-    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+    fn channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
         InterleavedChannel::from_slice(&self.data, channel, self.channels)
     }
 
     #[inline]
-    fn iter(&self) -> Self::Iter<'_> {
-        (*self).iter()
+    fn iter_channels(&self) -> Self::IterChannels<'_> {
+        (*self).iter_channels()
     }
 }
 
@@ -774,12 +774,12 @@ where
     where
         Self: 'this;
 
-    type FramesIter<'this> = InterleavedFramesIter<'this, T>
+    type IterFrames<'this> = InterleavedFramesIter<'this, T>
     where
         Self: 'this;
 
     #[inline]
-    fn get_frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+    fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
         if frame >= self.frames {
             return None;
         }
@@ -788,7 +788,7 @@ where
     }
 
     #[inline]
-    fn iter_frames(&self) -> Self::FramesIter<'_> {
+    fn iter_frames(&self) -> Self::IterFrames<'_> {
         InterleavedFramesIter::new(0, self.as_raw())
     }
 }
@@ -822,12 +822,12 @@ where
     where
         Self::Sample: 'this;
 
-    type IterMut<'this> = IterMut<'this, Self::Sample>
+    type IterChannelsMut<'this> = IterChannelsMut<'this, Self::Sample>
     where
         Self::Sample: 'this;
 
     #[inline]
-    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+    fn channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         InterleavedChannelMut::from_slice(&mut self.data, channel, self.channels)
     }
 
@@ -846,8 +846,8 @@ where
     }
 
     #[inline]
-    fn iter_mut(&mut self) -> Self::IterMut<'_> {
-        (*self).iter_mut()
+    fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
+        (*self).iter_channels_mut()
     }
 }
 
@@ -860,7 +860,7 @@ where
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
-        (*self).iter()
+        (*self).iter_channels()
     }
 }
 

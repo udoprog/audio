@@ -56,7 +56,7 @@ where
 }
 
 /// An mutable iterator over an interleaved buffer.
-pub struct IterMut<'a, T> {
+pub struct IterChannelsMut<'a, T> {
     ptr: ptr::NonNull<T>,
     len: usize,
     channel: usize,
@@ -64,7 +64,7 @@ pub struct IterMut<'a, T> {
     _marker: marker::PhantomData<&'a mut [T]>,
 }
 
-impl<'a, T> IterMut<'a, T> {
+impl<'a, T> IterChannelsMut<'a, T> {
     /// Construct a new unchecked iterator.
     ///
     /// # Safety
@@ -82,7 +82,7 @@ impl<'a, T> IterMut<'a, T> {
     }
 }
 
-impl<'a, T> Iterator for IterMut<'a, T>
+impl<'a, T> Iterator for IterChannelsMut<'a, T>
 where
     T: Copy,
 {
