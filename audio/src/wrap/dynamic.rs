@@ -1,5 +1,7 @@
-use crate::channel::{LinearChannel, LinearChannelMut};
 use audio_core::{Buf, BufMut, ResizableBuf, Sample};
+
+use crate::channel::{LinearChannel, LinearChannelMut};
+use crate::frame::{DynamicFrame, DynamicIterFrames};
 
 /// A wrapper for an external dynamic audio buffer.
 ///
@@ -66,7 +68,15 @@ macro_rules! impl_buf {
             where
                 Self: 'this;
 
-            type IterChannels<'this> = Iter<'this, T>
+            type IterChannels<'this> = IterChannels<'this, T>
+            where
+                Self: 'this;
+
+            type Frame<'this> = DynamicFrame<'this, Self::Sample>
+            where
+                Self: 'this;
+
+            type IterFrames<'this> = DynamicIterFrames<'this, T>
             where
                 Self: 'this;
 
@@ -87,9 +97,19 @@ macro_rules! impl_buf {
 
             #[inline]
             fn iter_channels(&self) -> Self::IterChannels<'_> {
-                Iter {
+                IterChannels {
                     iter: self.value[..].iter(),
                 }
+            }
+
+            #[inline]
+            fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+                todo!()
+            }
+
+            #[inline]
+            fn iter_frames(&self) -> Self::IterFrames<'_> {
+                todo!()
             }
         }
     };
@@ -114,7 +134,7 @@ macro_rules! impl_buf_mut {
             where
                 Self: 'this;
 
-            type IterChannelsMut<'this> = IterMut<'this, T>
+            type IterChannelsMut<'this> = IterChannelsMut<'this, T>
             where
                 Self: 'this;
 
@@ -152,7 +172,7 @@ macro_rules! impl_buf_mut {
 
             #[inline]
             fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
-                IterMut {
+                IterChannelsMut {
                     iter: self.value[..].iter_mut(),
                 }
             }
@@ -194,11 +214,11 @@ where
 }
 
 /// An iterator over a linear channel slice buffer.
-pub struct Iter<'a, T> {
+pub struct IterChannels<'a, T> {
     iter: std::slice::Iter<'a, Vec<T>>,
 }
 
-impl<'a, T> Iterator for Iter<'a, T>
+impl<'a, T> Iterator for IterChannels<'a, T>
 where
     T: Copy,
 {
@@ -215,7 +235,7 @@ where
     }
 }
 
-impl<'a, T> DoubleEndedIterator for Iter<'a, T>
+impl<'a, T> DoubleEndedIterator for IterChannels<'a, T>
 where
     T: Copy,
 {
@@ -230,7 +250,7 @@ where
     }
 }
 
-impl<'a, T> ExactSizeIterator for Iter<'a, T>
+impl<'a, T> ExactSizeIterator for IterChannels<'a, T>
 where
     T: Copy,
 {
@@ -241,11 +261,11 @@ where
 }
 
 /// A mutable iterator over a linear channel slice buffer.
-pub struct IterMut<'a, T> {
+pub struct IterChannelsMut<'a, T> {
     iter: std::slice::IterMut<'a, Vec<T>>,
 }
 
-impl<'a, T> Iterator for IterMut<'a, T>
+impl<'a, T> Iterator for IterChannelsMut<'a, T>
 where
     T: Copy,
 {
@@ -262,7 +282,7 @@ where
     }
 }
 
-impl<'a, T> DoubleEndedIterator for IterMut<'a, T>
+impl<'a, T> DoubleEndedIterator for IterChannelsMut<'a, T>
 where
     T: Copy,
 {
@@ -277,7 +297,7 @@ where
     }
 }
 
-impl<'a, T> ExactSizeIterator for IterMut<'a, T>
+impl<'a, T> ExactSizeIterator for IterChannelsMut<'a, T>
 where
     T: Copy,
 {

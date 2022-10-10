@@ -1,8 +1,8 @@
-use audio_core::{Buf, BufMut, ExactSizeBuf, UniformBuf};
+use audio_core::{Buf, BufMut, ExactSizeBuf};
 
 use crate::buf::sequential::{IterChannels, IterChannelsMut};
 use crate::channel::{LinearChannel, LinearChannelMut};
-use crate::frame::{RawSequential, SequentialFrame, SequentialFramesIter};
+use crate::frame::{RawSequential, SequentialFrame, SequentialIterFrames};
 use crate::slice::{Slice, SliceMut};
 
 /// A wrapper for a sequential audio buffer.
@@ -100,6 +100,14 @@ where
     where
         Self: 'this;
 
+    type Frame<'this> = SequentialFrame<'this, T::Item>
+    where
+        Self: 'this;
+
+    type IterFrames<'this> = SequentialIterFrames<'this, T::Item>
+    where
+        Self: 'this;
+
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
@@ -124,19 +132,6 @@ where
     fn iter_channels(&self) -> Self::IterChannels<'_> {
         (*self).iter()
     }
-}
-
-impl<T> UniformBuf for Sequential<T>
-where
-    T: Slice,
-{
-    type Frame<'this> = SequentialFrame<'this, T::Item>
-    where
-        Self: 'this;
-
-    type IterFrames<'this> = SequentialFramesIter<'this, T::Item>
-    where
-        Self: 'this;
 
     #[inline]
     fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
@@ -149,7 +144,7 @@ where
 
     #[inline]
     fn iter_frames(&self) -> Self::IterFrames<'_> {
-        SequentialFramesIter::new(0, self.as_raw())
+        SequentialIterFrames::new(0, self.as_raw())
     }
 }
 
@@ -167,13 +162,13 @@ impl<T> BufMut for Sequential<T>
 where
     T: SliceMut,
 {
-    type ChannelMut<'a> = LinearChannelMut<'a, Self::Sample>
+    type ChannelMut<'this> = LinearChannelMut<'this, Self::Sample>
     where
-        Self: 'a;
+        Self: 'this;
 
-    type IterChannelsMut<'a> = IterChannelsMut<'a, Self::Sample>
+    type IterChannelsMut<'this> = IterChannelsMut<'this, Self::Sample>
     where
-        Self: 'a;
+        Self: 'this;
 
     fn channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         let value = self

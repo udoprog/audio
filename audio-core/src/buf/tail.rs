@@ -30,6 +30,14 @@ where
     where
         Self: 'this;
 
+    type Frame<'this> = B::Frame<'this>
+    where
+        Self: 'this;
+
+    type IterFrames<'this> = B::IterFrames<'this>
+    where
+        Self: 'this;
+
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
         let frames = self.buf.frames_hint()?;
@@ -53,19 +61,29 @@ where
             n: self.n,
         }
     }
+
+    #[inline]
+    fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+        self.buf.frame(frame)
+    }
+
+    #[inline]
+    fn iter_frames(&self) -> Self::IterFrames<'_> {
+        self.buf.iter_frames()
+    }
 }
 
 impl<B> BufMut for Tail<B>
 where
     B: BufMut,
 {
-    type ChannelMut<'a> = B::ChannelMut<'a>
+    type ChannelMut<'this> = B::ChannelMut<'this>
     where
-        Self: 'a;
+        Self: 'this;
 
-    type IterChannelsMut<'a> = IterChannelsMut<B::IterChannelsMut<'a>>
+    type IterChannelsMut<'this> = IterChannelsMut<B::IterChannelsMut<'this>>
     where
-        Self: 'a;
+        Self: 'this;
 
     #[inline]
     fn channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {

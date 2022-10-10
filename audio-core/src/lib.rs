@@ -57,6 +57,3 @@ pub use self::linear_channel::LinearChannel;
 
 mod linear_channel_mut;
 pub use self::linear_channel_mut::LinearChannelMut;
-
-mod uniform_buf;
-pub use self::uniform_buf::UniformBuf;

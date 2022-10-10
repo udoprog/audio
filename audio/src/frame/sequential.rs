@@ -169,13 +169,13 @@ where
 }
 
 /// An iterator over all frames.
-pub struct SequentialFramesIter<'a, T> {
+pub struct SequentialIterFrames<'a, T> {
     frame: usize,
     raw: RawSequential<T>,
     _marker: marker::PhantomData<&'a [T]>,
 }
 
-impl<T> SequentialFramesIter<'_, T> {
+impl<T> SequentialIterFrames<'_, T> {
     #[inline]
     pub(crate) fn new(frame: usize, raw: RawSequential<T>) -> Self {
         Self {
@@ -186,7 +186,7 @@ impl<T> SequentialFramesIter<'_, T> {
     }
 }
 
-impl<'a, T> Iterator for SequentialFramesIter<'a, T> {
+impl<'a, T> Iterator for SequentialIterFrames<'a, T> {
     type Item = SequentialFrame<'a, T>;
 
     #[inline]

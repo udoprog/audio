@@ -1,6 +1,5 @@
 //! A dynamically sized, multi-channel audio buffer.
 
-use crate::channel::{LinearChannel, LinearChannelMut};
 use audio_core::{Buf, BufMut, ExactSizeBuf, ResizableBuf, Sample};
 use std::cmp;
 use std::fmt;
@@ -10,8 +9,11 @@ use std::ops;
 use std::ptr;
 use std::slice;
 
+use crate::channel::{LinearChannel, LinearChannelMut};
+use crate::frame::{DynamicFrame, DynamicFrameIter, DynamicIterFrames};
+
 mod iter;
-pub use self::iter::{Iter, IterMut};
+pub use self::iter::{IterChannels, IterChannelsMut};
 
 /// A dynamically sized, multi-channel audio buffer.
 ///
@@ -240,9 +242,19 @@ impl<T> Dynamic<T> {
     ///     assert_eq!(chan.as_ref(), &all_zeros[..]);
     /// }
     /// ```
-    pub fn iter_channels(&self) -> Iter<'_, T> {
+    pub fn iter_channels(&self) -> IterChannels<'_, T> {
         // Safety: we're using a trusted length to build the slice.
-        unsafe { Iter::new(self.data.as_ref(self.channels), self.frames) }
+        unsafe { IterChannels::new(self.data.as_ref(self.channels), self.frames) }
+    }
+
+    /// Access the current frame.
+    pub fn frame(&self, frame: usize) -> Option<DynamicFrame<'_, T>> {
+        todo!("{frame}")
+    }
+
+    /// Iterate over all frames in the dynamic buffer.
+    pub fn iter_frames(&self) -> DynamicIterFrames<'_, T> {
+        todo!()
     }
 
     /// Construct a mutable iterator over all available channels.
@@ -259,9 +271,9 @@ impl<T> Dynamic<T> {
     ///     rng.fill(chan.as_mut());
     /// }
     /// ```
-    pub fn iter_channels_mut(&mut self) -> IterMut<'_, T> {
+    pub fn iter_channels_mut(&mut self) -> IterChannelsMut<'_, T> {
         // Safety: we're using a trusted length to build the slice.
-        unsafe { IterMut::new(self.data.as_mut(self.channels), self.frames) }
+        unsafe { IterChannelsMut::new(self.data.as_mut(self.channels), self.frames) }
     }
 
     /// Set the size of the buffer. The size is the size of each channel's
@@ -457,15 +469,15 @@ impl<T> Dynamic<T> {
     ///
     /// let mut rng = rand::thread_rng();
     ///
-    /// if let Some(mut left) = buf.get_mut(0) {
+    /// if let Some(mut left) = buf.channel_mut(0) {
     ///     rng.fill(left.as_mut());
     /// }
     ///
-    /// if let Some(mut right) = buf.get_mut(1) {
+    /// if let Some(mut right) = buf.channel_mut(1) {
     ///     rng.fill(right.as_mut());
     /// }
     /// ```
-    pub fn get_mut(&mut self, channel: usize) -> Option<LinearChannelMut<'_, T>> {
+    pub fn channel_mut(&mut self, channel: usize) -> Option<LinearChannelMut<'_, T>> {
         if channel < self.channels {
             // Safety: We control the length of each channel so we can assert that
             // it is both allocated and initialized up to `len`.
@@ -491,12 +503,12 @@ impl<T> Dynamic<T> {
     ///
     /// let mut rng = rand::thread_rng();
     ///
-    /// rng.fill(buf.get_or_default_mut(0));
-    /// rng.fill(buf.get_or_default_mut(1));
+    /// rng.fill(buf.channel_or_default_mut(0));
+    /// rng.fill(buf.channel_or_default_mut(1));
     ///
     /// assert_eq!(buf.channels(), 2);
     /// ```
-    pub fn get_or_default_mut(&mut self, channel: usize) -> &mut [T]
+    pub fn channel_or_default_mut(&mut self, channel: usize) -> &mut [T]
     where
         T: Sample,
     {
@@ -674,7 +686,7 @@ where
 }
 
 impl<'a, T> IntoIterator for &'a Dynamic<T> {
-    type IntoIter = Iter<'a, T>;
+    type IntoIter = IterChannels<'a, T>;
     type Item = <Self::IntoIter as Iterator>::Item;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -683,7 +695,7 @@ impl<'a, T> IntoIterator for &'a Dynamic<T> {
 }
 
 impl<'a, T> IntoIterator for &'a mut Dynamic<T> {
-    type IntoIter = IterMut<'a, T>;
+    type IntoIter = IterChannelsMut<'a, T>;
     type Item = <Self::IntoIter as Iterator>::Item;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -704,7 +716,7 @@ impl<T> ops::Index<usize> for Dynamic<T> {
 
 impl<T> ops::IndexMut<usize> for Dynamic<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        match self.get_mut(index) {
+        match self.channel_mut(index) {
             Some(slice) => slice.into_mut(),
             None => panic!("index `{}` is not a channel", index,),
         }
@@ -749,9 +761,17 @@ where
     where
         Self::Sample: 'this;
 
-    type IterChannels<'this> = Iter<'this, T>
+    type IterChannels<'this> = IterChannels<'this, Self::Sample>
     where
         Self::Sample: 'this;
+
+    type Frame<'this> = DynamicFrame<'this, Self::Sample>
+    where
+        Self: 'this;
+
+    type IterFrames<'this> = DynamicIterFrames<'this, Self::Sample>
+    where
+        Self: 'this;
 
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
@@ -772,16 +792,28 @@ where
     fn iter_channels(&self) -> Self::IterChannels<'_> {
         (*self).iter_channels()
     }
+
+    #[inline]
+    fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+        (*self).frame(frame)
+    }
+
+    #[inline]
+    fn iter_frames(&self) -> Self::IterFrames<'_> {
+        (*self).iter_frames()
+    }
 }
 
 impl<T> ResizableBuf for Dynamic<T>
 where
     T: Sample,
 {
+    #[inline]
     fn try_reserve(&mut self, _capacity: usize) -> bool {
         false
     }
 
+    #[inline]
     fn resize(&mut self, frames: usize) {
         Self::resize(self, frames);
     }
@@ -800,12 +832,13 @@ where
     where
         Self: 'this;
 
-    type IterChannelsMut<'this> = IterMut<'this, T>
+    type IterChannelsMut<'this> = IterChannelsMut<'this, T>
     where
         Self: 'this;
 
+    #[inline]
     fn channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
-        (*self).get_mut(channel)
+        (*self).channel_mut(channel)
     }
 
     fn copy_channel(&mut self, from: usize, to: usize) {
@@ -833,6 +866,7 @@ where
         }
     }
 
+    #[inline]
     fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
         (*self).iter_channels_mut()
     }
@@ -860,6 +894,7 @@ impl<T> RawSlice<T> {
     }
 
     /// Construct an empty raw slice.
+    #[inline]
     fn empty() -> Self {
         Self {
             data: unsafe { ptr::NonNull::new_unchecked(Vec::new().as_mut_ptr()) },

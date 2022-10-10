@@ -4,11 +4,11 @@ use core::hash;
 use core::ops;
 use core::ptr;
 
-use audio_core::{Buf, BufMut, ExactSizeBuf, ResizableBuf, Sample, UniformBuf};
+use audio_core::{Buf, BufMut, ExactSizeBuf, ResizableBuf, Sample};
 
 use crate::buf::sequential::{IterChannels, IterChannelsMut};
 use crate::channel::{LinearChannel, LinearChannelMut};
-use crate::frame::{RawSequential, SequentialFrame, SequentialFramesIter};
+use crate::frame::{RawSequential, SequentialFrame, SequentialIterFrames};
 
 /// A dynamically sized, multi-channel sequential audio buffer.
 ///
@@ -731,34 +731,33 @@ where
     where
         Self: 'this;
 
-    fn frames_hint(&self) -> Option<usize> {
-        Some(self.frames)
-    }
-
-    fn channels(&self) -> usize {
-        (*self).channels()
-    }
-
-    fn channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        (*self).channel(channel)
-    }
-
-    fn iter_channels(&self) -> Self::IterChannels<'_> {
-        (*self).iter_channels()
-    }
-}
-
-impl<T> UniformBuf for Sequential<T>
-where
-    T: Copy,
-{
     type Frame<'this> = SequentialFrame<'this, T>
     where
         Self: 'this;
 
-    type IterFrames<'this> = SequentialFramesIter<'this, T>
+    type IterFrames<'this> = SequentialIterFrames<'this, T>
     where
         Self: 'this;
+
+    #[inline]
+    fn frames_hint(&self) -> Option<usize> {
+        Some(self.frames)
+    }
+
+    #[inline]
+    fn channels(&self) -> usize {
+        (*self).channels()
+    }
+
+    #[inline]
+    fn channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        (*self).channel(channel)
+    }
+
+    #[inline]
+    fn iter_channels(&self) -> Self::IterChannels<'_> {
+        (*self).iter_channels()
+    }
 
     #[inline]
     fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
@@ -771,7 +770,7 @@ where
 
     #[inline]
     fn iter_frames(&self) -> Self::IterFrames<'_> {
-        SequentialFramesIter::new(0, self.as_raw())
+        SequentialIterFrames::new(0, self.as_raw())
     }
 }
 

@@ -1,3 +1,5 @@
+use core::iter;
+
 use crate::{Buf, BufMut, Channel, ChannelMut, ExactSizeBuf, ReadBuf};
 
 /// A buffer that has been limited.
@@ -31,6 +33,14 @@ where
     where
         Self: 'this;
 
+    type Frame<'this> = B::Frame<'this>
+    where
+        Self: 'this;
+
+    type IterFrames<'this> = iter::Take<B::IterFrames<'this>>
+    where
+        Self: 'this;
+
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
         let frames = self.buf.frames_hint()?;
@@ -53,6 +63,20 @@ where
             iter: self.buf.iter_channels(),
             limit: self.limit,
         }
+    }
+
+    #[inline]
+    fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+        if frame >= self.limit {
+            return None;
+        }
+
+        self.buf.frame(frame)
+    }
+
+    #[inline]
+    fn iter_frames(&self) -> Self::IterFrames<'_> {
+        self.buf.iter_frames().take(self.limit)
     }
 }
 

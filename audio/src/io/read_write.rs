@@ -78,6 +78,7 @@ impl<B> ReadWrite<B> {
     /// assert!(buf.has_remaining());
     /// assert_eq!(buf.remaining(), 4);
     /// ```
+    #[inline]
     pub fn new(buf: B) -> Self
     where
         B: ExactSizeBuf,
@@ -111,6 +112,7 @@ impl<B> ReadWrite<B> {
     /// assert!(!buf.has_remaining());
     /// assert_eq!(buf.remaining(), 0);
     /// ```
+    #[inline]
     pub fn empty(buf: B) -> Self {
         Self {
             buf,
@@ -274,10 +276,11 @@ where
     B: Buf,
 {
     /// Construct an iterator over all available channels.
-    pub fn iter(&self) -> Iter<B> {
+    #[inline]
+    pub fn iter_channels(&self) -> IterChannels<B> {
         let len = self.remaining();
 
-        Iter {
+        IterChannels {
             iter: self.buf.iter_channels(),
             len,
             read: self.read,
@@ -290,8 +293,9 @@ where
     B: BufMut,
 {
     /// Construct a mutable iterator over all available channels.
-    pub fn iter_mut(&mut self) -> IterMut<B> {
-        IterMut {
+    #[inline]
+    pub fn iter_channels_mut(&mut self) -> IterChannelsMut<B> {
+        IterChannelsMut {
             iter: self.buf.iter_channels_mut(),
             written: self.written,
         }
@@ -308,7 +312,15 @@ where
     where
         Self: 'this;
 
-    type IterChannels<'this> = Iter<'this, B>
+    type IterChannels<'this> = IterChannels<'this, B>
+    where
+        Self: 'this;
+
+    type Frame<'this> = B::Frame<'this>
+    where
+        Self: 'this;
+
+    type IterFrames<'this> = B::IterFrames<'this>
     where
         Self: 'this;
 
@@ -331,7 +343,17 @@ where
 
     #[inline]
     fn iter_channels(&self) -> Self::IterChannels<'_> {
-        (*self).iter()
+        (*self).iter_channels()
+    }
+
+    #[inline]
+    fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+        todo!()
+    }
+
+    #[inline]
+    fn iter_frames(&self) -> Self::IterFrames<'_> {
+        todo!()
     }
 }
 
@@ -343,7 +365,7 @@ where
     where
         Self: 'this;
 
-    type IterChannelsMut<'this> = IterMut<'this, B>
+    type IterChannelsMut<'this> = IterChannelsMut<'this, B>
     where
         Self: 'this;
 
@@ -362,7 +384,7 @@ where
 
     #[inline]
     fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
-        (*self).iter_mut()
+        (*self).iter_channels_mut()
     }
 }
 
@@ -394,6 +416,7 @@ where
 }
 
 iter! {
+    IterChannels,
     len: usize,
     read: usize,
     =>
@@ -401,6 +424,7 @@ iter! {
 }
 
 iter_mut! {
+    IterChannelsMut,
     written: usize,
     =>
     self.skip(written)

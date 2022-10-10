@@ -2,13 +2,12 @@ use core::mem;
 use core::ptr;
 
 use audio_core::{
-    Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ReadBuf, ResizableBuf,
-    UniformBuf, WriteBuf,
+    Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ReadBuf, ResizableBuf, WriteBuf,
 };
 
 use crate::buf::interleaved::{Iter, IterChannelsMut};
 use crate::channel::{InterleavedChannel, InterleavedChannelMut};
-use crate::frame::{InterleavedFrame, InterleavedFramesIter, RawInterleaved};
+use crate::frame::{InterleavedFrame, InterleavedIterFrames, RawInterleaved};
 use crate::slice::{Slice, SliceIndex, SliceMut};
 
 /// A wrapper for an interleaved audio buffer.
@@ -107,6 +106,14 @@ where
     where
         Self: 'this;
 
+    type Frame<'this> = InterleavedFrame<'this, T::Item>
+    where
+        Self: 'this;
+
+    type IterFrames<'this> = InterleavedIterFrames<'this, T::Item>
+    where
+        Self: 'this;
+
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
@@ -126,19 +133,6 @@ where
     fn iter_channels(&self) -> Self::IterChannels<'_> {
         (*self).iter()
     }
-}
-
-impl<T> UniformBuf for Interleaved<T>
-where
-    T: Slice,
-{
-    type Frame<'this> = InterleavedFrame<'this, T::Item>
-    where
-        Self: 'this;
-
-    type IterFrames<'this> = InterleavedFramesIter<'this, T::Item>
-    where
-        Self: 'this;
 
     #[inline]
     fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
@@ -151,7 +145,7 @@ where
 
     #[inline]
     fn iter_frames(&self) -> Self::IterFrames<'_> {
-        InterleavedFramesIter::new(0, self.as_raw())
+        InterleavedIterFrames::new(0, self.as_raw())
     }
 }
 

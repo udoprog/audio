@@ -1,10 +1,11 @@
 macro_rules! iter {
     (
+        $ident:ident,
         $($field:ident : $field_ty:ty),* $(,)?
         =>
         $self:ident $(. $fn:ident ($($arg:ident),* $(,)?))*
     ) => {
-        pub struct Iter<'a, B>
+        pub struct $ident<'a, B>
         where
             B: 'a + Buf,
         {
@@ -12,7 +13,7 @@ macro_rules! iter {
             $($field: $field_ty,)*
         }
 
-        impl<'a, B> Iterator for Iter<'a, B>
+        impl<'a, B> Iterator for $ident<'a, B>
         where
             B: 'a + Buf,
         {
@@ -28,11 +29,12 @@ macro_rules! iter {
 
 macro_rules! iter_mut {
     (
+        $ident:ident,
         $($field:ident : $field_ty:ty),* $(,)?
         =>
         $self:ident $(. $fn:ident ($($arg:ident),* $(,)?))*
     ) => {
-        pub struct IterMut<'a, B>
+        pub struct $ident<'a, B>
         where
             B: 'a + BufMut,
         {
@@ -40,7 +42,7 @@ macro_rules! iter_mut {
             $($field: $field_ty,)*
         }
 
-        impl<'a, B> Iterator for IterMut<'a, B>
+        impl<'a, B> Iterator for $ident<'a, B>
         where
             B: 'a + BufMut,
         {

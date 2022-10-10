@@ -171,13 +171,13 @@ where
 }
 
 /// An iterator over all frames.
-pub struct InterleavedFramesIter<'a, T> {
+pub struct InterleavedIterFrames<'a, T> {
     frame: usize,
     raw: RawInterleaved<T>,
     _marker: marker::PhantomData<&'a [T]>,
 }
 
-impl<'a, T> InterleavedFramesIter<'a, T> {
+impl<'a, T> InterleavedIterFrames<'a, T> {
     #[inline]
     pub(crate) fn new(frame: usize, raw: RawInterleaved<T>) -> Self {
         Self {
@@ -188,7 +188,7 @@ impl<'a, T> InterleavedFramesIter<'a, T> {
     }
 }
 
-impl<'a, T> Iterator for InterleavedFramesIter<'a, T> {
+impl<'a, T> Iterator for InterleavedIterFrames<'a, T> {
     type Item = InterleavedFrame<'a, T>;
 
     #[inline]

@@ -1,6 +1,6 @@
 //! Trait for dealing with abstract channel buffers.
 
-use crate::Channel;
+use crate::{Channel, Frame};
 
 #[macro_use]
 mod macros;
@@ -47,6 +47,16 @@ pub trait Buf {
 
     /// An iterator over available channels.
     type IterChannels<'this>: Iterator<Item = Self::Channel<'this>>
+    where
+        Self: 'this;
+
+    /// The type the channel assumes when coerced into a reference.
+    type Frame<'this>: Frame<Sample = Self::Sample>
+    where
+        Self: 'this;
+
+    /// A borrowing iterator over the channel.
+    type IterFrames<'this>: Iterator<Item = Self::Frame<'this>>
     where
         Self: 'this;
 
@@ -158,6 +168,65 @@ pub trait Buf {
     /// test(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
     /// ```
     fn iter_channels(&self) -> Self::IterChannels<'_>;
+
+    /// Get a single frame at the given offset.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use audio::{Buf, Frame};
+    ///
+    /// fn test(buf: impl Buf<Sample = u32>) {
+    ///     let frame = buf.frame(0).unwrap();
+    ///     assert_eq!(frame.get(1), Some(5));
+    ///     assert_eq!(frame.iter().collect::<Vec<_>>(), [1, 5]);
+    ///
+    ///     let frame = buf.frame(2).unwrap();
+    ///     assert_eq!(frame.get(1), Some(7));
+    ///     assert_eq!(frame.iter().collect::<Vec<_>>(), [3, 7]);
+    ///
+    ///     assert!(buf.frame(4).is_none());
+    /// }
+    ///
+    /// test(audio::sequential![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// test(audio::wrap::sequential([1, 2, 3, 4, 5, 6, 7, 8], 2));
+    ///
+    /// test(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// test(audio::wrap::interleaved([1, 5, 2, 6, 3, 7, 4, 8], 2));
+    /// ```
+    fn frame(&self, frame: usize) -> Option<Self::Frame<'_>>;
+
+    /// Construct an iterator over all the frames in the audio buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use audio::{Buf, Frame};
+    ///
+    /// fn test(buf: impl Buf<Sample = u32>) {
+    ///     let mut it = buf.iter_frames();
+    ///
+    ///     let frame = it.next().unwrap();
+    ///     assert_eq!(frame.get(1), Some(5));
+    ///     assert_eq!(frame.iter().collect::<Vec<_>>(), [1, 5]);
+    ///
+    ///     assert!(it.next().is_some());
+    ///
+    ///     let frame = it.next().unwrap();
+    ///     assert_eq!(frame.get(1), Some(7));
+    ///     assert_eq!(frame.iter().collect::<Vec<_>>(), [3, 7]);
+    ///
+    ///     assert!(it.next().is_some());
+    ///     assert!(it.next().is_none());
+    /// }
+    ///
+    /// test(audio::sequential![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// test(audio::wrap::interleaved([1, 5, 2, 6, 3, 7, 4, 8], 2));
+    ///
+    /// test(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
+    /// test(audio::wrap::sequential([1, 2, 3, 4, 5, 6, 7, 8], 2));
+    /// ```
+    fn iter_frames(&self) -> Self::IterFrames<'_>;
 
     /// Construct a new buffer where `n` frames are skipped.
     ///
@@ -290,13 +359,21 @@ where
 {
     type Sample = B::Sample;
 
-    type Channel<'a> = B::Channel<'a>
+    type Channel<'this> = B::Channel<'this>
     where
-        Self: 'a;
+        Self: 'this;
 
-    type IterChannels<'a> = B::IterChannels<'a>
+    type IterChannels<'this> = B::IterChannels<'this>
     where
-        Self: 'a;
+        Self: 'this;
+
+    type Frame<'this> = B::Frame<'this>
+    where
+        Self: 'this;
+
+    type IterFrames<'this> = B::IterFrames<'this>
+    where
+        Self: 'this;
 
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
@@ -316,6 +393,16 @@ where
     #[inline]
     fn iter_channels(&self) -> Self::IterChannels<'_> {
         (**self).iter_channels()
+    }
+
+    #[inline]
+    fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+        (**self).frame(frame)
+    }
+
+    #[inline]
+    fn iter_frames(&self) -> Self::IterFrames<'_> {
+        (**self).iter_frames()
     }
 }
 
@@ -333,6 +420,14 @@ where
     where
         Self: 'this;
 
+    type Frame<'this> = B::Frame<'this>
+    where
+        Self: 'this;
+
+    type IterFrames<'this> = B::IterFrames<'this>
+    where
+        Self: 'this;
+
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
         (**self).frames_hint()
@@ -351,5 +446,15 @@ where
     #[inline]
     fn iter_channels(&self) -> Self::IterChannels<'_> {
         (**self).iter_channels()
+    }
+
+    #[inline]
+    fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+        (**self).frame(frame)
+    }
+
+    #[inline]
+    fn iter_frames(&self) -> Self::IterFrames<'_> {
+        (**self).iter_frames()
     }
 }

@@ -4,12 +4,12 @@ use std::hash;
 use std::ptr;
 
 use audio_core::{
-    Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ResizableBuf, Sample, UniformBuf,
+    Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ResizableBuf, Sample,
 };
 
 use crate::buf::interleaved::{Iter, IterChannelsMut};
 use crate::channel::{InterleavedChannel, InterleavedChannelMut};
-use crate::frame::{InterleavedFrame, InterleavedFramesIter, RawInterleaved};
+use crate::frame::{InterleavedFrame, InterleavedIterFrames, RawInterleaved};
 
 /// A dynamically sized, multi-channel interleaved audio buffer.
 ///
@@ -745,6 +745,14 @@ where
     where
         Self::Sample: 'this;
 
+    type Frame<'this> = InterleavedFrame<'this, T>
+    where
+        Self: 'this;
+
+    type IterFrames<'this> = InterleavedIterFrames<'this, T>
+    where
+        Self: 'this;
+
     #[inline]
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
@@ -764,19 +772,6 @@ where
     fn iter_channels(&self) -> Self::IterChannels<'_> {
         (*self).iter_channels()
     }
-}
-
-impl<T> UniformBuf for Interleaved<T>
-where
-    T: Copy,
-{
-    type Frame<'this> = InterleavedFrame<'this, T>
-    where
-        Self: 'this;
-
-    type IterFrames<'this> = InterleavedFramesIter<'this, T>
-    where
-        Self: 'this;
 
     #[inline]
     fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
@@ -789,7 +784,7 @@ where
 
     #[inline]
     fn iter_frames(&self) -> Self::IterFrames<'_> {
-        InterleavedFramesIter::new(0, self.as_raw())
+        InterleavedIterFrames::new(0, self.as_raw())
     }
 }
 

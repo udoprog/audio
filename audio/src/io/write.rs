@@ -49,6 +49,7 @@ impl<B> Write<B> {
     /// assert!(buf.has_remaining_mut());
     /// assert_eq!(buf.remaining_mut(), 4);
     /// ```
+    #[inline]
     pub fn new(buf: B) -> Self
     where
         B: ExactSizeBuf,
@@ -76,6 +77,7 @@ impl<B> Write<B> {
     /// assert!(!buf.has_remaining_mut());
     /// assert_eq!(buf.remaining_mut(), 0);
     /// ```
+    #[inline]
     pub fn empty(buf: B) -> Self {
         Self { buf, available: 0 }
     }
@@ -94,6 +96,7 @@ impl<B> Write<B> {
     ///
     /// assert_eq!(buf.as_ref().channels(), 4);
     /// ```
+    #[inline]
     pub fn as_ref(&self) -> &B {
         &self.buf
     }
@@ -115,6 +118,7 @@ impl<B> Write<B> {
     ///
     /// assert_eq!(buf.channels(), 2);
     /// ```
+    #[inline]
     pub fn as_mut(&mut self) -> &mut B {
         &mut self.buf
     }
@@ -136,6 +140,7 @@ impl<B> Write<B> {
     ///
     /// assert_eq!(buf.channels(), 4);
     /// ```
+    #[inline]
     pub fn into_inner(self) -> B {
         self.buf
     }
@@ -180,8 +185,9 @@ where
     B: Buf,
 {
     /// Construct an iterator over all available channels.
-    pub fn iter(&self) -> Iter<B> {
-        Iter {
+    #[inline]
+    pub fn iter_channels(&self) -> IterChannels<B> {
+        IterChannels {
             iter: self.buf.iter_channels(),
             available: self.available,
         }
@@ -193,8 +199,9 @@ where
     B: BufMut,
 {
     /// Construct a mutable iterator over all available channels.
-    pub fn iter_mut(&mut self) -> IterMut<B> {
-        IterMut {
+    #[inline]
+    pub fn iter_channels_mut(&mut self) -> IterChannelsMut<B> {
+        IterChannelsMut {
             iter: self.buf.iter_channels_mut(),
             available: self.available,
         }
@@ -218,6 +225,7 @@ impl<B> ExactSizeBuf for Write<B>
 where
     B: ExactSizeBuf,
 {
+    #[inline]
     fn frames(&self) -> usize {
         self.buf.frames()
     }
@@ -233,24 +241,46 @@ where
     where
         Self: 'this;
 
-    type IterChannels<'this> = Iter<'this, B>
+    type IterChannels<'this> = IterChannels<'this, B>
     where
         Self: 'this;
 
+    type Frame<'this> = B::Frame<'this>
+    where
+        Self: 'this;
+
+    type IterFrames<'this> = B::IterFrames<'this>
+    where
+        Self: 'this;
+
+    #[inline]
     fn frames_hint(&self) -> Option<usize> {
         self.buf.frames_hint()
     }
 
+    #[inline]
     fn channels(&self) -> usize {
         self.buf.channels()
     }
 
+    #[inline]
     fn channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
         Some(self.buf.channel(channel)?.tail(self.available))
     }
 
+    #[inline]
     fn iter_channels(&self) -> Self::IterChannels<'_> {
-        (*self).iter()
+        (*self).iter_channels()
+    }
+
+    #[inline]
+    fn frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+        todo!()
+    }
+
+    #[inline]
+    fn iter_frames(&self) -> Self::IterFrames<'_> {
+        todo!()
     }
 }
 
@@ -258,13 +288,13 @@ impl<B> BufMut for Write<B>
 where
     B: BufMut,
 {
-    type ChannelMut<'a> = B::ChannelMut<'a>
+    type ChannelMut<'this> = B::ChannelMut<'this>
     where
-        Self: 'a;
+        Self: 'this;
 
-    type IterChannelsMut<'a> = IterMut<'a, B>
+    type IterChannelsMut<'this> = IterChannelsMut<'this, B>
     where
-        Self: 'a;
+        Self: 'this;
 
     #[inline]
     fn channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
@@ -281,17 +311,19 @@ where
 
     #[inline]
     fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
-        (*self).iter_mut()
+        (*self).iter_channels_mut()
     }
 }
 
 iter! {
+    IterChannels,
     available: usize,
     =>
     self.tail(available)
 }
 
 iter_mut! {
+    IterChannelsMut,
     available: usize,
     =>
     self.tail(available)

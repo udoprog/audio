@@ -171,11 +171,11 @@ fn test_get_mut() {
 
     let mut rng = rand::thread_rng();
 
-    if let Some(mut left) = buf.get_mut(0) {
+    if let Some(mut left) = buf.channel_mut(0) {
         rng.fill(left.as_mut());
     }
 
-    if let Some(mut right) = buf.get_mut(1) {
+    if let Some(mut right) = buf.channel_mut(1) {
         rng.fill(right.as_mut());
     }
 }
