@@ -3,7 +3,7 @@
 //! This is used in for example [LinearChannel][crate::channel::LinearChannel] to allow
 //! it to abstract over its content.
 
-use std::ptr;
+use core::ptr;
 
 /// Describes how a buffer can be indexed.
 pub trait SliceIndex: Slice

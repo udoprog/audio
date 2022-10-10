@@ -1,11 +1,13 @@
 //! Utilities for working with linear buffers.
 
-use crate::slice::Slice;
+use core::cmp;
+use core::fmt;
+use core::ops;
+use core::slice;
+
 use audio_core::{Channel, ChannelMut};
-use std::cmp;
-use std::fmt;
-use std::ops;
-use std::slice;
+
+use crate::slice::Slice;
 
 #[macro_use]
 mod macros;
@@ -16,11 +18,11 @@ pub use self::iter::{Iter, IterMut};
 slice_comparisons!({'a, T, const N: usize}, LinearChannel<'a, T>, [T; N]);
 slice_comparisons!({'a, T}, LinearChannel<'a, T>, [T]);
 slice_comparisons!({'a, T}, LinearChannel<'a, T>, &[T]);
-slice_comparisons!({'a, T}, LinearChannel<'a, T>, Vec<T>);
+slice_comparisons!(#[cfg(feature = "std")] {'a, T}, LinearChannel<'a, T>, Vec<T>);
 slice_comparisons!({'a, T, const N: usize}, LinearChannelMut<'a, T>, [T; N]);
 slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, [T]);
 slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, &[T]);
-slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, Vec<T>);
+slice_comparisons!(#[cfg(feature = "std")] {'a, T}, LinearChannelMut<'a, T>, Vec<T>);
 
 /// The buffer of a single linear channel.
 ///

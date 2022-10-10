@@ -1,4 +1,4 @@
-use std::slice;
+use core::slice;
 
 /// An iterator over the frames in a linear channel.
 ///

@@ -30,6 +30,7 @@
 /// assert_eq!(&buf[0], &[0, 1, 2, 3]);
 /// assert_eq!(&buf[1], &[4, 5, 6, 7]);
 /// ```
+#[cfg(feature = "std")]
 #[macro_export]
 macro_rules! dynamic {
     // Branch of the macro used when we can perform a literal instantiation of
@@ -100,6 +101,7 @@ macro_rules! dynamic {
 ///
 /// assert_eq!(buf.as_slice(), &[0, 1, 2, 3, 4, 5, 6, 7])
 /// ```
+#[cfg(feature = "std")]
 #[macro_export]
 macro_rules! sequential {
     // Branch of the macro used when we can evaluate an expression that is
@@ -152,6 +154,7 @@ macro_rules! sequential {
 ///
 /// assert_eq!(buf.as_slice(), &[0, 4, 1, 5, 2, 6, 3, 7])
 /// ```
+#[cfg(feature = "std")]
 #[macro_export]
 macro_rules! interleaved {
     // Branch of the macro used when we can evaluate an expression that is

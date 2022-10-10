@@ -12,6 +12,10 @@ documentation = "https://docs.rs/audio"
 description = "A crate for working with audio in Rust"
 readme = "README.md"
 
+[features]
+default = ["std"]
+std = ["audio-core/std"]
+
 [dependencies]
 audio-core = { version = "0.2.0-alpha.3", path = "../audio-core" }
 

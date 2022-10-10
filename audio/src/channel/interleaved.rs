@@ -28,11 +28,11 @@ comparisons!({'a, T}, InterleavedChannelMut<'a, T>, InterleavedChannel<'a, T>);
 slice_comparisons!({'a, T, const N: usize}, InterleavedChannel<'a, T>, [T; N]);
 slice_comparisons!({'a, T}, InterleavedChannel<'a, T>, [T]);
 slice_comparisons!({'a, T}, InterleavedChannel<'a, T>, &[T]);
-slice_comparisons!({'a, T}, InterleavedChannel<'a, T>, Vec<T>);
+slice_comparisons!(#[cfg(feature = "std")] {'a, T}, InterleavedChannel<'a, T>, Vec<T>);
 slice_comparisons!({'a, T, const N: usize}, InterleavedChannelMut<'a, T>, [T; N]);
 slice_comparisons!({'a, T}, InterleavedChannelMut<'a, T>, [T]);
 slice_comparisons!({'a, T}, InterleavedChannelMut<'a, T>, &[T]);
-slice_comparisons!({'a, T}, InterleavedChannelMut<'a, T>, Vec<T>);
+slice_comparisons!(#[cfg(feature = "std")] {'a, T}, InterleavedChannelMut<'a, T>, Vec<T>);
 
 /// The buffer of a single interleaved channel.
 ///

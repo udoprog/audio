@@ -1,5 +1,6 @@
+use core::slice;
+
 use crate::channel::{LinearChannel, LinearChannelMut};
-use std::slice;
 
 // Helper to forward slice-optimized iterator functions.
 macro_rules! forward {

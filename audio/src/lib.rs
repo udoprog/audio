@@ -115,6 +115,7 @@
 //! [Sequential]: https://docs.rs/audio/*/audio/sequential/struct.Sequential.html
 //! [wrap]: https://docs.rs/audio/*/audio/wrap/index.html
 
+#![cfg_attr(not(feature = "std"), no_std)]
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 #![allow(clippy::should_implement_trait)]
 

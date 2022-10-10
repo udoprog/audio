@@ -1,3 +1,4 @@
+use core::mem;
 use core::ptr;
 
 use audio_core::{
@@ -246,7 +247,7 @@ where
 
     fn advance(&mut self, n: usize) {
         self.frames = self.frames.saturating_sub(n);
-        let value = std::mem::take(&mut self.value);
+        let value = mem::take(&mut self.value);
         self.value = value.index_from(n.saturating_mul(self.channels));
     }
 }
@@ -263,7 +264,7 @@ where
     fn advance_mut(&mut self, n: usize) {
         self.frames = self.frames.saturating_sub(n);
 
-        let value = std::mem::take(&mut self.value);
+        let value = mem::take(&mut self.value);
         self.value = value
             .get_mut(n.saturating_mul(self.channels)..)
             .unwrap_or_default();
@@ -293,7 +294,7 @@ where
         let new_len = channels * frames;
         let len = self.value.len();
 
-        let value = std::mem::take(&mut self.value);
+        let value = mem::take(&mut self.value);
 
         let value = match value.get_mut(..new_len) {
             Some(value) => value,

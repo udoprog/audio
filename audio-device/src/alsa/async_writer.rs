@@ -1,9 +1,9 @@
+use core::marker;
+
 use crate::alsa::{Error, Pcm, Result};
 use crate::libc as c;
 use crate::unix::{Errno, PollFlags};
 use crate::unix::AsyncPoll;
-use core as core;
-use std::marker;
 
 /// An interleaved type-checked async PCM writer.
 ///
@@ -36,7 +36,7 @@ impl<'a, T> AsyncWriter<'a, T> {
     /// Write an interleaved buffer.
     pub async fn write_interleaved<B>(&mut self, mut buf: B) -> Result<()>
     where
-        B: core::Buf<Sample = T> + core::ReadBuf + core::ExactSizeBuf + core::InterleavedBuf,
+        B: audio_core::Buf<Sample = T> + audio_core::ReadBuf + audio_core::ExactSizeBuf + audio_core::InterleavedBuf,
     {
         if buf.channels() != self.channels {
             return Err(Error::ChannelsMismatch {

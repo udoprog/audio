@@ -12,5 +12,9 @@ documentation = "https://docs.rs/audio"
 description = "The core audio traits"
 readme = "README.md"
 
+[features]
+default = ["std"]
+std = []
+
 [dev-dependencies]
 audio = { version = "0.2.0-alpha.3", path = "../audio" }

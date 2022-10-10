@@ -1,6 +1,7 @@
+use core::marker;
+use core::ptr;
+
 use crate::channel::{InterleavedChannel, InterleavedChannelMut};
-use std::marker;
-use std::ptr;
 
 /// An immutable iterator over an interleaved buffer.
 pub struct Iter<'a, T> {

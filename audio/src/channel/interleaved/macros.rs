@@ -418,13 +418,15 @@ macro_rules! comparisons {
 }
 
 macro_rules! slice_comparisons {
-    ({$($gen:tt)*}, $a:ty, $b:ty) => {
+    ($(#[$meta:meta])* {$($gen:tt)*}, $a:ty, $b:ty) => {
+        $(#[$meta])*
         impl<$($gen)*> cmp::PartialEq<$b> for $a where T: Copy, T: cmp::PartialEq {
             fn eq(&self, b: &$b) -> bool {
                 (*self).iter().eq(b.iter().copied())
             }
         }
 
+        $(#[$meta])*
         impl<$($gen)*> cmp::PartialOrd<$b> for $a where T: Copy, T: cmp::PartialOrd {
             fn partial_cmp(&self, b: &$b) -> Option<cmp::Ordering> {
                 (*self).iter().partial_cmp(b.iter().copied())
