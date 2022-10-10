@@ -154,10 +154,10 @@ where
     }
 
     #[inline]
-    fn get(&self, n: usize) -> Option<Self::Sample> {
+    fn get(&self, channel: usize) -> Option<Self::Sample> {
         // SAFETY: the constructor of this wrapper is unsafe and requires the
         // caller to guarantee its boundaries.
-        unsafe { self.raw.get_sample(self.frame, n) }
+        unsafe { self.raw.get_sample(self.frame, channel) }
     }
 
     #[inline]
@@ -175,7 +175,7 @@ pub struct SequentialFramesIter<'a, T> {
     _marker: marker::PhantomData<&'a [T]>,
 }
 
-impl<'a, T> SequentialFramesIter<'a, T> {
+impl<T> SequentialFramesIter<'_, T> {
     #[inline]
     pub(crate) fn new(frame: usize, raw: RawSequential<T>) -> Self {
         Self {

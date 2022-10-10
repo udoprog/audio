@@ -110,17 +110,17 @@ impl<'a, T> Iterator for IterMut<'a, T> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        Some(self.iter.next()?)
+        self.iter.next()
     }
 
     #[inline]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        Some(self.iter.nth(n)?)
+        self.iter.nth(n)
     }
 
     #[inline]
     fn last(self) -> Option<Self::Item> {
-        Some(self.iter.last()?)
+        self.iter.last()
     }
 
     #[inline]
@@ -137,12 +137,12 @@ impl<'a, T> Iterator for IterMut<'a, T> {
 impl<'a, T> DoubleEndedIterator for IterMut<'a, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        Some(self.iter.next_back()?)
+        self.iter.next_back()
     }
 
     #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        Some(self.iter.nth_back(n)?)
+        self.iter.nth_back(n)
     }
 }
 

@@ -27,8 +27,8 @@ pub trait Frame {
         self.len() == 0
     }
 
-    /// Get the sample at the given offset in the frame.
-    fn get(&self, n: usize) -> Option<Self::Sample>;
+    /// Get the sample at the given channel in the frame.
+    fn get(&self, channel: usize) -> Option<Self::Sample>;
 
     /// Construct an iterator over the frame.
     fn iter(&self) -> Self::Iter<'_>;

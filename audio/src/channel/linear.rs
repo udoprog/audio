@@ -282,7 +282,7 @@ where
 
     #[inline]
     fn as_channel(&self) -> Self::Channel<'_> {
-        LinearChannel { buf: &self.buf[..] }
+        LinearChannel { buf: self.buf }
     }
 
     #[inline]

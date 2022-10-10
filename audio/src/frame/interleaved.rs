@@ -127,7 +127,7 @@ impl<'a, T> InterleavedFrame<'a, T> {
     }
 }
 
-impl<'a, T> Frame for InterleavedFrame<'a, T>
+impl<T> Frame for InterleavedFrame<'_, T>
 where
     T: Copy,
 {
@@ -156,10 +156,10 @@ where
     }
 
     #[inline]
-    fn get(&self, n: usize) -> Option<Self::Sample> {
+    fn get(&self, channel: usize) -> Option<Self::Sample> {
         // SAFETY: the constructor of this wrapper is unsafe and requires the
         // caller to guarantee its boundaries.
-        unsafe { self.raw.get_sample(self.frame, n) }
+        unsafe { self.raw.get_sample(self.frame, channel) }
     }
 
     #[inline]
