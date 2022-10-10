@@ -1,21 +1,18 @@
 //! A dynamically sized, multi-channel sequential audio buffer.
 
-use crate::channel::{LinearMut, LinearRef};
-use audio_core::{Buf, BufMut, ExactSizeBuf, ResizableBuf, Sample, UniformBuf};
-use std::cmp;
-use std::fmt;
-use std::hash;
-use std::ops;
-use std::ptr;
+use core::cmp;
+use core::fmt;
+use core::hash;
+use core::ops;
+use core::ptr;
 
-mod raw;
-pub(crate) use self::raw::RawSequential;
+use audio_core::{Buf, BufMut, ExactSizeBuf, ResizableBuf, Sample, UniformBuf};
+
+use crate::channel::{LinearChannel, LinearChannelMut};
+use crate::frame::{RawSequential, SequentialFrame, SequentialFramesIter};
 
 mod iter;
 pub use self::iter::{Iter, IterMut};
-
-mod uniform;
-pub use self::uniform::{SequentialFrame, SequentialFramesIter};
 
 /// A dynamically sized, multi-channel sequential audio buffer.
 ///
@@ -504,13 +501,13 @@ impl<T> Sequential<T> {
     /// assert_eq!(buf.get(3).unwrap(), &expected[..]);
     /// assert!(buf.get(4).is_none());
     /// ```
-    pub fn get(&self, channel: usize) -> Option<LinearRef<'_, T>> {
+    pub fn get(&self, channel: usize) -> Option<LinearChannel<'_, T>> {
         if channel >= self.channels {
             return None;
         }
 
         let data = self.data.get(channel * self.frames..)?.get(..self.frames)?;
-        Some(LinearRef::new(data))
+        Some(LinearChannel::new(data))
     }
 
     /// Get a mutable reference to the buffer of the given channel.
@@ -535,7 +532,7 @@ impl<T> Sequential<T> {
     ///     rng.fill(right.as_mut());
     /// }
     /// ```
-    pub fn get_mut(&mut self, channel: usize) -> Option<LinearMut<'_, T>> {
+    pub fn get_mut(&mut self, channel: usize) -> Option<LinearChannelMut<'_, T>> {
         if channel >= self.channels {
             return None;
         }
@@ -545,7 +542,7 @@ impl<T> Sequential<T> {
             .get_mut(channel * self.frames..)?
             .get_mut(..self.frames)?;
 
-        Some(LinearMut::new(data))
+        Some(LinearChannelMut::new(data))
     }
 
     /// Reserve the given capacity in this buffer ensuring it can take at least
@@ -561,7 +558,7 @@ impl<T> Sequential<T> {
     /// Access the raw sequential buffer.
     fn as_raw(&self) -> RawSequential<T> {
         // SAFETY: construction of the current buffer ensures this is safe.
-        unsafe { RawSequential::new(&self.data, self.frames, self.channels) }
+        unsafe { RawSequential::new(&self.data, self.channels, self.frames) }
     }
 
     fn resize_inner(
@@ -728,7 +725,7 @@ where
 {
     type Sample = T;
 
-    type Channel<'this> = LinearRef<'this, Self::Sample>
+    type Channel<'this> = LinearChannel<'this, Self::Sample>
     where
         Self::Sample: 'this;
 
@@ -803,7 +800,7 @@ impl<T> BufMut for Sequential<T>
 where
     T: Copy,
 {
-    type ChannelMut<'this> = LinearMut<'this, Self::Sample>
+    type ChannelMut<'this> = LinearChannelMut<'this, Self::Sample>
     where
         Self: 'this;
 

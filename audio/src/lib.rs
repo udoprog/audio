@@ -122,6 +122,7 @@
 mod macros;
 pub mod buf;
 pub mod channel;
+pub mod frame;
 pub mod io;
 pub mod slice;
 mod utils;

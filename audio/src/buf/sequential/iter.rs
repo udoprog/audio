@@ -1,4 +1,4 @@
-use crate::channel::{LinearMut, LinearRef};
+use crate::channel::{LinearChannel, LinearChannelMut};
 use std::slice;
 
 // Helper to forward slice-optimized iterator functions.
@@ -48,20 +48,20 @@ impl<'a, T> Iter<'a, T> {
 }
 
 impl<'a, T> Iterator for Iter<'a, T> {
-    type Item = LinearRef<'a, T>;
+    type Item = LinearChannel<'a, T>;
 
-    forward!(LinearRef);
+    forward!(LinearChannel);
 }
 
 impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        Some(LinearRef::new(self.iter.next_back()?))
+        Some(LinearChannel::new(self.iter.next_back()?))
     }
 
     #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        Some(LinearRef::new(self.iter.nth_back(n)?))
+        Some(LinearChannel::new(self.iter.nth_back(n)?))
     }
 }
 
@@ -88,20 +88,20 @@ impl<'a, T> IterMut<'a, T> {
 }
 
 impl<'a, T> Iterator for IterMut<'a, T> {
-    type Item = LinearMut<'a, T>;
+    type Item = LinearChannelMut<'a, T>;
 
-    forward!(LinearMut);
+    forward!(LinearChannelMut);
 }
 
 impl<'a, T> DoubleEndedIterator for IterMut<'a, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        Some(LinearMut::new(self.iter.next_back()?))
+        Some(LinearChannelMut::new(self.iter.next_back()?))
     }
 
     #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        Some(LinearMut::new(self.iter.nth_back(n)?))
+        Some(LinearChannelMut::new(self.iter.nth_back(n)?))
     }
 }
 

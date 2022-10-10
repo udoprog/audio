@@ -1,7 +1,9 @@
+use audio_core::{Buf, BufMut, ExactSizeBuf, UniformBuf};
+
 use crate::buf::sequential::{Iter, IterMut};
-use crate::channel::{LinearMut, LinearRef};
+use crate::channel::{LinearChannel, LinearChannelMut};
+use crate::frame::{RawSequential, SequentialFrame, SequentialFramesIter};
 use crate::slice::{Slice, SliceMut};
-use audio_core::{Buf, BufMut, ExactSizeBuf};
 
 /// A wrapper for a sequential audio buffer.
 ///
@@ -25,6 +27,7 @@ where
         );
 
         let frames = value.as_ref().len() / channels;
+
         Self {
             value,
             channels,
@@ -40,6 +43,7 @@ where
     /// let buf = audio::wrap::sequential(&[1, 2, 3, 4], 2);
     /// assert_eq!(buf.into_inner(), &[1, 2, 3, 4]);
     /// ```
+    #[inline]
     pub fn into_inner(self) -> T {
         self.value
     }
@@ -55,8 +59,19 @@ where
     /// assert_eq!(it.next().unwrap(), [1, 2]);
     /// assert_eq!(it.next().unwrap(), [3, 4]);
     /// ```
+    #[inline]
     pub fn iter(&self) -> Iter<'_, T::Item> {
         Iter::new(self.value.as_ref(), self.frames)
+    }
+
+    /// Access the raw sequential buffer.
+    #[inline]
+    fn as_raw(&self) -> RawSequential<T::Item>
+    where
+        T: Slice,
+    {
+        // SAFETY: construction of the current buffer ensures this is safe.
+        unsafe { RawSequential::new(self.value.as_ref(), self.channels, self.frames) }
     }
 }
 
@@ -65,6 +80,7 @@ where
     T: SliceMut,
 {
     /// Construct an iterator over all sequential channels.
+    #[inline]
     pub fn iter_mut(&mut self) -> IterMut<'_, T::Item> {
         IterMut::new(self.value.as_mut(), self.frames)
     }
@@ -76,7 +92,7 @@ where
 {
     type Sample = T::Item;
 
-    type Channel<'this> = LinearRef<'this, Self::Sample>
+    type Channel<'this> = LinearChannel<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -84,10 +100,12 @@ where
     where
         Self: 'this;
 
+    #[inline]
     fn frames_hint(&self) -> Option<usize> {
         Some(self.frames)
     }
 
+    #[inline]
     fn channels(&self) -> usize {
         self.channels
     }
@@ -99,11 +117,39 @@ where
             .get(channel.saturating_mul(self.frames)..)?
             .get(..self.frames)
             .unwrap_or_default();
-        Some(LinearRef::new(value))
+        Some(LinearChannel::new(value))
     }
 
+    #[inline]
     fn iter(&self) -> Self::Iter<'_> {
         (*self).iter()
+    }
+}
+
+impl<T> UniformBuf for Sequential<T>
+where
+    T: Slice,
+{
+    type Frame<'this> = SequentialFrame<'this, T::Item>
+    where
+        Self: 'this;
+
+    type FramesIter<'this> = SequentialFramesIter<'this, T::Item>
+    where
+        Self: 'this;
+
+    #[inline]
+    fn get_frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+        if frame >= self.frames {
+            return None;
+        }
+
+        Some(SequentialFrame::new(frame, self.as_raw()))
+    }
+
+    #[inline]
+    fn iter_frames(&self) -> Self::FramesIter<'_> {
+        SequentialFramesIter::new(0, self.as_raw())
     }
 }
 
@@ -121,7 +167,7 @@ impl<T> BufMut for Sequential<T>
 where
     T: SliceMut,
 {
-    type ChannelMut<'a> = LinearMut<'a, Self::Sample>
+    type ChannelMut<'a> = LinearChannelMut<'a, Self::Sample>
     where
         Self: 'a;
 
@@ -135,7 +181,7 @@ where
             .as_mut()
             .get_mut(channel.saturating_mul(self.frames)..)?;
         let value = value.get_mut(..self.frames).unwrap_or_default();
-        Some(LinearMut::new(value))
+        Some(LinearChannelMut::new(value))
     }
 
     fn copy_channel(&mut self, from: usize, to: usize) {

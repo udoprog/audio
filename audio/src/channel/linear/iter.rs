@@ -2,7 +2,7 @@ use std::slice;
 
 /// An iterator over the frames in a linear channel.
 ///
-/// Created with [LinearRef::iter][super::LinearRef::iter].
+/// Created with [LinearChannel::iter][super::LinearChannel::iter].
 pub struct Iter<'a, T> {
     iter: slice::Iter<'a, T>,
 }
@@ -14,6 +14,7 @@ impl<'a, T> Iter<'a, T> {
     }
 
     /// Views the underlying data as a subslice of the original data.
+    #[inline]
     pub fn as_slice(&self) -> &'a [T] {
         self.iter.as_slice()
     }
@@ -77,7 +78,7 @@ where
 
 /// A mutable iterator over the frames in a linear channel.
 ///
-/// Created with [LinearMut::iter_mut][super::LinearMut::iter_mut].
+/// Created with [LinearChannelMut::iter_mut][super::LinearChannelMut::iter_mut].
 pub struct IterMut<'a, T> {
     iter: slice::IterMut<'a, T>,
 }

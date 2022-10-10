@@ -1,5 +1,5 @@
 //! A frame buffer as created through [Buf::get_frame][crate::Buf::get_frame] or
-//! [BufMut::get_frame_mut][crate::BufMut::get_frame_mut].
+//! [BufMut::get_sample_mut][crate::BufMut::get_sample_mut].
 
 /// The buffer of a single frame.
 pub trait Frame {

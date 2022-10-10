@@ -1,5 +1,5 @@
 use crate::buf::dynamic::RawSlice;
-use crate::channel::{LinearMut, LinearRef};
+use crate::channel::{LinearChannel, LinearChannelMut};
 use std::slice;
 
 // Helper to forward slice-optimized iterator functions.
@@ -59,7 +59,7 @@ impl<'a, T> Iter<'a, T> {
 }
 
 impl<'a, T> Iterator for Iter<'a, T> {
-    type Item = LinearRef<'a, T>;
+    type Item = LinearChannel<'a, T>;
 
     forward!(as_linear_channel);
 }
@@ -108,7 +108,7 @@ impl<'a, T> IterMut<'a, T> {
 }
 
 impl<'a, T> Iterator for IterMut<'a, T> {
-    type Item = LinearMut<'a, T>;
+    type Item = LinearChannelMut<'a, T>;
 
     forward!(as_linear_channel_mut);
 }

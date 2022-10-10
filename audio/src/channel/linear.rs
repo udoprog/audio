@@ -1,7 +1,7 @@
 //! Utilities for working with linear buffers.
 
 use crate::slice::Slice;
-use audio_core::{Channel, ChannelMut, LinearChannel, LinearChannelMut};
+use audio_core::{Channel, ChannelMut};
 use std::cmp;
 use std::fmt;
 use std::ops;
@@ -13,14 +13,14 @@ mod macros;
 mod iter;
 pub use self::iter::{Iter, IterMut};
 
-slice_comparisons!({'a, T, const N: usize}, LinearRef<'a, T>, [T; N]);
-slice_comparisons!({'a, T}, LinearRef<'a, T>, [T]);
-slice_comparisons!({'a, T}, LinearRef<'a, T>, &[T]);
-slice_comparisons!({'a, T}, LinearRef<'a, T>, Vec<T>);
-slice_comparisons!({'a, T, const N: usize}, LinearMut<'a, T>, [T; N]);
-slice_comparisons!({'a, T}, LinearMut<'a, T>, [T]);
-slice_comparisons!({'a, T}, LinearMut<'a, T>, &[T]);
-slice_comparisons!({'a, T}, LinearMut<'a, T>, Vec<T>);
+slice_comparisons!({'a, T, const N: usize}, LinearChannel<'a, T>, [T; N]);
+slice_comparisons!({'a, T}, LinearChannel<'a, T>, [T]);
+slice_comparisons!({'a, T}, LinearChannel<'a, T>, &[T]);
+slice_comparisons!({'a, T}, LinearChannel<'a, T>, Vec<T>);
+slice_comparisons!({'a, T, const N: usize}, LinearChannelMut<'a, T>, [T; N]);
+slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, [T]);
+slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, &[T]);
+slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, Vec<T>);
 
 /// The buffer of a single linear channel.
 ///
@@ -30,12 +30,12 @@ slice_comparisons!({'a, T}, LinearMut<'a, T>, Vec<T>);
 /// See [Buf::get][crate::Buf::get].
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct LinearRef<'a, T> {
+pub struct LinearChannel<'a, T> {
     /// The underlying channel buffer.
     buf: &'a [T],
 }
 
-impl<'a, T> LinearRef<'a, T> {
+impl<'a, T> LinearChannel<'a, T> {
     /// Construct a linear channel buffer.
     ///
     /// The buffer provided as-is constitutes the frames of the channel.
@@ -43,10 +43,10 @@ impl<'a, T> LinearRef<'a, T> {
     /// # Examples
     ///
     /// ```
-    /// use audio::channel::LinearRef;
+    /// use audio::channel::LinearChannel;
     ///
     /// let buf: &[u32] = &[1, 3, 5, 7];
-    /// let channel = LinearRef::new(buf);
+    /// let channel = LinearChannel::new(buf);
     ///
     /// assert_eq!(channel.iter().nth(1), Some(3));
     /// assert_eq!(channel.iter().nth(2), Some(5));
@@ -87,13 +87,13 @@ impl<'a, T> LinearRef<'a, T> {
     }
 }
 
-impl<'a, T> Channel for LinearRef<'a, T>
+impl<'a, T> Channel for LinearChannel<'a, T>
 where
     T: Copy,
 {
     type Sample = T;
 
-    type Channel<'this> = LinearRef<'this, Self::Sample>
+    type Channel<'this> = LinearChannel<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -150,7 +150,7 @@ where
     }
 }
 
-impl<T> fmt::Debug for LinearRef<'_, T>
+impl<T> fmt::Debug for LinearChannel<'_, T>
 where
     T: fmt::Debug,
 {
@@ -166,12 +166,12 @@ where
 ///
 /// See [Buf::get][crate::Buf::get].
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct LinearMut<'a, T> {
+pub struct LinearChannelMut<'a, T> {
     /// The underlying channel buffer.
     buf: &'a mut [T],
 }
 
-impl<'a, T> LinearMut<'a, T> {
+impl<'a, T> LinearChannelMut<'a, T> {
     /// Construct a linear channel buffer.
     ///
     /// The buffer provided as-is constitutes the frames of the channel.
@@ -179,10 +179,10 @@ impl<'a, T> LinearMut<'a, T> {
     /// # Examples
     ///
     /// ```
-    /// use audio::channel::LinearMut;
+    /// use audio::channel::LinearChannelMut;
     ///
     /// let buf: &mut [u32] = &mut [1, 3, 5, 7];
-    /// let channel = LinearMut::new(buf);
+    /// let channel = LinearChannelMut::new(buf);
     ///
     /// assert_eq!(channel.iter().nth(1), Some(3));
     /// assert_eq!(channel.iter().nth(2), Some(5));
@@ -244,7 +244,7 @@ impl<'a, T> LinearMut<'a, T> {
     }
 }
 
-impl<T> LinearChannel for LinearRef<'_, T>
+impl<T> audio_core::LinearChannel for LinearChannel<'_, T>
 where
     T: Copy,
 {
@@ -254,7 +254,7 @@ where
     }
 }
 
-impl<T, I> ops::Index<I> for LinearRef<'_, T>
+impl<T, I> ops::Index<I> for LinearChannel<'_, T>
 where
     I: slice::SliceIndex<[T]>,
 {
@@ -266,13 +266,13 @@ where
     }
 }
 
-impl<'a, T> Channel for LinearMut<'a, T>
+impl<'a, T> Channel for LinearChannelMut<'a, T>
 where
     T: Copy,
 {
     type Sample = T;
 
-    type Channel<'this> = LinearRef<'this, Self::Sample>
+    type Channel<'this> = LinearChannel<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -282,7 +282,7 @@ where
 
     #[inline]
     fn as_channel(&self) -> Self::Channel<'_> {
-        LinearRef { buf: &self.buf[..] }
+        LinearChannel { buf: &self.buf[..] }
     }
 
     #[inline]
@@ -329,11 +329,11 @@ where
     }
 }
 
-impl<'a, T> ChannelMut for LinearMut<'a, T>
+impl<'a, T> ChannelMut for LinearChannelMut<'a, T>
 where
     T: Copy,
 {
-    type ChannelMut<'this> = LinearMut<'this, T>
+    type ChannelMut<'this> = LinearChannelMut<'this, T>
     where
         Self: 'this;
 
@@ -343,7 +343,7 @@ where
 
     #[inline]
     fn as_channel_mut(&mut self) -> Self::ChannelMut<'_> {
-        LinearMut { buf: self.buf }
+        LinearChannelMut { buf: self.buf }
     }
 
     #[inline]
@@ -362,7 +362,7 @@ where
     }
 }
 
-impl<T> LinearChannel for LinearMut<'_, T>
+impl<T> audio_core::LinearChannel for LinearChannelMut<'_, T>
 where
     T: Copy,
 {
@@ -372,7 +372,7 @@ where
     }
 }
 
-impl<T> LinearChannelMut for LinearMut<'_, T>
+impl<T> audio_core::LinearChannelMut for LinearChannelMut<'_, T>
 where
     T: Copy,
 {
@@ -382,7 +382,7 @@ where
     }
 }
 
-impl<T> fmt::Debug for LinearMut<'_, T>
+impl<T> fmt::Debug for LinearChannelMut<'_, T>
 where
     T: fmt::Debug,
 {
@@ -391,7 +391,7 @@ where
     }
 }
 
-impl<T, I> ops::Index<I> for LinearMut<'_, T>
+impl<T, I> ops::Index<I> for LinearChannelMut<'_, T>
 where
     I: slice::SliceIndex<[T]>,
 {
@@ -403,7 +403,7 @@ where
     }
 }
 
-impl<T, I> ops::IndexMut<I> for LinearMut<'_, T>
+impl<T, I> ops::IndexMut<I> for LinearChannelMut<'_, T>
 where
     I: slice::SliceIndex<[T]>,
 {

@@ -1,13 +1,16 @@
 //! A dynamically sized, multi-channel interleaved audio buffer.
 
-use crate::channel::{InterleavedMut, InterleavedRef};
-use audio_core::{
-    Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ResizableBuf, Sample,
-};
 use std::cmp;
 use std::fmt;
 use std::hash;
 use std::ptr;
+
+use audio_core::{
+    Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ResizableBuf, Sample, UniformBuf,
+};
+
+use crate::channel::{InterleavedChannel, InterleavedChannelMut};
+use crate::frame::{InterleavedFrame, InterleavedFramesIter, RawInterleaved};
 
 mod iter;
 pub use self::iter::{Iter, IterMut};
@@ -396,16 +399,16 @@ impl<T> Interleaved<T> {
     /// }
     ///
     /// buf.resize(128);
-    /// assert_eq!(buf.frame(1, 127), Some(42.0));
+    /// assert_eq!(buf.sample(1, 127), Some(42.0));
     ///
     /// buf.resize(256);
-    /// assert_eq!(buf.frame(1, 127), Some(42.0));
+    /// assert_eq!(buf.sample(1, 127), Some(42.0));
     ///
     /// buf.resize_channels(2);
-    /// assert_eq!(buf.frame(1, 127), Some(42.0));
+    /// assert_eq!(buf.sample(1, 127), Some(42.0));
     ///
     /// buf.resize(64);
-    /// assert_eq!(buf.frame(1, 127), None);
+    /// assert_eq!(buf.sample(1, 127), None);
     /// ```
     pub fn resize(&mut self, frames: usize)
     where
@@ -432,12 +435,12 @@ impl<T> Interleaved<T> {
     /// assert_eq!(buf.get(0).unwrap().iter().nth(2), Some(3.0));
     /// assert_eq!(buf.get(1).unwrap().iter().nth(2), Some(7.0));
     /// ```
-    pub fn get(&self, channel: usize) -> Option<InterleavedRef<'_, T>> {
+    pub fn get(&self, channel: usize) -> Option<InterleavedChannel<'_, T>> {
         if channel < self.channels {
             unsafe {
                 let ptr = ptr::NonNull::new_unchecked(self.data.as_ptr() as *mut _);
                 let len = self.data.len();
-                Some(InterleavedRef::new_unchecked(
+                Some(InterleavedChannel::new_unchecked(
                     ptr,
                     len,
                     channel,
@@ -456,11 +459,11 @@ impl<T> Interleaved<T> {
     /// ```
     /// let mut buf = audio::buf::Interleaved::<f32>::with_topology(2, 256);
     ///
-    /// assert_eq!(buf.frame(1, 128), Some(0.0));
-    /// *buf.frame_mut(1, 128).unwrap() = 1.0;
-    /// assert_eq!(buf.frame(1, 128), Some(1.0));
+    /// assert_eq!(buf.sample(1, 128), Some(0.0));
+    /// *buf.sample_mut(1, 128).unwrap() = 1.0;
+    /// assert_eq!(buf.sample(1, 128), Some(1.0));
     /// ```
-    pub fn frame(&self, channel: usize, frame: usize) -> Option<T>
+    pub fn sample(&self, channel: usize, frame: usize) -> Option<T>
     where
         T: Copy,
     {
@@ -484,12 +487,12 @@ impl<T> Interleaved<T> {
     ///
     /// assert_eq!(buf.as_slice(), &[1.0, 5.0, 2.0, 6.0, 3.0, 7.0, 4.0, 8.0]);
     /// ```
-    pub fn get_mut(&mut self, channel: usize) -> Option<InterleavedMut<'_, T>> {
+    pub fn get_mut(&mut self, channel: usize) -> Option<InterleavedChannelMut<'_, T>> {
         if channel < self.channels {
             unsafe {
                 let ptr = ptr::NonNull::new_unchecked(self.data.as_mut_ptr());
                 let len = self.data.len();
-                Some(InterleavedMut::new_unchecked(
+                Some(InterleavedChannelMut::new_unchecked(
                     ptr,
                     len,
                     channel,
@@ -501,19 +504,27 @@ impl<T> Interleaved<T> {
         }
     }
 
-    /// Helper to access a single frame in a single channel mutably.
+    /// Helper to access a single sample in a single channel mutably.
     ///
     /// # Examples
     ///
     /// ```
     /// let mut buf = audio::buf::Interleaved::<f32>::with_topology(2, 256);
     ///
-    /// assert_eq!(buf.frame(1, 128), Some(0.0));
-    /// *buf.frame_mut(1, 128).unwrap() = 1.0;
-    /// assert_eq!(buf.frame(1, 128), Some(1.0));
+    /// assert_eq!(buf.sample(1, 128), Some(0.0));
+    /// *buf.sample_mut(1, 128).unwrap() = 1.0;
+    /// assert_eq!(buf.sample(1, 128), Some(1.0));
     /// ```
-    pub fn frame_mut(&mut self, channel: usize, frame: usize) -> Option<&mut T> {
+    #[inline]
+    pub fn sample_mut(&mut self, channel: usize, frame: usize) -> Option<&mut T> {
         self.get_mut(channel)?.into_mut(frame)
+    }
+
+    /// Access the raw sequential buffer.
+    #[inline]
+    fn as_raw(&self) -> RawInterleaved<T> {
+        // SAFETY: construction of the current buffer ensures this is safe.
+        unsafe { RawInterleaved::new(&self.data, self.channels, self.frames) }
     }
 
     /// The internal resize function for interleaved channel buffers.
@@ -730,7 +741,7 @@ where
 {
     type Sample = T;
 
-    type Channel<'this> = InterleavedRef<'this, Self::Sample>
+    type Channel<'this> = InterleavedChannel<'this, Self::Sample>
     where
         Self::Sample: 'this;
 
@@ -750,12 +761,39 @@ where
 
     #[inline]
     fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        InterleavedRef::from_slice(&self.data, channel, self.channels)
+        InterleavedChannel::from_slice(&self.data, channel, self.channels)
     }
 
     #[inline]
     fn iter(&self) -> Self::Iter<'_> {
         (*self).iter()
+    }
+}
+
+impl<T> UniformBuf for Interleaved<T>
+where
+    T: Copy,
+{
+    type Frame<'this> = InterleavedFrame<'this, T>
+    where
+        Self: 'this;
+
+    type FramesIter<'this> = InterleavedFramesIter<'this, T>
+    where
+        Self: 'this;
+
+    #[inline]
+    fn get_frame(&self, frame: usize) -> Option<Self::Frame<'_>> {
+        if frame >= self.frames {
+            return None;
+        }
+
+        Some(InterleavedFrame::new(frame, self.as_raw()))
+    }
+
+    #[inline]
+    fn iter_frames(&self) -> Self::FramesIter<'_> {
+        InterleavedFramesIter::new(0, self.as_raw())
     }
 }
 
@@ -784,7 +822,7 @@ impl<T> BufMut for Interleaved<T>
 where
     T: Copy,
 {
-    type ChannelMut<'this> = InterleavedMut<'this, Self::Sample>
+    type ChannelMut<'this> = InterleavedChannelMut<'this, Self::Sample>
     where
         Self::Sample: 'this;
 
@@ -794,7 +832,7 @@ where
 
     #[inline]
     fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
-        InterleavedMut::from_slice(&mut self.data, channel, self.channels)
+        InterleavedChannelMut::from_slice(&mut self.data, channel, self.channels)
     }
 
     fn copy_channel(&mut self, from: usize, to: usize) {
