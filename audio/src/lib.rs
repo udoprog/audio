@@ -1,6 +1,7 @@
-//! [![Documentation](https://docs.rs/audio/badge.svg)](https://docs.rs/audio)
-//! [![Crates](https://img.shields.io/crates/v/audio.svg)](https://crates.io/crates/audio)
-//! [![Actions Status](https://github.com/udoprog/audio/workflows/Rust/badge.svg)](https://github.com/udoprog/audio/actions)
+//! [<img alt="github" src="https://img.shields.io/badge/github-udoprog/audio-8da0cb?style=for-the-badge&logo=github" height="20">](https://github.com/udoprog/audio)
+//! [<img alt="crates.io" src="https://img.shields.io/crates/v/audio.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/audio)
+//! [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-audio-66c2a5?style=for-the-badge&logoColor=white&logo=data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDUxMiA1MTIiPjxwYXRoIGZpbGw9IiNmNWY1ZjUiIGQ9Ik00ODguNiAyNTAuMkwzOTIgMjE0VjEwNS41YzAtMTUtOS4zLTI4LjQtMjMuNC0zMy43bC0xMDAtMzcuNWMtOC4xLTMuMS0xNy4xLTMuMS0yNS4zIDBsLTEwMCAzNy41Yy0xNC4xIDUuMy0yMy40IDE4LjctMjMuNCAzMy43VjIxNGwtOTYuNiAzNi4yQzkuMyAyNTUuNSAwIDI2OC45IDAgMjgzLjlWMzk0YzAgMTMuNiA3LjcgMjYuMSAxOS45IDMyLjJsMTAwIDUwYzEwLjEgNS4xIDIyLjEgNS4xIDMyLjIgMGwxMDMuOS01MiAxMDMuOSA1MmMxMC4xIDUuMSAyMi4xIDUuMSAzMi4yIDBsMTAwLTUwYzEyLjItNi4xIDE5LjktMTguNiAxOS45LTMyLjJWMjgzLjljMC0xNS05LjMtMjguNC0yMy40LTMzLjd6TTM1OCAyMTQuOGwtODUgMzEuOXYtNjguMmw4NS0zN3Y3My4zek0xNTQgMTA0LjFsMTAyLTM4LjIgMTAyIDM4LjJ2LjZsLTEwMiA0MS40LTEwMi00MS40di0uNnptODQgMjkxLjFsLTg1IDQyLjV2LTc5LjFsODUtMzguOHY3NS40em0wLTExMmwtMTAyIDQxLjQtMTAyLTQxLjR2LS42bDEwMi0zOC4yIDEwMiAzOC4ydi42em0yNDAgMTEybC04NSA0Mi41di03OS4xbDg1LTM4Ljh2NzUuNHptMC0xMTJsLTEwMiA0MS40LTEwMi00MS40di0uNmwxMDItMzguMiAxMDIgMzguMnYuNnoiPjwvcGF0aD48L3N2Zz4K" height="20">](https://docs.rs/audio)
+//! [<img alt="build status" src="https://img.shields.io/github/workflow/status/udoprog/audio/CI/main?style=for-the-badge" height="20">](https://github.com/udoprog/audio/actions?query=branch%3Amain)
 //!
 //! A crate for working with audio in Rust.
 //!
@@ -19,7 +20,9 @@
 //! makes no attempt to *clear data* which is freed when using resizing
 //! functions such as [Dynamic::resize].
 //!
-//! # Formats and topologies
+//! <br>
+//!
+//! ## Formats and topologies
 //!
 //! The following are the three canonical audio formats which are supported by
 //! this crate:
@@ -49,7 +52,9 @@
 //! We also support [wrapping][wrap] external buffers so that they can
 //! interoperate like other audio buffers.
 //!
-//! # Example: [play-mp3]
+//! <br>
+//!
+//! ## Example: [play-mp3]
 //!
 //! Play an mp3 file with [minimp3-rs], [cpal], and [rubato] for resampling.
 //!
@@ -59,7 +64,9 @@
 //! cargo run --release --package audio-examples --bin play-mp3 -- path/to/file.mp3
 //! ```
 //!
-//! # Examples
+//! <br>
+//!
+//! ## Examples
 //!
 //! ```rust
 //! use rand::Rng;
