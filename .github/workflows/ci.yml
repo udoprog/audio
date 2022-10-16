@@ -14,13 +14,8 @@ jobs:
       with:
         toolchain: beta
         override: true
-    - run: >
-        cargo test
-        --all-features
-        --package audio
-        --package audio-core
-        --package audio-generator
-        --package ste
+    - run: cargo test --all-features -p audio -p audio-core -p audio-generator -p ste
+
   build-wasapi:
     runs-on: windows-latest
     steps:
@@ -29,10 +24,8 @@ jobs:
       with:
         toolchain: beta
         override: true
-    - run: >
-        cargo test
-        --features wasapi
-        --package audio-device
+    - run: cargo test -F wasapi -p audio-device
+
   build-alsa:
     runs-on: ubuntu-latest
     steps:
@@ -43,7 +36,8 @@ jobs:
         override: true
     - name: install libasound2-dev
       run: sudo apt install libasound2-dev
-    - run: cargo test --package audio-device --features alsa
+    - run: cargo test -p audio-device -F alsa
+
   build-pulse:
     runs-on: ubuntu-latest
     steps:
@@ -54,4 +48,4 @@ jobs:
         override: true
     - name: install libpulse-dev
       run: sudo apt install libpulse-dev
-    - run: cargo test --package audio-device --features pulse
+    - run: cargo test -p audio-device -F pulse
