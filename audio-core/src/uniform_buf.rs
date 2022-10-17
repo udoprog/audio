@@ -9,7 +9,7 @@ pub trait UniformBuf: Buf {
         Self: 'this;
 
     /// A borrowing iterator over the channel.
-    type FramesIter<'this>: Iterator<Item = Self::Frame<'this, Sample = Self::Sample>>
+    type FramesIter<'this>: Iterator<Item = Self::Frame<'this>>
     where
         Self: 'this;
 

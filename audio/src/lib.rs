@@ -5,7 +5,8 @@
 //!
 //! A crate for working with audio in Rust.
 //!
-//! This is made up of several parts, each can be used independently of each other:
+//! This is made up of several parts, each can be used independently of each
+//! other:
 //!
 //! * [audio-core] - The core crate, which defines traits that allows for safely
 //!   interacting with audio buffers.
@@ -15,23 +16,29 @@
 //!   Rust.
 //! * [audio-generator] - A crate for generating audio.
 //!
-//! Audio buffers provided by this crate are conceptually kinda like
-//! `Vec<Vec<T>>`, except the interior vector has a fixed size. And the buffer
-//! makes no attempt to *clear data* which is freed when using resizing
-//! functions such as [Dynamic::resize].
+//! Audio buffers provided by this crate have zero or more channels that can be
+//! iterated over. A channel is simply a sequence of samples. This can be stored
+//! using different topologies as appropriate which will be detailed in the next
+//! section.
 //!
 //! <br>
 //!
 //! ## Formats and topologies
 //!
 //! The following are the three canonical audio formats which are supported by
-//! this crate:
+//! this crate. All of the examples represent how the two channels `[1, 2, 3,
+//! 4]` and `[5, 6, 7, 8]` are stored:
+//!
 //! * [dynamic][Dynamic] - where each channel is stored in its own
-//!   heap-allocated buffer.
-//! * [interleaved][Interleaved] - where each channel is interleaved, like
-//!   `0:0, 1:0, 1:0, 1:1`.
+//!   heap-allocated buffer. Each channel is stored sequentially in their own
+//!   allocations. So `[1, 2, 3, 4]` and `[5, 6, 7, 8]`. Having separate
+//!   allocations for each channel can be useful if the topologies of the
+//!   buffers keep frequently changing since changing the number of channels
+//!   does not require any re-allocation of existing ones.
+//! * [interleaved][Interleaved] - where each channel is interleaved into one
+//!   buffer. So `[1, 5, 2, 6, 3, 7, 4, 8]`.
 //! * [sequential][Sequential] - where each channel is stored in a linear
-//!   buffer, one after another. Like `0:0, 0:1, 1:0, 1:0`.
+//!   buffer, one after another. So `[1, 2, 3, 4, 5, 6, 7, 8]`.
 //!
 //! These all implement the [Buf] and [BufMut] traits, allowing library authors
 //! to abstract over any one specific format. The exact channel and frame count

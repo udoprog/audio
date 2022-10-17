@@ -2,7 +2,7 @@
 pub trait ResizableBuf {
     /// Ensure that the audio buffer has space for at least the given `capacity`
     /// of contiguous memory. The `capacity` is specified in number of
-    /// [Samples][Buf::Sample].
+    /// [Samples][crate::Buf::Sample].
     ///
     /// This is a no-op unless the underlying buffer is contiguous in memory
     /// which can be ensured by requiring traits such as
