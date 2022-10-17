@@ -3,14 +3,14 @@ name = "audio-device-pipewire-sys"
 version = "0.1.0-alpha.1"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
+description = "audio-device system bindings for PipeWire"
+documentation = "https://docs.rs/audio"
+readme = "README.md"
+homepage = "https://github.com/udoprog/audio"
+repository = "https://github.com/udoprog/audio"
 license = "MIT/Apache-2.0"
 keywords = ["buffer", "audio", "dsp"]
 categories = ["multimedia::audio"]
-repository = "https://github.com/udoprog/audio"
-homepage = "https://github.com/udoprog/audio"
-documentation = "https://docs.rs/audio-device-pipewire-sys"
-description = "audio-device system bindings for PipeWire"
-readme = "README.md"
 
 [dependencies]
 libc = "0.2.125"

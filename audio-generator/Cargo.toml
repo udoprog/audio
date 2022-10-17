@@ -3,14 +3,14 @@ name = "audio-generator"
 version = "0.1.0-alpha.2"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
+description = "Audio generator APIs"
+documentation = "https://docs.rs/audio"
+readme = "README.md"
+homepage = "https://github.com/udoprog/audio"
+repository = "https://github.com/udoprog/audio"
 license = "MIT/Apache-2.0"
 keywords = ["buffer", "audio", "dsp"]
 categories = ["multimedia::audio"]
-repository = "https://github.com/udoprog/audio"
-homepage = "https://github.com/udoprog/audio"
-documentation = "https://docs.rs/audio-generator"
-description = "Audio generator APIs"
-readme = "README.md"
 
 [dependencies]
 audio-core = { version = "0.2.0-alpha.3", path = "../audio-core" }

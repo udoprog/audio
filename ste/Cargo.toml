@@ -3,14 +3,14 @@ name = "ste"
 version = "0.1.0-alpha.11"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
+description = "A single-threaded executor with some tricks up its sleeve."
+documentation = "https://docs.rs/audio"
+readme = "README.md"
+homepage = "https://github.com/udoprog/audio"
+repository = "https://github.com/udoprog/audio"
 license = "MIT/Apache-2.0"
 keywords = ["thread", "executor"]
 categories = ["concurrency"]
-repository = "https://github.com/udoprog/audio"
-homepage = "https://github.com/udoprog/audio"
-documentation = "https://docs.rs/audio"
-description = "A single-threaded executor with some tricks up its sleeve."
-readme = "README.md"
 
 [features]
 default = ["tokio"]
