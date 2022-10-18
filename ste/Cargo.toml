@@ -9,7 +9,7 @@ readme = "README.md"
 homepage = "https://github.com/udoprog/audio"
 repository = "https://github.com/udoprog/audio"
 license = "MIT/Apache-2.0"
-keywords = ["thread", "executor"]
+keywords = ["executor", "thread"]
 categories = ["concurrency"]
 
 [features]
