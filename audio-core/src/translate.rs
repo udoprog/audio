@@ -22,6 +22,7 @@ pub trait Translate<T> {
 macro_rules! identity {
     ($ty:ty) => {
         impl Translate<$ty> for $ty {
+            #[inline]
             fn translate(value: $ty) -> Self {
                 value
             }
@@ -34,22 +35,20 @@ macro_rules! int_to_float {
         impl Translate<$signed> for $float {
             #[inline]
             fn translate(value: $signed) -> Self {
-                if value < 0 {
-                    (value as $float / -($signed::MIN as $float))
-                } else {
-                    (value as $float / $signed::MAX as $float)
-                }
+                // Needs special care to avoid distortion at the cost of not
+                // covering the whole range.
+                // See: https://github.com/udoprog/audio/issues/7
+                -(value as $float) / ($signed::MIN as $float)
             }
         }
 
         impl Translate<$float> for $signed {
             #[inline]
             fn translate(value: $float) -> Self {
-                if value >= 0.0 {
-                    (value * $signed::MAX as $float) as $signed
-                } else {
-                    (-value * $signed::MIN as $float) as $signed
-                }
+                // Needs special care to avoid distortion at the cost of not
+                // covering the whole range.
+                // See: https://github.com/udoprog/audio/issues/7
+                -(value * $signed::MIN as $float) as $signed
             }
         }
 
@@ -57,16 +56,15 @@ macro_rules! int_to_float {
         impl Translate<$float> for $unsigned {
             #[inline]
             fn translate(value: $float) -> Self {
-                let value = value.clamp(-1.0, 1.0);
-
-                (((value + 1.0) * 0.5) * $unsigned::MAX as $float).round() as $unsigned
+                // Go through signed to get the same float conversion.
+                $unsigned::translate($signed::translate(value))
             }
         }
 
         impl Translate<$unsigned> for $float {
             #[inline]
             fn translate(value: $unsigned) -> Self {
-                // Note: less conversion loss the closer we stay to 0.
+                // Go through signed to get the same float conversion.
                 $float::translate($signed::translate(value))
             }
         }
