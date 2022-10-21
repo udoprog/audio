@@ -33,7 +33,7 @@ pub use self::frame::Frame;
 mod frame_mut;
 pub use self::frame_mut::FrameMut;
 
-mod translate;
+pub mod translate;
 pub use self::translate::Translate;
 
 mod sample;
