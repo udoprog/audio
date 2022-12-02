@@ -316,7 +316,7 @@ impl<T> Dynamic<T> {
 
                 for n in 0..self.channels_cap {
                     // Safety: We control the known sizes, so we can guarantee
-                    // that the slice is allocated and sized tio exactly `from`.
+                    // that the slice is allocated and sized to exactly `from`.
                     unsafe {
                         self.data
                             .get_unchecked_mut(n)
