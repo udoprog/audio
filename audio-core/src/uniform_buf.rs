@@ -9,7 +9,7 @@ pub trait UniformBuf: Buf {
         Self: 'this;
 
     /// A borrowing iterator over the channel.
-    type FramesIter<'this>: Iterator<Item = Self::Frame<'this>>
+    type IterFrames<'this>: Iterator<Item = Self::Frame<'this>>
     where
         Self: 'this;
 
@@ -76,5 +76,5 @@ pub trait UniformBuf: Buf {
     /// test(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
     /// test(audio::wrap::sequential([1, 2, 3, 4, 5, 6, 7, 8], 2));
     /// ```
-    fn iter_frames(&self) -> Self::FramesIter<'_>;
+    fn iter_frames(&self) -> Self::IterFrames<'_>;
 }

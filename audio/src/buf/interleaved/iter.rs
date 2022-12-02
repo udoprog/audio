@@ -4,7 +4,7 @@ use core::ptr;
 use crate::channel::{InterleavedChannel, InterleavedChannelMut};
 
 /// An immutable iterator over an interleaved buffer.
-pub struct Iter<'a, T> {
+pub struct IterChannels<'a, T> {
     ptr: ptr::NonNull<T>,
     len: usize,
     channel: usize,
@@ -12,7 +12,7 @@ pub struct Iter<'a, T> {
     _marker: marker::PhantomData<&'a [T]>,
 }
 
-impl<'a, T> Iter<'a, T> {
+impl<'a, T> IterChannels<'a, T> {
     /// Construct a new unchecked iterator.
     ///
     /// # Safety
@@ -30,7 +30,7 @@ impl<'a, T> Iter<'a, T> {
     }
 }
 
-impl<'a, T> Iterator for Iter<'a, T>
+impl<'a, T> Iterator for IterChannels<'a, T>
 where
     T: Copy,
 {
@@ -56,7 +56,7 @@ where
 }
 
 /// An mutable iterator over an interleaved buffer.
-pub struct IterMut<'a, T> {
+pub struct IterChannelsMut<'a, T> {
     ptr: ptr::NonNull<T>,
     len: usize,
     channel: usize,
@@ -64,7 +64,7 @@ pub struct IterMut<'a, T> {
     _marker: marker::PhantomData<&'a mut [T]>,
 }
 
-impl<'a, T> IterMut<'a, T> {
+impl<'a, T> IterChannelsMut<'a, T> {
     /// Construct a new unchecked iterator.
     ///
     /// # Safety
@@ -82,7 +82,7 @@ impl<'a, T> IterMut<'a, T> {
     }
 }
 
-impl<'a, T> Iterator for IterMut<'a, T>
+impl<'a, T> Iterator for IterChannelsMut<'a, T>
 where
     T: Copy,
 {

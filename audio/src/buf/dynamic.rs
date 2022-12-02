@@ -11,7 +11,7 @@ use std::ptr;
 use std::slice;
 
 mod iter;
-pub use self::iter::{Iter, IterMut};
+pub use self::iter::{IterChannels, IterChannelsMut};
 
 /// A dynamically sized, multi-channel audio buffer.
 ///
@@ -26,7 +26,7 @@ pub use self::iter::{Iter, IterMut};
 /// [growing and shrinking][std::alloc::Allocator] of a memory region.
 ///
 /// This kind of buffer is a good choice if you need to
-/// [resize][Dynamic::resize] frequently.
+/// [resize_frames][Dynamic::resize_frames] frequently.
 pub struct Dynamic<T> {
     /// The stored data for each channel.
     data: RawSlice<RawSlice<T>>,
@@ -203,7 +203,7 @@ impl<T> Dynamic<T> {
     /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
     /// assert_eq!(buf.frames(), 0);
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     /// assert_eq!(buf.frames(), 256);
     /// ```
     pub fn frames(&self) -> usize {
@@ -236,13 +236,13 @@ impl<T> Dynamic<T> {
     ///
     /// let all_zeros = vec![0.0; 256];
     ///
-    /// for chan in buf.iter() {
+    /// for chan in buf.iter_channels() {
     ///     assert_eq!(chan.as_ref(), &all_zeros[..]);
     /// }
     /// ```
-    pub fn iter(&self) -> Iter<'_, T> {
+    pub fn iter_channels(&self) -> IterChannels<'_, T> {
         // Safety: we're using a trusted length to build the slice.
-        unsafe { Iter::new(self.data.as_ref(self.channels), self.frames) }
+        unsafe { IterChannels::new(self.data.as_ref(self.channels), self.frames) }
     }
 
     /// Construct a mutable iterator over all available channels.
@@ -255,13 +255,13 @@ impl<T> Dynamic<T> {
     /// let mut buf = audio::buf::Dynamic::<f32>::with_topology(4, 256);
     /// let mut rng = rand::thread_rng();
     ///
-    /// for mut chan in buf.iter_mut() {
+    /// for mut chan in buf.iter_channels_mut() {
     ///     rng.fill(chan.as_mut());
     /// }
     /// ```
-    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+    pub fn iter_channels_mut(&mut self) -> IterChannelsMut<'_, T> {
         // Safety: we're using a trusted length to build the slice.
-        unsafe { IterMut::new(self.data.as_mut(self.channels), self.frames) }
+        unsafe { IterChannelsMut::new(self.data.as_mut(self.channels), self.frames) }
     }
 
     /// Set the size of the buffer. The size is the size of each channel's
@@ -280,7 +280,7 @@ impl<T> Dynamic<T> {
     /// assert_eq!(buf.frames(), 0);
     ///
     /// buf.resize_channels(4);
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     ///
     /// assert_eq!(buf[1][128], 0.0);
     /// buf[1][128] = 42.0;
@@ -297,13 +297,13 @@ impl<T> Dynamic<T> {
     /// assert_eq!(buf[1][128], 0.0);
     /// buf[1][128] = 42.0;
     ///
-    /// buf.resize(64);
+    /// buf.resize_frames(64);
     /// assert!(buf[1].get(128).is_none());
     ///
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     /// assert_eq!(buf[1][128], 42.0);
     /// ```
-    pub fn resize(&mut self, frames: usize)
+    pub fn resize_frames(&mut self, frames: usize)
     where
         T: Sample,
     {
@@ -346,7 +346,7 @@ impl<T> Dynamic<T> {
     /// assert_eq!(buf.frames(), 0);
     ///
     /// buf.resize_channels(4);
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     ///
     /// assert_eq!(buf.channels(), 4);
     /// assert_eq!(buf.frames(), 256);
@@ -395,17 +395,17 @@ impl<T> Dynamic<T> {
     /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
     /// buf.resize_channels(4);
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     ///
     /// let expected = vec![0.0; 256];
     ///
-    /// assert_eq!(buf.get(0).unwrap(), &expected[..]);
-    /// assert_eq!(buf.get(1).unwrap(), &expected[..]);
-    /// assert_eq!(buf.get(2).unwrap(), &expected[..]);
-    /// assert_eq!(buf.get(3).unwrap(), &expected[..]);
-    /// assert!(buf.get(4).is_none());
+    /// assert_eq!(buf.get_channel(0).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get_channel(1).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get_channel(2).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get_channel(3).unwrap(), &expected[..]);
+    /// assert!(buf.get_channel(4).is_none());
     /// ```
-    pub fn get(&self, channel: usize) -> Option<LinearChannel<'_, T>> {
+    pub fn get_channel(&self, channel: usize) -> Option<LinearChannel<'_, T>> {
         if channel < self.channels {
             // Safety: We control the length of each channel so we can assert that
             // it is both allocated and initialized up to `len`.
@@ -423,7 +423,7 @@ impl<T> Dynamic<T> {
     /// ```
     /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     ///
     /// let expected = vec![0f32; 256];
     ///
@@ -453,7 +453,7 @@ impl<T> Dynamic<T> {
     /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
     /// buf.resize_channels(2);
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     ///
     /// let mut rng = rand::thread_rng();
     ///
@@ -487,7 +487,7 @@ impl<T> Dynamic<T> {
     ///
     /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     ///
     /// let mut rng = rand::thread_rng();
     ///
@@ -518,7 +518,7 @@ impl<T> Dynamic<T> {
     /// ```
     /// let mut buf = audio::buf::Dynamic::<f32>::new();
     /// buf.resize_channels(4);
-    /// buf.resize(512);
+    /// buf.resize_frames(512);
     ///
     /// let expected = vec![0.0; 512];
     ///
@@ -547,7 +547,7 @@ impl<T> Dynamic<T> {
     /// ```
     /// let mut buf = audio::buf::Dynamic::<f32>::new();
     /// buf.resize_channels(4);
-    /// buf.resize(512);
+    /// buf.resize_frames(512);
     ///
     /// let expected = vec![0.0; 512];
     ///
@@ -629,7 +629,7 @@ where
     T: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_list().entries(self.iter()).finish()
+        f.debug_list().entries(self.iter_channels()).finish()
     }
 }
 
@@ -638,7 +638,7 @@ where
     T: cmp::PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
-        self.iter().eq(other.iter())
+        self.iter_channels().eq(other.iter_channels())
     }
 }
 
@@ -649,7 +649,7 @@ where
     T: cmp::PartialOrd,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-        self.iter().partial_cmp(other.iter())
+        self.iter_channels().partial_cmp(other.iter_channels())
     }
 }
 
@@ -658,7 +658,7 @@ where
     T: cmp::Ord,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
-        self.iter().cmp(other.iter())
+        self.iter_channels().cmp(other.iter_channels())
     }
 }
 
@@ -667,27 +667,27 @@ where
     T: hash::Hash,
 {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
-        for channel in self.iter() {
+        for channel in self.iter_channels() {
             channel.hash(state);
         }
     }
 }
 
 impl<'a, T> IntoIterator for &'a Dynamic<T> {
-    type IntoIter = Iter<'a, T>;
+    type IntoIter = IterChannels<'a, T>;
     type Item = <Self::IntoIter as Iterator>::Item;
 
     fn into_iter(self) -> Self::IntoIter {
-        (*self).iter()
+        (*self).iter_channels()
     }
 }
 
 impl<'a, T> IntoIterator for &'a mut Dynamic<T> {
-    type IntoIter = IterMut<'a, T>;
+    type IntoIter = IterChannelsMut<'a, T>;
     type Item = <Self::IntoIter as Iterator>::Item;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.iter_mut()
+        self.iter_channels_mut()
     }
 }
 
@@ -695,7 +695,7 @@ impl<T> ops::Index<usize> for Dynamic<T> {
     type Output = [T];
 
     fn index(&self, index: usize) -> &Self::Output {
-        match self.get(index) {
+        match self.get_channel(index) {
             Some(slice) => slice.into_ref(),
             None => panic!("index `{}` is not a channel", index),
         }
@@ -749,7 +749,7 @@ where
     where
         Self::Sample: 'this;
 
-    type Iter<'this> = Iter<'this, T>
+    type IterChannels<'this> = IterChannels<'this, T>
     where
         Self::Sample: 'this;
 
@@ -764,13 +764,13 @@ where
     }
 
     #[inline]
-    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        (*self).get(channel)
+    fn get_channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        (*self).get_channel(channel)
     }
 
     #[inline]
-    fn iter(&self) -> Self::Iter<'_> {
-        (*self).iter()
+    fn iter_channels(&self) -> Self::IterChannels<'_> {
+        (*self).iter_channels()
     }
 }
 
@@ -782,12 +782,12 @@ where
         false
     }
 
-    fn resize(&mut self, frames: usize) {
-        Self::resize(self, frames);
+    fn resize_frames(&mut self, frames: usize) {
+        Self::resize_frames(self, frames);
     }
 
     fn resize_topology(&mut self, channels: usize, frames: usize) {
-        Self::resize(self, frames);
+        Self::resize_frames(self, frames);
         Self::resize_channels(self, channels);
     }
 }
@@ -800,11 +800,11 @@ where
     where
         Self: 'this;
 
-    type IterMut<'this> = IterMut<'this, T>
+    type IterChannelsMut<'this> = IterChannelsMut<'this, T>
     where
         Self: 'this;
 
-    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+    fn get_channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         (*self).get_mut(channel)
     }
 
@@ -833,8 +833,8 @@ where
         }
     }
 
-    fn iter_mut(&mut self) -> Self::IterMut<'_> {
-        (*self).iter_mut()
+    fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
+        (*self).iter_channels_mut()
     }
 }
 

@@ -23,7 +23,7 @@ pub use self::interleaved::{InterleavedChannel, InterleavedChannelMut};
 /// let from = audio::interleaved![[1i16; 4]; 2];
 /// let mut to = audio::buf::Interleaved::<i16>::with_topology(2, 4);
 ///
-/// audio::channel::copy(from.limit(2).get(0).unwrap(), to.get_mut(0).unwrap());
+/// audio::channel::copy(from.limit(2).get_channel(0).unwrap(), to.get_mut(0).unwrap());
 /// assert_eq!(to.as_slice(), &[1, 0, 1, 0, 0, 0, 0, 0]);
 /// ```
 pub fn copy<I, O>(from: I, mut to: O)

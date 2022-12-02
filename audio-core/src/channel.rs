@@ -1,11 +1,11 @@
-//! A channel buffer as created through [Buf::get][crate::Buf::get] or
-//! [BufMut::get_mut][crate::BufMut::get_mut].
+//! A channel buffer as created through [Buf::get_channel][crate::Buf::get_channel] or
+//! [BufMut::get_channel_mut][crate::BufMut::get_channel_mut].
 
 /// One channel of audio samples, usually one of several channels in a multichannel buffer
 ///
 /// This trait provides read-only access.
 ///
-/// See [Buf::get][crate::Buf::get].
+/// See [Buf::get_channel][crate::Buf::get_channel].
 pub trait Channel {
     /// The sample of a channel.
     type Sample: Copy;
@@ -31,7 +31,7 @@ pub trait Channel {
     /// use audio::{Buf, Channel};
     ///
     /// fn test(buf: impl Buf<Sample = f32>) {
-    ///     for chan in buf.iter() {
+    ///     for chan in buf.iter_channels() {
     ///         assert_eq!(chan.len(), 16);
     ///     }
     /// }
@@ -50,7 +50,7 @@ pub trait Channel {
     /// use audio::{Buf, Channel};
     ///
     /// fn test(buf: impl Buf<Sample = f32>) {
-    ///     for chan in buf.iter() {
+    ///     for chan in buf.iter_channels() {
     ///         assert!(!chan.is_empty());
     ///     }
     /// }
@@ -71,7 +71,7 @@ pub trait Channel {
     /// use audio::{Buf, Channel};
     ///
     /// fn test(buf: impl Buf<Sample = f32>) {
-    ///     for chan in buf.iter() {
+    ///     for chan in buf.iter_channels() {
     ///         assert_eq!(chan.get(15), Some(0.0));
     ///         assert_eq!(chan.get(16), None);
     ///     }
@@ -100,7 +100,7 @@ pub trait Channel {
     ///     }
     /// }
     ///
-    /// assert!(left.get(0).unwrap().iter().eq(right.get(0).unwrap().iter()));
+    /// assert!(left.get_channel(0).unwrap().iter().eq(right.get_channel(0).unwrap().iter()));
     ///
     /// assert_eq!(left.as_slice(), &[1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0]);
     /// assert_eq!(&right[0], &[1.0, 1.0, 1.0, 1.0]);
@@ -118,7 +118,7 @@ pub trait Channel {
     /// use audio::{Buf, Channel};
     ///
     /// fn test(buf: &impl Buf<Sample = f32>, expected: Option<&[f32]>) {
-    ///     assert_eq!(buf.get(0).unwrap().try_as_linear(), expected);
+    ///     assert_eq!(buf.get_channel(0).unwrap().try_as_linear(), expected);
     /// }
     ///
     /// test(&audio::dynamic![[1.0; 16]; 2], Some(&[1.0; 16]));
@@ -136,7 +136,7 @@ pub trait Channel {
     ///
     /// let buf = audio::interleaved![[0; 4]; 2];
     ///
-    /// for chan in buf.iter() {
+    /// for chan in buf.iter_channels() {
     ///     assert_eq!(chan.skip(1).len(), 3);
     ///     assert_eq!(chan.skip(4).len(), 0);
     /// }
@@ -153,7 +153,7 @@ pub trait Channel {
     ///
     /// let mut to = audio::interleaved![[0.0f32; 4]; 2];
     ///
-    /// if let (Some(from), Some(to)) = (from.get(0), to.get_mut(0)) {
+    /// if let (Some(from), Some(to)) = (from.get_channel(0), to.get_channel_mut(0)) {
     ///     audio::channel::copy(from.skip(2), to);
     /// }
     ///
@@ -171,7 +171,7 @@ pub trait Channel {
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
     /// let mut to = audio::interleaved![[0.0f32; 4]; 2];
     ///
-    /// if let (Some(from), Some(to)) = (from.get(0), to.get_mut(0)) {
+    /// if let (Some(from), Some(to)) = (from.get_channel(0), to.get_channel_mut(0)) {
     ///     audio::channel::copy(from, to.tail(2));
     /// }
     ///
@@ -189,7 +189,7 @@ pub trait Channel {
     /// let from = audio::interleaved![[1.0f32; 4]; 2];
     /// let mut to = audio::interleaved![[0.0f32; 4]; 2];
     ///
-    /// if let (Some(from), Some(to)) = (from.get(0), to.get_mut(0)) {
+    /// if let (Some(from), Some(to)) = (from.get_channel(0), to.get_channel_mut(0)) {
     ///     audio::channel::copy(from.limit(2), to);
     /// }
     ///

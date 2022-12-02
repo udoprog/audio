@@ -81,7 +81,7 @@
 //! let mut buf = audio::buf::Dynamic::<f32>::new();
 //!
 //! buf.resize_channels(2);
-//! buf.resize(2048);
+//! buf.resize_frames(2048);
 //!
 //! /// Fill both channels with random noise.
 //! let mut rng = rand::thread_rng();

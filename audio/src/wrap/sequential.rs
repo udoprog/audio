@@ -1,6 +1,6 @@
 use audio_core::{Buf, BufMut, ExactSizeBuf, UniformBuf};
 
-use crate::buf::sequential::{Iter, IterMut};
+use crate::buf::sequential::{IterChannels, IterChannelsMut};
 use crate::channel::{LinearChannel, LinearChannelMut};
 use crate::frame::{RawSequential, SequentialFrame, SequentialFramesIter};
 use crate::slice::{Slice, SliceMut};
@@ -60,8 +60,8 @@ where
     /// assert_eq!(it.next().unwrap(), [3, 4]);
     /// ```
     #[inline]
-    pub fn iter(&self) -> Iter<'_, T::Item> {
-        Iter::new(self.value.as_ref(), self.frames)
+    pub fn iter(&self) -> IterChannels<'_, T::Item> {
+        IterChannels::new(self.value.as_ref(), self.frames)
     }
 
     /// Access the raw sequential buffer.
@@ -81,8 +81,8 @@ where
 {
     /// Construct an iterator over all sequential channels.
     #[inline]
-    pub fn iter_mut(&mut self) -> IterMut<'_, T::Item> {
-        IterMut::new(self.value.as_mut(), self.frames)
+    pub fn iter_mut(&mut self) -> IterChannelsMut<'_, T::Item> {
+        IterChannelsMut::new(self.value.as_mut(), self.frames)
     }
 }
 
@@ -96,7 +96,7 @@ where
     where
         Self: 'this;
 
-    type Iter<'this> = Iter<'this, Self::Sample>
+    type IterChannels<'this> = IterChannels<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -110,7 +110,7 @@ where
         self.channels
     }
 
-    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
+    fn get_channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
         let value = self
             .value
             .as_ref()
@@ -121,7 +121,7 @@ where
     }
 
     #[inline]
-    fn iter(&self) -> Self::Iter<'_> {
+    fn iter_channels(&self) -> Self::IterChannels<'_> {
         (*self).iter()
     }
 }
@@ -134,7 +134,7 @@ where
     where
         Self: 'this;
 
-    type FramesIter<'this> = SequentialFramesIter<'this, T::Item>
+    type IterFrames<'this> = SequentialFramesIter<'this, T::Item>
     where
         Self: 'this;
 
@@ -148,7 +148,7 @@ where
     }
 
     #[inline]
-    fn iter_frames(&self) -> Self::FramesIter<'_> {
+    fn iter_frames(&self) -> Self::IterFrames<'_> {
         SequentialFramesIter::new(0, self.as_raw())
     }
 }
@@ -171,11 +171,11 @@ where
     where
         Self: 'a;
 
-    type IterMut<'a> = IterMut<'a, Self::Sample>
+    type IterChannelsMut<'a> = IterChannelsMut<'a, Self::Sample>
     where
         Self: 'a;
 
-    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+    fn get_channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         let value = self
             .value
             .as_mut()
@@ -201,7 +201,7 @@ where
         }
     }
 
-    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+    fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
         (*self).iter_mut()
     }
 }

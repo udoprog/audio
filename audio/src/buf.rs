@@ -24,7 +24,7 @@ where
     O: BufMut<Sample = I::Sample>,
     I::Sample: Copy,
 {
-    for (from, to) in from.iter().zip(to.iter_mut()) {
+    for (from, to) in from.iter_channels().zip(to.iter_channels_mut()) {
         crate::channel::copy(from, to);
     }
 }
@@ -39,7 +39,7 @@ where
     O::Sample: Translate<I::Sample>,
     I::Sample: Copy,
 {
-    for (mut to, from) in to.iter_mut().zip(from.iter()) {
+    for (mut to, from) in to.iter_channels_mut().zip(from.iter_channels()) {
         for (t, f) in to.iter_mut().zip(from.iter()) {
             *t = O::Sample::translate(f);
         }

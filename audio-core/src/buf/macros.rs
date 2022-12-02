@@ -4,12 +4,12 @@ macro_rules! iterators {
         =>
         $self:ident . $fn:ident ($($arg:ident),* $(,)?)
     ) => {
-        pub struct Iter<I> {
+        pub struct IterChannels<I> {
             iter: I,
             $($field: $field_ty,)*
         }
 
-        impl<I> Iterator for Iter<I>
+        impl<I> Iterator for IterChannels<I>
         where
             I: Iterator,
             I::Item: Channel,
@@ -25,7 +25,7 @@ macro_rules! iterators {
             }
         }
 
-        impl<I> DoubleEndedIterator for Iter<I>
+        impl<I> DoubleEndedIterator for IterChannels<I>
         where
             I: DoubleEndedIterator,
             I::Item: Channel,
@@ -39,7 +39,7 @@ macro_rules! iterators {
             }
         }
 
-        impl<I> ExactSizeIterator for Iter<I>
+        impl<I> ExactSizeIterator for IterChannels<I>
         where
             I: ExactSizeIterator,
             I::Item: ChannelMut,
@@ -49,12 +49,12 @@ macro_rules! iterators {
             }
         }
 
-        pub struct IterMut<I> {
+        pub struct IterChannelsMut<I> {
             iter: I,
             $($field: $field_ty,)*
         }
 
-        impl<I> Iterator for IterMut<I>
+        impl<I> Iterator for IterChannelsMut<I>
         where
             I: Iterator,
             I::Item: ChannelMut,
@@ -70,7 +70,7 @@ macro_rules! iterators {
             }
         }
 
-        impl<I> DoubleEndedIterator for IterMut<I>
+        impl<I> DoubleEndedIterator for IterChannelsMut<I>
         where
             I: DoubleEndedIterator,
             I::Item: ChannelMut,
@@ -84,7 +84,7 @@ macro_rules! iterators {
             }
         }
 
-        impl<I> ExactSizeIterator for IterMut<I>
+        impl<I> ExactSizeIterator for IterChannelsMut<I>
         where
             I: ExactSizeIterator,
             I::Item: ChannelMut,
