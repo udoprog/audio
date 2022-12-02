@@ -1,9 +1,8 @@
 use crate::Channel;
 
-/// The mutable buffer of a single channel.
+/// One channel of audio samples, usually one of several channels in a multichannel buffer
 ///
-/// This doesn't provide direct access to the underlying memory, but rather
-/// allows us to read and write data using a number of utility functions.
+/// This trait provides read and write access.
 ///
 /// See [BufMut::get_mut][crate::BufMut::get_mut].
 pub trait ChannelMut: Channel {

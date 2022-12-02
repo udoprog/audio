@@ -1,4 +1,4 @@
-//! Channel buffers.
+//! Structs for accessing a single channel of audio within a multichannel buffer
 //!
 //! * [LinearChannelMut] and [LinearChannel] wraps a mutable and immutable *linear* channel
 //!   buffer respectively.
