@@ -17,9 +17,9 @@
 //! * [audio-generator] - A crate for generating audio.
 //!
 //! Audio buffers provided by this crate have zero or more channels that can be
-//! iterated over. A channel is simply a sequence of samples. This can be stored
-//! using different topologies as appropriate which will be detailed in the next
-//! section.
+//! iterated over. A channel is simply a sequence of samples. The samples within
+//! each channel at one moment in time are a frame. A buffer can store channels
+//! in various ways in memory, as detailed in the next section.
 //!
 //! <br>
 //!
