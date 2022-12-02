@@ -2,8 +2,8 @@ use crate::Channel;
 
 /// The mutable buffer of a single channel.
 ///
-/// This doesn't provide direct access to the underlying buffer, but rather
-/// allows us to copy data usinga  number of utility functions.
+/// This doesn't provide direct access to the underlying memory, but rather
+/// allows us to read and write data using a number of utility functions.
 ///
 /// See [BufMut::get_mut][crate::BufMut::get_mut].
 pub trait ChannelMut: Channel {

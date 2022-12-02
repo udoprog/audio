@@ -3,8 +3,8 @@
 
 /// The buffer of a single channel.
 ///
-/// This doesn't provide direct access to the underlying buffer, but rather
-/// allows us to copy data usinga  number of utility functions.
+/// This doesn't provide direct access to the underlying memory, but rather
+/// allows us to read data using number of utility functions.
 ///
 /// See [Buf::get][crate::Buf::get].
 pub trait Channel {
