@@ -8,8 +8,8 @@
 //! This is made up of several parts, each can be used independently of each
 //! other:
 //!
-//! * [audio-core] - The core crate, which defines traits that allows for safely
-//!   interacting with audio buffers.
+//! * [audio-core] - The core crate, which defines traits that allows for
+//!   interacting with audio buffers independent of their layout in memory.
 //! * [audio] - This crate, which provides a collection of high-quality audio
 //!   buffers which implements the traits provided in [audio-core].
 //! * [audio-device] - A crate for interacting with audio devices in idiomatic
