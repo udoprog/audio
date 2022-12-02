@@ -1,6 +1,6 @@
 [package]
 name = "audio-core"
-version = "0.2.0-alpha.3"
+version = "0.2.0-alpha.4"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
 description = "The core audio traits"
@@ -17,4 +17,4 @@ default = ["std"]
 std = []
 
 [dev-dependencies]
-audio = { version = "0.2.0-alpha.3", path = "../audio" }
+audio = { version = "0.2.0-alpha.4", path = "../audio" }
