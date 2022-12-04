@@ -352,6 +352,11 @@ where
     fn try_as_linear_mut(&mut self) -> Option<&mut [Self::Sample]> {
         Some(self.buf)
     }
+
+    #[inline]
+    fn fill(&mut self, value: Self::Sample) {
+        self.buf.fill(value);
+    }
 }
 
 impl<T> audio_core::LinearChannel for LinearChannelMut<'_, T>
