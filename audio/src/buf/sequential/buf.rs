@@ -254,6 +254,32 @@ impl<T> Sequential<T> {
         &self.data
     }
 
+    /// Access the underlying vector as a mutable slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use audio::{Buf, Channel};
+    ///
+    /// let mut buf = audio::buf::Sequential::<u32>::with_topology(2, 4);
+    /// buf.as_slice_mut().copy_from_slice(&[1, 2, 3, 4, 5, 6, 7, 8]);
+    ///
+    /// assert_eq! {
+    ///     buf.get(0).unwrap(),
+    ///     [1u32, 2, 3, 4],
+    /// };
+    ///
+    /// assert_eq! {
+    ///     buf.get(1).unwrap(),
+    ///     [5u32, 6, 7, 8],
+    /// };
+    ///
+    /// assert_eq!(buf.as_slice(), &[1, 2, 3, 4, 5, 6, 7, 8]);
+    /// ```
+    pub fn as_slice_mut(&mut self) -> &mut [T] {
+        &mut self.data
+    }
+
     /// Get the capacity of the buffer in number of frames.
     ///
     /// The underlying buffer over-allocates a bit, so this will report the
