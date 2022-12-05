@@ -81,12 +81,6 @@ impl<'a, T> LinearChannel<'a, T> {
     pub fn into_ref(self) -> &'a [T] {
         self.buf
     }
-
-    /// Get a reference to the underlying buffer.
-    #[inline]
-    pub fn as_ref(&self) -> &[T] {
-        self.buf
-    }
 }
 
 impl<'a, T> Channel for LinearChannel<'a, T>
@@ -149,6 +143,14 @@ where
     #[inline]
     fn try_as_linear(&self) -> Option<&[T]> {
         Some(self.buf)
+    }
+}
+
+impl<T> AsRef<[T]> for LinearChannel<'_, T>
+{
+    #[inline]
+    fn as_ref(&self) -> &[T] {
+        self.buf
     }
 }
 
@@ -227,21 +229,9 @@ impl<'a, T> LinearChannelMut<'a, T> {
         self.buf
     }
 
-    /// Get a reference to the underlying buffer.
-    #[inline]
-    pub fn as_ref(&self) -> &[T] {
-        self.buf
-    }
-
     /// Convert the channel into the underlying mutable buffer.
     #[inline]
     pub fn into_mut(self) -> &'a mut [T] {
-        self.buf
-    }
-
-    /// Get a mutable reference to the underlying buffer.
-    #[inline]
-    pub fn as_mut(&mut self) -> &mut [T] {
         self.buf
     }
 }
@@ -380,6 +370,14 @@ where
 {
     #[inline]
     fn as_linear_channel_mut(&mut self) -> &mut [Self::Sample] {
+        self.buf
+    }
+}
+
+impl<T> AsMut<[T]> for LinearChannelMut<'_, T>
+{
+    #[inline]
+    fn as_mut(&mut self) -> &mut [T] {
         self.buf
     }
 }
