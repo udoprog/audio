@@ -89,6 +89,25 @@ pub trait BufMut: Buf {
     fn copy_channel(&mut self, from: usize, to: usize)
     where
         Self::Sample: Copy;
+
+    /// Fill the entire buffer with the specified value
+    /// # Example
+    ///
+    /// ```
+    /// use audio::BufMut;
+    ///
+    /// let mut buf = audio::sequential![[0; 2]; 2];
+    /// buf.fill(1);
+    /// assert_eq!(buf.as_slice(), &[1, 1, 1, 1]);
+    /// ```
+    fn fill(&mut self, value: Self::Sample)
+    where
+        Self::Sample: Copy,
+    {
+        for mut channel in self.iter_mut() {
+            channel.fill(value);
+        }
+    }
 }
 
 impl<B> BufMut for &mut B
