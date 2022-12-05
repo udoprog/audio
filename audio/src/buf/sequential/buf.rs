@@ -851,4 +851,12 @@ where
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         (*self).iter_mut()
     }
+
+    #[inline]
+    fn fill(&mut self, value: T)
+    where
+        T: Copy,
+    {
+        self.data.fill(value);
+    }
 }
