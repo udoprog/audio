@@ -16,7 +16,7 @@
 #![allow(clippy::should_implement_trait)]
 
 pub mod buf;
-pub use self::buf::Buf;
+pub use self::buf::*;
 
 mod buf_mut;
 pub use self::buf_mut::BufMut;
