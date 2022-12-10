@@ -22,7 +22,3 @@ default-members = [
     "generate",
     "ste",
 ]
-
-[patch.'https://github.com/udoprog/audio']
-audio = { path = "audio" }
-audio-core = { path = "audio-core" }
