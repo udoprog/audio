@@ -12,7 +12,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
-        toolchain: beta
+        toolchain: stable
         override: true
     - run: cargo test --all-features -p audio -p audio-core -p audio-generator -p ste
 
@@ -22,7 +22,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
-        toolchain: beta
+        toolchain: stable
         override: true
     - run: cargo test -F wasapi -p audio-device
 
@@ -32,7 +32,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
-        toolchain: beta
+        toolchain: stable
         override: true
     - name: install libasound2-dev
       run: sudo apt install libasound2-dev
@@ -44,7 +44,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
-        toolchain: beta
+        toolchain: stable
         override: true
     - name: install libpulse-dev
       run: sudo apt install libpulse-dev
