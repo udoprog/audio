@@ -72,6 +72,7 @@ where
     use std::panic;
 
     move |tag| {
+        let _ = (&waker, &future, &complete);
         unsafe {
             // Safety: At this point, we know the waker has been
             // replaced by the polling task and can safely deref it into
@@ -82,6 +83,7 @@ where
             let future = Pin::new_unchecked(future.0.as_mut());
 
             let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+                let _ = &output;
                 if let Poll::Ready(ready) = with_tag(tag, || future.poll(&mut cx)) {
                     *output.0.as_mut() = Some(ready);
                 }

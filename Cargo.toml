@@ -28,7 +28,7 @@ version = "0.2.0-alpha.4"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 # Generic associated types were stabilized in 1.65.
 rust-version = "1.65"
-edition = "2018"
+edition = "2021"
 documentation = "https://docs.rs/audio"
 homepage = "https://github.com/udoprog/audio"
 repository = "https://github.com/udoprog/audio"

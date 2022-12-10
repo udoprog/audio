@@ -342,6 +342,7 @@ impl Thread {
             move |tag| {
                 if let Some(task) = task.take() {
                     let _ = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+                        let _ = &storage;
                         let output = with_tag(tag, task);
 
                         // Safety: we're the only one with access to this pointer,
@@ -632,6 +633,7 @@ impl Builder {
         let handle = thread::Builder::new()
             .name(String::from("ste-thread"))
             .spawn(move || {
+                let _ = &shared2;
                 let RawSend(shared) = shared2;
 
                 #[cfg(feature = "tokio")]
