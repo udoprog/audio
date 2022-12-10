@@ -54,3 +54,14 @@ jobs:
     - name: install libpulse-dev
       run: sudo apt install libpulse-dev
     - run: cargo test -p audio-device -F pulse
+
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - uses: Swatinem/rust-cache@v2
+    - run: cargo doc
