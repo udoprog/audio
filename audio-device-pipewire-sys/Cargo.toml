@@ -3,6 +3,7 @@ name = "audio-device-pipewire-sys"
 description = "audio-device system bindings for PipeWire"
 version.workspace = true
 authors.workspace = true
+rust-version.workspace = true
 edition.workspace = true
 documentation.workspace = true
 homepage.workspace = true

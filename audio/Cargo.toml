@@ -3,6 +3,7 @@ name = "audio"
 description = "A crate for working with audio in Rust"
 version.workspace = true
 authors.workspace = true
+rust-version.workspace = true
 edition.workspace = true
 documentation.workspace = true
 homepage.workspace = true

@@ -3,6 +3,7 @@ name = "audio-device"
 description = "A library for interacting with audio devices"
 version.workspace = true
 authors.workspace = true
+rust-version.workspace = true
 edition.workspace = true
 documentation.workspace = true
 homepage.workspace = true
