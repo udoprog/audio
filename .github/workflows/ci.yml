@@ -14,6 +14,7 @@ jobs:
       with:
         toolchain: stable
         override: true
+    - uses: Swatinem/rust-cache@v2
     - run: cargo test --all-features -p audio -p audio-core -p audio-generator -p ste
 
   build-wasapi:
@@ -24,6 +25,7 @@ jobs:
       with:
         toolchain: stable
         override: true
+    - uses: Swatinem/rust-cache@v2
     - run: cargo test -F wasapi -p audio-device
 
   build-alsa:
@@ -34,6 +36,7 @@ jobs:
       with:
         toolchain: stable
         override: true
+    - uses: Swatinem/rust-cache@v2
     - name: install libasound2-dev
       run: sudo apt install libasound2-dev
     - run: cargo test -p audio-device -F alsa
@@ -46,6 +49,7 @@ jobs:
       with:
         toolchain: stable
         override: true
+    - uses: Swatinem/rust-cache@v2
     - name: install libpulse-dev
       run: sudo apt install libpulse-dev
     - run: cargo test -p audio-device -F pulse
