@@ -367,6 +367,49 @@ macro_rules! interleaved_channel {
                 self
             }
 
+            fn range(self, range: impl core::ops::RangeBounds<usize>) -> Self {
+                // Hack around trait method taking `self` rather than `mut self`.
+                // This method returns a Self by value, so it is okay to move self
+                // into a mut variable.
+                let mut new = self;
+
+                let start_index = match range.start_bound() {
+                    core::ops::Bound::Unbounded => 0,
+                    core::ops::Bound::Included(&i) => i,
+                    core::ops::Bound::Excluded(&i) => i + 1,
+                };
+                let original_length = len!(new);
+                let end_index = match range.end_bound() {
+                    core::ops::Bound::Unbounded => original_length,
+                    core::ops::Bound::Included(&i) => {
+                        let end_index = i + 1;
+                        assert!(end_index <= original_length);
+                        end_index
+                    },
+                    core::ops::Bound::Excluded(&i) => {
+                        assert!(i <= original_length);
+                        i
+                    },
+                };
+
+                if mem::size_of::<T>() == 0 {
+                    let len = usize::min(original_length, end_index - start_index);
+                    zst_set_len!(new, len);
+                } else {
+                    let start_ptr_offset = usize::min(original_length, start_index).saturating_mul(new.step);
+                    // Safety: internal invariants in this structure ensures it
+                    // doesn't go out of bounds.
+                    new.ptr = unsafe { ptr::NonNull::new_unchecked(new.ptr.as_ptr().wrapping_add(start_ptr_offset)) };
+
+                    let end_ptr_offset = original_length.saturating_sub(end_index).saturating_mul(new.step);
+                    // Safety: internal invariants in this structure ensures it
+                    // doesn't go out of bounds.
+                    new.end = new.end.wrapping_sub(end_ptr_offset);
+                }
+
+                new
+            }
+
             fn try_as_linear(&self) -> Option<&[T]> {
                 None
             }

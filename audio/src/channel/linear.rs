@@ -3,6 +3,7 @@
 use core::cmp;
 use core::fmt;
 use core::ops;
+use core::ops::Bound;
 use core::slice;
 
 use audio_core::{Channel, ChannelMut};
@@ -136,6 +137,28 @@ where
     fn limit(self, limit: usize) -> Self {
         Self {
             buf: self.buf.get(..limit).unwrap_or_default(),
+        }
+    }
+
+    #[inline]
+    fn range(self, range: impl ops::RangeBounds<usize>) -> Self {
+        // TODO: simplify when slice::range is stabilized
+        // https://github.com/rust-lang/rust/issues/76393
+        let start = match range.start_bound() {
+            Bound::Unbounded => 0,
+            Bound::Included(&i) => i,
+            Bound::Excluded(&i) => i + 1,
+        };
+
+        let end = match range.end_bound() {
+            Bound::Unbounded => self.buf.len(),
+            Bound::Included(&i) => i + 1,
+            Bound::Excluded(&i) => i,
+        };
+
+        Self {
+            // Slice indexing takes care of bounds checking
+            buf: &self.buf[start..end]
         }
     }
 
@@ -309,6 +332,28 @@ where
     fn limit(self, limit: usize) -> Self {
         Self {
             buf: self.buf.get_mut(..limit).unwrap_or_default(),
+        }
+    }
+
+    #[inline]
+    fn range(self, range: impl ops::RangeBounds<usize>) -> Self {
+        // TODO: simplify when slice::range is stabilized
+        // https://github.com/rust-lang/rust/issues/76393
+        let start = match range.start_bound() {
+            Bound::Unbounded => 0,
+            Bound::Included(&i) => i,
+            Bound::Excluded(&i) => i + 1,
+        };
+
+        let end = match range.end_bound() {
+            Bound::Unbounded => self.buf.len(),
+            Bound::Included(&i) => i + 1,
+            Bound::Excluded(&i) => i,
+        };
+
+        Self {
+            // Slice indexing takes care of bounds checking
+            buf: &mut self.buf[start..end]
         }
     }
 
