@@ -8,8 +8,8 @@
 //! This is made up of several parts, each can be used independently of each
 //! other:
 //!
-//! * [audio-core] - The core crate, which defines traits that allows for safely
-//!   interacting with audio buffers.
+//! * [audio-core] - The core crate, which defines traits that allows for
+//!   interacting with audio buffers independent of their layout in memory.
 //! * [audio] - This crate, which provides a collection of high-quality audio
 //!   buffers which implements the traits provided in [audio-core].
 //! * [audio-device] - A crate for interacting with audio devices in idiomatic
@@ -17,32 +17,32 @@
 //! * [audio-generator] - A crate for generating audio.
 //!
 //! Audio buffers provided by this crate have zero or more channels that can be
-//! iterated over. A channel is simply a sequence of samples. This can be stored
-//! using different topologies as appropriate which will be detailed in the next
-//! section.
+//! iterated over. A channel is simply a sequence of samples. The samples within
+//! each channel at one moment in time are a frame. A buffer can store channels
+//! in various ways in memory, as detailed in the next section.
 //!
 //! <br>
 //!
-//! ## Formats and topologies
+//! ## Buffers
 //!
-//! The following are the three canonical audio formats which are supported by
-//! this crate. All of the examples represent how the two channels `[1, 2, 3,
-//! 4]` and `[5, 6, 7, 8]` are stored:
+//! This crate provides several structs for storing buffers of multichannel
+//! audio. The examples represent how the two channels `[1, 2, 3, 4]` and `[5,
+//! 6, 7, 8]` are stored in memory:
 //!
-//! * [dynamic][Dynamic] - where each channel is stored in its own
-//!   heap-allocated buffer. Each channel is stored sequentially in their own
-//!   allocations. So `[1, 2, 3, 4]` and `[5, 6, 7, 8]`. Having separate
-//!   allocations for each channel can be useful if the topologies of the
-//!   buffers keep frequently changing since changing the number of channels
-//!   does not require any re-allocation of existing ones.
-//! * [interleaved][Interleaved] - where each channel is interleaved into one
-//!   buffer. So `[1, 5, 2, 6, 3, 7, 4, 8]`.
-//! * [sequential][Sequential] - where each channel is stored in a linear
-//!   buffer, one after another. So `[1, 2, 3, 4, 5, 6, 7, 8]`.
+//! * [Dynamic]: each channel is stored in its own heap allocation. So `[1, 2,
+//!   3, 4]` and `[5, 6, 7, 8]`. This may be more performant when resizing
+//!   freqently. Generally prefer one of the other buffer types for better CPU
+//!   cache locality.
+//! * [Interleaved]: samples of each channel are interleaved in one heap
+//!   allocation. So `[1, 5, 2, 6, 3, 7, 4, 8]`.
+//! * [Sequential]: each channel is stored one after the other in one heap
+//!   allocation. So `[1, 2, 3, 4, 5, 6, 7, 8]`.
 //!
 //! These all implement the [Buf] and [BufMut] traits, allowing library authors
 //! to abstract over any one specific format. The exact channel and frame count
-//! of a buffer is known as its *topology*.
+//! of a buffer is known as its *topology*. The following example allocates
+//! buffers with 4 frames and 2 channels. The buffers are arranged in memory
+//! differently, but data is copied into them using the same API.
 //!
 //! ```rust
 //! use audio::{BufMut, ChannelMut};

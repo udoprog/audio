@@ -24,12 +24,9 @@ slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, [T]);
 slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, &[T]);
 slice_comparisons!(#[cfg(feature = "std")] {'a, T}, LinearChannelMut<'a, T>, Vec<T>);
 
-/// The buffer of a single linear channel.
-///
-/// This doesn't provide direct access to the underlying buffer, but rather
-/// allows us to copy data usinga  number of utility functions.
-///
-/// See [Buf::get][crate::Buf::get].
+/// Read-only access to a single channel of audio within a linear, multichannel audio buffer.
+/// This struct does not own the audio data; it provides an API for accessing data owned by something else.
+/// See also [crate::buf::Sequential].
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct LinearChannel<'a, T> {
@@ -146,8 +143,7 @@ where
     }
 }
 
-impl<T> AsRef<[T]> for LinearChannel<'_, T>
-{
+impl<T> AsRef<[T]> for LinearChannel<'_, T> {
     #[inline]
     fn as_ref(&self) -> &[T] {
         self.buf
@@ -163,12 +159,9 @@ where
     }
 }
 
-/// The buffer of a single linear channel.
-///
-/// This doesn't provide direct access to the underlying buffer, but rather
-/// allows us to copy data usinga  number of utility functions.
-///
-/// See [Buf::get][crate::Buf::get].
+/// Read-write access to a single channel of audio within a linear, multichannel audio buffer.
+/// This struct does not own the audio data; it provides an API for accessing data owned by something else.
+/// See also [crate::buf::Sequential].
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct LinearChannelMut<'a, T> {
     /// The underlying channel buffer.
@@ -379,8 +372,7 @@ where
     }
 }
 
-impl<T> AsMut<[T]> for LinearChannelMut<'_, T>
-{
+impl<T> AsMut<[T]> for LinearChannelMut<'_, T> {
     #[inline]
     fn as_mut(&mut self) -> &mut [T] {
         self.buf

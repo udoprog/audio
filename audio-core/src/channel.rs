@@ -1,10 +1,9 @@
 //! A channel buffer as created through [Buf::get][crate::Buf::get] or
 //! [BufMut::get_mut][crate::BufMut::get_mut].
 
-/// The buffer of a single channel.
+/// One channel of audio samples, usually one of several channels in a multichannel buffer
 ///
-/// This doesn't provide direct access to the underlying buffer, but rather
-/// allows us to copy data usinga  number of utility functions.
+/// This trait provides read-only access.
 ///
 /// See [Buf::get][crate::Buf::get].
 pub trait Channel {

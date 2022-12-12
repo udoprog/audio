@@ -16,7 +16,7 @@ use crate::frame::{RawSequential, SequentialFrame, SequentialFramesIter};
 /// one channel after another.
 ///
 /// An audio buffer can only be resized if it contains a type which is
-/// sample-apt For more information of what this means, see [Sample].
+/// sample-apt. For more information of what this means, see [Sample].
 ///
 /// Resizing the buffer might therefore cause a fair bit of copying, and for the
 /// worst cases, this might result in having to copy a memory region

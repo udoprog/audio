@@ -14,7 +14,7 @@ use crate::frame::{InterleavedFrame, InterleavedFramesIter, RawInterleaved};
 /// A dynamically sized, multi-channel interleaved audio buffer.
 ///
 /// An audio buffer can only be resized if it contains a type which is
-/// sample-apt For more information of what this means, see [Sample].
+/// sample-apt. For more information of what this means, see [Sample].
 ///
 /// An *interleaved* audio buffer stores all audio data interleaved in memory,
 /// one sample from each channel in sequence until we're out of samples. This

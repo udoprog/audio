@@ -16,7 +16,7 @@ pub use self::iter::{Iter, IterMut};
 /// A dynamically sized, multi-channel audio buffer.
 ///
 /// An audio buffer can only be resized if it contains a type which is
-/// sample-apt For more information of what this means, see [Sample].
+/// sample-apt. For more information of what this means, see [Sample].
 ///
 /// This kind of buffer stores each channel in its own heap-allocated slice of
 /// memory, meaning they can be manipulated more cheaply independently of each
@@ -316,7 +316,7 @@ impl<T> Dynamic<T> {
 
                 for n in 0..self.channels_cap {
                     // Safety: We control the known sizes, so we can guarantee
-                    // that the slice is allocated and sized tio exactly `from`.
+                    // that the slice is allocated and sized to exactly `from`.
                     unsafe {
                         self.data
                             .get_unchecked_mut(n)

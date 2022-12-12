@@ -1,5 +1,8 @@
-//! Wrap an external type to implement [Buf][crate::Buf] and
-//! [BufMut][crate::BufMut].
+//! This module provides wrappers to pass audio data from crates which use
+//! different buffer formats into functions that take [Buf][crate::Buf] or
+//! [BufMut][crate::BufMut] without needing to copy data into an intermediate
+//! buffer. They may also be useful for incrementally introducing this crate
+//! into a codebase that uses a different buffer format.
 
 use crate::slice::Slice;
 
@@ -14,7 +17,7 @@ mod dynamic;
 #[cfg(feature = "std")]
 pub use self::dynamic::Dynamic;
 
-/// Wrap a `value` as an interleaved buffer with the given number of channels.
+/// Wrap a slice as an interleaved buffer with the given number of channels.
 ///
 /// Certain interleaved buffers can be used conveniently as implementors of
 /// [ReadBuf][crate::ReadBuf] and [WriteBuf][crate::WriteBuf], due to the
@@ -69,7 +72,7 @@ where
     Interleaved::new(value, channels)
 }
 
-/// Wrap a `value` as a sequential buffer with the given number of frames. The
+/// Wrap a slice as a sequential buffer with the given number of frames. The
 /// length of the buffer determines the number of channels it has.
 ///
 /// Unlike [interleaved][interleaved()], wrapped sequential buffers cannot be
@@ -85,8 +88,8 @@ where
     Sequential::new(value, channels)
 }
 
-/// Wrap a dynamically sized buffer where each channel must not necessarily be
-/// equally sized.
+/// Wrap a [Vec] of Vecs or slice of Vecs where each inner Vec is a channel.
+/// The channels do not need to be equally sized.
 ///
 /// This should only be used for external types which you have no control over
 /// or if you legitimately need a buffer which doesn't have uniformly sized
@@ -98,7 +101,7 @@ where
 /// ```
 /// use audio::Buf;
 ///
-/// let buf = [vec![1, 2, 3, 4], vec![5, 6]];
+/// let buf = vec![vec![1, 2, 3, 4], vec![5, 6]];
 /// let buf = audio::wrap::dynamic(&buf[..]);
 /// assert_eq!(buf.channels(), 2);
 /// assert_eq!(buf.frames_hint(), Some(4));

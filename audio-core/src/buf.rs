@@ -159,7 +159,7 @@ pub trait Buf {
     /// ```
     fn iter(&self) -> Self::Iter<'_>;
 
-    /// Construct a new buffer where `n` frames are skipped.
+    /// Construct a wrapper around this buffer that skips the first `n` frames.
     ///
     /// # Examples
     ///
@@ -195,7 +195,7 @@ pub trait Buf {
         Skip::new(self, n)
     }
 
-    /// Construct a new buffer where `n` frames are skipped.
+    /// Construct a wrapper around this buffer that skips to the last `n` frames.
     ///
     /// # Examples
     ///
@@ -239,7 +239,7 @@ pub trait Buf {
         Tail::new(self, n)
     }
 
-    /// Limit the channel buffer to `limit` number of frames.
+    /// Construct a wrapper around this buffer which stops after `limit` frames.
     ///
     /// # Examples
     ///
