@@ -195,7 +195,7 @@ pub trait Buf {
         Skip::new(self, n)
     }
 
-    /// Construct a wrapper around this buffer that skips the last `n` frames.
+    /// Construct a wrapper around this buffer that skips to the last `n` frames.
     ///
     /// # Examples
     ///
