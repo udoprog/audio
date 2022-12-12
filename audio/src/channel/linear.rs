@@ -143,8 +143,7 @@ where
     }
 }
 
-impl<T> AsRef<[T]> for LinearChannel<'_, T>
-{
+impl<T> AsRef<[T]> for LinearChannel<'_, T> {
     #[inline]
     fn as_ref(&self) -> &[T] {
         self.buf
@@ -373,8 +372,7 @@ where
     }
 }
 
-impl<T> AsMut<[T]> for LinearChannelMut<'_, T>
-{
+impl<T> AsMut<[T]> for LinearChannelMut<'_, T> {
     #[inline]
     fn as_mut(&mut self) -> &mut [T] {
         self.buf

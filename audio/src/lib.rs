@@ -25,18 +25,18 @@
 //!
 //! ## Buffers
 //!
-//! This crate provides several structs for storing buffers of multichannel audio.
-//! The examples represent how the two channels `[1, 2, 3, 4]` and `[5, 6, 7, 8]`
-//! are stored in memory:
+//! This crate provides several structs for storing buffers of multichannel
+//! audio. The examples represent how the two channels `[1, 2, 3, 4]` and `[5,
+//! 6, 7, 8]` are stored in memory:
 //!
-//! * [Dynamic]: each channel is stored in its own heap allocation.
-//!   So `[1, 2, 3, 4]` and `[5, 6, 7, 8]`. This may be more performant when
-//!   resizing freqently. Generally prefer one of the other buffer types for
-//!   better CPU cache locality.
-//! * [Interleaved]: samples of each channel are interleaved
-//!   in one heap allocation. So `[1, 5, 2, 6, 3, 7, 4, 8]`.
-//! * [Sequential]: each channel is stored one after the other
-//!   in one heap allocation. So `[1, 2, 3, 4, 5, 6, 7, 8]`.
+//! * [Dynamic]: each channel is stored in its own heap allocation. So `[1, 2,
+//!   3, 4]` and `[5, 6, 7, 8]`. This may be more performant when resizing
+//!   freqently. Generally prefer one of the other buffer types for better CPU
+//!   cache locality.
+//! * [Interleaved]: samples of each channel are interleaved in one heap
+//!   allocation. So `[1, 5, 2, 6, 3, 7, 4, 8]`.
+//! * [Sequential]: each channel is stored one after the other in one heap
+//!   allocation. So `[1, 2, 3, 4, 5, 6, 7, 8]`.
 //!
 //! These all implement the [Buf] and [BufMut] traits, allowing library authors
 //! to abstract over any one specific format. The exact channel and frame count

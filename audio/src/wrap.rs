@@ -1,6 +1,6 @@
-//! This module provides wrappers to pass audio data from crates which
-//! use different buffer formats into functions that take [Buf][crate::Buf]
-//! or [BufMut][crate::BufMut] without needing to copy data into an intermediate
+//! This module provides wrappers to pass audio data from crates which use
+//! different buffer formats into functions that take [Buf][crate::Buf] or
+//! [BufMut][crate::BufMut] without needing to copy data into an intermediate
 //! buffer. They may also be useful for incrementally introducing this crate
 //! into a codebase that uses a different buffer format.
 
