@@ -32,7 +32,7 @@ fn test_init() {
 fn test_complicated() {
     let mut buf = crate::buf::Interleaved::<f32>::with_topology(2, 4);
 
-    let mut it = buf.iter_mut();
+    let mut it = buf.iter_channels_mut();
 
     let mut left_chan = it.next().unwrap();
     let mut right_chan = it.next().unwrap();
@@ -55,7 +55,7 @@ fn test_complicated() {
 fn test_iter() {
     let mut buf = crate::buf::Interleaved::<f32>::with_topology(2, 4);
 
-    let mut it = buf.iter_mut();
+    let mut it = buf.iter_channels_mut();
 
     for (c, f) in it.next().unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
         *c = *f;
@@ -65,7 +65,7 @@ fn test_iter() {
         *c = *f;
     }
 
-    let channels = buf.iter().collect::<Vec<_>>();
+    let channels = buf.iter_channels().collect::<Vec<_>>();
     let left = channels[0].iter().collect::<Vec<_>>();
     let right = channels[1].iter().collect::<Vec<_>>();
     let left2 = channels[0].iter().collect::<Vec<_>>();
@@ -81,7 +81,7 @@ fn test_iter() {
 fn test_iter_mut() {
     let mut buf = crate::buf::Interleaved::<f32>::with_topology(2, 4);
 
-    let mut it = buf.iter_mut();
+    let mut it = buf.iter_channels_mut();
 
     for (c, f) in it.next().unwrap().iter_mut().zip(&[1.0, 2.0, 3.0, 4.0]) {
         *c = *f;
@@ -91,7 +91,7 @@ fn test_iter_mut() {
         *c = *f;
     }
 
-    let mut it = buf.iter_mut();
+    let mut it = buf.iter_channels_mut();
 
     let mut left = it.next().unwrap();
     let mut right = it.next().unwrap();
@@ -111,7 +111,7 @@ fn test_resize() {
     assert_eq!(buf.frames(), 0);
 
     buf.resize_channels(4);
-    buf.resize(256);
+    buf.resize_frames(256);
 
     assert_eq!(buf.channels(), 4);
     assert_eq!(buf.frames(), 256);
@@ -124,16 +124,16 @@ fn test_resize() {
         assert_eq!(chan.get(127), Some(42.0));
     }
 
-    buf.resize(128);
+    buf.resize_frames(128);
     assert_eq!(buf.sample(1, 127), Some(42.0));
 
-    buf.resize(256);
+    buf.resize_frames(256);
     assert_eq!(buf.sample(1, 127), Some(42.0));
 
     buf.resize_channels(2);
     assert_eq!(buf.sample(1, 127), Some(42.0));
 
-    buf.resize(64);
+    buf.resize_frames(64);
     assert_eq!(buf.sample(1, 127), None);
 }
 
@@ -167,11 +167,11 @@ fn test_as_interleaved_mut_ptr() {
     test(&mut buf);
 
     assert_eq! {
-        buf.get(0).unwrap().iter().collect::<Vec<_>>(),
+        buf.get_channel(0).unwrap().iter().collect::<Vec<_>>(),
         &[1, 1, 1, 1, 1, 1, 1, 1],
     };
     assert_eq! {
-        buf.get(1).unwrap().iter().collect::<Vec<_>>(),
+        buf.get_channel(1).unwrap().iter().collect::<Vec<_>>(),
         &[1, 1, 1, 1, 1, 1, 1, 1],
     };
 }

@@ -46,7 +46,7 @@ pub trait Buf {
         Self: 'this;
 
     /// An iterator over available channels.
-    type Iter<'this>: Iterator<Item = Self::Channel<'this>>
+    type IterChannels<'this>: Iterator<Item = Self::Channel<'this>>
     where
         Self: 'this;
 
@@ -81,8 +81,8 @@ pub trait Buf {
     ///     assert_eq!(buf.channels(), 2);
     ///     assert_eq!(buf.frames_hint(), Some(4));
     ///
-    ///     assert_eq!(buf.get(0).map(|c| c.len()), Some(4));
-    ///     assert_eq!(buf.get(1).map(|c| c.len()), Some(2));
+    ///     assert_eq!(buf.get_channel(0).map(|c| c.len()), Some(4));
+    ///     assert_eq!(buf.get_channel(1).map(|c| c.len()), Some(2));
     /// }
     ///
     /// test(audio::wrap::dynamic(vec![vec![1, 2, 3, 4], vec![5, 6]]));
@@ -100,12 +100,12 @@ pub trait Buf {
     ///     assert_eq!(buf.channels(), 2);
     ///
     ///     assert_eq! {
-    ///         buf.get(0).unwrap().iter().collect::<Vec<_>>(),
+    ///         buf.get_channel(0).unwrap().iter().collect::<Vec<_>>(),
     ///         &[1, 2, 3, 4],
     ///     }
     ///
     ///     assert_eq! {
-    ///         buf.get(1).unwrap().iter().collect::<Vec<_>>(),
+    ///         buf.get_channel(1).unwrap().iter().collect::<Vec<_>>(),
     ///         &[5, 6, 7, 8],
     ///     }
     /// }
@@ -131,7 +131,7 @@ pub trait Buf {
     /// use audio::{Buf, Channel};
     ///
     /// fn test(buf: impl Buf<Sample = i16>) {
-    ///     let chan = buf.get(1).unwrap();
+    ///     let chan = buf.get_channel(1).unwrap();
     ///     chan.iter().eq([5, 6, 7, 8]);
     /// }
     ///
@@ -139,7 +139,7 @@ pub trait Buf {
     /// test(audio::sequential![[1, 2, 3, 4], [5, 6, 7, 8]]);
     /// test(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
     /// ```
-    fn get(&self, channel: usize) -> Option<Self::Channel<'_>>;
+    fn get_channel(&self, channel: usize) -> Option<Self::Channel<'_>>;
 
     /// Construct an iterator over all the channels in the audio buffer.
     ///
@@ -149,7 +149,7 @@ pub trait Buf {
     /// use audio::{Buf, Channel};
     ///
     /// fn test(buf: impl Buf<Sample = i16>) {
-    ///     let chan = buf.iter().nth(1).unwrap();
+    ///     let chan = buf.iter_channels().nth(1).unwrap();
     ///     chan.iter().eq([5, 6, 7, 8]);
     /// }
     ///
@@ -157,7 +157,7 @@ pub trait Buf {
     /// test(audio::sequential![[1, 2, 3, 4], [5, 6, 7, 8]]);
     /// test(audio::interleaved![[1, 2, 3, 4], [5, 6, 7, 8]]);
     /// ```
-    fn iter(&self) -> Self::Iter<'_>;
+    fn iter_channels(&self) -> Self::IterChannels<'_>;
 
     /// Construct a wrapper around this buffer that skips the first `n` frames.
     ///
@@ -228,7 +228,7 @@ pub trait Buf {
     /// assert_eq!((&buf).tail(5).channels(), 2);
     /// assert_eq!((&buf).tail(5).frames_hint(), Some(4));
     ///
-    /// for chan in buf.tail(2).iter() {
+    /// for chan in buf.tail(2).iter_channels() {
     ///     assert!(chan.iter().eq([3, 4]));
     /// }
     /// ```
@@ -272,7 +272,7 @@ pub trait Buf {
     /// assert_eq!((&buf).limit(5).channels(), 2);
     /// assert_eq!((&buf).limit(5).frames_hint(), Some(4));
     ///
-    /// for chan in buf.limit(2).iter() {
+    /// for chan in buf.limit(2).iter_channels() {
     ///     assert!(chan.iter().eq([1, 2]));
     /// }
     /// ```
@@ -294,7 +294,7 @@ where
     where
         Self: 'a;
 
-    type Iter<'a> = B::Iter<'a>
+    type IterChannels<'a> = B::IterChannels<'a>
     where
         Self: 'a;
 
@@ -309,13 +309,13 @@ where
     }
 
     #[inline]
-    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        (**self).get(channel)
+    fn get_channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        (**self).get_channel(channel)
     }
 
     #[inline]
-    fn iter(&self) -> Self::Iter<'_> {
-        (**self).iter()
+    fn iter_channels(&self) -> Self::IterChannels<'_> {
+        (**self).iter_channels()
     }
 }
 
@@ -329,7 +329,7 @@ where
     where
         Self: 'this;
 
-    type Iter<'this> = B::Iter<'this>
+    type IterChannels<'this> = B::IterChannels<'this>
     where
         Self: 'this;
 
@@ -344,12 +344,12 @@ where
     }
 
     #[inline]
-    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        (**self).get(channel)
+    fn get_channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        (**self).get_channel(channel)
     }
 
     #[inline]
-    fn iter(&self) -> Self::Iter<'_> {
-        (**self).iter()
+    fn iter_channels(&self) -> Self::IterChannels<'_> {
+        (**self).iter_channels()
     }
 }

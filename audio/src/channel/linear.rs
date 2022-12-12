@@ -24,8 +24,10 @@ slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, [T]);
 slice_comparisons!({'a, T}, LinearChannelMut<'a, T>, &[T]);
 slice_comparisons!(#[cfg(feature = "std")] {'a, T}, LinearChannelMut<'a, T>, Vec<T>);
 
-/// Read-only access to a single channel of audio within a linear, multichannel audio buffer.
-/// This struct does not own the audio data; it provides an API for accessing data owned by something else.
+/// Read-only access to a single channel of audio within a linear, multichannel
+/// audio buffer. This struct does not own the audio data; it provides an API
+/// for accessing data owned by something else.
+///
 /// See also [crate::buf::Sequential].
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
@@ -159,8 +161,10 @@ where
     }
 }
 
-/// Read-write access to a single channel of audio within a linear, multichannel audio buffer.
-/// This struct does not own the audio data; it provides an API for accessing data owned by something else.
+/// Read-write access to a single channel of audio within a linear, multichannel
+/// audio buffer. This struct does not own the audio data; it provides an API
+/// for accessing data owned by something else.
+///
 /// See also [crate::buf::Sequential].
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct LinearChannelMut<'a, T> {

@@ -26,7 +26,7 @@ pub trait ResizableBuf {
     /// use audio::{Buf, ExactSizeBuf, ResizableBuf};
     ///
     /// fn test(mut buffer: impl ResizableBuf) {
-    ///     buffer.resize(4);
+    ///     buffer.resize_frames(4);
     /// }
     ///
     /// let mut buf = audio::interleaved![[0; 0]; 2];
@@ -39,7 +39,7 @@ pub trait ResizableBuf {
     /// assert_eq!(buf.channels(), 2);
     /// assert_eq!(buf.frames(), 4);
     /// ```
-    fn resize(&mut self, frames: usize);
+    fn resize_frames(&mut self, frames: usize);
 
     /// Resize the buffer to match the given topology.
     ///
@@ -70,8 +70,8 @@ where
         (**self).try_reserve(capacity)
     }
 
-    fn resize(&mut self, frames: usize) {
-        (**self).resize(frames);
+    fn resize_frames(&mut self, frames: usize) {
+        (**self).resize_frames(frames);
     }
 
     fn resize_topology(&mut self, channels: usize, frames: usize) {

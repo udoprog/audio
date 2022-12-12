@@ -6,7 +6,7 @@ use core::ptr;
 
 use audio_core::{Buf, BufMut, ExactSizeBuf, ResizableBuf, Sample, UniformBuf};
 
-use crate::buf::sequential::{Iter, IterMut};
+use crate::buf::sequential::{IterChannels, IterChannelsMut};
 use crate::channel::{LinearChannel, LinearChannelMut};
 use crate::frame::{RawSequential, SequentialFrame, SequentialFramesIter};
 
@@ -30,12 +30,12 @@ use crate::frame::{RawSequential, SequentialFrame, SequentialFramesIter};
 /// buf[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
 /// buf[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
 ///
-/// buf.resize(3);
+/// buf.resize_frames(3);
 ///
 /// assert_eq!(&buf[0], &[1.0, 2.0, 3.0]);
 /// assert_eq!(&buf[1], &[2.0, 3.0, 4.0]);
 ///
-/// buf.resize(4);
+/// buf.resize_frames(4);
 ///
 /// assert_eq!(&buf[0], &[1.0, 2.0, 3.0, 2.0]); // <- 2.0 is stale data.
 /// assert_eq!(&buf[1], &[2.0, 3.0, 4.0, 5.0]); // <- 5.0 is stale data.
@@ -49,7 +49,7 @@ use crate::frame::{RawSequential, SequentialFrame, SequentialFramesIter};
 /// buf[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
 /// buf[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
 ///
-/// buf.resize(3);
+/// buf.resize_frames(3);
 ///
 /// assert_eq!(buf.as_slice(), &[1.0, 2.0, 3.0, 2.0, 3.0, 4.0]);
 /// ```
@@ -228,7 +228,7 @@ impl<T> Sequential<T> {
     /// buf[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
     /// buf[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
     ///
-    /// buf.resize(3);
+    /// buf.resize_frames(3);
     ///
     /// assert_eq!(buf.into_vec(), vec![1.0, 2.0, 3.0, 2.0, 3.0, 4.0])
     /// ```
@@ -246,7 +246,7 @@ impl<T> Sequential<T> {
     /// buf[0].copy_from_slice(&[1.0, 2.0, 3.0, 4.0]);
     /// buf[1].copy_from_slice(&[2.0, 3.0, 4.0, 5.0]);
     ///
-    /// buf.resize(3);
+    /// buf.resize_frames(3);
     ///
     /// assert_eq!(buf.as_slice(), &[1.0, 2.0, 3.0, 2.0, 3.0, 4.0])
     /// ```
@@ -265,12 +265,12 @@ impl<T> Sequential<T> {
     /// buf.as_slice_mut().copy_from_slice(&[1, 2, 3, 4, 5, 6, 7, 8]);
     ///
     /// assert_eq! {
-    ///     buf.get(0).unwrap(),
+    ///     buf.get_channel(0).unwrap(),
     ///     [1u32, 2, 3, 4],
     /// };
     ///
     /// assert_eq! {
-    ///     buf.get(1).unwrap(),
+    ///     buf.get_channel(1).unwrap(),
     ///     [5u32, 6, 7, 8],
     /// };
     ///
@@ -292,16 +292,16 @@ impl<T> Sequential<T> {
     ///
     /// assert_eq!(buf.capacity(), 0);
     ///
-    /// buf.resize(11);
+    /// buf.resize_frames(11);
     /// assert_eq!(buf.capacity(), 0);
     ///
     /// buf.resize_channels(2);
     /// assert_eq!(buf.capacity(), 22);
     ///
-    /// buf.resize(12);
+    /// buf.resize_frames(12);
     /// assert_eq!(buf.capacity(), 44);
     ///
-    /// buf.resize(24);
+    /// buf.resize_frames(24);
     /// assert_eq!(buf.capacity(), 44);
     /// ```
     pub fn capacity(&self) -> usize {
@@ -316,7 +316,7 @@ impl<T> Sequential<T> {
     /// let mut buf = audio::buf::Sequential::<f32>::new();
     ///
     /// assert_eq!(buf.frames(), 0);
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     /// assert_eq!(buf.frames(), 256);
     /// ```
     pub fn frames(&self) -> usize {
@@ -349,12 +349,12 @@ impl<T> Sequential<T> {
     ///
     /// let all_zeros = vec![0.0; 256];
     ///
-    /// for chan in buf.iter() {
+    /// for chan in buf.iter_channels() {
     ///     assert_eq!(chan.as_ref(), &all_zeros[..]);
     /// }
     /// ```
-    pub fn iter(&self) -> Iter<'_, T> {
-        Iter::new(&self.data, self.frames)
+    pub fn iter_channels(&self) -> IterChannels<'_, T> {
+        IterChannels::new(&self.data, self.frames)
     }
 
     /// Construct a mutable iterator over all available channels.
@@ -367,12 +367,12 @@ impl<T> Sequential<T> {
     /// let mut buf = audio::buf::Sequential::<f32>::with_topology(4, 256);
     /// let mut rng = rand::thread_rng();
     ///
-    /// for mut chan in buf.iter_mut() {
+    /// for mut chan in buf.iter_channels_mut() {
     ///     rng.fill(chan.as_mut());
     /// }
     /// ```
-    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
-        IterMut::new(&mut self.data, self.frames)
+    pub fn iter_channels_mut(&mut self) -> IterChannelsMut<'_, T> {
+        IterChannelsMut::new(&mut self.data, self.frames)
     }
 
     /// Set the number of channels in use.
@@ -390,7 +390,7 @@ impl<T> Sequential<T> {
     /// assert_eq!(buf.frames(), 0);
     ///
     /// buf.resize_channels(4);
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     ///
     /// assert_eq!(buf.channels(), 4);
     /// assert_eq!(buf.frames(), 256);
@@ -418,7 +418,7 @@ impl<T> Sequential<T> {
     /// assert_eq!(buf.frames(), 0);
     ///
     /// buf.resize_channels(4);
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     ///
     /// assert_eq!(buf[1][128], 0.0);
     /// buf[1][128] = 42.0;
@@ -434,10 +434,10 @@ impl<T> Sequential<T> {
     /// assert_eq!(buf[1][128], 0.0);
     /// buf[1][128] = 42.0;
     ///
-    /// buf.resize(64);
+    /// buf.resize_frames(64);
     /// assert!(buf[1].get(128).is_none());
     ///
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     /// assert_eq!(buf[1][128], 0.0);
     /// ```
     ///
@@ -454,37 +454,37 @@ impl<T> Sequential<T> {
     /// let mut buf = audio::buf::Sequential::<f32>::new();
     ///
     /// buf.resize_channels(4);
-    /// buf.resize(128);
+    /// buf.resize_frames(128);
     ///
     /// let expected = (0..128).map(|v| v as f32).collect::<Vec<_>>();
     ///
-    /// for mut chan in buf.iter_mut() {
+    /// for mut chan in buf.iter_channels_mut() {
     ///     for (s, v) in chan.iter_mut().zip(&expected) {
     ///         *s = *v;
     ///     }
     /// }
     ///
-    /// assert_eq!(buf.get(0).unwrap(), &expected[..]);
-    /// assert_eq!(buf.get(1).unwrap(), &expected[..]);
-    /// assert_eq!(buf.get(2).unwrap(), &expected[..]);
-    /// assert_eq!(buf.get(3).unwrap(), &expected[..]);
-    /// assert!(buf.get(4).is_none());
+    /// assert_eq!(buf.get_channel(0).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get_channel(1).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get_channel(2).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get_channel(3).unwrap(), &expected[..]);
+    /// assert!(buf.get_channel(4).is_none());
     ///
     /// buf.resize_channels(2);
     ///
-    /// assert_eq!(buf.get(0).unwrap(), &expected[..]);
-    /// assert_eq!(buf.get(1).unwrap(), &expected[..]);
-    /// assert!(buf.get(2).is_none());
+    /// assert_eq!(buf.get_channel(0).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get_channel(1).unwrap(), &expected[..]);
+    /// assert!(buf.get_channel(2).is_none());
     ///
     /// // shrink
-    /// buf.resize(64);
+    /// buf.resize_frames(64);
     ///
-    /// assert_eq!(buf.get(0).unwrap(), &expected[..64]);
-    /// assert_eq!(buf.get(1).unwrap(), &expected[..64]);
-    /// assert!(buf.get(2).is_none());
+    /// assert_eq!(buf.get_channel(0).unwrap(), &expected[..64]);
+    /// assert_eq!(buf.get_channel(1).unwrap(), &expected[..64]);
+    /// assert!(buf.get_channel(2).is_none());
     ///
     /// // increase - this causes some weirdness.
-    /// buf.resize(128);
+    /// buf.resize_frames(128);
     ///
     /// let first_overlapping = expected[..64]
     ///     .iter()
@@ -492,13 +492,13 @@ impl<T> Sequential<T> {
     ///     .copied()
     ///     .collect::<Vec<_>>();
     ///
-    /// assert_eq!(buf.get(0).unwrap(), &first_overlapping[..]);
+    /// assert_eq!(buf.get_channel(0).unwrap(), &first_overlapping[..]);
     /// // Note: second channel matches perfectly up with an old channel that was
     /// // masked out.
-    /// assert_eq!(buf.get(1).unwrap(), &expected[..]);
-    /// assert!(buf.get(2).is_none());
+    /// assert_eq!(buf.get_channel(1).unwrap(), &expected[..]);
+    /// assert!(buf.get_channel(2).is_none());
     /// ```
-    pub fn resize(&mut self, frames: usize)
+    pub fn resize_frames(&mut self, frames: usize)
     where
         T: Sample,
     {
@@ -513,17 +513,17 @@ impl<T> Sequential<T> {
     /// let mut buf = audio::buf::Sequential::<f32>::new();
     ///
     /// buf.resize_channels(4);
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     ///
     /// let expected = vec![0.0; 256];
     ///
-    /// assert_eq!(buf.get(0).unwrap(), &expected[..]);
-    /// assert_eq!(buf.get(1).unwrap(), &expected[..]);
-    /// assert_eq!(buf.get(2).unwrap(), &expected[..]);
-    /// assert_eq!(buf.get(3).unwrap(), &expected[..]);
-    /// assert!(buf.get(4).is_none());
+    /// assert_eq!(buf.get_channel(0).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get_channel(1).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get_channel(2).unwrap(), &expected[..]);
+    /// assert_eq!(buf.get_channel(3).unwrap(), &expected[..]);
+    /// assert!(buf.get_channel(4).is_none());
     /// ```
-    pub fn get(&self, channel: usize) -> Option<LinearChannel<'_, T>> {
+    pub fn get_channel(&self, channel: usize) -> Option<LinearChannel<'_, T>> {
         if channel >= self.channels {
             return None;
         }
@@ -542,7 +542,7 @@ impl<T> Sequential<T> {
     /// let mut buf = audio::buf::Sequential::<f32>::new();
     ///
     /// buf.resize_channels(2);
-    /// buf.resize(256);
+    /// buf.resize_frames(256);
     ///
     /// let mut rng = rand::thread_rng();
     ///
@@ -650,7 +650,7 @@ where
     T: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_list().entries(self.iter()).finish()
+        f.debug_list().entries(self.iter_channels()).finish()
     }
 }
 
@@ -659,7 +659,7 @@ where
     T: cmp::PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
-        self.iter().eq(other.iter())
+        self.iter_channels().eq(other.iter_channels())
     }
 }
 
@@ -670,7 +670,7 @@ where
     T: cmp::PartialOrd,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-        self.iter().partial_cmp(other.iter())
+        self.iter_channels().partial_cmp(other.iter_channels())
     }
 }
 
@@ -679,7 +679,7 @@ where
     T: cmp::Ord,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
-        self.iter().cmp(other.iter())
+        self.iter_channels().cmp(other.iter_channels())
     }
 }
 
@@ -688,27 +688,27 @@ where
     T: hash::Hash,
 {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
-        for channel in self.iter() {
+        for channel in self.iter_channels() {
             channel.hash(state);
         }
     }
 }
 
 impl<'a, T> IntoIterator for &'a Sequential<T> {
-    type IntoIter = Iter<'a, T>;
+    type IntoIter = IterChannels<'a, T>;
     type Item = <Self::IntoIter as Iterator>::Item;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.iter()
+        self.iter_channels()
     }
 }
 
 impl<'a, T> IntoIterator for &'a mut Sequential<T> {
-    type IntoIter = IterMut<'a, T>;
+    type IntoIter = IterChannelsMut<'a, T>;
     type Item = <Self::IntoIter as Iterator>::Item;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.iter_mut()
+        self.iter_channels_mut()
     }
 }
 
@@ -716,7 +716,7 @@ impl<T> ops::Index<usize> for Sequential<T> {
     type Output = [T];
 
     fn index(&self, index: usize) -> &Self::Output {
-        match self.get(index) {
+        match self.get_channel(index) {
             Some(slice) => slice.into_ref(),
             None => panic!("index `{}` is not a channel", index),
         }
@@ -751,7 +751,7 @@ where
     where
         Self::Sample: 'this;
 
-    type Iter<'this> = Iter<'this, T>
+    type IterChannels<'this> = IterChannels<'this, T>
     where
         Self: 'this;
 
@@ -763,12 +763,12 @@ where
         (*self).channels()
     }
 
-    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        (*self).get(channel)
+    fn get_channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        (*self).get_channel(channel)
     }
 
-    fn iter(&self) -> Self::Iter<'_> {
-        (*self).iter()
+    fn iter_channels(&self) -> Self::IterChannels<'_> {
+        (*self).iter_channels()
     }
 }
 
@@ -780,7 +780,7 @@ where
     where
         Self: 'this;
 
-    type FramesIter<'this> = SequentialFramesIter<'this, T>
+    type IterFrames<'this> = SequentialFramesIter<'this, T>
     where
         Self: 'this;
 
@@ -794,7 +794,7 @@ where
     }
 
     #[inline]
-    fn iter_frames(&self) -> Self::FramesIter<'_> {
+    fn iter_frames(&self) -> Self::IterFrames<'_> {
         SequentialFramesIter::new(0, self.as_raw())
     }
 }
@@ -808,12 +808,12 @@ where
         true
     }
 
-    fn resize(&mut self, frames: usize) {
-        Self::resize(self, frames);
+    fn resize_frames(&mut self, frames: usize) {
+        Self::resize_frames(self, frames);
     }
 
     fn resize_topology(&mut self, channels: usize, frames: usize) {
-        Self::resize(self, frames);
+        Self::resize_frames(self, frames);
         Self::resize_channels(self, channels);
     }
 }
@@ -826,11 +826,11 @@ where
     where
         Self: 'this;
 
-    type IterMut<'this> = IterMut<'this, T>
+    type IterChannelsMut<'this> = IterChannelsMut<'this, T>
     where
         Self: 'this;
 
-    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+    fn get_channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
         (*self).get_mut(channel)
     }
 
@@ -848,8 +848,8 @@ where
         }
     }
 
-    fn iter_mut(&mut self) -> Self::IterMut<'_> {
-        (*self).iter_mut()
+    fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
+        (*self).iter_channels_mut()
     }
 
     #[inline]

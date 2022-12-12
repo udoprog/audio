@@ -72,7 +72,8 @@ impl<B> Read<B> {
     /// assert!(!buf.has_remaining());
     /// assert_eq!(buf.remaining(), 0);
     /// ```
-    pub fn empty(buf: B) -> Self {
+    #[inline]
+    pub const fn empty(buf: B) -> Self {
         Self { buf, available: 0 }
     }
 
@@ -178,9 +179,10 @@ where
     B: Buf,
 {
     /// Construct an iterator over all available channels.
+    #[inline]
     pub fn iter(&self) -> Iter<B> {
         Iter {
-            iter: self.buf.iter(),
+            iter: self.buf.iter_channels(),
             available: self.available,
         }
     }
@@ -191,19 +193,22 @@ where
     B: BufMut,
 {
     /// Construct a mutable iterator over all available channels.
+    #[inline]
     pub fn iter_mut(&mut self) -> IterMut<B> {
         IterMut {
-            iter: self.buf.iter_mut(),
+            iter: self.buf.iter_channels_mut(),
             available: self.available,
         }
     }
 }
 
 impl<B> ReadBuf for Read<B> {
+    #[inline]
     fn remaining(&self) -> usize {
         self.available
     }
 
+    #[inline]
     fn advance(&mut self, n: usize) {
         self.available = self.available.saturating_sub(n);
     }
@@ -213,6 +218,7 @@ impl<B> ExactSizeBuf for Read<B>
 where
     B: ExactSizeBuf,
 {
+    #[inline]
     fn frames(&self) -> usize {
         self.buf.frames().saturating_sub(self.available)
     }
@@ -228,23 +234,27 @@ where
     where
         Self: 'this;
 
-    type Iter<'this> = Iter<'this, B>
+    type IterChannels<'this> = Iter<'this, B>
     where
         Self: 'this;
 
+    #[inline]
     fn frames_hint(&self) -> Option<usize> {
         self.buf.frames_hint()
     }
 
+    #[inline]
     fn channels(&self) -> usize {
         self.buf.channels()
     }
 
-    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        Some(self.buf.get(channel)?.tail(self.available))
+    #[inline]
+    fn get_channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(self.buf.get_channel(channel)?.tail(self.available))
     }
 
-    fn iter(&self) -> Self::Iter<'_> {
+    #[inline]
+    fn iter_channels(&self) -> Self::IterChannels<'_> {
         (*self).iter()
     }
 }
@@ -257,13 +267,13 @@ where
     where
         Self: 'a;
 
-    type IterMut<'a> = IterMut<'a, B>
+    type IterChannelsMut<'a> = IterMut<'a, B>
     where
         Self: 'a;
 
     #[inline]
-    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
-        Some(self.buf.get_mut(channel)?.tail(self.available))
+    fn get_channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.get_channel_mut(channel)?.tail(self.available))
     }
 
     #[inline]
@@ -275,7 +285,7 @@ where
     }
 
     #[inline]
-    fn iter_mut(&mut self) -> Self::IterMut<'_> {
+    fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
         (*self).iter_mut()
     }
 }

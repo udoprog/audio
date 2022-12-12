@@ -1,7 +1,7 @@
 //! A dynamically sized, multi-channel interleaved audio buffer.
 
 mod iter;
-pub use self::iter::{Iter, IterMut};
+pub use self::iter::{IterChannels, IterChannelsMut};
 
 #[cfg(feature = "std")]
 mod buf;

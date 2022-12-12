@@ -25,7 +25,7 @@ where
     where
         Self: 'this;
 
-    type Iter<'this> = Iter<B::Iter<'this>>
+    type IterChannels<'this> = IterChannels<B::IterChannels<'this>>
     where
         Self: 'this;
 
@@ -38,13 +38,13 @@ where
         self.buf.channels()
     }
 
-    fn get(&self, channel: usize) -> Option<Self::Channel<'_>> {
-        Some(self.buf.get(channel)?.limit(self.limit))
+    fn get_channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
+        Some(self.buf.get_channel(channel)?.limit(self.limit))
     }
 
-    fn iter(&self) -> Self::Iter<'_> {
-        Iter {
-            iter: self.buf.iter(),
+    fn iter_channels(&self) -> Self::IterChannels<'_> {
+        IterChannels {
+            iter: self.buf.iter_channels(),
             limit: self.limit,
         }
     }
@@ -58,12 +58,12 @@ where
     where
         Self: 'this;
 
-    type IterMut<'this> = IterMut<B::IterMut<'this>>
+    type IterChannelsMut<'this> = IterChannelsMut<B::IterChannelsMut<'this>>
     where
         Self: 'this;
 
-    fn get_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
-        Some(self.buf.get_mut(channel)?.limit(self.limit))
+    fn get_channel_mut(&mut self, channel: usize) -> Option<Self::ChannelMut<'_>> {
+        Some(self.buf.get_channel_mut(channel)?.limit(self.limit))
     }
 
     fn copy_channel(&mut self, from: usize, to: usize)
@@ -73,9 +73,9 @@ where
         self.buf.copy_channel(from, to);
     }
 
-    fn iter_mut(&mut self) -> Self::IterMut<'_> {
-        IterMut {
-            iter: self.buf.iter_mut(),
+    fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
+        IterChannelsMut {
+            iter: self.buf.iter_channels_mut(),
             limit: self.limit,
         }
     }

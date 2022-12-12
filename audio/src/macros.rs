@@ -135,8 +135,8 @@ macro_rules! sequential {
 ///
 /// let mut expected = vec![0; 64];
 ///
-/// assert!(buf.get(0).unwrap().iter().eq(expected.iter().copied()));
-/// assert!(buf.get(1).unwrap().iter().eq(expected.iter().copied()));
+/// assert!(buf.get_channel(0).unwrap().iter().eq(expected.iter().copied()));
+/// assert!(buf.get_channel(1).unwrap().iter().eq(expected.iter().copied()));
 /// ```
 ///
 /// Calling the macro with a template channel.

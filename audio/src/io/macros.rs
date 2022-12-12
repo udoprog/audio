@@ -8,7 +8,7 @@ macro_rules! iter {
         where
             B: 'a + Buf,
         {
-            iter: B::Iter<'a>,
+            iter: B::IterChannels<'a>,
             $($field: $field_ty,)*
         }
 
@@ -18,6 +18,7 @@ macro_rules! iter {
         {
             type Item = B::Channel<'a>;
 
+            #[inline]
             fn next(&mut $self) -> Option<Self::Item> {
                 let channel = $self.iter.next()?;
                 Some(channel $(. $fn ($($self . $arg),*))*)
@@ -36,7 +37,7 @@ macro_rules! iter_mut {
         where
             B: 'a + BufMut,
         {
-            iter: B::IterMut<'a>,
+            iter: B::IterChannelsMut<'a>,
             $($field: $field_ty,)*
         }
 
@@ -46,6 +47,7 @@ macro_rules! iter_mut {
         {
             type Item = B::ChannelMut<'a>;
 
+            #[inline]
             fn next(&mut $self) -> Option<Self::Item> {
                 let channel = $self.iter.next()?;
                 Some(channel $(. $fn ($($self . $arg),*))*)

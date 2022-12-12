@@ -34,8 +34,10 @@ slice_comparisons!({'a, T}, InterleavedChannelMut<'a, T>, [T]);
 slice_comparisons!({'a, T}, InterleavedChannelMut<'a, T>, &[T]);
 slice_comparisons!(#[cfg(feature = "std")] {'a, T}, InterleavedChannelMut<'a, T>, Vec<T>);
 
-/// Read-only access to a single channel of audio within an interleaved, multichannel audio buffer.
-/// This struct does not own the audio data; it provides an API for accessing data owned by something else.
+/// Read-only access to a single channel of audio within an interleaved,
+/// multichannel audio buffer. This struct does not own the audio data; it
+/// provides an API for accessing data owned by something else.
+///
 /// See also [crate::buf::Interleaved].
 pub struct InterleavedChannel<'a, T> {
     /// The base pointer of the buffer.
@@ -92,8 +94,10 @@ impl<'a, T> InterleavedChannel<'a, T> {
     }
 }
 
-/// Read-write access to a single channel of audio within an interleaved, multichannel audio buffer.
-/// This struct does not own the audio data; it provides an API for accessing data owned by something else.
+/// Read-write access to a single channel of audio within an interleaved,
+/// multichannel audio buffer. This struct does not own the audio data; it
+/// provides an API for accessing data owned by something else.
+///
 /// See also [crate::buf::Interleaved].
 pub struct InterleavedChannelMut<'a, T> {
     /// The base pointer of the buffer.
