@@ -57,9 +57,7 @@
 //! ```
 //!
 //! We also support [wrapping][wrap] external buffers so that they can
-//! interoperate like other audio buffers. Library authors using the [Buf]/[BufMut]
-//! traits as generic inputs to functions should re-export the [wrap] module so
-//! users of the library are not required to use this crate's buffer structs.
+//! interoperate like other audio buffers.
 //!
 //! <br>
 //!
