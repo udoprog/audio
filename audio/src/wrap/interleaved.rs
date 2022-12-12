@@ -87,7 +87,9 @@ where
     /// Construct an iterator over the interleaved wrapper.
     #[inline]
     pub fn iter_mut(&mut self) -> IterChannelsMut<'_, T::Item> {
-        unsafe { IterChannelsMut::new_unchecked(self.value.as_mut_ptr(), self.value.len(), self.channels) }
+        unsafe {
+            IterChannelsMut::new_unchecked(self.value.as_mut_ptr(), self.value.len(), self.channels)
+        }
     }
 }
 

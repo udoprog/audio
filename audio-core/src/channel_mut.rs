@@ -1,6 +1,7 @@
 use crate::Channel;
 
-/// One channel of audio samples, usually one of several channels in a multichannel buffer
+/// One channel of audio samples, usually one of several channels in a
+/// multichannel buffer
 ///
 /// This trait provides read and write access.
 ///

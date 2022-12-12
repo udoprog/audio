@@ -58,5 +58,8 @@ fn test_copy_channels_vec_of_vecs() {
     let mut buf = crate::wrap::dynamic(vec![vec![1, 2, 3, 4], vec![0, 0]]);
     buf.copy_channel(0, 1);
 
-    assert_eq!(buf.get_channel(1).unwrap(), buf.get_channel(0).unwrap().limit(2));
+    assert_eq!(
+        buf.get_channel(1).unwrap(),
+        buf.get_channel(0).unwrap().limit(2)
+    );
 }
