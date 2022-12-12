@@ -49,6 +49,7 @@ impl<B> Write<B> {
     /// assert!(buf.has_remaining_mut());
     /// assert_eq!(buf.remaining_mut(), 4);
     /// ```
+    #[inline]
     pub fn new(buf: B) -> Self
     where
         B: ExactSizeBuf,
@@ -76,7 +77,8 @@ impl<B> Write<B> {
     /// assert!(!buf.has_remaining_mut());
     /// assert_eq!(buf.remaining_mut(), 0);
     /// ```
-    pub fn empty(buf: B) -> Self {
+    #[inline]
+    pub const fn empty(buf: B) -> Self {
         Self { buf, available: 0 }
     }
 
@@ -94,6 +96,7 @@ impl<B> Write<B> {
     ///
     /// assert_eq!(buf.as_ref().channels(), 4);
     /// ```
+    #[inline]
     pub fn as_ref(&self) -> &B {
         &self.buf
     }
@@ -115,6 +118,7 @@ impl<B> Write<B> {
     ///
     /// assert_eq!(buf.channels(), 2);
     /// ```
+    #[inline]
     pub fn as_mut(&mut self) -> &mut B {
         &mut self.buf
     }
@@ -136,6 +140,7 @@ impl<B> Write<B> {
     ///
     /// assert_eq!(buf.channels(), 4);
     /// ```
+    #[inline]
     pub fn into_inner(self) -> B {
         self.buf
     }
@@ -180,6 +185,7 @@ where
     B: Buf,
 {
     /// Construct an iterator over all available channels.
+    #[inline]
     pub fn iter(&self) -> Iter<B> {
         Iter {
             iter: self.buf.iter_channels(),
@@ -193,6 +199,7 @@ where
     B: BufMut,
 {
     /// Construct a mutable iterator over all available channels.
+    #[inline]
     pub fn iter_mut(&mut self) -> IterMut<B> {
         IterMut {
             iter: self.buf.iter_channels_mut(),
@@ -218,6 +225,7 @@ impl<B> ExactSizeBuf for Write<B>
 where
     B: ExactSizeBuf,
 {
+    #[inline]
     fn frames(&self) -> usize {
         self.buf.frames()
     }
@@ -237,18 +245,22 @@ where
     where
         Self: 'this;
 
+    #[inline]
     fn frames_hint(&self) -> Option<usize> {
         self.buf.frames_hint()
     }
 
+    #[inline]
     fn channels(&self) -> usize {
         self.buf.channels()
     }
 
+    #[inline]
     fn get_channel(&self, channel: usize) -> Option<Self::Channel<'_>> {
         Some(self.buf.get_channel(channel)?.tail(self.available))
     }
 
+    #[inline]
     fn iter_channels(&self) -> Self::IterChannels<'_> {
         (*self).iter()
     }

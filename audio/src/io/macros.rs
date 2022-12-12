@@ -18,6 +18,7 @@ macro_rules! iter {
         {
             type Item = B::Channel<'a>;
 
+            #[inline]
             fn next(&mut $self) -> Option<Self::Item> {
                 let channel = $self.iter.next()?;
                 Some(channel $(. $fn ($($self . $arg),*))*)
@@ -46,6 +47,7 @@ macro_rules! iter_mut {
         {
             type Item = B::ChannelMut<'a>;
 
+            #[inline]
             fn next(&mut $self) -> Option<Self::Item> {
                 let channel = $self.iter.next()?;
                 Some(channel $(. $fn ($($self . $arg),*))*)

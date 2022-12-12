@@ -201,6 +201,7 @@ where
         }
     }
 
+    #[inline]
     fn iter_channels_mut(&mut self) -> Self::IterChannelsMut<'_> {
         (*self).iter_mut()
     }
