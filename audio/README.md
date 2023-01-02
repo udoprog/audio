@@ -3,15 +3,15 @@
 [<img alt="github" src="https://img.shields.io/badge/github-udoprog/audio-8da0cb?style=for-the-badge&logo=github" height="20">](https://github.com/udoprog/audio)
 [<img alt="crates.io" src="https://img.shields.io/crates/v/audio.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/audio)
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-audio-66c2a5?style=for-the-badge&logoColor=white&logo=data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDUxMiA1MTIiPjxwYXRoIGZpbGw9IiNmNWY1ZjUiIGQ9Ik00ODguNiAyNTAuMkwzOTIgMjE0VjEwNS41YzAtMTUtOS4zLTI4LjQtMjMuNC0zMy43bC0xMDAtMzcuNWMtOC4xLTMuMS0xNy4xLTMuMS0yNS4zIDBsLTEwMCAzNy41Yy0xNC4xIDUuMy0yMy40IDE4LjctMjMuNCAzMy43VjIxNGwtOTYuNiAzNi4yQzkuMyAyNTUuNSAwIDI2OC45IDAgMjgzLjlWMzk0YzAgMTMuNiA3LjcgMjYuMSAxOS45IDMyLjJsMTAwIDUwYzEwLjEgNS4xIDIyLjEgNS4xIDMyLjIgMGwxMDMuOS01MiAxMDMuOSA1MmMxMC4xIDUuMSAyMi4xIDUuMSAzMi4yIDBsMTAwLTUwYzEyLjItNi4xIDE5LjktMTguNiAxOS45LTMyLjJWMjgzLjljMC0xNS05LjMtMjguNC0yMy40LTMzLjd6TTM1OCAyMTQuOGwtODUgMzEuOXYtNjguMmw4NS0zN3Y3My4zek0xNTQgMTA0LjFsMTAyLTM4LjIgMTAyIDM4LjJ2LjZsLTEwMiA0MS40LTEwMi00MS40di0uNnptODQgMjkxLjFsLTg1IDQyLjV2LTc5LjFsODUtMzguOHY3NS40em0wLTExMmwtMTAyIDQxLjQtMTAyLTQxLjR2LS42bDEwMi0zOC4yIDEwMiAzOC4ydi42em0yNDAgMTEybC04NSA0Mi41di03OS4xbDg1LTM4Ljh2NzUuNHptMC0xMTJsLTEwMiA0MS40LTEwMi00MS40di0uNmwxMDItMzguMiAxMDIgMzguMnYuNnoiPjwvcGF0aD48L3N2Zz4K" height="20">](https://docs.rs/audio)
-[<img alt="build status" src="https://img.shields.io/github/workflow/status/udoprog/audio/CI/main?style=for-the-badge" height="20">](https://github.com/udoprog/audio/actions?query=branch%3Amain)
+[<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/udoprog/audio/ci.yml?branch=main&style=for-the-badge" height="20">](https://github.com/udoprog/audio/actions?query=branch%3Amain)
 
 A crate for working with audio in Rust.
 
 This is made up of several parts, each can be used independently of each
 other:
 
-* [audio-core] - The core crate, which defines traits that allows for safely
-  interacting with audio buffers.
+* [audio-core] - The core crate, which defines traits that allows for
+  interacting with audio buffers independent of their layout in memory.
 * [audio] - This crate, which provides a collection of high-quality audio
   buffers which implements the traits provided in [audio-core].
 * [audio-device] - A crate for interacting with audio devices in idiomatic
@@ -19,32 +19,32 @@ other:
 * [audio-generator] - A crate for generating audio.
 
 Audio buffers provided by this crate have zero or more channels that can be
-iterated over. A channel is simply a sequence of samples. This can be stored
-using different topologies as appropriate which will be detailed in the next
-section.
+iterated over. A channel is simply a sequence of samples. The samples within
+each channel at one moment in time are a frame. A buffer can store channels
+in various ways in memory, as detailed in the next section.
 
 <br>
 
-## Formats and topologies
+## Buffers
 
-The following are the three canonical audio formats which are supported by
-this crate. All of the examples represent how the two channels `[1, 2, 3,
-4]` and `[5, 6, 7, 8]` are stored:
+This crate provides several structs for storing buffers of multichannel
+audio. The examples represent how the two channels `[1, 2, 3, 4]` and `[5,
+6, 7, 8]` are stored in memory:
 
-* [dynamic][Dynamic] - where each channel is stored in its own
-  heap-allocated buffer. Each channel is stored sequentially in their own
-  allocations. So `[1, 2, 3, 4]` and `[5, 6, 7, 8]`. Having separate
-  allocations for each channel can be useful if the topologies of the
-  buffers keep frequently changing since changing the number of channels
-  does not require any re-allocation of existing ones.
-* [interleaved][Interleaved] - where each channel is interleaved into one
-  buffer. So `[1, 5, 2, 6, 3, 7, 4, 8]`.
-* [sequential][Sequential] - where each channel is stored in a linear
-  buffer, one after another. So `[1, 2, 3, 4, 5, 6, 7, 8]`.
+* [Dynamic]: each channel is stored in its own heap allocation. So `[1, 2,
+  3, 4]` and `[5, 6, 7, 8]`. This may be more performant when resizing
+  freqently. Generally prefer one of the other buffer types for better CPU
+  cache locality.
+* [Interleaved]: samples of each channel are interleaved in one heap
+  allocation. So `[1, 5, 2, 6, 3, 7, 4, 8]`.
+* [Sequential]: each channel is stored one after the other in one heap
+  allocation. So `[1, 2, 3, 4, 5, 6, 7, 8]`.
 
 These all implement the [Buf] and [BufMut] traits, allowing library authors
 to abstract over any one specific format. The exact channel and frame count
-of a buffer is known as its *topology*.
+of a buffer is known as its *topology*. The following example allocates
+buffers with 4 frames and 2 channels. The buffers are arranged in memory
+differently, but data is copied into them using the same API.
 
 ```rust
 use audio::{BufMut, ChannelMut};
@@ -83,7 +83,7 @@ use rand::Rng;
 let mut buf = audio::buf::Dynamic::<f32>::new();
 
 buf.resize_channels(2);
-buf.resize(2048);
+buf.resize_frames(2048);
 
 /// Fill both channels with random noise.
 let mut rng = rand::thread_rng();
