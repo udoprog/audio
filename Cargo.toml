@@ -23,6 +23,19 @@ default-members = [
     "ste",
 ]
 
+[workspace.package]
+version = "0.2.0-alpha.4"
+authors = ["John-John Tedro <udoprog@tedro.se>"]
+# Generic associated types were stabilized in 1.65.
+rust-version = "1.65"
+edition = "2021"
+documentation = "https://docs.rs/audio"
+homepage = "https://github.com/udoprog/audio"
+repository = "https://github.com/udoprog/audio"
+license = "MIT/Apache-2.0"
+keywords = ["audio", "buffer", "dsp"]
+categories = ["multimedia::audio"]
+
 [patch.'https://github.com/udoprog/audio']
 audio = { path = "audio" }
 audio-core = { path = "audio-core" }

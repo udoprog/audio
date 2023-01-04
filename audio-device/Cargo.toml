@@ -1,16 +1,16 @@
 [package]
 name = "audio-device"
-version = "0.1.0-alpha.6"
-authors = ["John-John Tedro <udoprog@tedro.se>"]
-edition = "2018"
 description = "A library for interacting with audio devices"
-documentation = "https://docs.rs/audio"
-readme = "README.md"
-homepage = "https://github.com/udoprog/audio"
-repository = "https://github.com/udoprog/audio"
-license = "MIT/Apache-2.0"
-keywords = ["audio", "buffer", "dsp"]
-categories = ["multimedia::audio"]
+version.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 autoexamples = false
 
@@ -42,21 +42,21 @@ wasapi = [
 
 [dependencies]
 tracing = "0.1.36"
-audio-core = { version = "0.2.0-alpha.4", path = "../audio-core" }
+audio-core = { path = "../audio-core" }
 thiserror = "1.0.31"
 rand = "0.8.5"
-ste = { version = "0.1.0-alpha.9", path = "../ste" }
+ste = { path = "../ste" }
 
-pulse-sys = { package = "audio-device-pulse-sys", version = "0.1.0-alpha.1", path = "../audio-device-pulse-sys", optional = true }
-pipewire-sys = { package = "audio-device-pipewire-sys", version = "0.1.0-alpha.1", path = "../audio-device-pipewire-sys", optional = true }
+pulse-sys = { package = "audio-device-pulse-sys", path = "../audio-device-pulse-sys", optional = true }
+pipewire-sys = { package = "audio-device-pipewire-sys", path = "../audio-device-pipewire-sys", optional = true }
 
 # unix
-alsa-sys = { package = "audio-device-alsa-sys", version = "0.1.0-alpha.1", path = "../audio-device-alsa-sys", optional = true }
+alsa-sys = { package = "audio-device-alsa-sys", path = "../audio-device-alsa-sys", optional = true }
 libc = { version = "0.2.125", optional = true }
 
 [dev-dependencies]
-audio = { version = "0.2.0-alpha.4", path = "../audio" }
-audio-generator = { version = "0.1.0-alpha.2", path = "../audio-generator" }
+audio = { path = "../audio" }
+audio-generator = { path = "../audio-generator" }
 anyhow = "1.0.57"
 tokio = { version = "1.18.1", features = ["full"] }
 tracing-subscriber = { version = "0.3.3", features = ["env-filter"] }
