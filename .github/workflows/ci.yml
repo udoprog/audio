@@ -37,7 +37,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
-    - run: cargo test --all-targets -F wasapi -p audio-device
+    - run: cargo test --workspace --all-targets -F wasapi -p audio-device
 
   build-alsa:
     runs-on: ubuntu-latest
@@ -46,7 +46,7 @@ jobs:
     - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
     - run: sudo apt install libasound2-dev
-    - run: cargo test --all-targets -p audio-device -F alsa
+    - run: cargo test --workspace --all-targets -p audio-device -F alsa
 
   build-pulse:
     runs-on: ubuntu-latest
@@ -55,7 +55,7 @@ jobs:
     - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
     - run: sudo apt install libpulse-dev
-    - run: cargo test --all-targets -p audio-device -F pulse
+    - run: cargo test --workspace --all-targets -p audio-device -F pulse
 
   documentation:
     runs-on: ubuntu-latest
