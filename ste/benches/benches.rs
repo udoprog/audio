@@ -1,68 +1,70 @@
-#![feature(test)]
+use criterion::{criterion_group, criterion_main, Criterion};
 
-extern crate test;
+fn test_on_ste(b: &mut Criterion) {
+    b.bench_function("test_on_ste", |b| {
+        b.iter(|| {
+            let thread = ste::spawn();
+            let mut result = 0;
 
-use test::Bencher;
+            for n in 0..100 {
+                result += thread.submit(move || n);
+            }
 
-#[bench]
-fn test_on_ste(b: &mut Bencher) {
-    b.iter(|| {
-        let thread = ste::spawn().unwrap();
-        let mut result = 0;
-
-        for n in 0..100 {
-            result += thread.submit(move || n).unwrap();
-        }
-
-        assert!(thread.join().is_ok());
-        result
+            thread.join();
+            result
+        });
     });
 }
 
-#[bench]
-fn count_to_1000_ste(b: &mut Bencher) {
-    b.iter(|| {
-        let thread = ste::spawn().unwrap();
-        let mut total = 0u32;
+fn count_to_1000_ste(b: &mut Criterion) {
+    b.bench_function("test_on_ste", |b| {
+        b.iter(|| {
+            let thread = ste::spawn();
+            let mut total = 0u32;
 
-        for n in 0..1000u32 {
-            total += thread.submit(move || n + 1).unwrap();
-        }
+            for n in 0..1000u32 {
+                total += thread.submit(move || n + 1);
+            }
 
-        thread.join().unwrap();
-        assert_eq!(total, 500500);
-        total
+            thread.join();
+            assert_eq!(total, 500500);
+            total
+        });
     });
 }
 
-#[bench]
-fn count_to_1000_mpsc(b: &mut Bencher) {
+fn count_to_1000_mpsc(b: &mut Criterion) {
     use std::sync::mpsc;
     use std::thread;
 
-    b.iter(|| {
-        let mut total = 0u32;
+    b.bench_function("count_to_1000_mpsc", |b| {
+        b.iter(|| {
+            let mut total = 0u32;
 
-        let t = {
-            let (tx, rx) = mpsc::sync_channel(0);
-            let (out_tx, out_rx) = mpsc::sync_channel(0);
+            let t = {
+                let (tx, rx) = mpsc::sync_channel(0);
+                let (out_tx, out_rx) = mpsc::sync_channel(0);
 
-            let t = thread::spawn(move || {
-                while let Ok(task) = rx.recv() {
-                    out_tx.send(task + 1).unwrap();
+                let t = thread::spawn(move || {
+                    while let Ok(task) = rx.recv() {
+                        out_tx.send(task + 1).unwrap();
+                    }
+                });
+
+                for n in 0..1000u32 {
+                    tx.send(n).unwrap();
+                    total += out_rx.recv().unwrap();
                 }
-            });
 
-            for n in 0..1000u32 {
-                tx.send(n).unwrap();
-                total += out_rx.recv().unwrap();
-            }
+                t
+            };
 
-            t
-        };
-
-        t.join().unwrap();
-        assert_eq!(total, 500500);
-        total
+            t.join().unwrap();
+            assert_eq!(total, 500500);
+            total
+        });
     });
 }
+
+criterion_group!(benches, test_on_ste, count_to_1000_ste, count_to_1000_mpsc);
+criterion_main!(benches);

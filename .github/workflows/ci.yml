@@ -7,54 +7,78 @@ on:
       - main
 
 jobs:
-  build:
+  msrv:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - run: rustup toolchain install stable --profile minimal
+    - uses: dtolnay/rust-toolchain@1.68
     - uses: Swatinem/rust-cache@v2
-    - run: cargo test --all-features -p audio -p audio-core -p audio-generator -p ste
+    - run: cargo test --all-features --all-targets -p audio -p audio-core -p audio-generator -p ste
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+    - run: cargo test --all-features --all-targets -p audio -p audio-core -p audio-generator -p ste
 
   build-no-std:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - run: rustup toolchain install stable --profile minimal
+    - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
-    - run: cargo test --no-default-features -p audio -p audio-core
+    - run: cargo test --no-default-features --all-targets -p audio -p audio-core
 
   build-wasapi:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
-    - run: rustup toolchain install stable --profile minimal
+    - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
-    - run: cargo test -F wasapi -p audio-device
+    - run: cargo test --all-targets -F wasapi -p audio-device
 
   build-alsa:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - run: rustup toolchain install stable --profile minimal
+    - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
-    - name: install libasound2-dev
-      run: sudo apt install libasound2-dev
-    - run: cargo test -p audio-device -F alsa
+    - run: sudo apt install libasound2-dev
+    - run: cargo test --all-targets -p audio-device -F alsa
 
   build-pulse:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - run: rustup toolchain install stable --profile minimal
+    - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
-    - name: install libpulse-dev
-      run: sudo apt install libpulse-dev
-    - run: cargo test -p audio-device -F pulse
+    - run: sudo apt install libpulse-dev
+    - run: cargo test --all-targets -p audio-device -F pulse
 
   documentation:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - run: rustup toolchain install stable --profile minimal
+    - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
     - run: cargo doc
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@1.68
+      with:
+        components: clippy
+    - run: cargo clippy --all-targets -p audio -p audio-core -p audio-generator -p ste -- -D warnings
+
+  rustfmt:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt
+    - run: cargo fmt --all --check

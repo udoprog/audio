@@ -3,6 +3,8 @@
 //! This is used in for example [LinearChannel][crate::channel::LinearChannel] to allow
 //! it to abstract over its content.
 
+#![allow(clippy::len_without_is_empty)]
+
 use core::ptr;
 
 /// Describes how a buffer can be indexed.
@@ -11,12 +13,15 @@ where
     Self: Sized,
 {
     /// Get a range out of the given slice.
+    #[doc(hidden)]
     fn index_from(self, index: usize) -> Self;
 
     /// Index to the given index.
+    #[doc(hidden)]
     fn index_to(self, index: usize) -> Self;
 
     /// Index to the given index.
+    #[doc(hidden)]
     fn index_full(self, from: usize, to: usize) -> Self;
 }
 
@@ -29,12 +34,15 @@ where
     type Item: Copy;
 
     /// Get the length of the slice.
+    #[doc(hidden)]
     fn len(&self) -> usize;
 
     /// Helper to reborrow the items of self.
+    #[doc(hidden)]
     fn as_ref(&self) -> &[Self::Item];
 
     /// Get the pointer to the first element.
+    #[doc(hidden)]
     fn as_ptr(&self) -> ptr::NonNull<Self::Item>;
 }
 
@@ -54,14 +62,17 @@ impl<T> SliceIndex for &[T]
 where
     T: Copy,
 {
+    #[inline]
     fn index_from(self, index: usize) -> Self {
         self.get(index..).unwrap_or_default()
     }
 
+    #[inline]
     fn index_to(self, index: usize) -> Self {
         self.get(..index).unwrap_or_default()
     }
 
+    #[inline]
     fn index_full(self, from: usize, to: usize) -> Self {
         self.get(from..to).unwrap_or_default()
     }
@@ -73,16 +84,19 @@ where
 {
     type Item = T;
 
+    #[inline]
     fn len(&self) -> usize {
         <[T]>::len(self)
     }
 
+    #[inline]
     fn as_ref(&self) -> &[Self::Item] {
-        *self
+        self
     }
 
+    #[inline]
     fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(*self) as *mut _) }
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(&self[..]) as *mut _) }
     }
 }
 
@@ -92,14 +106,17 @@ where
 {
     type Item = T;
 
+    #[inline]
     fn len(&self) -> usize {
         N
     }
 
+    #[inline]
     fn as_ref(&self) -> &[Self::Item] {
         &self[..]
     }
 
+    #[inline]
     fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
         unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(self) as *mut _) }
     }
@@ -111,16 +128,19 @@ where
 {
     type Item = T;
 
+    #[inline]
     fn len(&self) -> usize {
         N
     }
 
+    #[inline]
     fn as_ref(&self) -> &[Self::Item] {
         &self[..]
     }
 
+    #[inline]
     fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(*self) as *mut _) }
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(&self[..]) as *mut _) }
     }
 }
 
@@ -128,14 +148,17 @@ impl<T> SliceIndex for &mut [T]
 where
     T: Copy,
 {
+    #[inline]
     fn index_from(self, index: usize) -> Self {
         self.get_mut(index..).unwrap_or_default()
     }
 
+    #[inline]
     fn index_to(self, index: usize) -> Self {
         self.get_mut(..index).unwrap_or_default()
     }
 
+    #[inline]
     fn index_full(self, from: usize, to: usize) -> Self {
         self.get_mut(from..to).unwrap_or_default()
     }
@@ -147,16 +170,19 @@ where
 {
     type Item = T;
 
+    #[inline]
     fn len(&self) -> usize {
         <[T]>::len(self)
     }
 
+    #[inline]
     fn as_ref(&self) -> &[Self::Item] {
-        *self
+        &self[..]
     }
 
+    #[inline]
     fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(*self) as *mut _) }
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(&self[..]) as *mut _) }
     }
 }
 
@@ -166,16 +192,19 @@ where
 {
     type Item = T;
 
+    #[inline]
     fn len(&self) -> usize {
         N
     }
 
+    #[inline]
     fn as_ref(&self) -> &[Self::Item] {
-        *self
+        &self[..]
     }
 
+    #[inline]
     fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(*self) as *mut _) }
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(&self[..]) as *mut _) }
     }
 }
 
@@ -183,10 +212,12 @@ impl<T> SliceMut for &mut [T]
 where
     T: Copy,
 {
+    #[inline]
     fn as_mut(&mut self) -> &mut [Self::Item] {
         self
     }
 
+    #[inline]
     fn as_mut_ptr(&mut self) -> ptr::NonNull<Self::Item> {
         unsafe { ptr::NonNull::new_unchecked(<[T]>::as_mut_ptr(self)) }
     }
@@ -196,12 +227,14 @@ impl<T, const N: usize> SliceMut for [T; N]
 where
     T: Copy,
 {
+    #[inline]
     fn as_mut(&mut self) -> &mut [Self::Item] {
         self
     }
 
+    #[inline]
     fn as_mut_ptr(&mut self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_mut_ptr(self)) }
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_mut_ptr(&mut self[..])) }
     }
 }
 
@@ -209,11 +242,13 @@ impl<T, const N: usize> SliceMut for &mut [T; N]
 where
     T: Copy,
 {
+    #[inline]
     fn as_mut(&mut self) -> &mut [Self::Item] {
-        *self
+        &mut self[..]
     }
 
+    #[inline]
     fn as_mut_ptr(&mut self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_mut_ptr(*self)) }
+        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_mut_ptr(&mut self[..])) }
     }
 }

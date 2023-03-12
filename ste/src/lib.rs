@@ -646,3 +646,10 @@ impl Builder {
         })
     }
 }
+
+impl Default for Builder {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}

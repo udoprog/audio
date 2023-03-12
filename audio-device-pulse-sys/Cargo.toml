@@ -3,6 +3,7 @@ name = "audio-device-pulse-sys"
 version = "0.1.0-alpha.1"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
+rust-version = "1.68"
 description = "audio-device system bindings for PulseAudio"
 documentation = "https://docs.rs/audio"
 readme = "README.md"

@@ -256,3 +256,10 @@ impl<T> LinkedList<T> {
         Some(last)
     }
 }
+
+impl<T> Default for LinkedList<T> {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
