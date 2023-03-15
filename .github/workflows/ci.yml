@@ -23,7 +23,7 @@ jobs:
     - run: cargo test --no-default-features --all-targets -p audio -p audio-core -p audio-generator -p ste
     - run: cargo test --all-features --doc -p audio -p audio-core -p audio-generator -p ste
 
-  build-wasapi:
+  test-wasapi:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
@@ -32,7 +32,7 @@ jobs:
     - run: cargo test --all-targets -F wasapi -p audio-device
     - run: cargo test --doc -F wasapi -p audio-device
 
-  build-alsa:
+  test-alsa:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -42,7 +42,7 @@ jobs:
     - run: cargo test --all-targets -p audio-device -F alsa
     - run: cargo test --doc -p audio-device -F alsa
 
-  build-pulse:
+  test-pulse:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
