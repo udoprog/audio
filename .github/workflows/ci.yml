@@ -7,29 +7,22 @@ on:
       - main
 
 jobs:
-  msrv:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: dtolnay/rust-toolchain@1.68
-    - uses: Swatinem/rust-cache@v2
-    - run: cargo test --all-features --all-targets -p audio -p audio-core -p audio-generator -p ste
-
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rust: ["1.68", stable]
     steps:
     - uses: actions/checkout@v3
-    - uses: dtolnay/rust-toolchain@stable
+    - uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{matrix.rust}}
     - uses: Swatinem/rust-cache@v2
     - run: cargo test --all-features --all-targets -p audio -p audio-core -p audio-generator -p ste
-
-  build-no-std:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: dtolnay/rust-toolchain@stable
-    - uses: Swatinem/rust-cache@v2
-    - run: cargo test --no-default-features --all-targets -p audio -p audio-core
+    - run: cargo test --all-features --doc -p audio -p audio-core -p audio-generator -p ste
+    - run: cargo test --no-default-features --all-targets -p audio -p audio-core -p audio-generator -p ste
+    - run: cargo test --no-default-features --doc -p audio -p audio-core -p audio-generator -p ste
 
   build-wasapi:
     runs-on: windows-latest
@@ -37,8 +30,8 @@ jobs:
     - uses: actions/checkout@v3
     - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
-    - run: cargo test --workspace --all-targets -F wasapi -p audio-device
-    - run: cargo test --workspace --doc -F wasapi -p audio-device
+    - run: cargo test --all-targets -F wasapi -p audio-device
+    - run: cargo test --doc -F wasapi -p audio-device
 
   build-alsa:
     runs-on: ubuntu-latest
@@ -47,8 +40,8 @@ jobs:
     - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
     - run: sudo apt install libasound2-dev
-    - run: cargo test --workspace --all-targets -p audio-device -F alsa
-    - run: cargo test --workspace --doc -p audio-device -F alsa
+    - run: cargo test --all-targets -p audio-device -F alsa
+    - run: cargo test --doc -p audio-device -F alsa
 
   build-pulse:
     runs-on: ubuntu-latest
@@ -57,16 +50,8 @@ jobs:
     - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
     - run: sudo apt install libpulse-dev
-    - run: cargo test --workspace --all-targets -p audio-device -F pulse
-    - run: cargo test --workspace --doc -p audio-device -F pulse
-
-  documentation:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: dtolnay/rust-toolchain@stable
-    - uses: Swatinem/rust-cache@v2
-    - run: cargo doc
+    - run: cargo test --all-targets -p audio-device -F pulse
+    - run: cargo test --doc -p audio-device -F pulse
 
   clippy:
     runs-on: ubuntu-latest
@@ -85,3 +70,14 @@ jobs:
       with:
         components: rustfmt
     - run: cargo fmt --all --check
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+    - run: cargo doc -p audio -p audio-core
+      env:
+        RUSTFLAGS: --cfg docsrs
+        RUSTDOCFLAGS: --cfg docsrs
