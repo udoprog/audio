@@ -46,7 +46,7 @@ tracing = "0.1.36"
 audio-core = { version = "0.2.0-alpha.4", path = "../audio-core" }
 thiserror = "1.0.31"
 rand = "0.8.5"
-ste = { version = "0.1.0-alpha.9", path = "../ste" }
+ste = { version = "0.1.0-alpha.11", path = "../ste" }
 
 pulse-sys = { package = "audio-device-pulse-sys", version = "0.1.0-alpha.1", path = "../audio-device-pulse-sys", optional = true }
 pipewire-sys = { package = "audio-device-pipewire-sys", version = "0.1.0-alpha.1", path = "../audio-device-pipewire-sys", optional = true }
