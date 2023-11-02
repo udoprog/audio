@@ -1,7 +1,7 @@
 #[test]
 fn test_byte_array() {
-
-    let buf: crate::buf::Interleaved<[u8; 2]> = crate::interleaved![[[1, 2], [3, 4]], [[5, 6], [7, 8]]];
+    let buf: crate::buf::Interleaved<[u8; 2]> =
+        crate::interleaved![[[1, 2], [3, 4]], [[5, 6], [7, 8]]];
 
     assert_eq!(buf.channels(), 2);
     assert_eq!(buf.sample(0, 0).unwrap(), [1, 2]);

@@ -70,7 +70,6 @@ impl_int!(i128);
 impl_int!(usize);
 impl_int!(isize);
 
-
 // Helper macro to implement [Sample] for byte arrays.
 macro_rules! impl_bytes {
     ($bytes:expr) => {
