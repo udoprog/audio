@@ -69,3 +69,20 @@ impl_int!(i64);
 impl_int!(i128);
 impl_int!(usize);
 impl_int!(isize);
+
+
+// Helper macro to implement [Sample] for byte arrays.
+macro_rules! impl_bytes {
+    ($bytes:expr) => {
+        unsafe impl Sample for [u8; $bytes] {
+            const ZERO: Self = [0; $bytes];
+        }
+    };
+}
+
+// Implement for byte arrays of common lengths
+impl_bytes!(2);
+impl_bytes!(3);
+impl_bytes!(4);
+impl_bytes!(8);
+impl_bytes!(16);
