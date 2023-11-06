@@ -10,7 +10,7 @@
 ///
 /// Implementor must make sure that a bit-pattern of all-zeros is a legal
 /// bit-pattern for the implemented type.
-pub unsafe trait Sample: Copy + Default {
+pub unsafe trait Sample: Copy {
     /// The zero pattern for the sample.
     const ZERO: Self;
 }
@@ -69,3 +69,8 @@ impl_int!(i64);
 impl_int!(i128);
 impl_int!(usize);
 impl_int!(isize);
+
+// Implement for byte arrays of any length
+unsafe impl<const N: usize> Sample for [u8; N] {
+    const ZERO: Self = [0; N];
+}
