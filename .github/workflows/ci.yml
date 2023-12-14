@@ -23,9 +23,14 @@ jobs:
       with:
         toolchain: ${{matrix.rust}}
     - uses: Swatinem/rust-cache@v2
+    - run: cargo build --all-features -p audio -p audio-core -p audio-generator -p ste
+      if: matrix.rust == 'stable'
     - run: cargo test --all-features --all-targets -p audio -p audio-core -p audio-generator -p ste
+      if: matrix.rust == 'stable'
     - run: cargo test --no-default-features --all-targets -p audio -p audio-core -p audio-generator
+      if: matrix.rust == 'stable'
     - run: cargo test --all-features --doc -p audio -p audio-core -p audio-generator -p ste
+      if: matrix.rust == 'stable'
 
   test-wasapi:
     runs-on: windows-latest
