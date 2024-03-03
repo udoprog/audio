@@ -17,12 +17,7 @@ pub(crate) struct RawInterleaved<T> {
 impl<T> Clone for RawInterleaved<T> {
     #[inline]
     fn clone(&self) -> Self {
-        Self {
-            ptr: self.ptr,
-            len: self.len,
-            channels: self.channels,
-            frames: self.frames,
-        }
+        *self
     }
 }
 

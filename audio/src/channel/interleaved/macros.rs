@@ -130,8 +130,6 @@ macro_rules! iterator {
                 // non-null end pointer. The call to `next_unchecked!` is safe
                 // since we check if the iterator is empty first.
                 unsafe {
-                    assert!(!self.ptr.as_ptr().is_null());
-
                     if mem::size_of::<T>() != 0 {
                         assert!(!self.end.is_null());
                     }
@@ -191,8 +189,6 @@ macro_rules! iterator {
                 // The call to `next_back_unchecked!` is safe since we check if the iterator is
                 // empty first.
                 unsafe {
-                    assert!(!self.ptr.as_ptr().is_null());
-
                     if mem::size_of::<T>() != 0 {
                         assert!(!self.end.is_null());
                     }

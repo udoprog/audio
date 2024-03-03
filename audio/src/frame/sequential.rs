@@ -16,12 +16,7 @@ pub(crate) struct RawSequential<T> {
 impl<T> Clone for RawSequential<T> {
     #[inline]
     fn clone(&self) -> Self {
-        Self {
-            ptr: self.ptr,
-            len: self.len,
-            channels: self.channels,
-            frames: self.frames,
-        }
+        *self
     }
 }
 

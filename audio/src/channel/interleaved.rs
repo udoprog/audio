@@ -154,13 +154,13 @@ impl<'a, T> InterleavedChannelMut<'a, T> {
     }
 
     /// Get the given frame if it's in bound.
-    pub fn into_mut(self, frame: usize) -> Option<&'a mut T> {
+    pub fn into_mut(mut self, frame: usize) -> Option<&'a mut T> {
         if frame < len!(self) {
             if mem::size_of::<T>() == 0 {
-                Some(unsafe { &mut *(self.ptr.as_ptr() as *mut _) })
+                Some(unsafe { self.ptr.as_mut() })
             } else {
                 let add = frame.saturating_mul(self.step);
-                Some(unsafe { &mut *(self.ptr.as_ptr() as *mut T).add(add) })
+                Some(unsafe { &mut *self.ptr.as_ptr().add(add) })
             }
         } else {
             None
@@ -171,10 +171,10 @@ impl<'a, T> InterleavedChannelMut<'a, T> {
     pub fn get_mut(&mut self, n: usize) -> Option<&mut T> {
         if n < len!(self) {
             if mem::size_of::<T>() == 0 {
-                Some(unsafe { &mut *(self.ptr.as_ptr() as *mut _) })
+                Some(unsafe { self.ptr.as_mut() })
             } else {
                 let add = n.saturating_mul(self.step);
-                Some(unsafe { &mut *(self.ptr.as_ptr() as *mut T).add(add) })
+                Some(unsafe { &mut *self.ptr.as_ptr().add(add) })
             }
         } else {
             None
@@ -233,12 +233,7 @@ where
 
 impl<T> Clone for InterleavedChannel<'_, T> {
     fn clone(&self) -> Self {
-        Self {
-            ptr: self.ptr,
-            end: self.end,
-            step: self.step,
-            _marker: marker::PhantomData,
-        }
+        *self
     }
 }
 
@@ -355,7 +350,7 @@ unsafe fn align_iterable_mut<T>(
         (ptr, end)
     } else {
         let ptr = ptr.add(offset);
-        let end = ptr.wrapping_add(len) as *mut T;
+        let end = ptr.wrapping_add(len);
         (ptr, end)
     };
 
