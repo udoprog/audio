@@ -2,7 +2,7 @@ use std::cell::Cell;
 use std::fmt;
 
 thread_local! {
-    static THREAD_TAG: Cell<Tag> = Cell::new(Tag(0));
+    static THREAD_TAG: Cell<Tag> = const { Cell::new(Tag(0)) };
 }
 
 /// Run the given closure with the specified tag.
