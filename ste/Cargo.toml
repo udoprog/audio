@@ -3,7 +3,7 @@ name = "ste"
 version = "0.1.0-alpha.11"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2018"
-rust-version = "1.65"
+rust-version = "1.70"
 description = "A single-threaded executor with some tricks up its sleeve."
 documentation = "https://docs.rs/audio"
 readme = "README.md"
@@ -12,6 +12,9 @@ repository = "https://github.com/udoprog/audio"
 license = "MIT OR Apache-2.0"
 keywords = ["executor", "thread"]
 categories = ["concurrency"]
+
+[lints.rust]
+unexpected_cfgs = { level = "deny", check-cfg = ['cfg(loom)'] }
 
 [features]
 default = ["tokio"]
