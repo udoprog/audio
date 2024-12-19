@@ -215,7 +215,7 @@ where
     }
 }
 
-impl<'a, T> DoubleEndedIterator for IterChannels<'a, T>
+impl<T> DoubleEndedIterator for IterChannels<'_, T>
 where
     T: Copy,
 {
@@ -230,7 +230,7 @@ where
     }
 }
 
-impl<'a, T> ExactSizeIterator for IterChannels<'a, T>
+impl<T> ExactSizeIterator for IterChannels<'_, T>
 where
     T: Copy,
 {
@@ -262,7 +262,7 @@ where
     }
 }
 
-impl<'a, T> DoubleEndedIterator for IterChannelsMut<'a, T>
+impl<T> DoubleEndedIterator for IterChannelsMut<'_, T>
 where
     T: Copy,
 {
@@ -277,7 +277,7 @@ where
     }
 }
 
-impl<'a, T> ExactSizeIterator for IterChannelsMut<'a, T>
+impl<T> ExactSizeIterator for IterChannelsMut<'_, T>
 where
     T: Copy,
 {

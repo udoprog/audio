@@ -193,7 +193,7 @@ impl<'a, T> InterleavedChannelMut<'a, T> {
     }
 }
 
-impl<'a, T> ChannelMut for InterleavedChannelMut<'a, T>
+impl<T> ChannelMut for InterleavedChannelMut<'_, T>
 where
     T: Copy,
 {
@@ -251,7 +251,7 @@ pub struct Iter<'a, T> {
     _marker: marker::PhantomData<&'a [T]>,
 }
 
-impl<'a, T> Iter<'a, T> {
+impl<T> Iter<'_, T> {
     /// Construct a new aligned iterator.
     ///
     /// # Safety

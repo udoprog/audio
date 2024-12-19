@@ -20,7 +20,7 @@ impl<'a, T> Iter<'a, T> {
     }
 }
 
-impl<'a, T> Iterator for Iter<'a, T>
+impl<T> Iterator for Iter<'_, T>
 where
     T: Copy,
 {
@@ -52,7 +52,7 @@ where
     }
 }
 
-impl<'a, T> DoubleEndedIterator for Iter<'a, T>
+impl<T> DoubleEndedIterator for Iter<'_, T>
 where
     T: Copy,
 {
@@ -67,7 +67,7 @@ where
     }
 }
 
-impl<'a, T> ExactSizeIterator for Iter<'a, T>
+impl<T> ExactSizeIterator for Iter<'_, T>
 where
     T: Copy,
 {
@@ -134,7 +134,7 @@ impl<'a, T> Iterator for IterMut<'a, T> {
     }
 }
 
-impl<'a, T> DoubleEndedIterator for IterMut<'a, T> {
+impl<T> DoubleEndedIterator for IterMut<'_, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back()
@@ -146,7 +146,7 @@ impl<'a, T> DoubleEndedIterator for IterMut<'a, T> {
     }
 }
 
-impl<'a, T> ExactSizeIterator for IterMut<'a, T> {
+impl<T> ExactSizeIterator for IterMut<'_, T> {
     fn len(&self) -> usize {
         self.iter.len()
     }

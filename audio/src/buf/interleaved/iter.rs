@@ -12,7 +12,7 @@ pub struct IterChannels<'a, T> {
     _marker: marker::PhantomData<&'a [T]>,
 }
 
-impl<'a, T> IterChannels<'a, T> {
+impl<T> IterChannels<'_, T> {
     /// Construct a new unchecked iterator.
     ///
     /// # Safety
@@ -64,7 +64,7 @@ pub struct IterChannelsMut<'a, T> {
     _marker: marker::PhantomData<&'a mut [T]>,
 }
 
-impl<'a, T> IterChannelsMut<'a, T> {
+impl<T> IterChannelsMut<'_, T> {
     /// Construct a new unchecked iterator.
     ///
     /// # Safety

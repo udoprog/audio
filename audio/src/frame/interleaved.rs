@@ -111,7 +111,7 @@ pub struct InterleavedFrame<'a, T> {
     _marker: marker::PhantomData<&'a ()>,
 }
 
-impl<'a, T> InterleavedFrame<'a, T> {
+impl<T> InterleavedFrame<'_, T> {
     #[inline]
     pub(crate) fn new(frame: usize, raw: RawInterleaved<T>) -> Self {
         Self {
@@ -174,7 +174,7 @@ pub struct InterleavedFramesIter<'a, T> {
     _marker: marker::PhantomData<&'a [T]>,
 }
 
-impl<'a, T> InterleavedFramesIter<'a, T> {
+impl<T> InterleavedFramesIter<'_, T> {
     #[inline]
     pub(crate) fn new(frame: usize, raw: RawInterleaved<T>) -> Self {
         Self {

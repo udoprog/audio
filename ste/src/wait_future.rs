@@ -20,7 +20,7 @@ where
     pub(super) shared: &'a Shared,
 }
 
-impl<'a, F> Future for WaitFuture<'a, F>
+impl<F> Future for WaitFuture<'_, F>
 where
     F: Future,
 {

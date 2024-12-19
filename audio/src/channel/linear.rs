@@ -82,7 +82,7 @@ impl<'a, T> LinearChannel<'a, T> {
     }
 }
 
-impl<'a, T> Channel for LinearChannel<'a, T>
+impl<T> Channel for LinearChannel<'_, T>
 where
     T: Copy,
 {
@@ -257,7 +257,7 @@ where
     }
 }
 
-impl<'a, T> Channel for LinearChannelMut<'a, T>
+impl<T> Channel for LinearChannelMut<'_, T>
 where
     T: Copy,
 {
@@ -322,7 +322,7 @@ where
     }
 }
 
-impl<'a, T> ChannelMut for LinearChannelMut<'a, T>
+impl<T> ChannelMut for LinearChannelMut<'_, T>
 where
     T: Copy,
 {

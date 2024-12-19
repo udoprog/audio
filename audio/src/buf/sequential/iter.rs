@@ -54,7 +54,7 @@ impl<'a, T> Iterator for IterChannels<'a, T> {
     forward!(LinearChannel);
 }
 
-impl<'a, T> DoubleEndedIterator for IterChannels<'a, T> {
+impl<T> DoubleEndedIterator for IterChannels<'_, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         Some(LinearChannel::new(self.iter.next_back()?))
@@ -66,7 +66,7 @@ impl<'a, T> DoubleEndedIterator for IterChannels<'a, T> {
     }
 }
 
-impl<'a, T> ExactSizeIterator for IterChannels<'a, T> {
+impl<T> ExactSizeIterator for IterChannels<'_, T> {
     fn len(&self) -> usize {
         self.iter.len()
     }
@@ -94,7 +94,7 @@ impl<'a, T> Iterator for IterChannelsMut<'a, T> {
     forward!(LinearChannelMut);
 }
 
-impl<'a, T> DoubleEndedIterator for IterChannelsMut<'a, T> {
+impl<T> DoubleEndedIterator for IterChannelsMut<'_, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         Some(LinearChannelMut::new(self.iter.next_back()?))
@@ -106,7 +106,7 @@ impl<'a, T> DoubleEndedIterator for IterChannelsMut<'a, T> {
     }
 }
 
-impl<'a, T> ExactSizeIterator for IterChannelsMut<'a, T> {
+impl<T> ExactSizeIterator for IterChannelsMut<'_, T> {
     fn len(&self) -> usize {
         self.iter.len()
     }

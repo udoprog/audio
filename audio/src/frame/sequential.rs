@@ -109,7 +109,7 @@ pub struct SequentialFrame<'a, T> {
     _marker: marker::PhantomData<&'a ()>,
 }
 
-impl<'a, T> SequentialFrame<'a, T> {
+impl<T> SequentialFrame<'_, T> {
     #[inline]
     pub(crate) fn new(frame: usize, raw: RawSequential<T>) -> Self {
         Self {
@@ -120,7 +120,7 @@ impl<'a, T> SequentialFrame<'a, T> {
     }
 }
 
-impl<'a, T> Frame for SequentialFrame<'a, T>
+impl<T> Frame for SequentialFrame<'_, T>
 where
     T: Copy,
 {
