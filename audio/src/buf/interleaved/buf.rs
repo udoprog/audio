@@ -737,11 +737,13 @@ where
 {
     type Sample = T;
 
-    type Channel<'this> = InterleavedChannel<'this, Self::Sample>
+    type Channel<'this>
+        = InterleavedChannel<'this, Self::Sample>
     where
         Self::Sample: 'this;
 
-    type IterChannels<'this> = IterChannels<'this, Self::Sample>
+    type IterChannels<'this>
+        = IterChannels<'this, Self::Sample>
     where
         Self::Sample: 'this;
 
@@ -770,11 +772,13 @@ impl<T> UniformBuf for Interleaved<T>
 where
     T: Copy,
 {
-    type Frame<'this> = InterleavedFrame<'this, T>
+    type Frame<'this>
+        = InterleavedFrame<'this, T>
     where
         Self: 'this;
 
-    type IterFrames<'this> = InterleavedFramesIter<'this, T>
+    type IterFrames<'this>
+        = InterleavedFramesIter<'this, T>
     where
         Self: 'this;
 
@@ -818,11 +822,13 @@ impl<T> BufMut for Interleaved<T>
 where
     T: Copy,
 {
-    type ChannelMut<'this> = InterleavedChannelMut<'this, Self::Sample>
+    type ChannelMut<'this>
+        = InterleavedChannelMut<'this, Self::Sample>
     where
         Self::Sample: 'this;
 
-    type IterChannelsMut<'this> = IterChannelsMut<'this, Self::Sample>
+    type IterChannelsMut<'this>
+        = IterChannelsMut<'this, Self::Sample>
     where
         Self::Sample: 'this;
 

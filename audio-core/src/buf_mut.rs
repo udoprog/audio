@@ -114,11 +114,13 @@ impl<B> BufMut for &mut B
 where
     B: ?Sized + BufMut,
 {
-    type ChannelMut<'this> = B::ChannelMut<'this>
+    type ChannelMut<'this>
+        = B::ChannelMut<'this>
     where
         Self: 'this;
 
-    type IterChannelsMut<'this> = B::IterChannelsMut<'this>
+    type IterChannelsMut<'this>
+        = B::IterChannelsMut<'this>
     where
         Self: 'this;
 

@@ -126,11 +126,13 @@ where
 {
     type Sample = T;
 
-    type Frame<'this> = SequentialFrame<'this, T>
+    type Frame<'this>
+        = SequentialFrame<'this, T>
     where
         Self: 'this;
 
-    type Iter<'this> = Iter<'this, T>
+    type Iter<'this>
+        = Iter<'this, T>
     where
         Self: 'this;
 

@@ -290,11 +290,13 @@ where
 {
     type Sample = B::Sample;
 
-    type Channel<'a> = B::Channel<'a>
+    type Channel<'a>
+        = B::Channel<'a>
     where
         Self: 'a;
 
-    type IterChannels<'a> = B::IterChannels<'a>
+    type IterChannels<'a>
+        = B::IterChannels<'a>
     where
         Self: 'a;
 
@@ -325,11 +327,13 @@ where
 {
     type Sample = B::Sample;
 
-    type Channel<'this> = B::Channel<'this>
+    type Channel<'this>
+        = B::Channel<'this>
     where
         Self: 'this;
 
-    type IterChannels<'this> = B::IterChannels<'this>
+    type IterChannels<'this>
+        = B::IterChannels<'this>
     where
         Self: 'this;
 

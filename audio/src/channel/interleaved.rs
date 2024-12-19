@@ -197,11 +197,13 @@ impl<'a, T> ChannelMut for InterleavedChannelMut<'a, T>
 where
     T: Copy,
 {
-    type ChannelMut<'this> = InterleavedChannelMut<'this, Self::Sample>
+    type ChannelMut<'this>
+        = InterleavedChannelMut<'this, Self::Sample>
     where
         Self: 'this;
 
-    type IterMut<'this> = IterMut<'this, Self::Sample>
+    type IterMut<'this>
+        = IterMut<'this, Self::Sample>
     where
         Self: 'this;
 

@@ -230,11 +230,13 @@ where
 {
     type Sample = B::Sample;
 
-    type Channel<'this> = B::Channel<'this>
+    type Channel<'this>
+        = B::Channel<'this>
     where
         Self: 'this;
 
-    type IterChannels<'this> = Iter<'this, B>
+    type IterChannels<'this>
+        = Iter<'this, B>
     where
         Self: 'this;
 
@@ -263,11 +265,13 @@ impl<B> BufMut for Read<B>
 where
     B: ExactSizeBuf + BufMut,
 {
-    type ChannelMut<'a> = B::ChannelMut<'a>
+    type ChannelMut<'a>
+        = B::ChannelMut<'a>
     where
         Self: 'a;
 
-    type IterChannelsMut<'a> = IterMut<'a, B>
+    type IterChannelsMut<'a>
+        = IterMut<'a, B>
     where
         Self: 'a;
 

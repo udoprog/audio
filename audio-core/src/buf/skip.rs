@@ -37,11 +37,13 @@ where
 {
     type Sample = B::Sample;
 
-    type Channel<'this> = B::Channel<'this>
+    type Channel<'this>
+        = B::Channel<'this>
     where
         Self: 'this;
 
-    type IterChannels<'this> = IterChannels<B::IterChannels<'this>>
+    type IterChannels<'this>
+        = IterChannels<B::IterChannels<'this>>
     where
         Self: 'this;
 
@@ -70,11 +72,13 @@ impl<B> BufMut for Skip<B>
 where
     B: BufMut,
 {
-    type ChannelMut<'a> = B::ChannelMut<'a>
+    type ChannelMut<'a>
+        = B::ChannelMut<'a>
     where
         Self: 'a;
 
-    type IterChannelsMut<'a> = IterChannelsMut<B::IterChannelsMut<'a>>
+    type IterChannelsMut<'a>
+        = IterChannelsMut<B::IterChannelsMut<'a>>
     where
         Self: 'a;
 

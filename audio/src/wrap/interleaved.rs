@@ -99,11 +99,13 @@ where
 {
     type Sample = T::Item;
 
-    type Channel<'this> = InterleavedChannel<'this, Self::Sample>
+    type Channel<'this>
+        = InterleavedChannel<'this, Self::Sample>
     where
         Self: 'this;
 
-    type IterChannels<'this> = IterChannels<'this, Self::Sample>
+    type IterChannels<'this>
+        = IterChannels<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -132,11 +134,13 @@ impl<T> UniformBuf for Interleaved<T>
 where
     T: Slice,
 {
-    type Frame<'this> = InterleavedFrame<'this, T::Item>
+    type Frame<'this>
+        = InterleavedFrame<'this, T::Item>
     where
         Self: 'this;
 
-    type IterFrames<'this> = InterleavedFramesIter<'this, T::Item>
+    type IterFrames<'this>
+        = InterleavedFramesIter<'this, T::Item>
     where
         Self: 'this;
 
@@ -201,11 +205,13 @@ impl<T> BufMut for Interleaved<T>
 where
     T: SliceMut,
 {
-    type ChannelMut<'this> = InterleavedChannelMut<'this, T::Item>
+    type ChannelMut<'this>
+        = InterleavedChannelMut<'this, T::Item>
     where
         Self: 'this;
 
-    type IterChannelsMut<'this> = IterChannelsMut<'this, Self::Sample>
+    type IterChannelsMut<'this>
+        = IterChannelsMut<'this, Self::Sample>
     where
         Self: 'this;
 

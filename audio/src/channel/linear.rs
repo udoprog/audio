@@ -88,11 +88,13 @@ where
 {
     type Sample = T;
 
-    type Channel<'this> = LinearChannel<'this, Self::Sample>
+    type Channel<'this>
+        = LinearChannel<'this, Self::Sample>
     where
         Self: 'this;
 
-    type Iter<'this> = Iter<'this, Self::Sample>
+    type Iter<'this>
+        = Iter<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -261,11 +263,13 @@ where
 {
     type Sample = T;
 
-    type Channel<'this> = LinearChannel<'this, Self::Sample>
+    type Channel<'this>
+        = LinearChannel<'this, Self::Sample>
     where
         Self: 'this;
 
-    type Iter<'this> = Iter<'this, Self::Sample>
+    type Iter<'this>
+        = Iter<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -322,11 +326,13 @@ impl<'a, T> ChannelMut for LinearChannelMut<'a, T>
 where
     T: Copy,
 {
-    type ChannelMut<'this> = LinearChannelMut<'this, T>
+    type ChannelMut<'this>
+        = LinearChannelMut<'this, T>
     where
         Self: 'this;
 
-    type IterMut<'this> = IterMut<'this, T>
+    type IterMut<'this>
+        = IterMut<'this, T>
     where
         Self: 'this;
 

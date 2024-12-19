@@ -92,11 +92,13 @@ where
 {
     type Sample = T::Item;
 
-    type Channel<'this> = LinearChannel<'this, Self::Sample>
+    type Channel<'this>
+        = LinearChannel<'this, Self::Sample>
     where
         Self: 'this;
 
-    type IterChannels<'this> = IterChannels<'this, Self::Sample>
+    type IterChannels<'this>
+        = IterChannels<'this, Self::Sample>
     where
         Self: 'this;
 
@@ -130,11 +132,13 @@ impl<T> UniformBuf for Sequential<T>
 where
     T: Slice,
 {
-    type Frame<'this> = SequentialFrame<'this, T::Item>
+    type Frame<'this>
+        = SequentialFrame<'this, T::Item>
     where
         Self: 'this;
 
-    type IterFrames<'this> = SequentialFramesIter<'this, T::Item>
+    type IterFrames<'this>
+        = SequentialFramesIter<'this, T::Item>
     where
         Self: 'this;
 
@@ -167,11 +171,13 @@ impl<T> BufMut for Sequential<T>
 where
     T: SliceMut,
 {
-    type ChannelMut<'a> = LinearChannelMut<'a, Self::Sample>
+    type ChannelMut<'a>
+        = LinearChannelMut<'a, Self::Sample>
     where
         Self: 'a;
 
-    type IterChannelsMut<'a> = IterChannelsMut<'a, Self::Sample>
+    type IterChannelsMut<'a>
+        = IterChannelsMut<'a, Self::Sample>
     where
         Self: 'a;
 

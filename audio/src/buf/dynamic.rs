@@ -745,11 +745,13 @@ where
 {
     type Sample = T;
 
-    type Channel<'this> = LinearChannel<'this, Self::Sample>
+    type Channel<'this>
+        = LinearChannel<'this, Self::Sample>
     where
         Self::Sample: 'this;
 
-    type IterChannels<'this> = IterChannels<'this, T>
+    type IterChannels<'this>
+        = IterChannels<'this, T>
     where
         Self::Sample: 'this;
 
@@ -796,11 +798,13 @@ impl<T> BufMut for Dynamic<T>
 where
     T: Copy,
 {
-    type ChannelMut<'this> = LinearChannelMut<'this, Self::Sample>
+    type ChannelMut<'this>
+        = LinearChannelMut<'this, Self::Sample>
     where
         Self: 'this;
 
-    type IterChannelsMut<'this> = IterChannelsMut<'this, T>
+    type IterChannelsMut<'this>
+        = IterChannelsMut<'this, T>
     where
         Self: 'this;
 

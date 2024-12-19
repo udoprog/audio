@@ -128,11 +128,13 @@ where
 {
     type Sample = T;
 
-    type Frame<'this> = InterleavedFrame<'this, T>
+    type Frame<'this>
+        = InterleavedFrame<'this, T>
     where
         Self: 'this;
 
-    type Iter<'this> = Iter<'this, T>
+    type Iter<'this>
+        = Iter<'this, T>
     where
         Self: 'this;
 
