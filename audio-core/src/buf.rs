@@ -11,6 +11,9 @@ pub use self::skip::Skip;
 mod limit;
 pub use self::limit::Limit;
 
+mod range;
+pub use self::range::Range;
+
 mod tail;
 pub use self::tail::Tail;
 
@@ -281,6 +284,55 @@ pub trait Buf {
         Self: Sized,
     {
         Limit::new(self, limit)
+    }
+
+    /// Construct a new buffer limited to the specified range of frames of the
+    /// original buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use audio::Buf;
+    ///
+    /// let seq = audio::sequential![[1, 2, 3, 4]; 1];
+    /// let seq_unbounded = seq.range(..);
+    /// assert_eq!(seq_unbounded.get_channel(0).unwrap().as_ref(), [1, 2, 3, 4]);
+    /// let seq_limited = seq_unbounded.range(1..3);
+    /// assert_eq!(seq_limited.get_channel(0).unwrap().as_ref(), [2, 3]);
+    ///
+    /// let interleaved = audio::interleaved![[1, 2, 3, 4]; 1];
+    /// let interleaved_unbounded = interleaved.range(..);
+    /// assert_eq!(interleaved_unbounded.get_channel(0).unwrap().get(0).unwrap(), 1);
+    /// assert_eq!(interleaved_unbounded.get_channel(0).unwrap().get(1).unwrap(), 2);
+    /// assert_eq!(interleaved_unbounded.get_channel(0).unwrap().get(2).unwrap(), 3);
+    /// assert_eq!(interleaved_unbounded.get_channel(0).unwrap().get(3).unwrap(), 4);
+    /// let interleaved_limited = interleaved_unbounded.range(1..3);
+    /// assert_eq!(interleaved_limited.get_channel(0).unwrap().get(0).unwrap(), 2);
+    /// assert_eq!(interleaved_limited.get_channel(0).unwrap().get(1).unwrap(), 3);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the end is out of bounds or [frames_hint][Buf::frames_hint] returns [None].
+    ///
+    /// ```should_panic
+    /// use audio::Buf;
+    ///
+    /// let seq = audio::sequential![[1, 2, 3, 4]; 1];
+    /// let seq_range = seq.range(..5);
+    /// ```
+    ///
+    /// ```should_panic
+    /// use audio::Buf;
+    ///
+    /// let interleaved = audio::interleaved![[1, 2, 3, 4]; 1];
+    /// let interleaved_range = interleaved.range(..5);
+    /// ```
+    fn range(self, range: impl core::ops::RangeBounds<usize>) -> Range<Self>
+    where
+        Self: Sized,
+    {
+        Range::new(self, range)
     }
 }
 
