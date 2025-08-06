@@ -16,11 +16,11 @@ pub trait FrameMut: Frame {
         Self: 'this;
 
     /// Reborrow the current frame as a reference.
-    fn as_sample_mut(&self) -> Self::FrameMut<'_>;
+    fn as_sample_mut(&mut self) -> Self::FrameMut<'_>;
 
     /// Get the sample mutable at the given channel in the frame.
-    fn get_mut(&self, channel: usize) -> Option<&mut Self::Sample>;
+    fn get_mut(&mut self, channel: usize) -> Option<&mut Self::Sample>;
 
     /// Construct a mutable iterator over the frame.
-    fn iter_mut(&self) -> Self::IterMut<'_>;
+    fn iter_mut(&mut self) -> Self::IterMut<'_>;
 }

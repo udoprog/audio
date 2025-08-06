@@ -15,6 +15,9 @@ categories = ["multimedia::audio"]
 
 autoexamples = false
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(loom)'] }
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
@@ -40,6 +43,7 @@ wasapi = [
     "windows?/Win32_Media_KernelStreaming",
     "windows?/Win32_Media_Multimedia",
 ]
+sync = []
 
 [dependencies]
 tracing = "0.1.36"
