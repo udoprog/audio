@@ -186,7 +186,7 @@ where
 {
     /// Construct an iterator over all available channels.
     #[inline]
-    pub fn iter(&self) -> Iter<B> {
+    pub fn iter(&self) -> Iter<'_, B> {
         Iter {
             iter: self.buf.iter_channels(),
             available: self.available,
@@ -200,7 +200,7 @@ where
 {
     /// Construct a mutable iterator over all available channels.
     #[inline]
-    pub fn iter_mut(&mut self) -> IterMut<B> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, B> {
         IterMut {
             iter: self.buf.iter_channels_mut(),
             available: self.available,

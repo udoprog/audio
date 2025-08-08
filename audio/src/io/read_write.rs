@@ -274,7 +274,7 @@ where
     B: Buf,
 {
     /// Construct an iterator over all available channels.
-    pub fn iter(&self) -> Iter<B> {
+    pub fn iter(&self) -> Iter<'_, B> {
         let len = self.remaining();
 
         Iter {
@@ -290,7 +290,7 @@ where
     B: BufMut,
 {
     /// Construct a mutable iterator over all available channels.
-    pub fn iter_mut(&mut self) -> IterMut<B> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, B> {
         IterMut {
             iter: self.buf.iter_channels_mut(),
             written: self.written,
