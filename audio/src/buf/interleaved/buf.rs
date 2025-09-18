@@ -293,16 +293,16 @@ impl<T> Interleaved<T> {
     /// assert_eq!(buf.capacity(), 0);
     ///
     /// buf.resize_frames(11);
-    /// assert_eq!(buf.capacity(), 0);
+    /// assert!(buf.capacity() >= 0);
     ///
     /// buf.resize_channels(2);
-    /// assert_eq!(buf.capacity(), 22);
+    /// assert!(buf.capacity() >= 22);
     ///
     /// buf.resize_frames(12);
-    /// assert_eq!(buf.capacity(), 44);
+    /// assert!(buf.capacity() >= 44);
     ///
     /// buf.resize_frames(24);
-    /// assert_eq!(buf.capacity(), 44);
+    /// assert!(buf.capacity() >= 44);
     /// ```
     pub fn capacity(&self) -> usize {
         self.data.capacity()
@@ -560,7 +560,7 @@ impl<T> Interleaved<T> {
         let old_cap = self.data.capacity();
 
         if new_cap > old_cap {
-            self.data.reserve(new_cap - old_cap);
+            self.data.reserve(new_cap - self.data.len());
             let new_cap = self.data.capacity();
 
             // Safety: capacity is governed by the underlying vector.

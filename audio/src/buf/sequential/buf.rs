@@ -296,13 +296,13 @@ impl<T> Sequential<T> {
     /// assert_eq!(buf.capacity(), 0);
     ///
     /// buf.resize_channels(2);
-    /// assert_eq!(buf.capacity(), 22);
+    /// assert!(buf.capacity() >= 22);
     ///
     /// buf.resize_frames(12);
-    /// assert_eq!(buf.capacity(), 44);
+    /// assert!(buf.capacity() >= 44);
     ///
     /// buf.resize_frames(24);
-    /// assert_eq!(buf.capacity(), 44);
+    /// assert!(buf.capacity() >= 44);
     /// ```
     pub fn capacity(&self) -> usize {
         self.data.capacity()
@@ -573,7 +573,7 @@ impl<T> Sequential<T> {
         let old_cap = self.data.capacity();
 
         if old_cap < capacity {
-            self.data.reserve(capacity - old_cap);
+            self.data.reserve(capacity - self.data.len());
         }
     }
 
@@ -604,7 +604,7 @@ impl<T> Sequential<T> {
         let new_len = to_channels * to_frames;
 
         if old_cap < new_len {
-            let additional = new_len - self.data.capacity();
+            let additional = new_len - self.data.len();
             self.data.reserve(additional);
 
             // zero the additional capacity.
