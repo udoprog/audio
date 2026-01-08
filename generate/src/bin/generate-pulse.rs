@@ -1,6 +1,7 @@
-use anyhow::anyhow;
 use std::env;
 use std::path::PathBuf;
+
+use anyhow::Context;
 
 fn main() -> anyhow::Result<()> {
     let lib = pkg_config::Config::new()
@@ -41,9 +42,7 @@ fn generate_bindings(lib: &pkg_config::Library) -> anyhow::Result<()> {
         .clang_args(include_args)
         .header(root.join("pulse.h").display().to_string());
 
-    let bindings = builder
-        .generate()
-        .map_err(|()| anyhow!("Unable to generate bindings"))?;
+    let bindings = builder.generate().context("generating bindings")?;
 
     bindings.write_to_file(output)?;
     Ok(())

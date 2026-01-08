@@ -1,8 +1,10 @@
-use crate::alsa::{Access, Result};
-use crate::libc as c;
+use core::ffi::c_uint;
+use core::mem;
+use core::ptr::NonNull;
+
 use alsa_sys as alsa;
-use std::mem;
-use std::ptr;
+
+use crate::alsa::{Access, Result};
 
 /// Access mask used in combination with hardware parameters.
 ///
@@ -26,7 +28,7 @@ use std::ptr;
 /// # Ok(()) }
 /// ```
 pub struct AccessMask {
-    pub(super) handle: ptr::NonNull<alsa::snd_pcm_access_mask_t>,
+    pub(super) handle: NonNull<alsa::snd_pcm_access_mask_t>,
 }
 
 impl AccessMask {
@@ -52,10 +54,12 @@ impl AccessMask {
 
     /// Allocate a new access mask. The state of it will be uninitialized.
     pub(super) unsafe fn allocate() -> Result<Self> {
-        let mut handle = mem::MaybeUninit::uninit();
-        errno!(alsa::snd_pcm_access_mask_malloc(handle.as_mut_ptr()))?;
-        let handle = ptr::NonNull::new_unchecked(handle.assume_init());
-        Ok(Self { handle })
+        unsafe {
+            let mut handle = mem::MaybeUninit::uninit();
+            errno!(alsa::snd_pcm_access_mask_malloc(handle.as_mut_ptr()))?;
+            let handle = NonNull::new_unchecked(handle.assume_init());
+            Ok(Self { handle })
+        }
     }
 
     /// Test if mask is empty.
@@ -88,7 +92,7 @@ impl AccessMask {
     /// See [AccessMask] documentation.
     pub fn set(&mut self, access: Access) {
         unsafe {
-            alsa::snd_pcm_access_mask_set(self.handle.as_mut(), access as c::c_uint);
+            alsa::snd_pcm_access_mask_set(self.handle.as_mut(), access as c_uint);
         }
     }
 
@@ -97,7 +101,7 @@ impl AccessMask {
     /// See [AccessMask] documentation.
     pub fn reset(&mut self, access: Access) {
         unsafe {
-            alsa::snd_pcm_access_mask_reset(self.handle.as_mut(), access as c::c_uint);
+            alsa::snd_pcm_access_mask_reset(self.handle.as_mut(), access as c_uint);
         }
     }
 
@@ -105,7 +109,7 @@ impl AccessMask {
     ///
     /// See [AccessMask] documentation.
     pub fn test(&mut self, access: Access) -> bool {
-        unsafe { alsa::snd_pcm_access_mask_test(self.handle.as_mut(), access as c::c_uint) == 1 }
+        unsafe { alsa::snd_pcm_access_mask_test(self.handle.as_mut(), access as c_uint) == 1 }
     }
 
     /// Copy one mask to another.

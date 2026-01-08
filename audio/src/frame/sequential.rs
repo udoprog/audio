@@ -1,5 +1,5 @@
 use core::marker;
-use core::ptr;
+use core::ptr::NonNull;
 
 use audio_core::Frame;
 
@@ -7,7 +7,7 @@ use crate::channel::interleaved::Iter;
 
 /// An unsafe wrapper around a raw sequential buffer.
 pub(crate) struct RawSequential<T> {
-    ptr: ptr::NonNull<T>,
+    ptr: NonNull<T>,
     len: usize,
     channels: usize,
     frames: usize,
@@ -45,8 +45,10 @@ impl<T> RawSequential<T> {
             frames,
         );
 
+        let ptr = unsafe { NonNull::new_unchecked(data.as_ptr() as *mut T) };
+
         Self {
-            ptr: ptr::NonNull::new_unchecked(data.as_ptr() as *mut T),
+            ptr,
             len,
             channels,
             frames,
@@ -82,7 +84,7 @@ impl<T> RawSequential<T> {
             return None;
         }
 
-        Some(*self.ptr.as_ptr().add(index))
+        unsafe { Some(*self.ptr.as_ptr().add(index)) }
     }
 
     /// Construct an interleaved iterator from the specified frame.
@@ -98,7 +100,8 @@ impl<T> RawSequential<T> {
             frame,
             self.frames
         );
-        Iter::new_aligned(self.ptr, self.len, frame, self.channels, self.frames)
+
+        unsafe { Iter::new_aligned(self.ptr, self.len, frame, self.channels, self.frames) }
     }
 }
 

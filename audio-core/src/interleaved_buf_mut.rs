@@ -1,4 +1,4 @@
-use core::ptr;
+use core::ptr::NonNull;
 
 use crate::InterleavedBuf;
 
@@ -48,8 +48,9 @@ pub trait InterleavedBufMut: InterleavedBuf {
     /// # Examples
     ///
     /// ```
+    /// # use core::ptr::NonNull;
     /// use audio::{Buf, Channel, ResizableBuf, InterleavedBufMut};
-    /// # unsafe fn fill_with_ones(buf: std::ptr::NonNull<i16>, len: usize) -> (usize, usize) {
+    /// # unsafe fn fill_with_ones(buf: NonNull<i16>, len: usize) -> (usize, usize) {
     /// #     let buf = std::slice::from_raw_parts_mut(buf.as_ptr(), len);
     /// #
     /// #     for (o, b) in buf.iter_mut().zip(std::iter::repeat(1)) {
@@ -82,7 +83,7 @@ pub trait InterleavedBufMut: InterleavedBuf {
     ///     &[1, 1, 1, 1, 1, 1, 1, 1],
     /// };
     /// ```
-    fn as_interleaved_mut_ptr(&mut self) -> ptr::NonNull<Self::Sample>;
+    fn as_interleaved_mut_ptr(&mut self) -> NonNull<Self::Sample>;
 
     /// Specify the topology of the underlying interleaved buffer.
     ///
@@ -94,8 +95,9 @@ pub trait InterleavedBufMut: InterleavedBuf {
     /// # Examples
     ///
     /// ```
+    /// # use core::ptr::NonNull;
     /// use audio::{Buf, Channel, ResizableBuf, InterleavedBufMut};
-    /// # unsafe fn fill_with_ones(buf: std::ptr::NonNull<i16>, len: usize) -> (usize, usize) {
+    /// # unsafe fn fill_with_ones(buf: NonNull<i16>, len: usize) -> (usize, usize) {
     /// #     let buf = std::slice::from_raw_parts_mut(buf.as_ptr(), len);
     /// #
     /// #     for (o, b) in buf.iter_mut().zip(std::iter::repeat(1)) {
@@ -141,12 +143,14 @@ where
     }
 
     #[inline]
-    fn as_interleaved_mut_ptr(&mut self) -> ptr::NonNull<Self::Sample> {
+    fn as_interleaved_mut_ptr(&mut self) -> NonNull<Self::Sample> {
         (**self).as_interleaved_mut_ptr()
     }
 
     #[inline]
     unsafe fn set_interleaved_topology(&mut self, channels: usize, frames: usize) {
-        (**self).set_interleaved_topology(channels, frames);
+        unsafe {
+            (**self).set_interleaved_topology(channels, frames);
+        }
     }
 }

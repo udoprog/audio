@@ -1,11 +1,12 @@
+use core::ptr::{NonNull, null};
+
 use pipewire_sys as pw;
-use std::ptr;
 
 /// A PipeWire main loop.
 ///
 /// See [MainLoop::new].
 pub struct MainLoop {
-    handle: ptr::NonNull<pw::pw_main_loop>,
+    handle: NonNull<pw::pw_main_loop>,
 }
 
 impl MainLoop {
@@ -22,8 +23,7 @@ impl MainLoop {
     /// ```
     pub fn new() -> Self {
         unsafe {
-            let mut handle = ptr::NonNull::new_unchecked(pw::pw_main_loop_new(ptr::null()));
-
+            let handle = NonNull::new_unchecked(pw::pw_main_loop_new(null()));
             Self { handle }
         }
     }

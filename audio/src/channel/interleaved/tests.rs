@@ -1,6 +1,8 @@
-use super::{InterleavedChannel, InterleavedChannelMut};
+use core::ptr::NonNull;
+
 use crate::Channel;
-use std::ptr;
+
+use super::{InterleavedChannel, InterleavedChannelMut};
 
 #[test]
 fn test_interleaved_channel() {
@@ -8,7 +10,7 @@ fn test_interleaved_channel() {
 
     let c1 = unsafe {
         InterleavedChannel::new_unchecked(
-            ptr::NonNull::new_unchecked(buf.as_ptr() as *mut u32),
+            NonNull::new_unchecked(buf.as_ptr() as *mut u32),
             buf.len(),
             0,
             2,
@@ -17,7 +19,7 @@ fn test_interleaved_channel() {
 
     let c2 = unsafe {
         InterleavedChannel::new_unchecked(
-            ptr::NonNull::new_unchecked(buf.as_ptr() as *mut u32),
+            NonNull::new_unchecked(buf.as_ptr() as *mut u32),
             buf.len(),
             1,
             2,
@@ -34,7 +36,7 @@ fn test_interleaved_channel_mut() {
 
     let c1 = unsafe {
         InterleavedChannelMut::new_unchecked(
-            ptr::NonNull::new_unchecked(buf.as_mut_ptr()),
+            NonNull::new_unchecked(buf.as_mut_ptr()),
             buf.len(),
             0,
             2,
@@ -43,7 +45,7 @@ fn test_interleaved_channel_mut() {
 
     let c2 = unsafe {
         InterleavedChannelMut::new_unchecked(
-            ptr::NonNull::new_unchecked(buf.as_mut_ptr()),
+            NonNull::new_unchecked(buf.as_mut_ptr()),
             buf.len(),
             1,
             2,
@@ -60,7 +62,7 @@ fn test_interleaved_channel_mut_iter() {
 
     let mut c1 = unsafe {
         InterleavedChannelMut::new_unchecked(
-            ptr::NonNull::new_unchecked(buf.as_mut_ptr()),
+            NonNull::new_unchecked(buf.as_mut_ptr()),
             buf.len(),
             0,
             2,
@@ -69,7 +71,7 @@ fn test_interleaved_channel_mut_iter() {
 
     let c2 = unsafe {
         InterleavedChannelMut::new_unchecked(
-            ptr::NonNull::new_unchecked(buf.as_mut_ptr()),
+            NonNull::new_unchecked(buf.as_mut_ptr()),
             buf.len(),
             1,
             2,
@@ -96,7 +98,7 @@ macro_rules! slice_tests {
 
         let c = unsafe {
             InterleavedChannel::new_unchecked(
-                ptr::NonNull::new_unchecked(buf.as_ptr() as *mut $ty),
+                NonNull::new_unchecked(buf.as_ptr() as *mut $ty),
                 buf.len(),
                 $ch,
                 $channels,
@@ -231,7 +233,7 @@ fn test_interleaved_channel_count() {
 
             let c = unsafe {
                 InterleavedChannel::new_unchecked(
-                    ptr::NonNull::new_unchecked(buf.as_ptr() as *mut $ty),
+                    NonNull::new_unchecked(buf.as_ptr() as *mut $ty),
                     buf.len(),
                     $ch,
                     $channels,
@@ -275,7 +277,7 @@ fn test_interleaved_channel_nth() {
 
             let c = unsafe {
                 InterleavedChannel::new_unchecked(
-                    ptr::NonNull::new_unchecked(buf.as_ptr() as *mut $ty),
+                    NonNull::new_unchecked(buf.as_ptr() as *mut $ty),
                     buf.len(),
                     $ch,
                     $channels,
@@ -326,7 +328,7 @@ fn test_interleaved_channel_next_back() {
 
     let c1 = unsafe {
         InterleavedChannel::new_unchecked(
-            ptr::NonNull::new_unchecked(buf.as_ptr() as *mut u32),
+            NonNull::new_unchecked(buf.as_ptr() as *mut u32),
             buf.len(),
             1,
             2,

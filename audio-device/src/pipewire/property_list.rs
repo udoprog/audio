@@ -1,11 +1,12 @@
+use core::ptr::{self, NonNull};
+
 use pipewire_sys as pw;
-use std::ptr;
 
 /// A property list object.
 ///
 /// See [PropertyList::new].
 pub struct PropertyList {
-    pub(super) handle: ptr::NonNull<pw::pw_properties>,
+    pub(super) handle: NonNull<pw::pw_properties>,
 }
 
 impl PropertyList {
@@ -23,7 +24,7 @@ impl PropertyList {
     pub fn new() -> Self {
         unsafe {
             Self {
-                handle: ptr::NonNull::new_unchecked(pw::pw_properties_new(ptr::null())),
+                handle: NonNull::new_unchecked(pw::pw_properties_new(ptr::null())),
             }
         }
     }

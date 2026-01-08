@@ -1,7 +1,9 @@
+use core::marker;
+use core::ops;
+use core::slice;
+
 use crate::wasapi::Error;
-use std::marker;
-use std::ops;
-use std::slice;
+
 use windows::Win32::Media::Audio as audio;
 
 /// A typed mutable data buffer.

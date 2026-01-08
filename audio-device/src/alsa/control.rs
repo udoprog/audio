@@ -1,16 +1,17 @@
-use crate::alsa::{ControlElementInterface, Result};
-use crate::libc as c;
+use core::ffi::{CStr, c_uint};
+use core::mem;
+use core::ptr::NonNull;
+
 use alsa_sys as alsa;
-use std::ffi::CStr;
-use std::mem;
-use std::ptr;
+
+use crate::alsa::{ControlElementInterface, Result};
 
 /// A control associated with a device.
 ///
 /// See [Control::open].
 pub struct Control {
     tag: ste::Tag,
-    pub(super) handle: ptr::NonNull<alsa::snd_ctl_t>,
+    pub(super) handle: NonNull<alsa::snd_ctl_t>,
 }
 
 impl Control {
@@ -35,7 +36,7 @@ impl Control {
 
             Ok(Self {
                 tag: ste::Tag::current_thread(),
-                handle: ptr::NonNull::new_unchecked(handle.assume_init()),
+                handle: NonNull::new_unchecked(handle.assume_init()),
             })
         }
     }
@@ -85,7 +86,7 @@ impl Control {
         unsafe {
             let mut handle = mem::MaybeUninit::uninit();
             errno!(alsa::snd_ctl_elem_list_malloc(handle.as_mut_ptr()))?;
-            let handle = ptr::NonNull::new_unchecked(handle.assume_init());
+            let handle = NonNull::new_unchecked(handle.assume_init());
 
             let mut list = ControlElementList {
                 handle,
@@ -130,8 +131,8 @@ impl Drop for Control {
 ///
 /// Fetched with [ControlElementList::get].
 pub struct ControlElement<'a> {
-    handle: &'a ptr::NonNull<alsa::snd_ctl_elem_list_t>,
-    index: c::c_uint,
+    handle: &'a NonNull<alsa::snd_ctl_elem_list_t>,
+    index: c_uint,
 }
 
 impl ControlElement<'_> {
@@ -206,17 +207,17 @@ impl ControlElement<'_> {
     /// }
     /// # Ok(()) }
     /// ```
-    pub fn index(&self) -> c::c_uint {
+    pub fn index(&self) -> c_uint {
         unsafe { alsa::snd_ctl_elem_list_get_index(self.handle.as_ref(), self.index) }
     }
 }
 
 /// A list of control elements.
 pub struct ControlElementList {
-    handle: ptr::NonNull<alsa::snd_ctl_elem_list_t>,
+    handle: NonNull<alsa::snd_ctl_elem_list_t>,
     space: bool,
-    count: c::c_uint,
-    used: c::c_uint,
+    count: c_uint,
+    used: c_uint,
 }
 
 impl ControlElementList {
@@ -235,7 +236,7 @@ impl ControlElementList {
     /// dbg!(element_list.used());
     /// # Ok(()) }
     /// ```
-    pub fn used(&self) -> c::c_uint {
+    pub fn used(&self) -> c_uint {
         unsafe { alsa::snd_ctl_elem_list_get_used(self.handle.as_ref()) }
     }
 
@@ -254,7 +255,7 @@ impl ControlElementList {
     /// dbg!(element_list.count());
     /// # Ok(()) }
     /// ```
-    pub fn count(&self) -> c::c_uint {
+    pub fn count(&self) -> c_uint {
         self.count
     }
 
@@ -276,7 +277,7 @@ impl ControlElementList {
     /// }
     /// # Ok(()) }
     /// ```
-    pub fn get(&self, index: c::c_uint) -> Option<ControlElement<'_>> {
+    pub fn get(&self, index: c_uint) -> Option<ControlElement<'_>> {
         if index >= self.used {
             return None;
         }
@@ -330,9 +331,9 @@ impl Drop for ControlElementList {
 ///
 /// See [ControlElementList::iter].
 pub struct ControlElementListIter<'a> {
-    handle: &'a ptr::NonNull<alsa::snd_ctl_elem_list_t>,
-    index: c::c_uint,
-    used: c::c_uint,
+    handle: &'a NonNull<alsa::snd_ctl_elem_list_t>,
+    index: c_uint,
+    used: c_uint,
 }
 
 impl<'a> Iterator for ControlElementListIter<'a> {

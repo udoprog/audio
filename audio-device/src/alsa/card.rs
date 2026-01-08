@@ -1,8 +1,9 @@
-use crate::alsa::{CString, Result};
-use crate::libc as c;
+use core::ffi::{CStr, c_int};
+use core::mem;
+
 use alsa_sys as alsa;
-use std::ffi::CStr;
-use std::mem;
+
+use crate::alsa::{CString, Result};
 
 /// Construct an iterator over sounds cards.
 ///
@@ -26,7 +27,7 @@ pub fn cards() -> Cards {
 ///
 /// See [cards].
 pub struct Cards {
-    index: c::c_int,
+    index: c_int,
 }
 
 impl Iterator for Cards {
@@ -49,7 +50,7 @@ impl Iterator for Cards {
 
 /// A reference to a card.
 pub struct Card {
-    index: c::c_int,
+    index: c_int,
 }
 
 impl Card {
@@ -90,7 +91,7 @@ impl Card {
     /// }
     /// # Ok(()) }
     /// ```
-    pub fn index(&self) -> c::c_int {
+    pub fn index(&self) -> c_int {
         self.index
     }
 

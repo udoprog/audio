@@ -139,9 +139,12 @@
 //! [Tag]: https://docs.rs/ste/*/ste/struct.Tag.html
 //! [Thread]: https://docs.rs/ste/*/ste/struct.Thread.html
 
-use std::future::Future;
+const THREAD_NAME: &str = "ste-thread";
+
+use core::future::Future;
+use core::ptr::NonNull;
+
 use std::io;
-use std::ptr;
 
 pub(crate) mod loom;
 use self::loom::thread;
@@ -156,8 +159,8 @@ mod worker;
 use self::worker::{Entry, Prelude, Shared};
 
 mod tag;
-use self::tag::with_tag;
 pub use self::tag::Tag;
+use self::tag::with_tag;
 
 #[doc(hidden)]
 pub mod linked_list;
@@ -245,7 +248,7 @@ pub fn spawn() -> Thread {
     otherwise it will block while being dropped."]
 pub struct Thread {
     /// Things that have been submitted for execution on the background thread.
-    shared: ptr::NonNull<Shared>,
+    shared: NonNull<Shared>,
     /// The handle associated with the background thread.
     handle: Option<thread::JoinHandle<()>>,
 }
@@ -311,8 +314,8 @@ impl Thread {
             let mut storage = None;
             let parker = Parker::new();
 
-            let mut task = into_task(task, RawSend(ptr::NonNull::from(&mut storage)));
-            let entry = Entry::new(&mut task, ptr::NonNull::from(&parker));
+            let mut task = into_task(task, RawSend::new(NonNull::from(&mut storage)));
+            let entry = Entry::new(&mut task, NonNull::from(&parker));
 
             // Safety: We're constructing a pointer to a local stack location. It
             // will never be null.
@@ -321,7 +324,7 @@ impl Thread {
             // with a `'static` lifetime.
             self.shared
                 .as_ref()
-                .schedule_in_place(ptr::NonNull::from(&parker), entry);
+                .schedule_in_place(NonNull::from(&parker), entry);
 
             return match storage {
                 Some(result) => result,
@@ -346,7 +349,7 @@ impl Thread {
                         // Safety: we're the only one with access to this pointer,
                         // and we know it hasn't been de-allocated yet.
                         unsafe {
-                            *storage.0.as_mut() = Some(output);
+                            *storage.as_mut() = Some(output);
                         }
                     }));
                 }
@@ -409,9 +412,9 @@ impl Thread {
 
         unsafe {
             let wait_future = WaitFuture {
-                future: ptr::NonNull::from(&mut future),
-                output: ptr::NonNull::from(&mut output),
-                parker: ptr::NonNull::from(&parker),
+                future: NonNull::from(&mut future),
+                output: NonNull::from(&mut output),
+                parker: NonNull::from(&parker),
                 complete: false,
                 shared: self.shared.as_ref(),
             };
@@ -620,24 +623,25 @@ impl Builder {
     /// # Ok(()) }
     /// ```
     pub fn build(self) -> io::Result<Thread> {
-        let shared = ptr::NonNull::from(Box::leak(Box::new(Shared::new())));
+        let shared = NonNull::from(Box::leak(Box::new(Shared::new())));
 
         let prelude = self.prelude;
         #[cfg(feature = "tokio")]
         let tokio = self.tokio;
 
-        let shared2 = RawSend(shared);
+        let shared2 = RawSend::new(shared);
 
-        let handle = thread::Builder::new()
-            .name(String::from("ste-thread"))
-            .spawn(move || {
-                let RawSend(shared) = shared2;
+        let thread = thread::Builder::new().name(String::from(THREAD_NAME));
 
-                #[cfg(feature = "tokio")]
-                let _guard = tokio.as_ref().map(|h| h.enter());
+        let handle = thread.spawn(move || {
+            let shared = shared2;
+            let shared = shared.into_inner();
 
-                worker::run(prelude, shared)
-            })?;
+            #[cfg(feature = "tokio")]
+            let _guard = tokio.as_ref().map(|h| h.enter());
+
+            worker::run(prelude, shared)
+        })?;
 
         Ok(Thread {
             shared,

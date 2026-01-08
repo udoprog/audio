@@ -1,11 +1,12 @@
+use core::mem;
+use core::ptr::NonNull;
+
 use crate::linked_list::{LinkedList, Node};
-use crate::loom::sync::atomic::{AtomicIsize, Ordering};
 use crate::loom::sync::Mutex;
+use crate::loom::sync::atomic::{AtomicIsize, Ordering};
 use crate::loom::thread;
 use crate::parker::Parker;
 use crate::tag::Tag;
-use std::mem;
-use std::ptr;
 
 /// The type of the prelude function.
 pub(super) type Prelude = dyn Fn() + Send + 'static;
@@ -60,22 +61,24 @@ impl Shared {
     // zero, after which it will pop all elements from the queue and release
     // them.
     unsafe fn panic_join(&self) {
-        let modifiers = self.modifiers.fetch_add(isize::MIN, Ordering::SeqCst);
+        unsafe {
+            let modifiers = self.modifiers.fetch_add(isize::MIN, Ordering::SeqCst);
 
-        // It's not possible for the state to be anything but empty
-        // here, because the worker thread takes the state before
-        // executing user code which might panic.
-        debug_assert!(modifiers >= 0);
+            // It's not possible for the state to be anything but empty
+            // here, because the worker thread takes the state before
+            // executing user code which might panic.
+            debug_assert!(modifiers >= 0);
 
-        let mut local = self.queue.lock().unwrap().steal();
-        release_local_queue(&mut local);
+            let mut local = self.queue.lock().unwrap().steal();
+            release_local_queue(&mut local);
 
-        while self.modifiers.load(Ordering::Acquire) != isize::MIN {
-            thread::yield_now();
+            while self.modifiers.load(Ordering::Acquire) != isize::MIN {
+                thread::yield_now();
+            }
+
+            let mut local = self.queue.lock().unwrap().steal();
+            release_local_queue(&mut local);
         }
-
-        let mut local = self.queue.lock().unwrap().steal();
-        release_local_queue(&mut local);
     }
 
     /// Process the given entry on the remote thread.
@@ -85,33 +88,35 @@ impl Shared {
     /// We're sending the entry to be executed on a remote thread, the caller
     /// must assure that anything being referenced in it is owned by the caller
     /// and will not be dropped or deallocated for the duration of this call.
-    pub(super) unsafe fn schedule_in_place(&self, parker: ptr::NonNull<Parker>, entry: Entry) {
-        let mut node = Node::new(entry);
+    pub(super) unsafe fn schedule_in_place(&self, parker: NonNull<Parker>, entry: Entry) {
+        unsafe {
+            let mut node = Node::new(entry);
 
-        let first = {
-            let _guard = match self.lock_queue() {
-                Some(guard) => guard,
-                None => panic!("background thread ended"),
+            let first = {
+                let _guard = match self.lock_queue() {
+                    Some(guard) => guard,
+                    None => panic!("background thread ended"),
+                };
+
+                self.queue
+                    .lock()
+                    .unwrap()
+                    .push_front(NonNull::from(&mut node))
             };
 
-            self.queue
-                .lock()
-                .unwrap()
-                .push_front(ptr::NonNull::from(&mut node))
-        };
+            if first {
+                self.parker.unpark();
+            }
 
-        if first {
-            self.parker.unpark();
+            // NB: We must park here until the remote task wakes us up to allow
+            // the task to access things from the environment in the other
+            // thread safely.
+            //
+            // We also know fully that the parker is balanced - i.e. there are
+            // no sporadic wakes that can happen because we contrl the state of
+            // the submitted task exactly above.
+            parker.as_ref().park();
         }
-
-        // NB: We must park here until the remote task wakes us up to allow
-        // the task to access things from the environment in the other
-        // thread safely.
-        //
-        // We also know fully that the parker is balanced - i.e. there are
-        // no sporadic wakes that can happen because we contrl the state of
-        // the submitted task exactly above.
-        parker.as_ref().park();
     }
 
     /// What should happen when the shared state is joined.
@@ -139,7 +144,7 @@ impl Drop for ModifierGuard<'_> {
 }
 
 /// Worker thread.
-pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
+pub(super) fn run(prelude: Option<Box<Prelude>>, shared: NonNull<Shared>) {
     unsafe {
         let shared = shared.as_ref();
         let tag = Tag(shared as *const _ as usize);
@@ -186,26 +191,27 @@ pub(super) fn run(prelude: Option<Box<Prelude>>, shared: ptr::NonNull<Shared>) {
 /// A task submitted to the executor.
 #[derive(Debug)]
 pub(super) struct Entry {
-    task: ptr::NonNull<dyn FnMut(Tag) + Send + 'static>,
-    parker: ptr::NonNull<Parker>,
+    task: NonNull<dyn FnMut(Tag) + Send + 'static>,
+    parker: NonNull<Parker>,
 }
 
 impl Entry {
-    pub(super) unsafe fn new(
-        task: &mut (impl FnMut(Tag) + Send),
-        parker: ptr::NonNull<Parker>,
-    ) -> Self {
-        Self {
-            task: ptr::NonNull::new_unchecked(mem::transmute::<&mut (dyn FnMut(Tag) + Send), _>(
-                task,
-            )),
-            parker,
+    pub(super) unsafe fn new(task: &mut (impl FnMut(Tag) + Send), parker: NonNull<Parker>) -> Self {
+        unsafe {
+            Self {
+                task: NonNull::new_unchecked(mem::transmute::<&mut (dyn FnMut(Tag) + Send), _>(
+                    task,
+                )),
+                parker,
+            }
         }
     }
 
     /// Release all resources associated with the entry.
     unsafe fn release(&self) {
-        self.parker.as_ref().unpark();
+        unsafe {
+            self.parker.as_ref().unpark();
+        }
     }
 }
 
@@ -214,7 +220,9 @@ impl Entry {
 /// This is useful when a queue is stolen, because it disassociates the stolen
 /// part of the queue from the rest.
 unsafe fn release_local_queue(queue: &mut LinkedList<Entry>) {
-    while let Some(entry) = queue.pop_back() {
-        entry.as_ref().value.release();
+    unsafe {
+        while let Some(entry) = queue.pop_back() {
+            entry.as_ref().value.release();
+        }
     }
 }

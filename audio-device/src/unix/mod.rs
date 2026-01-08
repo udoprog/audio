@@ -1,6 +1,7 @@
 //! Unix-specific types and definitions.
 
-use std::{fmt, error};
+use core::error;
+use core::fmt;
 
 /// A unix error number.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -16,7 +17,7 @@ impl Errno {
 }
 
 impl fmt::Display for Errno {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Self::EWOULDBLOCK => {
                 write!(f, "EWOULDBLOCK")
@@ -28,26 +29,25 @@ impl fmt::Display for Errno {
     }
 }
 
-impl error::Error for Errno {
-}
+impl error::Error for Errno {}
 
 cfg_poll_driver! {
     /// Poll flags.
     #[derive(Debug, Clone, Copy)]
     #[repr(transparent)]
     pub struct PollFlags(libc::c_short);
-    
+
     impl PollFlags {
         pub(crate) const POLLOUT: Self = Self(crate::libc::POLLOUT);
-    
+
         pub(crate) fn from_bits_truncate(bits: libc::c_short) -> Self {
             Self(bits)
         }
-    
+
         pub(crate) fn test(self, bits: PollFlags) -> bool {
             (self.0 & bits.0) != 0
         }
     }
 
-    pub use crate::runtime::poll::{AsyncPoll, PollEventsGuard}; 
+    pub use crate::runtime::poll::{AsyncPoll, PollEventsGuard};
 }

@@ -1,3 +1,11 @@
+use core::ffi::{CStr, c_long, c_short, c_uint, c_ulong, c_void};
+use core::mem;
+use core::ptr::NonNull;
+
+use alloc::vec::Vec;
+
+use alsa_sys as alsa;
+
 #[cfg(feature = "poll-driver")]
 use crate::alsa::AsyncWriter;
 use crate::alsa::{
@@ -6,15 +14,11 @@ use crate::alsa::{
 };
 use crate::libc as c;
 use crate::unix::PollFlags;
-use alsa_sys as alsa;
-use std::ffi::CStr;
-use std::mem;
-use std::ptr;
 
 /// An opened PCM device.
 pub struct Pcm {
     pub(super) tag: ste::Tag,
-    pub(super) handle: ptr::NonNull<alsa::snd_pcm_t>,
+    pub(super) handle: NonNull<alsa::snd_pcm_t>,
 }
 
 impl Pcm {
@@ -101,13 +105,13 @@ impl Pcm {
             errno!(alsa::snd_pcm_open(
                 handle.as_mut_ptr(),
                 name.as_ptr(),
-                stream as c::c_uint,
+                stream as c_uint,
                 flags
             ))?;
 
             Ok(Self {
                 tag: ste::Tag::current_thread(),
-                handle: ptr::NonNull::new_unchecked(handle.assume_init()),
+                handle: NonNull::new_unchecked(handle.assume_init()),
             })
         }
     }
@@ -390,7 +394,7 @@ impl Pcm {
             let result = errno!(alsa::snd_pcm_poll_descriptors(
                 self.handle.as_mut(),
                 fds.as_mut_ptr() as *mut c::pollfd,
-                fds.capacity() as c::c_uint
+                fds.capacity() as c_uint
             ))?;
 
             let result = result as usize;
@@ -423,11 +427,11 @@ impl Pcm {
                 self.handle.as_mut(),
                 // NB: PollFd is `#[repr(transparent)]` around pollfd.
                 fds.as_mut_ptr(),
-                fds.len() as c::c_uint,
+                fds.len() as c_uint,
                 revents.as_mut_ptr(),
             ))?;
             let revents = revents.assume_init();
-            Ok(PollFlags::from_bits_truncate(revents as c::c_short))
+            Ok(PollFlags::from_bits_truncate(revents as c_short))
         }
     }
 
@@ -441,15 +445,16 @@ impl Pcm {
     /// See [HardwareParameters::channels].
     pub unsafe fn write_interleaved_unchecked(
         &mut self,
-        buf: *const c::c_void,
-        len: c::c_ulong,
-    ) -> Result<c::c_long> {
-        self.tag.ensure_on_thread();
-        Ok(errno!(alsa::snd_pcm_writei(
-            self.handle.as_mut(),
-            buf,
-            len
-        ))?)
+        buf: *const c_void,
+        len: c_ulong,
+    ) -> Result<c_long> {
+        unsafe {
+            self.tag.ensure_on_thread();
+
+            let out = errno!(alsa::snd_pcm_writei(self.handle.as_mut(), buf, len))?;
+
+            Ok(out)
+        }
     }
 
     /// Construct a checked safe writer with the given number of channels and
@@ -575,7 +580,7 @@ impl Pcm {
 
     /// Application request to access a portion of direct (mmap) area.
     #[doc(hidden)] // incomplete feature
-    pub fn mmap_begin(&mut self, mut frames: c::c_ulong) -> Result<ChannelArea<'_>> {
+    pub fn mmap_begin(&mut self, mut frames: c_ulong) -> Result<ChannelArea<'_>> {
         self.tag.ensure_on_thread();
 
         unsafe {

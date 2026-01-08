@@ -1,8 +1,10 @@
-use crate::alsa::{Format, Result};
-use crate::libc as c;
+use core::ffi::c_int;
+use core::mem;
+use core::ptr::NonNull;
+
 use alsa_sys as alsa;
-use std::mem;
-use std::ptr;
+
+use crate::alsa::{Format, Result};
 
 /// Format mask used in combination with hardware parameters.
 ///
@@ -26,7 +28,7 @@ use std::ptr;
 /// # Ok(()) }
 /// ```
 pub struct FormatMask {
-    pub(super) handle: ptr::NonNull<alsa::snd_pcm_format_mask_t>,
+    pub(super) handle: NonNull<alsa::snd_pcm_format_mask_t>,
 }
 
 impl FormatMask {
@@ -52,10 +54,12 @@ impl FormatMask {
 
     /// Allocate a new access mask. The state of it will be uninitialized.
     pub(super) unsafe fn allocate() -> Result<Self> {
-        let mut handle = mem::MaybeUninit::uninit();
-        errno!(alsa::snd_pcm_format_mask_malloc(handle.as_mut_ptr()))?;
-        let handle = ptr::NonNull::new_unchecked(handle.assume_init());
-        Ok(Self { handle })
+        unsafe {
+            let mut handle = mem::MaybeUninit::uninit();
+            errno!(alsa::snd_pcm_format_mask_malloc(handle.as_mut_ptr()))?;
+            let handle = NonNull::new_unchecked(handle.assume_init());
+            Ok(Self { handle })
+        }
     }
 
     /// Test if mask is empty.
@@ -88,7 +92,7 @@ impl FormatMask {
     /// See [FormatMask] documentation.
     pub fn set(&mut self, format: Format) {
         unsafe {
-            alsa::snd_pcm_format_mask_set(self.handle.as_mut(), format as c::c_int);
+            alsa::snd_pcm_format_mask_set(self.handle.as_mut(), format as c_int);
         }
     }
 
@@ -97,7 +101,7 @@ impl FormatMask {
     /// See [FormatMask] documentation.
     pub fn reset(&mut self, format: Format) {
         unsafe {
-            alsa::snd_pcm_format_mask_reset(self.handle.as_mut(), format as c::c_int);
+            alsa::snd_pcm_format_mask_reset(self.handle.as_mut(), format as c_int);
         }
     }
 
@@ -105,7 +109,7 @@ impl FormatMask {
     ///
     /// See [FormatMask] documentation.
     pub fn test(&mut self, format: Format) -> bool {
-        unsafe { alsa::snd_pcm_format_mask_test(self.handle.as_mut(), format as c::c_int) == 1 }
+        unsafe { alsa::snd_pcm_format_mask_test(self.handle.as_mut(), format as c_int) == 1 }
     }
 
     /// Copy one mask to another.

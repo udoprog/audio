@@ -1,14 +1,18 @@
-use crate::pulse::Context;
+use core::ffi::CStr;
+use core::ptr::NonNull;
+
+use alloc::vec::Vec;
+
 use pulse_sys as pulse;
-use std::ffi::CStr;
-use std::ptr;
+
+use crate::pulse::Context;
 
 /// A Pulseaudio main loop.
 ///
 /// See [MainLoop::new].
 pub struct MainLoop {
-    handle: ptr::NonNull<pulse::pa_mainloop>,
-    api: ptr::NonNull<pulse::pa_mainloop_api>,
+    handle: NonNull<pulse::pa_mainloop>,
+    api: NonNull<pulse::pa_mainloop_api>,
 }
 
 impl MainLoop {
@@ -25,8 +29,8 @@ impl MainLoop {
     /// ```
     pub fn new() -> Self {
         unsafe {
-            let mut handle = ptr::NonNull::new_unchecked(pulse::pa_mainloop_new());
-            let api = ptr::NonNull::new_unchecked(pulse::pa_mainloop_get_api(handle.as_mut()));
+            let mut handle = NonNull::new_unchecked(pulse::pa_mainloop_new());
+            let api = NonNull::new_unchecked(pulse::pa_mainloop_get_api(handle.as_mut()));
 
             Self { handle, api }
         }
@@ -52,7 +56,7 @@ impl MainLoop {
             assert!(!handle.is_null(), "pa_context_new: returned NULL");
 
             Context {
-                handle: ptr::NonNull::new_unchecked(handle),
+                handle: NonNull::new_unchecked(handle),
                 callbacks: Vec::new(),
             }
         }

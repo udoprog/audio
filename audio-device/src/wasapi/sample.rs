@@ -46,14 +46,16 @@ unsafe impl Sample for i16 {
     }
 
     unsafe fn is_compatible_with(mix_format: *const audio::WAVEFORMATEX) -> bool {
-        let bits_per_sample = (*mix_format).wBitsPerSample;
+        unsafe {
+            let bits_per_sample = (*mix_format).wBitsPerSample;
 
-        match (*mix_format).wFormatTag as u32 {
-            audio::WAVE_FORMAT_PCM => {
-                assert!((*mix_format).cbSize == 0);
-                bits_per_sample == 16
+            match (*mix_format).wFormatTag as u32 {
+                audio::WAVE_FORMAT_PCM => {
+                    assert!((*mix_format).cbSize == 0);
+                    bits_per_sample == 16
+                }
+                _ => false,
             }
-            _ => false,
         }
     }
 }
@@ -88,20 +90,22 @@ unsafe impl Sample for f32 {
     }
 
     unsafe fn is_compatible_with(mix_format: *const audio::WAVEFORMATEX) -> bool {
-        let bits_per_sample = (*mix_format).wBitsPerSample;
+        unsafe {
+            let bits_per_sample = (*mix_format).wBitsPerSample;
 
-        match (*mix_format).wFormatTag as u32 {
-            ks::WAVE_FORMAT_EXTENSIBLE => {
-                debug_assert_eq! {
-                    (*mix_format).cbSize as usize,
-                    mem::size_of::<audio::WAVEFORMATEXTENSIBLE>() - mem::size_of::<audio::WAVEFORMATEX>()
-                };
+            match (*mix_format).wFormatTag as u32 {
+                ks::WAVE_FORMAT_EXTENSIBLE => {
+                    debug_assert_eq! {
+                        (*mix_format).cbSize as usize,
+                        mem::size_of::<audio::WAVEFORMATEXTENSIBLE>() - mem::size_of::<audio::WAVEFORMATEX>()
+                    };
 
-                let mix_format = mix_format as *const audio::WAVEFORMATEXTENSIBLE;
-                bits_per_sample == 32
-                    && matches!((*mix_format).SubFormat, mm::KSDATAFORMAT_SUBTYPE_IEEE_FLOAT)
+                    let mix_format = mix_format as *const audio::WAVEFORMATEXTENSIBLE;
+                    bits_per_sample == 32
+                        && matches!((*mix_format).SubFormat, mm::KSDATAFORMAT_SUBTYPE_IEEE_FLOAT)
+                }
+                _ => false,
             }
-            _ => false,
         }
     }
 }

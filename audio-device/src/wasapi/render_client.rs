@@ -1,11 +1,13 @@
-use crate::loom::sync::Arc;
-use crate::wasapi::{BufferMut, Error};
-use crate::windows::{Event, RawEvent};
-use std::marker;
+use core::marker;
+
+use windows::Win32::Foundation as f;
 use windows::Win32::Media::Audio as audio;
 use windows::Win32::System::Threading as th;
 use windows::Win32::System::WindowsProgramming as wp;
-use windows::Win32::Foundation as f;
+
+use crate::loom::sync::Arc;
+use crate::wasapi::{BufferMut, Error};
+use crate::windows::{Event, RawEvent};
 
 /// A typed render client.
 pub struct RenderClient<T, E> {
@@ -21,8 +23,7 @@ pub struct RenderClient<T, E> {
 impl<T, E> RenderClient<T, E> {
     fn get_current_padding(&self) -> Result<u32, Error> {
         unsafe {
-            let padding = self.audio_client
-                .GetCurrentPadding()?;
+            let padding = self.audio_client.GetCurrentPadding()?;
             Ok(padding)
         }
     }
@@ -30,8 +31,7 @@ impl<T, E> RenderClient<T, E> {
     /// Get the buffer associated with the render client.
     fn get_buffer(&self, frames: u32) -> Result<*mut T, Error> {
         unsafe {
-            let data = self.render_client
-                .GetBuffer(frames)?;
+            let data = self.render_client.GetBuffer(frames)?;
 
             Ok(data as *mut T)
         }
@@ -47,7 +47,7 @@ impl<T> RenderClient<T, Event> {
 
         unsafe {
             loop {
-                match th::WaitForSingleObject(self.event.raw_event(), wp::INFINITE) {
+                match th::WaitForSingleObject(self.event.raw_event(), th::INFINITE) {
                     f::WAIT_OBJECT_0 => (),
                     _ => {
                         return Err(Error::from(windows::core::Error::from_win32()));

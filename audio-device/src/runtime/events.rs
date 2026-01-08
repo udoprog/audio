@@ -1,14 +1,19 @@
+use core::mem;
+
+use alloc::vec::Vec;
+
+use std::io;
+
+use windows::Win32::Foundation as f;
+use windows::Win32::System::Threading as th;
+use windows::Win32::System::WindowsProgramming as wp;
+
 use crate::loom::sync::atomic::{AtomicBool, Ordering};
 use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
 use crate::runtime::atomic_waker::AtomicWaker;
 use crate::windows::{Event, RawEvent};
 use crate::Result;
-use std::io;
-use std::mem;
-use windows::Win32::Foundation as f;
-use windows::Win32::System::Threading as th;
-use windows::Win32::System::WindowsProgramming as wp;
 
 /// Data on the waker for a handle.
 struct Waker {
@@ -110,7 +115,7 @@ impl Driver {
                 th::WaitForMultipleObjects(
                     &self.events,
                     false,
-                    wp::INFINITE,
+                    th::INFINITE,
                 )
             };
 
@@ -193,8 +198,8 @@ impl Driver {
 
     fn start(shared: Arc<Shared>) {
         let state = Driver {
-            events: vec![unsafe { shared.parker.raw_event() }],
-            wakers: vec![],
+            events: Vec::from([unsafe { shared.parker.raw_event() }]),
+            wakers: Vec::new(),
             shared,
         };
 
@@ -285,7 +290,9 @@ impl AsyncEvent {
 
 impl RawEvent for AsyncEvent {
     unsafe fn raw_event(&self) -> f::HANDLE {
-        self.event.as_ref().unwrap().raw_event()
+        unsafe {
+            self.event.as_ref().unwrap().raw_event()
+        }
     }
 }
 

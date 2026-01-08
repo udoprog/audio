@@ -1,6 +1,6 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use audio_device::wasapi;
-use audio_generator::{self as gen, Generator as _};
+use audio_generator::{self as g, Generator as _};
 
 fn run_output<T>(client: wasapi::Client, mut config: wasapi::ClientConfig) -> Result<()>
 where
@@ -19,9 +19,9 @@ where
 
     dbg!(config);
 
-    let mut a = gen::Sine::new(261.63, sample_rate);
-    let mut b = gen::Sine::new(329.63, sample_rate);
-    let mut c = gen::Sine::new(440.00, sample_rate);
+    let mut a = g::Sine::new(261.63, sample_rate);
+    let mut b = g::Sine::new(329.63, sample_rate);
+    let mut c = g::Sine::new(440.00, sample_rate);
 
     loop {
         let mut data = render_client.buffer_mut()?;
@@ -54,7 +54,9 @@ pub fn main() -> Result<()> {
         .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
         .init();
 
-    println!("WARNING: This program will generate audio and we do our best to avoid them being too loud.");
+    println!(
+        "WARNING: This program will generate audio and we do our best to avoid them being too loud."
+    );
     println!("Please make sure your volume is turned down!");
     println!();
     println!("Press [enter] to continue...");

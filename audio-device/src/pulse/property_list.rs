@@ -1,6 +1,7 @@
-use crate::libc as c;
+use core::ffi::c_uint;
+use core::ptr::NonNull;
+
 use pulse_sys as pulse;
-use std::ptr;
 
 /// A property list object.
 ///
@@ -8,7 +9,7 @@ use std::ptr;
 ///
 /// See [PropertyList::new].
 pub struct PropertyList {
-    handle: ptr::NonNull<pulse::pa_proplist>,
+    handle: NonNull<pulse::pa_proplist>,
 }
 
 impl PropertyList {
@@ -26,7 +27,7 @@ impl PropertyList {
     pub fn new() -> Self {
         unsafe {
             Self {
-                handle: ptr::NonNull::new_unchecked(pulse::pa_proplist_new()),
+                handle: NonNull::new_unchecked(pulse::pa_proplist_new()),
             }
         }
     }
@@ -43,7 +44,7 @@ impl PropertyList {
     /// assert_eq!(props.len(), 0);
     /// # Ok(()) }
     /// ```
-    pub fn len(&self) -> c::c_uint {
+    pub fn len(&self) -> c_uint {
         unsafe { pulse::pa_proplist_size(self.handle.as_ref()) }
     }
 
@@ -60,7 +61,7 @@ impl PropertyList {
     /// # Ok(()) }
     /// ```
     pub fn is_empty(&self) -> bool {
-        unsafe { dbg!(pulse::pa_proplist_isempty(self.handle.as_ref())) == 1 }
+        unsafe { pulse::pa_proplist_isempty(self.handle.as_ref()) == 1 }
     }
 }
 

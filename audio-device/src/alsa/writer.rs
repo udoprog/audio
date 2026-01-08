@@ -1,7 +1,7 @@
+use core::ffi::c_void;
 use core::marker;
 
 use crate::alsa::{Error, Pcm, Result};
-use crate::libc as c;
 
 /// A interleaved type-checked PCM writer.
 ///
@@ -30,7 +30,10 @@ impl<'a, T> Writer<'a, T> {
     /// Write an interleaved buffer.
     pub fn write_interleaved<B>(&mut self, mut buf: B) -> Result<()>
     where
-        B: audio_core::Buf<Sample = T> + audio_core::ReadBuf + audio_core::ExactSizeBuf + audio_core::InterleavedBuf,
+        B: audio_core::Buf<Sample = T>
+            + audio_core::ReadBuf
+            + audio_core::ExactSizeBuf
+            + audio_core::InterleavedBuf,
     {
         if buf.channels() != self.channels {
             return Err(Error::ChannelsMismatch {
@@ -42,7 +45,7 @@ impl<'a, T> Writer<'a, T> {
         let frames = buf.frames() as usize;
 
         unsafe {
-            let ptr = buf.as_interleaved().as_ptr() as *const c::c_void;
+            let ptr = buf.as_interleaved().as_ptr().cast::<c_void>();
             let written = self.pcm.write_interleaved_unchecked(ptr, frames as u64)?;
             buf.advance(written as usize);
         }

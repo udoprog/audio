@@ -12,8 +12,8 @@
 //!
 //! [audio-device]: https://docs.rs/audio-device
 
-#![allow(non_camel_case_types, non_upper_case_globals)]
+#![allow(warnings, clippy::warnings)]
 
-use libc::{itimerspec, timespec};
+use libc::{FILE, itimerspec, timespec};
 
 include!("bindings.rs");

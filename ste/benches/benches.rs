@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 
 fn test_on_ste(b: &mut Criterion) {
     b.bench_function("test_on_ste", |b| {

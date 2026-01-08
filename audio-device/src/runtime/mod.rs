@@ -1,11 +1,15 @@
 //! If any available, this provides handles for various forms of asynchronous
 //! drivers that can be used in combination with audio interfaces.
 
+use core::cell::Cell;
+use core::future::Future;
+use core::ptr;
+
+use std::thread_local;
+
 mod atomic_waker;
+
 use crate::Result;
-use std::cell::Cell;
-use std::future::Future;
-use std::ptr;
 
 thread_local! {
     static RUNTIME: Cell<*const Runtime> = Cell::new(ptr::null());

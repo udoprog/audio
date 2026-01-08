@@ -84,17 +84,19 @@ macro_rules! iterator {
             // offset must not exceed `self.len()`.
             #[inline(always)]
             unsafe fn post_inc_start(&mut self, offset: isize) -> *$raw_mut T {
-                if mem::size_of::<T>() == 0 {
-                    zst_shrink!(self, offset);
-                    self.ptr.as_ptr()
-                } else {
-                    let offset = offset.saturating_mul(self.step as isize);
+                unsafe {
+                    if mem::size_of::<T>() == 0 {
+                        zst_shrink!(self, offset);
+                        self.ptr.as_ptr()
+                    } else {
+                        let offset = offset.saturating_mul(self.step as isize);
 
-                    let old = self.ptr.as_ptr();
-                    // SAFETY: the caller guarantees that `offset` doesn't exceed `self.len()`,
-                    // so this new pointer is inside `self` and thus guaranteed to be non-null.
-                    self.ptr = ptr::NonNull::new_unchecked(self.ptr.as_ptr().wrapping_offset(offset));
-                    old
+                        let old = self.ptr.as_ptr();
+                        // SAFETY: the caller guarantees that `offset` doesn't exceed `self.len()`,
+                        // so this new pointer is inside `self` and thus guaranteed to be non-null.
+                        self.ptr = NonNull::new_unchecked(self.ptr.as_ptr().wrapping_offset(offset));
+                        old
+                    }
                 }
             }
 
@@ -164,7 +166,7 @@ macro_rules! iterator {
                     } else {
                         // SAFETY: end can't be 0 if T isn't ZST because ptr isn't 0 and end >= ptr
                         unsafe {
-                            self.ptr = ptr::NonNull::new_unchecked(self.end as *mut T);
+                            self.ptr = NonNull::new_unchecked(self.end as *mut T);
                         }
                     }
 
@@ -244,12 +246,12 @@ macro_rules! interleaved_channel {
             /// channel configuration is in bounds with the buffer pointed to by
             /// `ptr`.
             pub unsafe fn new_unchecked(
-                ptr: ptr::NonNull<$arg>,
+                ptr: NonNull<$arg>,
                 len: usize,
                 channel: usize,
                 channels: usize,
             ) -> Self {
-                let (ptr, end) = $align(ptr, len, channel, channels);
+                let (ptr, end) = unsafe { $align(ptr, len, channel, channels) };
 
                 Self {
                     ptr,
@@ -329,7 +331,7 @@ macro_rules! interleaved_channel {
                     let len = usize::min(len!(self), n).saturating_mul(self.step);
                     // Safety: internal invariants in this structure ensures it
                     // doesn't go out of bounds.
-                    self.ptr = unsafe { ptr::NonNull::new_unchecked(self.ptr.as_ptr().wrapping_add(len)) };
+                    self.ptr = unsafe { NonNull::new_unchecked(self.ptr.as_ptr().wrapping_add(len)) };
                 }
 
                 self
@@ -343,7 +345,7 @@ macro_rules! interleaved_channel {
                     let offset = len!(self).saturating_sub(n).saturating_mul(self.step);
                     // Safety: internal invariants in this structure ensures it
                     // doesn't go out of bounds.
-                    self.ptr = unsafe { ptr::NonNull::new_unchecked(self.ptr.as_ptr().wrapping_add(offset)) };
+                    self.ptr = unsafe { NonNull::new_unchecked(self.ptr.as_ptr().wrapping_add(offset)) };
                 }
 
                 self

@@ -1,3 +1,6 @@
+use core::ptr::NonNull;
+use core::slice;
+
 /// Note: most of these tests are duplicated doc tests, but they're here so that
 /// we can run them through miri and get a good idea of the soundness of our
 /// implementations.
@@ -142,10 +145,8 @@ fn test_resize() {
 
 #[test]
 fn test_as_interleaved_mut_ptr() {
-    use std::ptr;
-
-    unsafe fn fill_with_ones(buf: ptr::NonNull<i16>, len: usize) -> (usize, usize) {
-        let buf = std::slice::from_raw_parts_mut(buf.as_ptr(), len);
+    unsafe fn fill_with_ones(buf: NonNull<i16>, len: usize) -> (usize, usize) {
+        let buf = unsafe { slice::from_raw_parts_mut(buf.as_ptr(), len) };
 
         for (o, b) in buf.iter_mut().zip(std::iter::repeat(1)) {
             *o = b;

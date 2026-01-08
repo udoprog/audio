@@ -1,4 +1,5 @@
 use core::marker;
+use core::ffi::c_void;
 
 use crate::alsa::{Error, Pcm, Result};
 use crate::libc as c;
@@ -26,7 +27,7 @@ impl<'a, T> AsyncWriter<'a, T> {
     pub(super) unsafe fn new(pcm: &'a mut Pcm, pollfd: c::pollfd, channels: usize) -> Result<Self> {
         Ok(Self {
             pcm,
-            poll_handle: AsyncPoll::new(pollfd)?,
+            poll_handle: unsafe { AsyncPoll::new(pollfd)? },
             pollfd,
             channels,
             _marker: marker::PhantomData,
@@ -51,7 +52,7 @@ impl<'a, T> AsyncWriter<'a, T> {
 
             unsafe {
                 let result = {
-                    let ptr = buf.as_interleaved().as_ptr() as *const c::c_void;
+                    let ptr = buf.as_interleaved().as_ptr().cast::<c_void>();
                     self.pcm.write_interleaved_unchecked(ptr, frames as u64)
                 };
 

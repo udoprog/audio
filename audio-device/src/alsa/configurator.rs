@@ -1,15 +1,17 @@
+use core::ffi::{c_uint, c_ulong};
+use core::marker;
+use core::time::Duration;
+
 use crate::alsa::{Access, Direction, Error, Format, Pcm, Result, Sample};
-use crate::libc as c;
-use std::marker;
 
 /// Default access to configure.
 const DEFAULT_ACCESS: Access = Access::ReadWriteInterleaved;
 /// Default latency of 500 us.
-const DEFAULT_LATENCY: c::c_uint = 500_000;
+const DEFAULT_LATENCY: c_uint = 500_000;
 /// Default number of channels to use is 2.
-const DEFAULT_CHANNELS: c::c_uint = 2;
+const DEFAULT_CHANNELS: c_uint = 2;
 /// Default sample rate to use.
-const DEFAULT_RATE: c::c_uint = 44100;
+const DEFAULT_RATE: c_uint = 44100;
 
 /// The stream configuration used after the configurator has been successfully installed.
 ///
@@ -17,15 +19,15 @@ const DEFAULT_RATE: c::c_uint = 44100;
 #[derive(Debug, Clone, Copy)]
 pub struct Config {
     /// The number of channels being used.
-    pub channels: c::c_uint,
+    pub channels: c_uint,
     /// The configured sample rate being used.
-    pub rate: c::c_uint,
+    pub rate: c_uint,
     /// The configured buffer time.
-    pub buffer_time: c::c_uint,
+    pub buffer_time: c_uint,
     /// The configured period time.
-    pub period_time: c::c_uint,
+    pub period_time: c_uint,
     /// The configured period size in frames.
-    pub period_size: c::c_ulong,
+    pub period_size: c_ulong,
 }
 
 /// A simple [Pcm] stream configuration.
@@ -50,9 +52,9 @@ pub struct Configurator<'a, T> {
     pcm: &'a mut Pcm,
     access: Access,
     format: Format,
-    latency: c::c_uint,
-    channels: c::c_uint,
-    rate: c::c_uint,
+    latency: c_uint,
+    channels: c_uint,
+    rate: c_uint,
     _marker: marker::PhantomData<T>,
 }
 
@@ -132,19 +134,20 @@ where
     /// # Examples
     ///
     /// ```no_run
+    /// use std::time::Duration;
     /// use audio_device::alsa;
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
     ///
     /// let config = pcm.configure::<f32>()
-    ///     .latency(std::time::Duration::from_micros(500))
+    ///     .latency(Duration::from_micros(500))
     ///     .install()?;
     ///
     /// dbg!(config);
     /// # Ok(()) }
     /// ```
-    pub fn latency(self, latency: std::time::Duration) -> Self {
+    pub fn latency(self, latency: Duration) -> Self {
         let latency = u128::min(u32::MAX as u128, latency.as_micros()) as u32;
         Self { latency, ..self }
     }
@@ -166,7 +169,7 @@ where
     /// dbg!(config);
     /// # Ok(()) }
     /// ```
-    pub fn channels(self, channels: c::c_uint) -> Self {
+    pub fn channels(self, channels: c_uint) -> Self {
         Self { channels, ..self }
     }
 
@@ -187,7 +190,7 @@ where
     /// dbg!(config);
     /// # Ok(()) }
     /// ```
-    pub fn rate(self, rate: c::c_uint) -> Self {
+    pub fn rate(self, rate: c_uint) -> Self {
         Self { rate, ..self }
     }
 

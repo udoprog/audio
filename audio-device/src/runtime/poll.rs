@@ -1,3 +1,10 @@
+use core::mem::{forget, replace, take};
+use core::ffi::{c_void, c_int, c_short, c_ulong};
+
+use alloc::vec::Vec;
+
+use std::collections::HashMap;
+
 use crate::libc as c;
 use crate::loom::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use crate::loom::sync::{Arc, Mutex};
@@ -5,8 +12,6 @@ use crate::loom::thread;
 use crate::runtime::atomic_waker::AtomicWaker;
 use crate::unix::Errno;
 use crate::Result;
-use std::collections::HashMap;
-use std::mem;
 
 macro_rules! errno {
     ($expr:expr) => {{
@@ -23,7 +28,7 @@ macro_rules! errno {
 /// The token associated with the current waiter.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
-pub struct Token(c::c_int);
+pub struct Token(c_int);
 
 /// A guard for the returned events of the poll handler.
 ///
@@ -32,14 +37,14 @@ pub struct Token(c::c_int);
 ///
 /// Constructed by waiting on [AsyncPoll::returned_events].
 pub struct PollEventsGuard<'a> {
-    events: c::c_short,
+    events: c_short,
     shared: &'a Shared,
     token: Token,
 }
 
 impl PollEventsGuard<'_> {
     /// Access the returned events.
-    pub fn events(&self) -> c::c_short {
+    pub fn events(&self) -> c_short {
         self.events
     }
 }
@@ -119,7 +124,7 @@ impl AsyncPoll {
 
                 if returned_events != 0 {
                     Poll::Ready(PollEventsGuard {
-                        events: returned_events as c::c_short,
+                        events: returned_events as c_short,
                         shared: &*self.0.shared,
                         token: self.0.waker.token(),
                     })
@@ -176,7 +181,7 @@ pub(crate) struct Events {
 impl Events {
     // Process all queued elements in the driver.
     fn process(&mut self, driver: &mut Driver, wakers: &mut Vec<Arc<Waker>>) -> Result<()> {
-        let mut added = mem::replace(&mut self.added, Vec::new());
+        let mut added = replace(&mut self.added, Vec::new());
 
         for waker in added.drain(..) {
             let loc = Loc {
@@ -189,7 +194,7 @@ impl Events {
             wakers.push(waker);
         }
 
-        let mut removed = mem::replace(&mut self.removed, Vec::new());
+        let mut removed = replace(&mut self.removed, Vec::new());
 
         for token in removed.drain(..) {
             if let Some(loc) = driver.locations.remove(&token) {
@@ -205,7 +210,7 @@ impl Events {
             }
         }
 
-        let mut released = mem::replace(&mut self.released, Vec::new());
+        let mut released = replace(&mut self.released, Vec::new());
 
         for r in released.drain(..) {
             if let Some(Loc { descriptor, waker }) = driver.locations.get(&r) {
@@ -290,16 +295,16 @@ struct Driver {
     /// Location of a given token.
     locations: HashMap<Token, Loc>,
     /// The descriptors being driven.
-    descriptors: Vec<libc::pollfd>,
+    descriptors: Vec<c::pollfd>,
 }
 
 impl Driver {
     fn run(mut self, guard: &mut PanicGuard) -> Result<()> {
         while guard.shared.running.load(Ordering::Acquire) {
             let mut result = unsafe {
-                errno!(libc::poll(
+                errno!(c::poll(
                     self.descriptors.as_mut_ptr(),
-                    self.descriptors.len() as libc::c_ulong,
+                    self.descriptors.len() as c_ulong,
                     -1,
                 ))?
             };
@@ -329,7 +334,7 @@ impl Driver {
                 let waker = &guard.wakers[n - 1];
                 waker
                     .returned_events
-                    .store(std::mem::take(&mut e.revents) as usize, Ordering::Release);
+                    .store(take(&mut e.revents) as usize, Ordering::Release);
                 waker.waker.wake();
             }
 
@@ -345,23 +350,23 @@ impl Driver {
     fn start(shared: Arc<Shared>) {
         let state = Driver {
             locations: HashMap::new(),
-            descriptors: vec![libc::pollfd {
+            descriptors: Vec::from([c::pollfd {
                 fd: shared.parker.fd,
-                events: libc::POLLIN,
+                events: c::POLLIN,
                 revents: 0,
-            }],
+            }]),
         };
 
         let mut guard = PanicGuard {
             shared,
-            wakers: vec![],
+            wakers: Vec::new(),
         };
 
         if let Err(e) = state.run(&mut guard) {
             panic!("poll thread errored: {}", e)
         }
 
-        mem::forget(guard);
+        forget(guard);
     }
 }
 
@@ -385,7 +390,7 @@ impl Drop for PanicGuard {
 
 /// Helper wrapper around an eventfd.
 pub(crate) struct EventFd {
-    fd: c::c_int,
+    fd: c_int,
 }
 
 impl EventFd {
@@ -401,7 +406,7 @@ impl EventFd {
     fn send(&self, v: u64) -> Result<(), Errno> {
         unsafe {
             let n = v.to_ne_bytes();
-            errno!(c::write(self.fd, n.as_ptr() as *const c::c_void, 8))?;
+            errno!(c::write(self.fd, n.as_ptr().cast::<c_void>(), 8))?;
             Ok(())
         }
     }
@@ -410,7 +415,7 @@ impl EventFd {
     fn recv(&self) -> Result<u64> {
         unsafe {
             let mut bytes = [0u8; 8];
-            let read = errno!(c::read(self.fd, bytes.as_mut_ptr() as *mut c::c_void, 8))?;
+            let read = errno!(c::read(self.fd, bytes.as_mut_ptr().cast::<c_void>(), 8))?;
 
             assert!(read == 8);
             Ok(u64::from_ne_bytes(bytes))
@@ -421,7 +426,7 @@ impl EventFd {
 impl Drop for EventFd {
     fn drop(&mut self) {
         unsafe {
-            let _ = libc::close(self.fd);
+            let _ = c::close(self.fd);
         }
     }
 }

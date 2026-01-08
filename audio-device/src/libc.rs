@@ -6,9 +6,8 @@
 //! [libc crate]: https://crates.io/crates/libc
 
 pub use ::libc::eventfd;
-pub use ::libc::free;
 pub use ::libc::nfds_t;
 pub use ::libc::{EFD_NONBLOCK, EWOULDBLOCK};
-pub use ::libc::{c_char, c_int, c_long, c_short, c_uint, c_ulong, c_void};
-pub use ::libc::{poll, pollfd, POLLIN, POLLOUT};
+pub use ::libc::{POLLIN, POLLOUT, poll, pollfd};
+pub use ::libc::{close, free};
 pub use ::libc::{read, write};

@@ -1,14 +1,16 @@
 //! A dynamically sized, multi-channel audio buffer.
 
-use crate::channel::{LinearChannel, LinearChannelMut};
+use core::cmp;
+use core::fmt;
+use core::hash;
+use core::mem;
+use core::ops;
+use core::ptr::{self, NonNull};
+use core::slice;
+
 use audio_core::{Buf, BufMut, ExactSizeBuf, ResizableBuf, Sample};
-use std::cmp;
-use std::fmt;
-use std::hash;
-use std::mem;
-use std::ops;
-use std::ptr;
-use std::slice;
+
+use crate::channel::{LinearChannel, LinearChannelMut};
 
 mod iter;
 pub use self::iter::{IterChannels, IterChannelsMut};
@@ -134,16 +136,18 @@ impl<T> Dynamic<T> {
         where
             T: Copy,
         {
-            let mut data = Vec::with_capacity(C);
+            unsafe {
+                let mut data = Vec::with_capacity(C);
 
-            for frames in values {
-                let slice = Box::<[T]>::from(frames);
-                let slice = ptr::NonNull::new_unchecked(Box::into_raw(slice) as *mut T);
-                data.push(RawSlice { data: slice });
-            }
+                for frames in values {
+                    let slice = Box::<[T]>::from(frames);
+                    let slice = NonNull::new_unchecked(Box::into_raw(slice) as *mut T);
+                    data.push(RawSlice { data: slice });
+                }
 
-            RawSlice {
-                data: ptr::NonNull::new_unchecked(mem::ManuallyDrop::new(data).as_mut_ptr()),
+                RawSlice {
+                    data: NonNull::new_unchecked(mem::ManuallyDrop::new(data).as_mut_ptr()),
+                }
             }
         }
     }
@@ -845,7 +849,7 @@ where
 /// A raw slice.
 #[repr(transparent)]
 struct RawSlice<T> {
-    data: ptr::NonNull<T>,
+    data: NonNull<T>,
 }
 
 impl<T> RawSlice<T> {
@@ -866,7 +870,7 @@ impl<T> RawSlice<T> {
     /// Construct an empty raw slice.
     fn empty() -> Self {
         Self {
-            data: unsafe { ptr::NonNull::new_unchecked(Vec::new().as_mut_ptr()) },
+            data: unsafe { NonNull::new_unchecked(Vec::new().as_mut_ptr()) },
         }
     }
 
@@ -877,7 +881,7 @@ impl<T> RawSlice<T> {
         // sized and aligned.
         unsafe {
             let data = Vec::with_capacity(cap);
-            let data = ptr::NonNull::new_unchecked(mem::ManuallyDrop::new(data).as_mut_ptr());
+            let data = NonNull::new_unchecked(mem::ManuallyDrop::new(data).as_mut_ptr());
             Self { data }
         }
     }
@@ -892,7 +896,7 @@ impl<T> RawSlice<T> {
         unsafe {
             let mut data = Vec::with_capacity(cap);
             ptr::write_bytes(data.as_mut_ptr(), 0, cap);
-            let data = ptr::NonNull::new_unchecked(mem::ManuallyDrop::new(data).as_mut_ptr());
+            let data = NonNull::new_unchecked(mem::ManuallyDrop::new(data).as_mut_ptr());
             Self { data }
         }
     }
@@ -908,13 +912,16 @@ impl<T> RawSlice<T> {
     where
         T: Sample,
     {
-        // Note: we need to provide `len` for the `reserve_exact` calculation to
-        // below to be correct.
-        let mut channel = Vec::from_raw_parts(self.data.as_ptr(), len, len);
-        channel.reserve_exact(additional);
-        // Safety: the type constrain of `T` guarantees that an all-zeros bit pattern is legal.
-        ptr::write_bytes(channel.as_mut_ptr().add(len), 0, additional);
-        self.data = ptr::NonNull::new_unchecked(mem::ManuallyDrop::new(channel).as_mut_ptr());
+        unsafe {
+            // Note: we need to provide `len` for the `reserve_exact`
+            // calculation to below to be correct.
+            let mut channel = Vec::from_raw_parts(self.data.as_ptr(), len, len);
+            channel.reserve_exact(additional);
+            // Safety: the type constrain of `T` guarantees that an all-zeros
+            // bit pattern is legal.
+            ptr::write_bytes(channel.as_mut_ptr().add(len), 0, additional);
+            self.data = NonNull::new_unchecked(mem::ManuallyDrop::new(channel).as_mut_ptr());
+        }
     }
 
     /// Resize the slice in place by reserving `additional` more elements in it
@@ -926,11 +933,13 @@ impl<T> RawSlice<T> {
     /// This will change the underlying allocation, so subsequent calls must
     /// provide the new length of `len + additional`.
     unsafe fn reserve_uninit(&mut self, len: usize, additional: usize) {
-        // Note: we need to provide `len` for the `reserve_exact` calculation to
-        // below to be correct.
-        let mut channel = Vec::from_raw_parts(self.data.as_ptr(), len, len);
-        channel.reserve_exact(additional);
-        self.data = ptr::NonNull::new_unchecked(mem::ManuallyDrop::new(channel).as_mut_ptr());
+        unsafe {
+            // Note: we need to provide `len` for the `reserve_exact`
+            // calculation to below to be correct.
+            let mut channel = Vec::from_raw_parts(self.data.as_ptr(), len, len);
+            channel.reserve_exact(additional);
+            self.data = NonNull::new_unchecked(mem::ManuallyDrop::new(channel).as_mut_ptr());
+        }
     }
 
     /// Get a reference to the value at the given offset.
@@ -940,7 +949,7 @@ impl<T> RawSlice<T> {
     /// The caller is resonsible for asserting that the value at the given
     /// location has an initialized bit pattern and is not out of bounds.
     unsafe fn get_unchecked<'a>(&self, n: usize) -> &'a T {
-        &*self.data.as_ptr().add(n)
+        unsafe { &*self.data.as_ptr().add(n) }
     }
 
     /// Get a mutable reference to the value at the given offset.
@@ -950,7 +959,7 @@ impl<T> RawSlice<T> {
     /// The caller is resonsible for asserting that the value at the given
     /// location has an initialized bit pattern and is not out of bounds.
     unsafe fn get_unchecked_mut<'a>(&mut self, n: usize) -> &'a mut T {
-        &mut *self.data.as_ptr().add(n)
+        unsafe { &mut *self.data.as_ptr().add(n) }
     }
 
     /// Read the value at the given offset.
@@ -960,7 +969,7 @@ impl<T> RawSlice<T> {
     /// The caller is resonsible for asserting that the value at the given
     /// location has an initialized bit pattern and is not out of bounds.
     unsafe fn read(&self, n: usize) -> T {
-        ptr::read(self.data.as_ptr().add(n))
+        unsafe { ptr::read(self.data.as_ptr().add(n)) }
     }
 
     /// Write a value at the given offset.
@@ -970,7 +979,7 @@ impl<T> RawSlice<T> {
     /// The caller is responsible for asserting that the written to offset is
     /// not out of bounds.
     unsafe fn write(&mut self, n: usize, value: T) {
-        ptr::write(self.data.as_ptr().add(n), value)
+        unsafe { ptr::write(self.data.as_ptr().add(n), value) }
     }
 
     /// Get the raw base pointer of the slice.
@@ -985,7 +994,7 @@ impl<T> RawSlice<T> {
     /// The incoming len must represent a valid slice of initialized data.
     /// The produced lifetime must be bounded to something valid!
     unsafe fn as_ref(&self, len: usize) -> &[T] {
-        slice::from_raw_parts(self.data.as_ptr() as *const _, len)
+        unsafe { slice::from_raw_parts(self.data.as_ptr() as *const _, len) }
     }
 
     /// Get the raw slice as a linear channel.
@@ -995,7 +1004,7 @@ impl<T> RawSlice<T> {
     /// The incoming len must represent a valid slice of initialized data.
     /// The produced lifetime must be bounded to something valid!
     unsafe fn as_linear_channel(&self, len: usize) -> LinearChannel<'_, T> {
-        LinearChannel::new(self.as_ref(len))
+        unsafe { LinearChannel::new(self.as_ref(len)) }
     }
 
     /// Get the raw slice as a mutable slice.
@@ -1005,7 +1014,7 @@ impl<T> RawSlice<T> {
     /// The incoming len must represent a valid slice of initialized data.
     /// The produced lifetime must be bounded to something valid!
     unsafe fn as_mut(&mut self, len: usize) -> &mut [T] {
-        slice::from_raw_parts_mut(self.data.as_ptr(), len)
+        unsafe { slice::from_raw_parts_mut(self.data.as_ptr(), len) }
     }
 
     /// Get the raw slice as a mutable linear channel.
@@ -1015,7 +1024,7 @@ impl<T> RawSlice<T> {
     /// The incoming len must represent a valid slice of initialized data. The
     /// produced lifetime must be bounded to something valid!
     unsafe fn as_linear_channel_mut(&mut self, len: usize) -> LinearChannelMut<'_, T> {
-        LinearChannelMut::new(self.as_mut(len))
+        unsafe { LinearChannelMut::new(self.as_mut(len)) }
     }
 
     /// Drop the slice in place.
@@ -1027,7 +1036,9 @@ impl<T> RawSlice<T> {
     /// After calling drop, the slice must not be used every again because the
     /// data it is pointing to have been dropped.
     unsafe fn drop_in_place(&mut self, len: usize) {
-        let _ = Vec::from_raw_parts(self.data.as_ptr(), 0, len);
+        unsafe {
+            let _ = Vec::from_raw_parts(self.data.as_ptr(), 0, len);
+        }
     }
 
     /// Convert into a vector.
@@ -1040,6 +1051,6 @@ impl<T> RawSlice<T> {
     /// The underlying slices must be dropped and forgotten after this
     /// operation.
     pub(crate) unsafe fn into_vec(self, len: usize, cap: usize) -> Vec<T> {
-        Vec::from_raw_parts(self.data.as_ptr(), len, cap)
+        unsafe { Vec::from_raw_parts(self.data.as_ptr(), len, cap) }
     }
 }

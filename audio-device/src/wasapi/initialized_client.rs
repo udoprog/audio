@@ -1,7 +1,9 @@
+use core::marker;
+
+use windows::Win32::Media::Audio as audio;
+
 use crate::loom::sync::Arc;
 use crate::wasapi::{ClientConfig, Error, RenderClient, Sample};
-use std::marker;
-use windows::Win32::Media::Audio as audio;
 
 /// A client that has been initialized with the given type `T`.
 ///
@@ -32,9 +34,7 @@ where
 
         self.tag.ensure_on_thread();
 
-        let render_client: audio::IAudioRenderClient = unsafe {
-            self.audio_client.GetService()?
-        };
+        let render_client: audio::IAudioRenderClient = unsafe { self.audio_client.GetService()? };
 
         Ok(RenderClient {
             tag: self.tag,
