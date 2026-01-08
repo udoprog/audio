@@ -1,9 +1,11 @@
-use crate::alsa::{Error, Result, Timestamp, TimestampType};
-use crate::libc as c;
+use core::ffi::{c_int, c_uint, c_ulong};
+use core::mem;
+use core::ops;
+use core::ptr::NonNull;
+
 use alsa_sys as alsa;
-use std::mem;
-use std::ops;
-use std::ptr;
+
+use crate::alsa::{Error, Result, Timestamp, TimestampType};
 
 /// Collection of software parameters being configured for a [Pcm][super::Pcm]
 /// handle.
@@ -11,27 +13,29 @@ use std::ptr;
 /// See
 /// [Pcm::software_parameters][super::Pcm::software_parameters].
 pub struct SoftwareParameters {
-    handle: ptr::NonNull<alsa::snd_pcm_sw_params_t>,
+    handle: NonNull<alsa::snd_pcm_sw_params_t>,
 }
 
 impl SoftwareParameters {
     /// Open current software parameters for the current device for reading.
-    pub(super) unsafe fn new(pcm: &mut ptr::NonNull<alsa::snd_pcm_t>) -> Result<Self> {
-        let mut handle = mem::MaybeUninit::uninit();
+    pub(super) unsafe fn new(pcm: &mut NonNull<alsa::snd_pcm_t>) -> Result<Self> {
+        unsafe {
+            let mut handle = mem::MaybeUninit::uninit();
 
-        errno!(alsa::snd_pcm_sw_params_malloc(handle.as_mut_ptr()))?;
+            errno!(alsa::snd_pcm_sw_params_malloc(handle.as_mut_ptr()))?;
 
-        let mut handle = ptr::NonNull::new_unchecked(handle.assume_init());
+            let mut handle = NonNull::new_unchecked(handle.assume_init());
 
-        if let Err(e) = errno!(alsa::snd_pcm_sw_params_current(
-            pcm.as_ptr(),
-            handle.as_mut()
-        )) {
-            alsa::snd_pcm_sw_params_free(handle.as_mut());
-            return Err(e.into());
+            if let Err(e) = errno!(alsa::snd_pcm_sw_params_current(
+                pcm.as_ptr(),
+                handle.as_mut()
+            )) {
+                alsa::snd_pcm_sw_params_free(handle.as_mut());
+                return Err(e.into());
+            }
+
+            Ok(SoftwareParameters { handle })
         }
-
-        Ok(SoftwareParameters { handle })
     }
 
     /// Copy one set of software parameters to another.
@@ -70,7 +74,7 @@ impl SoftwareParameters {
     /// dbg!(boundary);
     /// # Ok(()) }
     /// ```
-    pub fn boundary(&self) -> Result<c::c_ulong> {
+    pub fn boundary(&self) -> Result<c_ulong> {
         unsafe {
             let mut boundary = mem::MaybeUninit::uninit();
             errno!(alsa::snd_pcm_sw_params_get_boundary(
@@ -154,7 +158,7 @@ impl SoftwareParameters {
     /// dbg!(available_min);
     /// # Ok(()) }
     /// ```
-    pub fn available_min(&self) -> Result<c::c_ulong> {
+    pub fn available_min(&self) -> Result<c_ulong> {
         unsafe {
             let mut available_min = mem::MaybeUninit::uninit();
             alsa::snd_pcm_sw_params_get_avail_min(self.handle.as_ptr(), available_min.as_mut_ptr());
@@ -176,7 +180,7 @@ impl SoftwareParameters {
     /// let value = sw.period_event()?;
     /// # Ok(()) }
     /// ```
-    pub fn period_event(&self) -> Result<c::c_int> {
+    pub fn period_event(&self) -> Result<c_int> {
         unsafe {
             let mut value = mem::MaybeUninit::uninit();
             alsa::snd_pcm_sw_params_get_period_event(self.handle.as_ptr(), value.as_mut_ptr());
@@ -198,7 +202,7 @@ impl SoftwareParameters {
     /// let value = sw.start_threshold()?;
     /// # Ok(()) }
     /// ```
-    pub fn start_threshold(&self) -> Result<c::c_ulong> {
+    pub fn start_threshold(&self) -> Result<c_ulong> {
         unsafe {
             let mut value = mem::MaybeUninit::uninit();
             alsa::snd_pcm_sw_params_get_start_threshold(self.handle.as_ptr(), value.as_mut_ptr());
@@ -220,7 +224,7 @@ impl SoftwareParameters {
     /// let value = sw.stop_threshold()?;
     /// # Ok(()) }
     /// ```
-    pub fn stop_threshold(&self) -> Result<c::c_ulong> {
+    pub fn stop_threshold(&self) -> Result<c_ulong> {
         unsafe {
             let mut value = mem::MaybeUninit::uninit();
             alsa::snd_pcm_sw_params_get_stop_threshold(self.handle.as_ptr(), value.as_mut_ptr());
@@ -246,7 +250,7 @@ impl SoftwareParameters {
     /// let value = sw.silence_threshold()?;
     /// # Ok(()) }
     /// ```
-    pub fn silence_threshold(&self) -> Result<c::c_ulong> {
+    pub fn silence_threshold(&self) -> Result<c_ulong> {
         unsafe {
             let mut value = mem::MaybeUninit::uninit();
             alsa::snd_pcm_sw_params_get_silence_threshold(self.handle.as_ptr(), value.as_mut_ptr());
@@ -268,7 +272,7 @@ impl SoftwareParameters {
     /// let value = sw.silence_size()?;
     /// # Ok(()) }
     /// ```
-    pub fn silence_size(&self) -> Result<c::c_ulong> {
+    pub fn silence_size(&self) -> Result<c_ulong> {
         unsafe {
             let mut value = mem::MaybeUninit::uninit();
             alsa::snd_pcm_sw_params_get_silence_size(self.handle.as_ptr(), value.as_mut_ptr());
@@ -291,16 +295,17 @@ impl Drop for SoftwareParameters {
 /// See
 /// [Pcm::software_parameters_mut][super::Pcm::software_parameters_mut].
 pub struct SoftwareParametersMut<'a> {
-    pcm: &'a mut ptr::NonNull<alsa::snd_pcm_t>,
+    pcm: &'a mut NonNull<alsa::snd_pcm_t>,
     base: SoftwareParameters,
 }
 
 impl<'a> SoftwareParametersMut<'a> {
     /// Open current software parameters for the current device for writing.
-    pub(super) unsafe fn new(pcm: &'a mut ptr::NonNull<alsa::snd_pcm_t>) -> Result<Self> {
-        let base = SoftwareParameters::new(pcm)?;
-
-        Ok(Self { pcm, base })
+    pub(super) unsafe fn new(pcm: &'a mut NonNull<alsa::snd_pcm_t>) -> Result<Self> {
+        unsafe {
+            let base = SoftwareParameters::new(pcm)?;
+            Ok(Self { pcm, base })
+        }
     }
 
     /// Install PCM software configuration defined by params.
@@ -347,7 +352,7 @@ impl<'a> SoftwareParametersMut<'a> {
             errno!(alsa::snd_pcm_sw_params_set_tstamp_mode(
                 self.pcm.as_mut(),
                 self.base.handle.as_mut(),
-                timestamp_mode as c::c_uint,
+                timestamp_mode as c_uint,
             ))?;
             Ok(())
         }
@@ -372,7 +377,7 @@ impl<'a> SoftwareParametersMut<'a> {
             errno!(alsa::snd_pcm_sw_params_set_tstamp_type(
                 self.pcm.as_mut(),
                 self.base.handle.as_mut(),
-                timestamp_type as c::c_uint,
+                timestamp_type as c_uint,
             ))?;
             Ok(())
         }
@@ -398,7 +403,7 @@ impl<'a> SoftwareParametersMut<'a> {
     /// sw.set_available_min(1000)?;
     /// # Ok(()) }
     /// ```
-    pub fn set_available_min(&mut self, available_min: c::c_ulong) -> Result<()> {
+    pub fn set_available_min(&mut self, available_min: c_ulong) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_sw_params_set_avail_min(
                 self.pcm.as_mut(),
@@ -425,7 +430,7 @@ impl<'a> SoftwareParametersMut<'a> {
     /// sw.set_period_event(0)?;
     /// # Ok(()) }
     /// ```
-    pub fn set_period_event(&mut self, period_event: c::c_int) -> Result<()> {
+    pub fn set_period_event(&mut self, period_event: c_int) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_sw_params_set_period_event(
                 self.pcm.as_mut(),
@@ -450,7 +455,7 @@ impl<'a> SoftwareParametersMut<'a> {
     /// sw.set_start_threshold(0)?;
     /// # Ok(()) }
     /// ```
-    pub fn set_start_threshold(&mut self, start_threshold: c::c_ulong) -> Result<()> {
+    pub fn set_start_threshold(&mut self, start_threshold: c_ulong) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_sw_params_set_start_threshold(
                 self.pcm.as_mut(),
@@ -475,7 +480,7 @@ impl<'a> SoftwareParametersMut<'a> {
     /// sw.set_stop_threshold(0)?;
     /// # Ok(()) }
     /// ```
-    pub fn set_stop_threshold(&mut self, stop_threshold: c::c_ulong) -> Result<()> {
+    pub fn set_stop_threshold(&mut self, stop_threshold: c_ulong) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_sw_params_set_stop_threshold(
                 self.pcm.as_mut(),
@@ -500,7 +505,7 @@ impl<'a> SoftwareParametersMut<'a> {
     /// sw.set_silence_threshold(0)?;
     /// # Ok(()) }
     /// ```
-    pub fn set_silence_threshold(&mut self, silence_threshold: c::c_ulong) -> Result<()> {
+    pub fn set_silence_threshold(&mut self, silence_threshold: c_ulong) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_sw_params_set_silence_threshold(
                 self.pcm.as_mut(),
@@ -535,7 +540,7 @@ impl<'a> SoftwareParametersMut<'a> {
     /// sw.set_silence_size(0)?;
     /// # Ok(()) }
     /// ```
-    pub fn set_silence_size(&mut self, silence_size: c::c_ulong) -> Result<()> {
+    pub fn set_silence_size(&mut self, silence_size: c_ulong) -> Result<()> {
         unsafe {
             errno!(alsa::snd_pcm_sw_params_set_silence_size(
                 self.pcm.as_mut(),

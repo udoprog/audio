@@ -12,9 +12,9 @@
 //!
 //! [audio-device]: https://docs.rs/audio-device
 
-#![allow(non_camel_case_types)]
+#![allow(warnings, clippy::warnings)]
 
-use libc::{pid_t, pollfd, timespec, timeval, FILE};
+use libc::{FILE, pid_t, pollfd, timespec, timeval};
 
 pub const SND_PCM_NONBLOCK: ::std::os::raw::c_int = 0x1;
 pub const SND_PCM_ASYNC: ::std::os::raw::c_int = 0x2;

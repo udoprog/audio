@@ -1,3 +1,5 @@
+use audio_core::BufMut;
+
 /// Note: most of these tests are duplicated doc tests, but they're here so that
 /// we can run them through miri and get a good idea of the soundness of our
 /// implementations.
@@ -122,12 +124,16 @@ fn test_into_vecs() {
 
 #[test]
 fn test_enabled_mut() {
-    use bittle::Mask as _;
+    use bittle::Bits;
 
     let mut buf = crate::buf::Dynamic::<f32>::with_topology(4, 1024);
-    let mask: bittle::FixedSet<u128> = bittle::fixed_set![0, 2, 3];
+    let mask: bittle::Set<u128> = bittle::set![0, 2, 3];
 
-    for mut chan in mask.join(buf.iter_channels_mut()) {
+    for n in mask.iter_ones() {
+        let Some(mut chan) = buf.get_channel_mut(n as usize) else {
+            continue;
+        };
+
         for b in chan.iter_mut() {
             *b = 1.0;
         }
@@ -169,7 +175,7 @@ fn test_get_mut() {
     buf.resize_channels(2);
     buf.resize_frames(256);
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     if let Some(mut left) = buf.get_mut(0) {
         rng.fill(left.as_mut());

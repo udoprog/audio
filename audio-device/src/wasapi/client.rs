@@ -1,11 +1,11 @@
-use std::marker;
-use std::mem;
-use std::ptr;
+use core::marker;
+use core::mem;
+use core::ptr::null_mut;
 
-use windows::Win32::System::Com as com;
 use windows::Win32::Media::Audio as audio;
-use windows::Win32::Media::Multimedia as mm;
 use windows::Win32::Media::KernelStreaming as ks;
+use windows::Win32::Media::Multimedia as mm;
+use windows::Win32::System::Com as com;
 
 use crate::loom::sync::Arc;
 use crate::wasapi::{ClientConfig, Error, InitializedClient, Sample, SampleFormat};
@@ -25,8 +25,7 @@ impl Client {
         tracing::trace!(?tag, "get default client config");
 
         unsafe {
-            let mix_format = self.audio_client
-                .GetMixFormat()?;
+            let mix_format = self.audio_client.GetMixFormat()?;
 
             let bits_per_sample = (*mix_format).wBitsPerSample;
 
@@ -63,8 +62,14 @@ impl Client {
 
             let channels = (*mix_format).nChannels;
             let sample_rate = (*mix_format).nSamplesPerSec;
-            
-            tracing::trace!(?tag, ?channels, ?sample_rate, ?sample_format, "got client config");
+
+            tracing::trace!(
+                ?tag,
+                ?channels,
+                ?sample_rate,
+                ?sample_format,
+                "got client config"
+            );
 
             Ok(ClientConfig {
                 _tag: tag,
@@ -117,7 +122,7 @@ impl Client {
     {
         unsafe {
             let mut mix_format = T::mix_format(config);
-            let mut closest_match = ptr::null_mut();
+            let mut closest_match = null_mut();
 
             let result = self.audio_client.IsFormatSupported(
                 audio::AUDCLNT_SHAREMODE_SHARED,
@@ -128,7 +133,7 @@ impl Client {
             if result.is_ok() {
                 if !closest_match.is_null() {
                     mix_format = *(closest_match as *mut audio::WAVEFORMATEXTENSIBLE);
-                    com::CoTaskMemFree(closest_match.cast());
+                    com::CoTaskMemFree(Some(closest_match.cast()));
                 }
 
                 result.ok()?;
@@ -140,20 +145,19 @@ impl Client {
                 mix_format = *(closest_match as *mut audio::WAVEFORMATEXTENSIBLE);
                 config.sample_rate = mix_format.Format.nSamplesPerSec;
                 config.channels = mix_format.Format.nChannels;
-                com::CoTaskMemFree(closest_match.cast());
+                com::CoTaskMemFree(Some(closest_match.cast()));
             };
 
             tracing::trace!("initializing audio client");
 
-            self.audio_client
-                .Initialize(
-                    audio::AUDCLNT_SHAREMODE_SHARED,
-                    audio::AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-                    0,
-                    0,
-                    &mix_format.Format,
-                    None,
-                )?;
+            self.audio_client.Initialize(
+                audio::AUDCLNT_SHAREMODE_SHARED,
+                audio::AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+                0,
+                0,
+                &mix_format.Format,
+                None,
+            )?;
 
             let event = Arc::new(event()?);
 
@@ -161,8 +165,7 @@ impl Client {
 
             self.audio_client.SetEventHandle(event.raw_event())?;
 
-            let buffer_size = self.audio_client
-                .GetBufferSize()?;
+            let buffer_size = self.audio_client.GetBufferSize()?;
 
             tracing::trace!(?buffer_size, "initialized client");
 

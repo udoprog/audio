@@ -3,8 +3,8 @@
 use std::ptr;
 
 use thiserror::Error;
-use windows::Win32::System::Com as com;
 use windows::Win32::Media::Audio as audio;
+use windows::Win32::System::Com as com;
 
 mod initialized_client;
 pub use self::initialized_client::InitializedClient;
@@ -73,13 +73,11 @@ pub struct ClientConfig {
 pub fn default_output_client() -> Result<Option<Client>, Error> {
     let tag = ste::Tag::current_thread();
 
-    let enumerator: audio::IMMDeviceEnumerator = unsafe {
-        com::CoCreateInstance(&audio::MMDeviceEnumerator, None, com::CLSCTX_ALL)?
-    };
+    let enumerator: audio::IMMDeviceEnumerator =
+        unsafe { com::CoCreateInstance(&audio::MMDeviceEnumerator, None, com::CLSCTX_ALL)? };
 
     unsafe {
-        let device = enumerator
-            .GetDefaultAudioEndpoint(audio::eRender, audio::eConsole);
+        let device = enumerator.GetDefaultAudioEndpoint(audio::eRender, audio::eConsole);
 
         let device = match device {
             Ok(device) => device,

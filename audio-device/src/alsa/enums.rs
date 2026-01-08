@@ -1,7 +1,9 @@
-use crate::alsa::Result;
-use crate::libc as c;
+use core::ffi::c_int;
+use core::fmt;
+
 use alsa_sys as alsa;
-use std::fmt;
+
+use crate::alsa::Result;
 
 macro_rules! decl_enum {
     (
@@ -168,7 +170,7 @@ impl Format {
     /// # Ok(()) }
     /// ```
     pub fn physical_width(self) -> Result<usize> {
-        unsafe { Ok(errno!(alsa::snd_pcm_format_physical_width(self as c::c_int))? as usize) }
+        unsafe { Ok(errno!(alsa::snd_pcm_format_physical_width(self as c_int))? as usize) }
     }
 }
 

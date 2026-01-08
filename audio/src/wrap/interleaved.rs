@@ -1,5 +1,5 @@
 use core::mem;
-use core::ptr;
+use core::ptr::NonNull;
 
 use audio_core::{
     Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ReadBuf, ResizableBuf,
@@ -190,7 +190,7 @@ where
     }
 
     #[inline]
-    fn as_interleaved_mut_ptr(&mut self) -> ptr::NonNull<Self::Sample> {
+    fn as_interleaved_mut_ptr(&mut self) -> NonNull<Self::Sample> {
         self.value.as_mut_ptr()
     }
 

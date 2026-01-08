@@ -1,7 +1,12 @@
-use crate::libc as c;
-use crate::pulse::{error, ContextState, Error, Result};
+use core::ffi::c_void;
+use core::ptr::{self, NonNull};
+
+use alloc::boxed::Box;
+use alloc::vec::Vec;
+
 use pulse_sys as pulse;
-use std::ptr;
+
+use crate::pulse::{ContextState, Error, Result, error};
 
 /// Structure holding onto a registered callback.
 pub struct Callback {
@@ -21,7 +26,7 @@ impl Drop for Callback {
 ///
 /// See [MainLoop::context][super::MainLoop::context].
 pub struct Context {
-    pub(super) handle: ptr::NonNull<pulse::pa_context>,
+    pub(super) handle: NonNull<pulse::pa_context>,
     pub(super) callbacks: Vec<Callback>,
 }
 
@@ -45,11 +50,11 @@ impl Context {
             return ffi_error!(pulse::pa_context_set_state_callback(
                 self.handle.as_mut(),
                 Some(callback::<C>),
-                cb as *mut c::c_void
+                cb.cast::<c_void>(),
             ));
         }
 
-        extern "C" fn callback<C>(cx: *mut pulse::pa_context, cb: *mut c::c_void)
+        extern "C" fn callback<C>(cx: *mut pulse::pa_context, cb: *mut c_void)
         where
             C: 'static + FnMut(&mut Context) -> Result<()>,
         {
@@ -62,7 +67,9 @@ impl Context {
 
         // Wire up the type `C` to be dropped once the context is dropped.
         unsafe fn drop_impl<C>(data: *mut ()) {
-            ptr::drop_in_place(data as *mut C);
+            unsafe {
+                ptr::drop_in_place(data as *mut C);
+            }
         }
 
         struct Wrapper<C> {
@@ -75,8 +82,10 @@ impl Context {
             C: 'static + FnMut(&mut Context) -> Result<()>,
         {
             unsafe fn call(&mut self) {
-                let cx = &mut (*self.cx);
-                error::capture(|| (self.cb)(cx));
+                unsafe {
+                    let cx = &mut (*self.cx);
+                    error::capture(|| (self.cb)(cx));
+                }
             }
         }
     }

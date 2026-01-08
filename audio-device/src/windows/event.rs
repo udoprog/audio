@@ -1,5 +1,5 @@
-use windows::Win32::System::Threading as th;
 use windows::Win32::Foundation as f;
+use windows::Win32::System::Threading as th;
 use windows::core::PCSTR;
 
 use crate::windows::RawEvent;
@@ -12,14 +12,7 @@ pub struct Event {
 
 impl Event {
     pub(crate) fn new(manual_reset: bool, initial_state: bool) -> windows::core::Result<Self> {
-        let handle = unsafe {
-            th::CreateEventA(
-                None,
-                manual_reset,
-                initial_state,
-                PCSTR::null(),
-            )?
-        };
+        let handle = unsafe { th::CreateEventA(None, manual_reset, initial_state, PCSTR::null())? };
 
         Ok(Self { handle })
     }

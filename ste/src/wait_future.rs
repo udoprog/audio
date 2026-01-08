@@ -1,21 +1,22 @@
+use core::future::Future;
+use core::pin::Pin;
+use core::ptr::NonNull;
+use core::task::{Context, Poll, Waker};
+
 use crate::misc::RawSend;
 use crate::parker::Parker;
-use crate::tag::{with_tag, Tag};
+use crate::tag::{Tag, with_tag};
 use crate::worker::{Entry, Shared};
-use std::future::Future;
-use std::pin::Pin;
-use std::ptr;
-use std::task::{Context, Poll, Waker};
 
 pub(super) struct WaitFuture<'a, F>
 where
     F: Future,
 {
     /// The future being polled.
-    pub(super) future: ptr::NonNull<F>,
+    pub(super) future: NonNull<F>,
     /// Where to store output.
-    pub(super) output: ptr::NonNull<Option<F::Output>>,
-    pub(super) parker: ptr::NonNull<Parker>,
+    pub(super) output: NonNull<Option<F::Output>>,
+    pub(super) parker: NonNull<Parker>,
     pub(super) complete: bool,
     pub(super) shared: &'a Shared,
 }
@@ -35,10 +36,10 @@ where
             }
 
             let mut task = into_task(
-                RawSend((&mut this.complete).into()),
-                RawSend(this.future),
-                RawSend(this.output),
-                RawSend(cx.waker().into()),
+                RawSend::new((&mut this.complete).into()),
+                RawSend::new(this.future),
+                RawSend::new(this.output),
+                RawSend::new(cx.waker().into()),
             );
             let entry = Entry::new(&mut task, this.parker);
 
@@ -76,19 +77,19 @@ where
             // Safety: At this point, we know the waker has been
             // replaced by the polling task and can safely deref it into
             // the underlying waker.
-            let waker = waker.0.as_ref();
+            let waker = waker.as_ref();
 
             let mut cx = Context::from_waker(waker);
-            let future = Pin::new_unchecked(future.0.as_mut());
+            let future = Pin::new_unchecked(future.as_mut());
 
             let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
                 if let Poll::Ready(ready) = with_tag(tag, || future.poll(&mut cx)) {
-                    *output.0.as_mut() = Some(ready);
+                    *output.as_mut() = Some(ready);
                 }
             }));
 
             if result.is_err() {
-                *complete.0.as_mut() = true;
+                *complete.as_mut() = true;
             }
         }
     }

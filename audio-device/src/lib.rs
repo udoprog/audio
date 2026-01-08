@@ -41,6 +41,19 @@
 
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![no_std]
+
+#[cfg(not(feature = "std"))]
+compile_error!("audio-device: the 'std' feature is required");
+
+#[cfg(not(feature = "alloc"))]
+compile_error!("audio-device: the 'alloc' feature is required");
+
+#[cfg(feature = "std")]
+extern crate std;
+
+#[cfg(feature = "alloc")]
+extern crate alloc;
 
 pub(crate) mod loom;
 
@@ -48,34 +61,34 @@ pub(crate) mod loom;
 #[doc(hidden)]
 mod macros;
 
-cfg_unix! {
-    #[macro_use]
-    pub mod unix;
-}
+#[cfg(feature = "unix")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unix")))]
+#[macro_use]
+pub mod unix;
 
-cfg_wasapi! {
-    pub mod wasapi;
-}
+#[cfg(feature = "wasapi")]
+#[cfg_attr(docsrs, doc(cfg(feature = "wasapi")))]
+pub mod wasapi;
 
-cfg_windows! {
-    pub mod windows;
-}
+#[cfg(any(feature = "windows"))]
+#[cfg_attr(docsrs, doc(cfg(any(feature = "windows"))))]
+pub mod windows;
 
-cfg_libc! {
-    pub mod libc;
-}
+#[cfg(feature = "libc")]
+#[cfg_attr(docsrs, doc(cfg(feature = "libc")))]
+pub mod libc;
 
-cfg_alsa! {
-    pub mod alsa;
-}
+#[cfg(feature = "alsa")]
+#[cfg_attr(docsrs, doc(cfg(feature = "alsa")))]
+pub mod alsa;
 
-cfg_pulse! {
-    pub mod pulse;
-}
+#[cfg(feature = "pulse")]
+#[cfg_attr(docsrs, doc(cfg(feature = "pulse")))]
+pub mod pulse;
 
-cfg_pipewire! {
-    pub mod pipewire;
-}
+#[cfg(feature = "pipewire")]
+#[cfg_attr(docsrs, doc(cfg(feature = "pipewire")))]
+pub mod pipewire;
 
 pub mod runtime;
 

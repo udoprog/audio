@@ -2,8 +2,8 @@
 name = "audio"
 version = "0.2.1"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
-edition = "2018"
-rust-version = "1.70"
+edition = "2024"
+rust-version = "1.85"
 description = "A crate for working with audio in Rust"
 documentation = "https://docs.rs/audio"
 readme = "README.md"
@@ -21,5 +21,5 @@ std = ["audio-core/std"]
 audio-core = { version = "0.2.1", path = "../audio-core" }
 
 [dev-dependencies]
-rand = "0.8.5"
-bittle = "0.2.1"
+rand = "0.9.2"
+bittle = "0.6.0"

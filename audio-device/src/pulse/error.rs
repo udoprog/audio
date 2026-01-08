@@ -1,7 +1,13 @@
-use crate::libc as c;
+use core::cell::Cell;
+use core::ffi::c_uint;
+use core::ptr;
+
+use alloc::boxed::Box;
+
+use std::thread_local;
+
 use crate::unix::Errno;
-use std::cell::Cell;
-use std::ptr;
+
 use thiserror::Error;
 
 macro_rules! error {
@@ -11,9 +17,7 @@ macro_rules! error {
         if result < 0 {
             let errno = { pulse::pa_context_errno($s.handle.as_ptr()) };
 
-            Err(crate::pulse::Error::Sys(
-                crate::unix::Errno::new(errno),
-            ))
+            Err(crate::pulse::Error::Sys(crate::unix::Errno::new(errno)))
         } else {
             ffi_error!(result)
         }
@@ -82,11 +86,11 @@ pub enum Error {
     Sys(#[from] Errno),
     /// Tried to decode bad context state.
     #[error("bad context state identifier `{0}`")]
-    BadContextState(c::c_uint),
+    BadContextState(c_uint),
     /// A custom user error.
     #[error("error: {0}")]
-    User(#[source] Box<dyn std::error::Error + Send + Sync + 'static>),
+    User(#[source] Box<dyn core::error::Error + Send + Sync + 'static>),
 }
 
 /// Helper result wrapper.
-pub type Result<T, E = Error> = ::std::result::Result<T, E>;
+pub type Result<T, E = Error> = ::core::result::Result<T, E>;

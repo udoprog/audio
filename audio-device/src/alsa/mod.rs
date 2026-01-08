@@ -1,10 +1,14 @@
 //! An idiomatic Rust ALSA interface.
 // Documentation: https://www.alsa-project.org/alsa-doc/alsa-lib/
 
+use core::ffi::{CStr, c_char, c_int, c_uint};
+use core::ops;
+
+use std::io;
+
 use crate::libc as c;
 use crate::unix::Errno;
-use std::io;
-use std::ops;
+
 use thiserror::Error;
 
 macro_rules! errno {
@@ -17,12 +21,12 @@ macro_rules! errno {
             Ok(result)
         }
     }};
-}   
+}
 
 /// A string allocated through libc.
 #[repr(transparent)]
 pub struct CString {
-    ptr: *mut c::c_char,
+    ptr: *mut c_char,
 }
 
 impl CString {
@@ -31,7 +35,7 @@ impl CString {
     /// This differs from [std::ffi::CString] in that it requires the underlying
     /// string to have been allocated using libc allocators, and will free the
     /// underlying string using those as well.
-    pub unsafe fn from_raw(ptr: *mut c::c_char) -> Self {
+    pub unsafe fn from_raw(ptr: *mut c_char) -> Self {
         Self { ptr }
     }
 }
@@ -45,10 +49,10 @@ impl Drop for CString {
 }
 
 impl ops::Deref for CString {
-    type Target = std::ffi::CStr;
+    type Target = CStr;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { std::ffi::CStr::from_ptr(self.ptr) }
+        unsafe { CStr::from_ptr(self.ptr) }
     }
 }
 
@@ -90,26 +94,26 @@ pub enum Error {
     },
     /// Underlying function call returned an illegal format identifier.
     #[error("bad format identifier ({0})")]
-    BadFormat(c::c_int),
+    BadFormat(c_int),
     /// Underlying function call returned an illegal access identifier.
     #[error("bad access identifier ({0})")]
-    BadAccess(c::c_uint),
+    BadAccess(c_uint),
     /// Underlying function call returned an illegal timestamp identifier.
     #[error("bad timestamp mode identifier ({0})")]
-    BadTimestamp(c::c_uint),
+    BadTimestamp(c_uint),
     /// Underlying function call returned an illegal timestamp type identifier.
     #[error("bad timestamp type identifier ({0})")]
-    BadTimestampType(c::c_uint),
+    BadTimestampType(c_uint),
     /// Underlying PCM was not set up for polling.
     #[error("pcm device is not pollable")]
     MissingPollFds,
 }
 
 /// Helper result wrapper.
-pub type Result<T, E = Error> = ::std::result::Result<T, E>;
+pub type Result<T, E = Error> = ::core::result::Result<T, E>;
 
 mod card;
-pub use self::card::{cards, Card};
+pub use self::card::{Card, cards};
 
 mod pcm;
 pub use self::pcm::Pcm;

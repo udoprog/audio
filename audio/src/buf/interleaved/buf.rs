@@ -1,7 +1,8 @@
-use std::cmp;
-use std::fmt;
-use std::hash;
-use std::ptr;
+use core::cmp;
+use core::fmt;
+use core::hash;
+use core::ptr;
+use core::ptr::NonNull;
 
 use audio_core::{
     Buf, BufMut, ExactSizeBuf, InterleavedBuf, InterleavedBufMut, ResizableBuf, Sample, UniformBuf,
@@ -434,7 +435,7 @@ impl<T> Interleaved<T> {
     pub fn get_channel(&self, channel: usize) -> Option<InterleavedChannel<'_, T>> {
         if channel < self.channels {
             unsafe {
-                let ptr = ptr::NonNull::new_unchecked(self.data.as_ptr() as *mut _);
+                let ptr = NonNull::new_unchecked(self.data.as_ptr() as *mut _);
                 let len = self.data.len();
                 Some(InterleavedChannel::new_unchecked(
                     ptr,
@@ -486,7 +487,7 @@ impl<T> Interleaved<T> {
     pub fn get_mut(&mut self, channel: usize) -> Option<InterleavedChannelMut<'_, T>> {
         if channel < self.channels {
             unsafe {
-                let ptr = ptr::NonNull::new_unchecked(self.data.as_mut_ptr());
+                let ptr = NonNull::new_unchecked(self.data.as_mut_ptr());
                 let len = self.data.len();
                 Some(InterleavedChannelMut::new_unchecked(
                     ptr,
@@ -587,12 +588,14 @@ impl<T> Interleaved<T> {
     where
         F: IntoIterator<Item = usize>,
     {
-        let base = self.data.as_mut_ptr();
+        unsafe {
+            let base = self.data.as_mut_ptr();
 
-        for f in frames {
-            let from = f * self.channels;
-            let to = f * channels;
-            ptr::copy(base.add(from), base.add(to), len)
+            for f in frames {
+                let from = f * self.channels;
+                let to = f * channels;
+                ptr::copy(base.add(from), base.add(to), len)
+            }
         }
     }
 }
@@ -628,7 +631,7 @@ where
     pub fn iter_channels(&self) -> IterChannels<'_, T> {
         unsafe {
             IterChannels::new_unchecked(
-                ptr::NonNull::new_unchecked(self.data.as_ptr() as *mut _),
+                NonNull::new_unchecked(self.data.as_ptr() as *mut _),
                 self.data.len(),
                 self.channels,
             )
@@ -662,7 +665,7 @@ where
     pub fn iter_channels_mut(&mut self) -> IterChannelsMut<'_, T> {
         unsafe {
             IterChannelsMut::new_unchecked(
-                ptr::NonNull::new_unchecked(self.data.as_mut_ptr()),
+                NonNull::new_unchecked(self.data.as_mut_ptr()),
                 self.data.len(),
                 self.channels,
             )
@@ -842,7 +845,7 @@ where
         // are not initialized.
         unsafe {
             crate::utils::copy_channels_interleaved(
-                ptr::NonNull::new_unchecked(self.data.as_mut_ptr()),
+                NonNull::new_unchecked(self.data.as_mut_ptr()),
                 self.channels,
                 self.frames,
                 from,
@@ -900,8 +903,8 @@ where
     }
 
     #[inline]
-    fn as_interleaved_mut_ptr(&mut self) -> ptr::NonNull<Self::Sample> {
-        unsafe { ptr::NonNull::new_unchecked(self.data.as_mut_ptr()) }
+    fn as_interleaved_mut_ptr(&mut self) -> NonNull<Self::Sample> {
+        unsafe { NonNull::new_unchecked(self.data.as_mut_ptr()) }
     }
 
     #[inline]

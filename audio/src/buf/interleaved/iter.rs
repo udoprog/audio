@@ -1,11 +1,11 @@
 use core::marker;
-use core::ptr;
+use core::ptr::NonNull;
 
 use crate::channel::{InterleavedChannel, InterleavedChannelMut};
 
 /// An immutable iterator over an interleaved buffer.
 pub struct IterChannels<'a, T> {
-    ptr: ptr::NonNull<T>,
+    ptr: NonNull<T>,
     len: usize,
     channel: usize,
     channels: usize,
@@ -19,7 +19,7 @@ impl<T> IterChannels<'_, T> {
     ///
     /// The caller must ensure that the pointed to buffer is a valid immutable
     /// interleaved region of data.
-    pub(crate) unsafe fn new_unchecked(ptr: ptr::NonNull<T>, len: usize, channels: usize) -> Self {
+    pub(crate) unsafe fn new_unchecked(ptr: NonNull<T>, len: usize, channels: usize) -> Self {
         Self {
             ptr,
             len,
@@ -57,7 +57,7 @@ where
 
 /// An mutable iterator over an interleaved buffer.
 pub struct IterChannelsMut<'a, T> {
-    ptr: ptr::NonNull<T>,
+    ptr: NonNull<T>,
     len: usize,
     channel: usize,
     channels: usize,
@@ -71,7 +71,7 @@ impl<T> IterChannelsMut<'_, T> {
     ///
     /// The caller must ensure that the pointed to buffer is a valid mutable
     /// interleaved region of data.
-    pub(crate) unsafe fn new_unchecked(ptr: ptr::NonNull<T>, len: usize, channels: usize) -> Self {
+    pub(crate) unsafe fn new_unchecked(ptr: NonNull<T>, len: usize, channels: usize) -> Self {
         Self {
             ptr,
             len,

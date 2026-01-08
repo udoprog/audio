@@ -12,7 +12,7 @@
 //!
 //! [audio-device]: https://docs.rs/audio-device
 
-#![allow(non_camel_case_types)]
+#![allow(warnings, clippy::warnings)]
 
 use libc::{pollfd, timeval};
 

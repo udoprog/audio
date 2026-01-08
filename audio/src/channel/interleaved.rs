@@ -4,7 +4,7 @@ use core::cmp;
 use core::fmt;
 use core::marker;
 use core::mem;
-use core::ptr;
+use core::ptr::NonNull;
 
 use audio_core::{Channel, ChannelMut};
 
@@ -41,7 +41,7 @@ slice_comparisons!(#[cfg(feature = "std")] {'a, T}, InterleavedChannelMut<'a, T>
 /// See also [crate::buf::Interleaved].
 pub struct InterleavedChannel<'a, T> {
     /// The base pointer of the buffer.
-    ptr: ptr::NonNull<T>,
+    ptr: NonNull<T>,
     /// The end pointer of the buffer.
     end: *const T,
     /// The number of channels in the interleaved buffer.
@@ -85,7 +85,7 @@ impl<'a, T> InterleavedChannel<'a, T> {
 
         Some(unsafe {
             Self::new_unchecked(
-                ptr::NonNull::new_unchecked(data.as_ptr() as *mut _),
+                NonNull::new_unchecked(data.as_ptr() as *mut _),
                 data.len(),
                 channel,
                 channels,
@@ -101,7 +101,7 @@ impl<'a, T> InterleavedChannel<'a, T> {
 /// See also [crate::buf::Interleaved].
 pub struct InterleavedChannelMut<'a, T> {
     /// The base pointer of the buffer.
-    ptr: ptr::NonNull<T>,
+    ptr: NonNull<T>,
     /// The size of the buffer.
     end: *mut T,
     /// The number of channels in the interleaved buffer.
@@ -145,7 +145,7 @@ impl<'a, T> InterleavedChannelMut<'a, T> {
 
         Some(unsafe {
             Self::new_unchecked(
-                ptr::NonNull::new_unchecked(data.as_mut_ptr()),
+                NonNull::new_unchecked(data.as_mut_ptr()),
                 data.len(),
                 channel,
                 channels,
@@ -245,7 +245,7 @@ impl<T> Copy for InterleavedChannel<'_, T> {}
 
 /// An immutable iterator.
 pub struct Iter<'a, T> {
-    ptr: ptr::NonNull<T>,
+    ptr: NonNull<T>,
     end: *const T,
     step: usize,
     _marker: marker::PhantomData<&'a [T]>,
@@ -259,13 +259,13 @@ impl<T> Iter<'_, T> {
     /// The caller must ensure that the provided pointer points to an appropriately sized buffer.
     #[inline]
     pub(crate) unsafe fn new_aligned(
-        ptr: ptr::NonNull<T>,
+        ptr: NonNull<T>,
         len: usize,
         offset: usize,
         channels: usize,
         step: usize,
     ) -> Self {
-        let (ptr, end) = align_iterable_ref(ptr, len, offset, channels);
+        let (ptr, end) = unsafe { align_iterable_ref(ptr, len, offset, channels) };
 
         Self {
             ptr,
@@ -284,11 +284,11 @@ impl<T> Iter<'_, T> {
 /// maximum of `len` and `offset` and that no exclusive access to the specified
 /// range (by step) is already in use.
 unsafe fn align_iterable_ref<T>(
-    ptr: ptr::NonNull<T>,
+    ptr: NonNull<T>,
     len: usize,
     offset: usize,
     max: usize,
-) -> (ptr::NonNull<T>, *const T) {
+) -> (NonNull<T>, *const T) {
     debug_assert!(
         offset <= max,
         "referencing channel out of bounds; offset={}, max={}",
@@ -303,19 +303,21 @@ unsafe fn align_iterable_ref<T>(
     );
     debug_assert!(max <= len, "max out of bounds; max={}, len={}", max, len,);
 
-    let ptr = ptr.as_ptr();
+    unsafe {
+        let ptr = ptr.as_ptr();
 
-    let (ptr, end) = if mem::size_of::<T>() == 0 {
-        let end = (ptr as *const u8).wrapping_add(len / max) as *const T;
-        (ptr, end)
-    } else {
-        let ptr = ptr.add(offset);
-        let end = ptr.wrapping_add(len) as *const T;
-        (ptr, end)
-    };
+        let (ptr, end) = if mem::size_of::<T>() == 0 {
+            let end = (ptr as *const u8).wrapping_add(len / max) as *const T;
+            (ptr, end)
+        } else {
+            let ptr = ptr.add(offset);
+            let end = ptr.wrapping_add(len) as *const T;
+            (ptr, end)
+        };
 
-    let ptr = ptr::NonNull::new_unchecked(ptr);
-    (ptr, end)
+        let ptr = NonNull::new_unchecked(ptr);
+        (ptr, end)
+    }
 }
 
 /// Allign a mutable reference with the given length.
@@ -326,11 +328,11 @@ unsafe fn align_iterable_ref<T>(
 /// maximum of `len` and `offset` and that no exclusive access to the specified
 /// range (by step) is already in use.
 unsafe fn align_iterable_mut<T>(
-    ptr: ptr::NonNull<T>,
+    ptr: NonNull<T>,
     len: usize,
     offset: usize,
     max: usize,
-) -> (ptr::NonNull<T>, *mut T) {
+) -> (NonNull<T>, *mut T) {
     debug_assert!(
         offset <= max,
         "referencing channel out of bounds; offset={}, max={}",
@@ -345,24 +347,26 @@ unsafe fn align_iterable_mut<T>(
     );
     debug_assert!(max <= len, "max out of bounds; max={}, len={}", max, len,);
 
-    let ptr = ptr.as_ptr();
+    unsafe {
+        let ptr = ptr.as_ptr();
 
-    let (ptr, end) = if mem::size_of::<T>() == 0 {
-        let end = (ptr as *mut u8).wrapping_add(len / max) as *mut T;
-        (ptr, end)
-    } else {
-        let ptr = ptr.add(offset);
-        let end = ptr.wrapping_add(len);
-        (ptr, end)
-    };
+        let (ptr, end) = if mem::size_of::<T>() == 0 {
+            let end = (ptr as *mut u8).wrapping_add(len / max) as *mut T;
+            (ptr, end)
+        } else {
+            let ptr = ptr.add(offset);
+            let end = ptr.wrapping_add(len);
+            (ptr, end)
+        };
 
-    let ptr = ptr::NonNull::new_unchecked(ptr);
-    (ptr, end)
+        let ptr = NonNull::new_unchecked(ptr);
+        (ptr, end)
+    }
 }
 
 /// A mutable iterator.
 pub struct IterMut<'a, T> {
-    ptr: ptr::NonNull<T>,
+    ptr: NonNull<T>,
     end: *mut T,
     step: usize,
     _marker: marker::PhantomData<&'a mut [T]>,

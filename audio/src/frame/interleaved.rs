@@ -1,5 +1,5 @@
 use core::marker;
-use core::ptr;
+use core::ptr::NonNull;
 use core::slice;
 
 use audio_core::Frame;
@@ -8,7 +8,7 @@ use crate::channel::linear::Iter;
 
 /// An unsafe wrapper around a raw sequential buffer.
 pub(crate) struct RawInterleaved<T> {
-    ptr: ptr::NonNull<T>,
+    ptr: NonNull<T>,
     len: usize,
     channels: usize,
     frames: usize,
@@ -47,8 +47,10 @@ impl<T> RawInterleaved<T> {
             frames,
         );
 
+        let ptr = unsafe { NonNull::new_unchecked(data.as_ptr() as *mut T) };
+
         Self {
-            ptr: ptr::NonNull::new_unchecked(data.as_ptr() as *mut T),
+            ptr,
             len,
             channels,
             frames,
@@ -84,7 +86,8 @@ impl<T> RawInterleaved<T> {
             return None;
         }
 
-        Some(*self.ptr.as_ptr().add(index))
+        let value = unsafe { *self.ptr.as_ptr().add(index) };
+        Some(value)
     }
 
     /// Construct a sequential iterator from the specified frame.
@@ -94,7 +97,7 @@ impl<T> RawInterleaved<T> {
     /// The caller is responsible for ensuring that the lifetime of the produced
     /// iterator is valid.
     pub(crate) unsafe fn iter_from_frame<'a>(self, frame: usize) -> Iter<'a, T> {
-        let data = slice::from_raw_parts(self.ptr.as_ptr() as *const _, self.len);
+        let data = unsafe { slice::from_raw_parts(self.ptr.as_ptr() as *const _, self.len) };
         let data = self
             .channels
             .checked_mul(frame)

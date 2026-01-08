@@ -5,7 +5,7 @@
 
 #![allow(clippy::len_without_is_empty)]
 
-use core::ptr;
+use core::ptr::NonNull;
 
 /// Describes how a buffer can be indexed.
 pub trait SliceIndex: Slice
@@ -43,7 +43,7 @@ where
 
     /// Get the pointer to the first element.
     #[doc(hidden)]
-    fn as_ptr(&self) -> ptr::NonNull<Self::Item>;
+    fn as_ptr(&self) -> NonNull<Self::Item>;
 }
 
 /// Trait used to operate generically over a mutable slice.
@@ -55,7 +55,7 @@ where
     fn as_mut(&mut self) -> &mut [Self::Item];
 
     /// Get the base mutable pointer.
-    fn as_mut_ptr(&mut self) -> ptr::NonNull<Self::Item>;
+    fn as_mut_ptr(&mut self) -> NonNull<Self::Item>;
 }
 
 impl<T> SliceIndex for &[T]
@@ -95,8 +95,8 @@ where
     }
 
     #[inline]
-    fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(&self[..]) as *mut _) }
+    fn as_ptr(&self) -> NonNull<Self::Item> {
+        unsafe { NonNull::new_unchecked(<[T]>::as_ptr(&self[..]) as *mut _) }
     }
 }
 
@@ -117,8 +117,8 @@ where
     }
 
     #[inline]
-    fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(self) as *mut _) }
+    fn as_ptr(&self) -> NonNull<Self::Item> {
+        unsafe { NonNull::new_unchecked(<[T]>::as_ptr(self) as *mut _) }
     }
 }
 
@@ -139,8 +139,8 @@ where
     }
 
     #[inline]
-    fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(&self[..]) as *mut _) }
+    fn as_ptr(&self) -> NonNull<Self::Item> {
+        unsafe { NonNull::new_unchecked(<[T]>::as_ptr(&self[..]) as *mut _) }
     }
 }
 
@@ -181,8 +181,8 @@ where
     }
 
     #[inline]
-    fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(&self[..]) as *mut _) }
+    fn as_ptr(&self) -> NonNull<Self::Item> {
+        unsafe { NonNull::new_unchecked(<[T]>::as_ptr(&self[..]) as *mut _) }
     }
 }
 
@@ -203,8 +203,8 @@ where
     }
 
     #[inline]
-    fn as_ptr(&self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_ptr(&self[..]) as *mut _) }
+    fn as_ptr(&self) -> NonNull<Self::Item> {
+        unsafe { NonNull::new_unchecked(<[T]>::as_ptr(&self[..]) as *mut _) }
     }
 }
 
@@ -218,8 +218,8 @@ where
     }
 
     #[inline]
-    fn as_mut_ptr(&mut self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_mut_ptr(self)) }
+    fn as_mut_ptr(&mut self) -> NonNull<Self::Item> {
+        unsafe { NonNull::new_unchecked(<[T]>::as_mut_ptr(self)) }
     }
 }
 
@@ -233,8 +233,8 @@ where
     }
 
     #[inline]
-    fn as_mut_ptr(&mut self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_mut_ptr(&mut self[..])) }
+    fn as_mut_ptr(&mut self) -> NonNull<Self::Item> {
+        unsafe { NonNull::new_unchecked(<[T]>::as_mut_ptr(&mut self[..])) }
     }
 }
 
@@ -248,7 +248,7 @@ where
     }
 
     #[inline]
-    fn as_mut_ptr(&mut self) -> ptr::NonNull<Self::Item> {
-        unsafe { ptr::NonNull::new_unchecked(<[T]>::as_mut_ptr(&mut self[..])) }
+    fn as_mut_ptr(&mut self) -> NonNull<Self::Item> {
+        unsafe { NonNull::new_unchecked(<[T]>::as_mut_ptr(&mut self[..])) }
     }
 }

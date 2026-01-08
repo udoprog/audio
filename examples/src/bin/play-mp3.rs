@@ -1,4 +1,4 @@
-use anyhow::{anyhow, bail, Result};
+use anyhow::{Result, anyhow, bail};
 use audio::BufMut;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use rubato::{InterpolationParameters, InterpolationType, SincFixedIn, WindowFunction};
@@ -121,8 +121,8 @@ where
     where
         T: 'static + Send + audio::Sample + audio::Translate<f32>,
     {
-        use audio::{io, wrap};
         use audio::{Buf, ExactSizeBuf, ReadBuf, WriteBuf};
+        use audio::{io, wrap};
         use rubato::Resampler;
 
         let mut data = io::Write::new(wrap::interleaved(out, self.device_channels));
