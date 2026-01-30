@@ -1,12 +1,14 @@
 use core::mem;
+use core::future::Future;
+use core::pin::Pin;
+use core::task::{Context, Poll};
 
 use alloc::vec::Vec;
 
-use std::io;
-
+use windows::core::Result as WindowsResult;
 use windows::Win32::Foundation as f;
 use windows::Win32::System::Threading as th;
-use windows::Win32::System::WindowsProgramming as wp;
+use windows::core::Error as WindowsError;
 
 use crate::loom::sync::atomic::{AtomicBool, Ordering};
 use crate::loom::sync::{Arc, Mutex};
@@ -21,6 +23,9 @@ struct Waker {
     waker: AtomicWaker,
     handle: f::HANDLE,
 }
+
+unsafe impl Send for Waker {}
+unsafe impl Sync for Waker {}
 
 struct Shared {
     running: AtomicBool,
@@ -123,9 +128,9 @@ impl Driver {
                 f::WAIT_ABANDONED_0 => panic!("wait abandoned"),
                 f::WAIT_TIMEOUT => panic!("timed out"),
                 f::WAIT_FAILED => {
-                    panic!("wait failed: {}", io::Error::last_os_error())
+                    panic!("wait failed: {}", WindowsError::from_thread())
                 }
-                f::WIN32_ERROR(other) => {
+                f::WAIT_EVENT(other) => {
                     let base = f::WAIT_OBJECT_0.0;
 
                     if other < base {
@@ -152,27 +157,20 @@ impl Driver {
             }
 
             let mut holders = self.shared.holders.lock();
-            let mut added = mem::replace(&mut holders.added, Vec::new());
 
-            for waker in added.drain(..) {
+            for waker in holders.added.drain(..) {
                 self.events.push(waker.handle);
                 guard.wakers.push(waker);
             }
 
-            holders.added = added;
+            for event in holders.removed.drain(..) {
+                let removed = unsafe { event.raw_event() };
 
-            let mut removed = mem::replace(&mut holders.removed, Vec::new());
-
-            for event in removed.drain(..) {
-                let removed = unsafe { event.raw_event().0 };
-
-                if let Some(index) = guard.wakers.iter().position(|w| w.handle.0 == removed) {
+                if let Some(index) = guard.wakers.iter().position(|w| w.handle == removed) {
                     guard.wakers.swap_remove(index);
                     self.events.swap_remove(index + 1);
                 }
             }
-
-            holders.removed = removed;
         }
 
         mem::forget(guard);
@@ -225,7 +223,7 @@ impl AsyncEvent {
     /// Panics unless an audio runtime is available.
     ///
     /// See [Runtime][crate::runtime::Runtime].
-    pub fn new(initial_state: bool) -> windows::core::Result<AsyncEvent> {
+    pub fn new(initial_state: bool) -> WindowsResult<AsyncEvent> {
         crate::runtime::with_events(|events| {
             let event = Event::new(false, initial_state)?;
             let handle = unsafe { event.raw_event() };
@@ -249,10 +247,6 @@ impl AsyncEvent {
 
     /// Wait for the specified event handle to become set.
     pub async fn wait(&self) {
-        use std::future::Future;
-        use std::pin::Pin;
-        use std::task::{Context, Poll};
-
         return WaitFor {
             shared: &*self.shared,
             waker: &*self.waker,

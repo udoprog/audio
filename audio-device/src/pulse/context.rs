@@ -6,7 +6,8 @@ use alloc::vec::Vec;
 
 use pulse_sys as pulse;
 
-use crate::pulse::{ContextState, Error, Result, error};
+use crate::pulse::error::{ErrorKind, error, ffi_error};
+use crate::pulse::{ContextState, Result, error};
 
 /// Structure holding onto a registered callback.
 pub struct Callback {
@@ -105,7 +106,7 @@ impl Context {
     pub fn state(&self) -> Result<ContextState> {
         unsafe {
             let state = pulse::pa_context_get_state(self.handle.as_ptr());
-            ContextState::from_value(state).ok_or_else(|| Error::BadContextState(state))
+            Ok(ContextState::from_value(state).ok_or_else(|| ErrorKind::BadContextState(state))?)
         }
     }
 }

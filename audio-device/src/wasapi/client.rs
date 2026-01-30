@@ -6,8 +6,10 @@ use windows::Win32::Media::Audio as audio;
 use windows::Win32::Media::KernelStreaming as ks;
 use windows::Win32::Media::Multimedia as mm;
 use windows::Win32::System::Com as com;
+use windows::core::Result as WindowsResult;
 
 use crate::loom::sync::Arc;
+use crate::wasapi::error::ErrorKind;
 use crate::wasapi::{ClientConfig, Error, InitializedClient, Sample, SampleFormat};
 use crate::windows::{AsyncEvent, Event, RawEvent};
 
@@ -25,7 +27,10 @@ impl Client {
         tracing::trace!(?tag, "get default client config");
 
         unsafe {
-            let mix_format = self.audio_client.GetMixFormat()?;
+            let mix_format = self
+                .audio_client
+                .GetMixFormat()
+                .map_err(ErrorKind::GetMixFormat)?;
 
             let bits_per_sample = (*mix_format).wBitsPerSample;
 
@@ -43,7 +48,7 @@ impl Client {
                     {
                         SampleFormat::F32
                     } else {
-                        return Err(Error::UnsupportedMixFormat);
+                        return Err(Error::from(ErrorKind::UnsupportedMixFormat));
                     }
                 }
                 audio::WAVE_FORMAT_PCM => {
@@ -52,11 +57,11 @@ impl Client {
                     if bits_per_sample == 16 {
                         SampleFormat::I16
                     } else {
-                        return Err(Error::UnsupportedMixFormat);
+                        return Err(Error::from(ErrorKind::UnsupportedMixFormat));
                     }
                 }
                 _ => {
-                    return Err(Error::UnsupportedMixFormat);
+                    return Err(Error::from(ErrorKind::UnsupportedMixFormat));
                 }
             };
 
@@ -110,14 +115,13 @@ impl Client {
     }
 
     /// Try to initialize the client with the given configuration.
-    fn initialize_inner<T, F, E>(
+    fn initialize_inner<T, E>(
         &self,
         mut config: ClientConfig,
-        event: F,
+        make_event: impl FnOnce() -> WindowsResult<E>,
     ) -> Result<InitializedClient<T, E>, Error>
     where
         T: Sample,
-        F: FnOnce() -> windows::core::Result<E>,
         E: RawEvent,
     {
         unsafe {
@@ -136,10 +140,10 @@ impl Client {
                     com::CoTaskMemFree(Some(closest_match.cast()));
                 }
 
-                result.ok()?;
+                result.ok().map_err(ErrorKind::IsFormatSupported)?;
             } else {
                 if !T::is_compatible_with(&*closest_match) {
-                    return Err(Error::UnsupportedMixFormat);
+                    return Err(Error::from(ErrorKind::UnsupportedMixFormat));
                 }
 
                 mix_format = *(closest_match as *mut audio::WAVEFORMATEXTENSIBLE);
@@ -150,22 +154,29 @@ impl Client {
 
             tracing::trace!("initializing audio client");
 
-            self.audio_client.Initialize(
-                audio::AUDCLNT_SHAREMODE_SHARED,
-                audio::AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-                0,
-                0,
-                &mix_format.Format,
-                None,
-            )?;
+            self.audio_client
+                .Initialize(
+                    audio::AUDCLNT_SHAREMODE_SHARED,
+                    audio::AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+                    0,
+                    0,
+                    &mix_format.Format,
+                    None,
+                )
+                .map_err(ErrorKind::Initialize)?;
 
-            let event = Arc::new(event()?);
+            let event = Arc::new(make_event().map_err(ErrorKind::MakeEvent)?);
 
             tracing::trace!("set event handle");
 
-            self.audio_client.SetEventHandle(event.raw_event())?;
+            self.audio_client
+                .SetEventHandle(event.raw_event())
+                .map_err(ErrorKind::SetEventHandle)?;
 
-            let buffer_size = self.audio_client.GetBufferSize()?;
+            let buffer_size = self
+                .audio_client
+                .GetBufferSize()
+                .map_err(ErrorKind::GetBufferSize)?;
 
             tracing::trace!(?buffer_size, "initialized client");
 
@@ -183,7 +194,7 @@ impl Client {
     /// Start playback on device.
     pub fn start(&self) -> Result<(), Error> {
         unsafe {
-            self.audio_client.Start()?;
+            self.audio_client.Start().map_err(ErrorKind::Start)?;
         }
 
         Ok(())
@@ -192,7 +203,7 @@ impl Client {
     /// Stop playback on device.
     pub fn stop(&self) -> Result<(), Error> {
         unsafe {
-            self.audio_client.Stop()?;
+            self.audio_client.Stop().map_err(ErrorKind::Stop)?;
         }
 
         Ok(())

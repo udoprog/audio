@@ -93,9 +93,8 @@ impl Shared {
             let mut node = Node::new(entry);
 
             let first = {
-                let _guard = match self.lock_queue() {
-                    Some(guard) => guard,
-                    None => panic!("background thread ended"),
+                let Some(_guard) = self.lock_queue() else {
+                    panic!("background thread ended");
                 };
 
                 self.queue
@@ -113,7 +112,7 @@ impl Shared {
             // thread safely.
             //
             // We also know fully that the parker is balanced - i.e. there are
-            // no sporadic wakes that can happen because we contrl the state of
+            // no sporadic wakes that can happen because we control the state of
             // the submitted task exactly above.
             parker.as_ref().park();
         }

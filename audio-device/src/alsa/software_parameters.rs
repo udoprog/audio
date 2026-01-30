@@ -5,7 +5,8 @@ use core::ptr::NonNull;
 
 use alsa_sys as alsa;
 
-use crate::alsa::{Error, Result, Timestamp, TimestampType};
+use crate::alsa::error::{ErrorKind, errno};
+use crate::alsa::{Result, Timestamp, TimestampType};
 
 /// Collection of software parameters being configured for a [Pcm][super::Pcm]
 /// handle.
@@ -109,7 +110,7 @@ impl SoftwareParameters {
             );
             let timestamp_mode = timestamp_mode.assume_init();
             let timestamp_mode = Timestamp::from_value(timestamp_mode)
-                .ok_or_else(|| Error::BadTimestamp(timestamp_mode))?;
+                .ok_or_else(|| ErrorKind::BadTimestamp(timestamp_mode))?;
             Ok(timestamp_mode)
         }
     }
@@ -138,7 +139,7 @@ impl SoftwareParameters {
             );
             let timestamp_type = timestamp_type.assume_init();
             let timestamp_type = TimestampType::from_value(timestamp_type)
-                .ok_or_else(|| Error::BadTimestampType(timestamp_type))?;
+                .ok_or_else(|| ErrorKind::BadTimestampType(timestamp_type))?;
             Ok(timestamp_type)
         }
     }

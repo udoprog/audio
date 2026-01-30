@@ -3,6 +3,7 @@ use core::mem;
 
 use alsa_sys as alsa;
 
+use crate::alsa::error::errno;
 use crate::alsa::{CString, Result};
 
 /// Construct an iterator over sounds cards.

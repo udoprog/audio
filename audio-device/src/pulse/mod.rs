@@ -2,7 +2,6 @@
 // Documentation: https://freedesktop.org/software/pulseaudio/doxygen/
 // Ref: https://gist.github.com/toroidal-code/8798775
 
-#[macro_use]
 mod error;
 pub use self::error::{Error, Result};
 

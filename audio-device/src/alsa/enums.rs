@@ -4,6 +4,7 @@ use core::fmt;
 use alsa_sys as alsa;
 
 use crate::alsa::Result;
+use crate::alsa::error::errno;
 
 macro_rules! decl_enum {
     (

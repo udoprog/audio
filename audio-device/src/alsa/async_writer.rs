@@ -2,9 +2,9 @@ use core::marker;
 use core::ffi::c_void;
 
 use crate::alsa::{Error, Pcm, Result};
+use crate::alsa::error::ErrorKind;
 use crate::libc as c;
-use crate::unix::{Errno, PollFlags};
-use crate::unix::AsyncPoll;
+use crate::unix::{PollFlags, AsyncPoll};
 
 /// An interleaved type-checked async PCM writer.
 ///
@@ -40,10 +40,10 @@ impl<'a, T> AsyncWriter<'a, T> {
         B: audio_core::Buf<Sample = T> + audio_core::ReadBuf + audio_core::ExactSizeBuf + audio_core::InterleavedBuf,
     {
         if buf.channels() != self.channels {
-            return Err(Error::ChannelsMismatch {
+            return Err(Error::from(ErrorKind::ChannelsMismatch {
                 actual: buf.channels(),
                 expected: self.channels,
-            });
+            }));
         }
 
         while buf.has_remaining() {
@@ -58,7 +58,7 @@ impl<'a, T> AsyncWriter<'a, T> {
 
                 let written = match result {
                     Ok(written) => written as usize,
-                    Err(Error::Sys(Errno::EWOULDBLOCK)) => {
+                    Err(e) if e.would_block() => {
                         loop {
                             let guard = self.poll_handle.returned_events().await;
                             self.pollfd.revents = guard.events();

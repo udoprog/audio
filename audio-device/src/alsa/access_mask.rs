@@ -4,6 +4,7 @@ use core::ptr::NonNull;
 
 use alsa_sys as alsa;
 
+use crate::alsa::error::errno;
 use crate::alsa::{Access, Result};
 
 /// Access mask used in combination with hardware parameters.

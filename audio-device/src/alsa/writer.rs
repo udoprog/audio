@@ -1,6 +1,7 @@
 use core::ffi::c_void;
 use core::marker;
 
+use crate::alsa::error::ErrorKind;
 use crate::alsa::{Error, Pcm, Result};
 
 /// A interleaved type-checked PCM writer.
@@ -36,10 +37,10 @@ impl<'a, T> Writer<'a, T> {
             + audio_core::InterleavedBuf,
     {
         if buf.channels() != self.channels {
-            return Err(Error::ChannelsMismatch {
+            return Err(Error::from(ErrorKind::ChannelsMismatch {
                 actual: buf.channels(),
                 expected: self.channels,
-            });
+            }));
         }
 
         let frames = buf.frames() as usize;

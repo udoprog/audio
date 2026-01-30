@@ -5,7 +5,8 @@ use core::ptr::NonNull;
 
 use alsa_sys as alsa;
 
-use crate::alsa::{Access, AccessMask, Direction, Error, Format, FormatMask, Result};
+use crate::alsa::error::{ErrorKind, errno};
+use crate::alsa::{Access, AccessMask, Direction, Format, FormatMask, Result};
 
 /// Collection of current hardware parameters being configured for a
 /// [Pcm][super::Pcm] handle.
@@ -277,7 +278,7 @@ impl HardwareParameters {
             ))?;
 
             let format = format.assume_init();
-            let format = Format::from_value(format).ok_or_else(|| Error::BadFormat(format))?;
+            let format = Format::from_value(format).ok_or_else(|| ErrorKind::BadFormat(format))?;
             Ok(format)
         }
     }
@@ -328,7 +329,7 @@ impl HardwareParameters {
             ))?;
 
             let access = access.assume_init();
-            let access = Access::from_value(access).ok_or_else(|| Error::BadAccess(access))?;
+            let access = Access::from_value(access).ok_or_else(|| ErrorKind::BadAccess(access))?;
             Ok(access)
         }
     }
@@ -1771,7 +1772,7 @@ impl<'a> HardwareParametersMut<'a> {
             ))?;
 
             let format = format.assume_init();
-            let format = Format::from_value(format).ok_or_else(|| Error::BadFormat(format))?;
+            let format = Format::from_value(format).ok_or_else(|| ErrorKind::BadFormat(format))?;
             Ok(format)
         }
     }
@@ -1802,7 +1803,7 @@ impl<'a> HardwareParametersMut<'a> {
             ))?;
 
             let format = format.assume_init();
-            let format = Format::from_value(format).ok_or_else(|| Error::BadFormat(format))?;
+            let format = Format::from_value(format).ok_or_else(|| ErrorKind::BadFormat(format))?;
             Ok(format)
         }
     }
@@ -1943,7 +1944,7 @@ impl<'a> HardwareParametersMut<'a> {
             ))?;
 
             let access = access.assume_init();
-            let access = Access::from_value(access).ok_or_else(|| Error::BadAccess(access))?;
+            let access = Access::from_value(access).ok_or_else(|| ErrorKind::BadAccess(access))?;
             Ok(access)
         }
     }
@@ -1973,7 +1974,7 @@ impl<'a> HardwareParametersMut<'a> {
             ))?;
 
             let access = access.assume_init();
-            let access = Access::from_value(access).ok_or_else(|| Error::BadAccess(access))?;
+            let access = Access::from_value(access).ok_or_else(|| ErrorKind::BadAccess(access))?;
             Ok(access)
         }
     }

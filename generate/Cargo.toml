@@ -6,8 +6,5 @@ publish = false
 
 [dependencies]
 anyhow = "1.0.57"
-windows_macros = "0.31.0"
-windows_gen = "0.31.0"
-windows_reader = "0.31.0"
 bindgen = "0.72.1"
 pkg-config = "0.3.25"
