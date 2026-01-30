@@ -4,6 +4,7 @@ use core::ptr::NonNull;
 
 use alsa_sys as alsa;
 
+use crate::alsa::error::errno;
 use crate::alsa::{ControlElementInterface, Result};
 
 /// A control associated with a device.

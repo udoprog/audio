@@ -9,7 +9,7 @@ fn generate_audio() -> anyhow::Result<()> {
 
     context.set_callback(|c| {
         println!("state changed: {}", c.state()?);
-        Err(pulse::Error::User("hello".into()))
+        Err(pulse::Error::user("hello"))
     })?;
 
     context.connect()?;

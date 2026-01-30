@@ -1,5 +1,7 @@
 use core::cell::Cell;
+use core::error::Error as CoreError;
 use core::ffi::c_uint;
+use core::fmt;
 use core::ptr;
 
 use alloc::boxed::Box;
@@ -8,23 +10,20 @@ use std::thread_local;
 
 use crate::unix::Errno;
 
-use thiserror::Error;
-
-macro_rules! error {
+macro_rules! __error {
     ($s:expr, $expr:expr) => {{
         let result = $expr;
 
         if result < 0 {
             let errno = { pulse::pa_context_errno($s.handle.as_ptr()) };
-
-            Err(crate::pulse::Error::Sys(crate::unix::Errno::new(errno)))
+            Err(crate::pulse::Error::from(crate::unix::Errno::new(errno)))
         } else {
-            ffi_error!(result)
+            $crate::pulse::error::ffi_error!(result)
         }
     }};
 }
 
-macro_rules! ffi_error {
+macro_rules! __ffi_error {
     ($expr:expr) => {{
         let result = $expr;
 
@@ -35,6 +34,9 @@ macro_rules! ffi_error {
         }
     }};
 }
+
+pub(crate) use __error as error;
+pub(crate) use __ffi_error as ffi_error;
 
 thread_local! {
     /// The last error encountered on this thread.
@@ -78,19 +80,112 @@ where
     }
 }
 
-/// Errors that can be raised by the PulseAudio layer.
-#[derive(Debug, Error)]
-pub enum Error {
-    /// System error.
-    #[error("system error: {0}")]
-    Sys(#[from] Errno),
-    /// Tried to decode bad context state.
-    #[error("bad context state identifier `{0}`")]
-    BadContextState(c_uint),
-    /// A custom user error.
-    #[error("error: {0}")]
-    User(#[source] Box<dyn core::error::Error + Send + Sync + 'static>),
+/// PulseAudio-specific result alias.
+pub type Result<T, E = Error> = ::core::result::Result<T, E>;
+
+/// PulseAudio-specific errors.
+pub struct Error {
+    kind: ErrorKind,
 }
 
-/// Helper result wrapper.
-pub type Result<T, E = Error> = ::core::result::Result<T, E>;
+impl Error {
+    /// Create a new user-defined error.
+    pub fn user<E>(error: E) -> Self
+    where
+        E: fmt::Display + fmt::Debug + Send + Sync + 'static,
+    {
+        Self {
+            kind: ErrorKind::User(Box::new(DisplayError(error))),
+        }
+    }
+}
+
+impl fmt::Display for Error {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.kind.fmt(f)
+    }
+}
+
+impl fmt::Debug for Error {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.kind.fmt(f)
+    }
+}
+
+impl CoreError for Error {
+    #[inline]
+    fn source(&self) -> Option<&(dyn CoreError + 'static)> {
+        match self.kind {
+            ErrorKind::Errno(ref error) => Some(error),
+            ErrorKind::BadContextState(..) => None,
+            ErrorKind::User(ref error) => Some(&**error),
+        }
+    }
+}
+
+impl From<Errno> for Error {
+    #[inline]
+    fn from(errno: Errno) -> Self {
+        Self {
+            kind: ErrorKind::Errno(errno),
+        }
+    }
+}
+
+impl From<ErrorKind> for Error {
+    #[inline]
+    fn from(kind: ErrorKind) -> Self {
+        Self { kind }
+    }
+}
+
+#[derive(Debug)]
+pub(crate) enum ErrorKind {
+    /// System error.
+    Errno(Errno),
+    /// Tried to decode bad context state.
+    BadContextState(c_uint),
+    /// A custom user error.
+    User(Box<dyn CoreError + Send + Sync + 'static>),
+}
+
+impl fmt::Display for ErrorKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            Self::Errno(errno) => {
+                write!(f, "system error: {errno}")
+            }
+            Self::BadContextState(state) => {
+                write!(f, "bad context state identifier `{state}`")
+            }
+            Self::User(ref error) => error.fmt(f),
+        }
+    }
+}
+
+#[repr(transparent)]
+struct DisplayError<E>(E);
+
+impl<E> fmt::Display for DisplayError<E>
+where
+    E: fmt::Display,
+{
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl<E> fmt::Debug for DisplayError<E>
+where
+    E: fmt::Debug,
+{
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl<E> CoreError for DisplayError<E> where E: fmt::Display + fmt::Debug {}

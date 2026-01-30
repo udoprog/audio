@@ -1,8 +1,10 @@
 use core::marker;
+use core::mem::take;
 use core::ops;
 use core::slice;
 
 use crate::wasapi::Error;
+use crate::wasapi::error::ErrorKind;
 
 use windows::Win32::Media::Audio as audio;
 
@@ -22,9 +24,11 @@ impl<'a, T> BufferMut<'a, T> {
     pub fn release(mut self) -> Result<(), Error> {
         self.tag.ensure_on_thread();
 
-        if std::mem::take(&mut self.in_use) {
+        if take(&mut self.in_use) {
             unsafe {
-                self.render_client.ReleaseBuffer(self.frames, 0)?;
+                self.render_client
+                    .ReleaseBuffer(self.frames, 0)
+                    .map_err(ErrorKind::ReleaseBuffer)?;
             }
         }
 
@@ -36,12 +40,9 @@ impl<'a, T> Drop for BufferMut<'a, T> {
     fn drop(&mut self) {
         self.tag.ensure_on_thread();
 
-        if std::mem::take(&mut self.in_use) {
+        if take(&mut self.in_use) {
             unsafe {
-                self.render_client
-                    .ReleaseBuffer(self.frames, 0)
-                    .ok()
-                    .unwrap();
+                _ = self.render_client.ReleaseBuffer(self.frames, 0);
             }
         }
     }

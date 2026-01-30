@@ -1,5 +1,6 @@
-use audio_device::alsa;
 use std::ffi::CString;
+
+use audio_device::alsa;
 
 fn main() -> anyhow::Result<()> {
     let thread = ste::spawn();

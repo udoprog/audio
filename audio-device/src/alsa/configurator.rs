@@ -2,6 +2,7 @@ use core::ffi::{c_uint, c_ulong};
 use core::marker;
 use core::time::Duration;
 
+use crate::alsa::error::ErrorKind;
 use crate::alsa::{Access, Direction, Error, Format, Pcm, Result, Sample};
 
 /// Default access to configure.
@@ -118,10 +119,10 @@ where
     /// ```
     pub fn format(self, format: Format) -> Result<Self> {
         if !T::test(format) {
-            return Err(Error::FormatMismatch {
+            return Err(Error::from(ErrorKind::FormatMismatch {
                 ty: T::describe(),
                 format,
-            });
+            }));
         }
 
         Ok(Self { format, ..self })

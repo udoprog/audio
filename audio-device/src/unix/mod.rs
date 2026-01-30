@@ -1,6 +1,6 @@
 //! Unix-specific types and definitions.
 
-use core::error;
+use core::error::Error as CoreError;
 use core::fmt;
 
 /// A unix error number.
@@ -9,6 +9,7 @@ use core::fmt;
 pub struct Errno(i32);
 
 impl Errno {
+    #[cfg(feature = "alsa")]
     pub(crate) const EWOULDBLOCK: Self = Self(libc::EWOULDBLOCK);
 
     pub(crate) fn new(value: i32) -> Self {
@@ -17,19 +18,51 @@ impl Errno {
 }
 
 impl fmt::Display for Errno {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
-            Self::EWOULDBLOCK => {
-                write!(f, "EWOULDBLOCK")
-            }
+        match self.0 {
+            libc::EPERM => write!(f, "EPERM"),
+            libc::ENOENT => write!(f, "ENOENT"),
+            libc::ESRCH => write!(f, "ESRCH"),
+            libc::EINTR => write!(f, "EINTR"),
+            libc::EIO => write!(f, "EIO"),
+            libc::ENXIO => write!(f, "ENXIO"),
+            libc::E2BIG => write!(f, "E2BIG"),
+            libc::ENOEXEC => write!(f, "ENOEXEC"),
+            libc::EBADF => write!(f, "EBADF"),
+            libc::ECHILD => write!(f, "ECHILD"),
+            libc::EAGAIN => write!(f, "EAGAIN"),
+            libc::ENOMEM => write!(f, "ENOMEM"),
+            libc::EACCES => write!(f, "EACCES"),
+            libc::EFAULT => write!(f, "EFAULT"),
+            libc::ENOTBLK => write!(f, "ENOTBLK"),
+            libc::EBUSY => write!(f, "EBUSY"),
+            libc::EEXIST => write!(f, "EEXIST"),
+            libc::EXDEV => write!(f, "EXDEV"),
+            libc::ENODEV => write!(f, "ENODEV"),
+            libc::ENOTDIR => write!(f, "ENOTDIR"),
+            libc::EISDIR => write!(f, "EISDIR"),
+            libc::EINVAL => write!(f, "EINVAL"),
+            libc::ENFILE => write!(f, "ENFILE"),
+            libc::EMFILE => write!(f, "EMFILE"),
+            libc::ENOTTY => write!(f, "ENOTTY"),
+            libc::ETXTBSY => write!(f, "ETXTBSY"),
+            libc::EFBIG => write!(f, "EFBIG"),
+            libc::ENOSPC => write!(f, "ENOSPC"),
+            libc::ESPIPE => write!(f, "ESPIPE"),
+            libc::EROFS => write!(f, "EROFS"),
+            libc::EMLINK => write!(f, "EMLINK"),
+            libc::EPIPE => write!(f, "EPIPE"),
+            libc::EDOM => write!(f, "EDOM"),
+            libc::ERANGE => write!(f, "ERANGE"),
             errno => {
-                write!(f, "({})", errno)
+                write!(f, "UNKNOWN({})", errno)
             }
         }
     }
 }
 
-impl error::Error for Errno {}
+impl CoreError for Errno {}
 
 cfg_poll_driver! {
     /// Poll flags.

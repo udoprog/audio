@@ -1,10 +1,11 @@
 //! An idiomatic Rust WASAPI interface.
 
-use std::ptr;
-
-use thiserror::Error;
 use windows::Win32::Media::Audio as audio;
 use windows::Win32::System::Com as com;
+
+mod error;
+use self::error::ErrorKind;
+pub use self::error::{Error, Result};
 
 mod initialized_client;
 pub use self::initialized_client::InitializedClient;
@@ -21,26 +22,13 @@ pub use self::buffer_mut::BufferMut;
 mod sample;
 pub use self::sample::Sample;
 
-/// WASAPI-specific errors.
-#[derive(Debug, Error)]
-pub enum Error {
-    /// A system error.
-    #[error("system error: {0}")]
-    Sys(
-        #[from]
-        #[source]
-        windows::core::Error,
-    ),
-    /// Trying to use a mix format which is not supported by the device.
-    #[error("Device doesn't support a compatible mix format")]
-    UnsupportedMixFormat,
-}
-
 /// The audio prelude to use for wasapi.
 pub fn audio_prelude() {
     unsafe {
-        if let Err(e) = com::CoInitializeEx(ptr::null_mut(), com::COINIT_MULTITHREADED) {
-            panic!("failed to initialize multithreaded apartment: {}", e);
+        let result = com::CoInitializeEx(None, com::COINIT_MULTITHREADED);
+
+        if result.is_err() {
+            panic!("failed to initialize multithreaded apartment: {result}");
         }
     }
 }
@@ -73,18 +61,15 @@ pub struct ClientConfig {
 pub fn default_output_client() -> Result<Option<Client>, Error> {
     let tag = ste::Tag::current_thread();
 
-    let enumerator: audio::IMMDeviceEnumerator =
-        unsafe { com::CoCreateInstance(&audio::MMDeviceEnumerator, None, com::CLSCTX_ALL)? };
-
     unsafe {
-        let device = enumerator.GetDefaultAudioEndpoint(audio::eRender, audio::eConsole);
+        let enumerator: audio::IMMDeviceEnumerator =
+            com::CoCreateInstance(&audio::MMDeviceEnumerator, None, com::CLSCTX_ALL)
+                .map_err(ErrorKind::CreateInstance)?;
 
-        let device = match device {
-            Ok(device) => device,
-            Err(..) => return Ok(None),
+        let Ok(device) = enumerator.GetDefaultAudioEndpoint(audio::eRender, audio::eConsole) else {
+            return Ok(None);
         };
 
-        tracing::trace!("got default audio endpoint");
         let audio_client: audio::IAudioClient = device.Activate(com::CLSCTX_ALL, None)?;
         tracing::trace!("got audio client");
         Ok(Some(Client { tag, audio_client }))

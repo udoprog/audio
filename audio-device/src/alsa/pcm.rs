@@ -8,6 +8,7 @@ use alsa_sys as alsa;
 
 #[cfg(feature = "poll-driver")]
 use crate::alsa::AsyncWriter;
+use crate::alsa::error::{ErrorKind, errno};
 use crate::alsa::{
     ChannelArea, Configurator, Error, HardwareParameters, HardwareParametersMut, Result, Sample,
     SoftwareParameters, SoftwareParametersMut, State, Stream, Writer,
@@ -490,10 +491,10 @@ impl Pcm {
         let format = hw.format()?;
 
         if !T::test(format) {
-            return Err(Error::FormatMismatch {
+            return Err(Error::from(ErrorKind::FormatMismatch {
                 ty: T::describe(),
                 format,
-            });
+            }));
         }
 
         unsafe { Ok(Writer::new(self, channels)) }
@@ -539,17 +540,17 @@ impl Pcm {
             let format = hw.format()?;
 
             if !T::test(format) {
-                return Err(Error::FormatMismatch {
+                return Err(Error::from(ErrorKind::FormatMismatch {
                     ty: T::describe(),
                     format,
-                });
+                }));
             }
 
             let mut fds = Vec::new();
             self.poll_descriptors_vec(&mut fds)?;
 
             if fds.len() != 1 {
-                return Err(Error::MissingPollFds);
+                return Err(Error::from(ErrorKind::MissingPollFds));
             }
 
             let fd = fds[0];
