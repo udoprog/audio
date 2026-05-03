@@ -197,4 +197,51 @@ pub trait Channel {
     /// assert_eq!(to.as_slice(), &[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
     /// ```
     fn limit(self, limit: usize) -> Self;
+
+    /// Construct a channel using the specified range of frames
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use audio::Channel;
+    ///
+    /// let seq = audio::sequential![[1, 2, 3, 4]; 1];
+    /// let seq_channel = seq.get_channel(0).unwrap();
+    /// let seq_unbounded = seq_channel.range(..);
+    /// assert_eq!(seq_unbounded.as_ref(), [1, 2, 3, 4]);
+    /// let seq_limited = seq_unbounded.range(1..3);
+    /// assert_eq!(seq_limited.as_ref(), [2, 3]);
+    ///
+    /// let interleaved = audio::interleaved![[1, 2, 3, 4]; 1];
+    /// let interleaved_channel = interleaved.get_channel(0).unwrap();
+    /// let interleaved_unbounded = interleaved_channel.range(..);
+    /// assert_eq!(interleaved_unbounded.get(0).unwrap(), 1);
+    /// assert_eq!(interleaved_unbounded.get(1).unwrap(), 2);
+    /// assert_eq!(interleaved_unbounded.get(2).unwrap(), 3);
+    /// assert_eq!(interleaved_unbounded.get(3).unwrap(), 4);
+    /// let interleaved_limited = interleaved_unbounded.range(1..3);
+    /// assert_eq!(interleaved_limited.get(0).unwrap(), 2);
+    /// assert_eq!(interleaved_limited.get(1).unwrap(), 3);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the end index is out of bounds.
+    ///
+    /// ```should_panic
+    /// use audio::Channel;
+    ///
+    /// let seq = audio::sequential![[1, 2, 3, 4]; 1];
+    /// let seq_channel = seq.get_channel(0).unwrap();
+    /// let seq_range = seq_channel.range(..5);
+    /// ```
+    ///
+    /// ```should_panic
+    /// use audio::Channel;
+    ///
+    /// let interleaved = audio::interleaved![[1, 2, 3, 4]; 1];
+    /// let interleaved_channel = interleaved.get_channel(0).unwrap();
+    /// let interleaved_range = interleaved_channel.range(..5);
+    /// ```
+    fn range(self, range: impl core::ops::RangeBounds<usize>) -> Self;
 }
