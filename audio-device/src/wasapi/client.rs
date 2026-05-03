@@ -2,10 +2,13 @@ use core::marker;
 use core::mem;
 use core::ptr::null_mut;
 
-use windows::Win32::Media::Audio as audio;
-use windows::Win32::Media::KernelStreaming as ks;
-use windows::Win32::Media::Multimedia as mm;
-use windows::Win32::System::Com as com;
+use windows::Win32::Media::Audio::{
+    AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, IAudioClient, WAVE_FORMAT_PCM,
+    WAVEFORMATEX, WAVEFORMATEXTENSIBLE,
+};
+use windows::Win32::Media::KernelStreaming::WAVE_FORMAT_EXTENSIBLE;
+use windows::Win32::Media::Multimedia::KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
+use windows::Win32::System::Com::CoTaskMemFree;
 use windows::core::Result as WindowsResult;
 
 use crate::loom::sync::Arc;
@@ -16,7 +19,7 @@ use crate::windows::{AsyncEvent, Event, RawEvent};
 /// An audio client.
 pub struct Client {
     pub(super) tag: ste::Tag,
-    pub(super) audio_client: audio::IAudioClient,
+    pub(super) audio_client: IAudioClient,
 }
 
 impl Client {
@@ -35,23 +38,23 @@ impl Client {
             let bits_per_sample = (*mix_format).wBitsPerSample;
 
             let sample_format = match (*mix_format).wFormatTag as u32 {
-                ks::WAVE_FORMAT_EXTENSIBLE => {
+                WAVE_FORMAT_EXTENSIBLE => {
                     debug_assert_eq! {
                         (*mix_format).cbSize as usize,
-                        mem::size_of::<audio::WAVEFORMATEXTENSIBLE>() - mem::size_of::<audio::WAVEFORMATEX>()
+                        mem::size_of::<WAVEFORMATEXTENSIBLE>() - mem::size_of::<WAVEFORMATEX>()
                     };
 
-                    let mix_format = mix_format as *const audio::WAVEFORMATEXTENSIBLE;
+                    let mix_format = mix_format as *const WAVEFORMATEXTENSIBLE;
 
                     if bits_per_sample == 32
-                        && matches!((*mix_format).SubFormat, mm::KSDATAFORMAT_SUBTYPE_IEEE_FLOAT)
+                        && matches!((*mix_format).SubFormat, KSDATAFORMAT_SUBTYPE_IEEE_FLOAT)
                     {
                         SampleFormat::F32
                     } else {
                         return Err(Error::from(ErrorKind::UnsupportedMixFormat));
                     }
                 }
-                audio::WAVE_FORMAT_PCM => {
+                WAVE_FORMAT_PCM => {
                     assert!((*mix_format).cbSize == 0);
 
                     if bits_per_sample == 16 {
@@ -94,24 +97,24 @@ impl Client {
         self.initialize_inner(config, || Event::new(false, false))
     }
 
-    cfg_events_driver! {
-        /// Try to initialize the client with the given configuration.
-        ///
-        /// # Panics
-        ///
-        /// Panics if the audio runtime is not available.
-        ///
-        /// See [Runtime][crate::runtime::Runtime] for more.
-        #[tracing::instrument(skip_all)]
-        pub fn initialize_async<T>(
-            &self,
-            config: ClientConfig,
-        ) -> Result<InitializedClient<T, AsyncEvent>, Error>
-        where
-            T: Sample,
-        {
-            self.initialize_inner(config, || AsyncEvent::new(false))
-        }
+    /// Try to initialize the client with the given configuration.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the audio runtime is not available.
+    ///
+    /// See [Runtime][crate::runtime::Runtime] for more.
+    #[tracing::instrument(skip_all)]
+    #[cfg(feature = "events-driver")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "events-driver")))]
+    pub fn initialize_async<T>(
+        &self,
+        config: ClientConfig,
+    ) -> Result<InitializedClient<T, AsyncEvent>, Error>
+    where
+        T: Sample,
+    {
+        self.initialize_inner(config, || AsyncEvent::new(false))
     }
 
     /// Try to initialize the client with the given configuration.
@@ -129,15 +132,15 @@ impl Client {
             let mut closest_match = null_mut();
 
             let result = self.audio_client.IsFormatSupported(
-                audio::AUDCLNT_SHAREMODE_SHARED,
+                AUDCLNT_SHAREMODE_SHARED,
                 &mix_format.Format,
                 Some(&mut closest_match),
             );
 
             if result.is_ok() {
                 if !closest_match.is_null() {
-                    mix_format = *(closest_match as *mut audio::WAVEFORMATEXTENSIBLE);
-                    com::CoTaskMemFree(Some(closest_match.cast()));
+                    mix_format = *(closest_match as *mut WAVEFORMATEXTENSIBLE);
+                    CoTaskMemFree(Some(closest_match.cast()));
                 }
 
                 result.ok().map_err(ErrorKind::IsFormatSupported)?;
@@ -146,18 +149,18 @@ impl Client {
                     return Err(Error::from(ErrorKind::UnsupportedMixFormat));
                 }
 
-                mix_format = *(closest_match as *mut audio::WAVEFORMATEXTENSIBLE);
+                mix_format = *(closest_match as *mut WAVEFORMATEXTENSIBLE);
                 config.sample_rate = mix_format.Format.nSamplesPerSec;
                 config.channels = mix_format.Format.nChannels;
-                com::CoTaskMemFree(Some(closest_match.cast()));
+                CoTaskMemFree(Some(closest_match.cast()));
             };
 
             tracing::trace!("initializing audio client");
 
             self.audio_client
                 .Initialize(
-                    audio::AUDCLNT_SHAREMODE_SHARED,
-                    audio::AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+                    AUDCLNT_SHAREMODE_SHARED,
+                    AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
                     0,
                     0,
                     &mix_format.Format,

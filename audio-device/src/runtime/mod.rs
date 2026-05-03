@@ -12,37 +12,47 @@ mod atomic_waker;
 use crate::Result;
 
 thread_local! {
-    static RUNTIME: Cell<*const Runtime> = Cell::new(ptr::null());
+    static RUNTIME: Cell<*const Runtime> = const { Cell::new(ptr::null()) };
 }
 
-cfg_events_driver! {
-    pub(crate) mod events;
-    #[doc(hidden)]
-    pub use self::events::EventsDriver;
+#[cfg(feature = "events-driver")]
+pub(crate) mod events;
 
-    pub(crate) fn with_events<F, T>(f: F) -> T where F: FnOnce(&EventsDriver) -> T {
-        RUNTIME.with(|rt| {
-            // Safety: we maintain tight control of how and when RUNTIME is
-            // constructed.
-            let rt = unsafe { rt.get().as_ref().expect("missing audio runtime") };
-            f(&rt.events)
-        })
-    }
+#[doc(hidden)]
+#[cfg(feature = "events-driver")]
+pub use self::events::EventsDriver;
+
+#[cfg(feature = "events-driver")]
+pub(crate) fn with_events<F, T>(f: F) -> T
+where
+    F: FnOnce(&EventsDriver) -> T,
+{
+    RUNTIME.with(|rt| {
+        // Safety: we maintain tight control of how and when RUNTIME is
+        // constructed.
+        let rt = unsafe { rt.get().as_ref().expect("missing audio runtime") };
+        f(&rt.events)
+    })
 }
 
-cfg_poll_driver! {
-    pub(crate) mod poll;
-    #[doc(hidden)]
-    pub use self::poll::{PollDriver, AsyncPoll};
+#[cfg(feature = "poll-driver")]
+pub(crate) mod poll;
 
-    pub(crate) fn with_poll<F, T>(f: F) -> T where F: FnOnce(&PollDriver) -> T {
-        RUNTIME.with(|rt| {
-            // Safety: we maintain tight control of how and when RUNTIME is
-            // constructed.
-            let rt = unsafe { rt.get().as_ref().expect("missing audio runtime") };
-            f(&rt.poll)
-        })
-    }
+#[doc(hidden)]
+#[cfg(feature = "poll-driver")]
+pub use self::poll::{AsyncPoll, PollDriver};
+
+#[cfg(feature = "poll-driver")]
+pub(crate) fn with_poll<F, T>(f: F) -> T
+where
+    F: FnOnce(&PollDriver) -> T,
+{
+    RUNTIME.with(|rt| {
+        // Safety: we maintain tight control of how and when RUNTIME is
+        // constructed.
+        let rt = unsafe { rt.get().as_ref().expect("missing audio runtime") };
+        f(&rt.poll)
+    })
 }
 
 /// The audio runtime.

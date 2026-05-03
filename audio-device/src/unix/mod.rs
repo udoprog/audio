@@ -64,23 +64,26 @@ impl fmt::Display for Errno {
 
 impl CoreError for Errno {}
 
-cfg_poll_driver! {
-    /// Poll flags.
-    #[derive(Debug, Clone, Copy)]
-    #[repr(transparent)]
-    pub struct PollFlags(libc::c_short);
+/// Poll flags.
+#[derive(Debug, Clone, Copy)]
+#[repr(transparent)]
+#[cfg(feature = "poll-driver")]
+#[cfg_attr(docsrs, doc(cfg(feature = "poll-driver")))]
+pub struct PollFlags(libc::c_short);
 
-    impl PollFlags {
-        pub(crate) const POLLOUT: Self = Self(crate::libc::POLLOUT);
+#[cfg(feature = "poll-driver")]
+impl PollFlags {
+    pub(crate) const POLLOUT: Self = Self(crate::libc::POLLOUT);
 
-        pub(crate) fn from_bits_truncate(bits: libc::c_short) -> Self {
-            Self(bits)
-        }
-
-        pub(crate) fn test(self, bits: PollFlags) -> bool {
-            (self.0 & bits.0) != 0
-        }
+    pub(crate) fn from_bits_truncate(bits: libc::c_short) -> Self {
+        Self(bits)
     }
 
-    pub use crate::runtime::poll::{AsyncPoll, PollEventsGuard};
+    pub(crate) fn test(self, bits: PollFlags) -> bool {
+        (self.0 & bits.0) != 0
+    }
 }
+
+#[cfg(feature = "poll-driver")]
+#[cfg_attr(docsrs, doc(cfg(feature = "poll-driver")))]
+pub use crate::runtime::poll::{AsyncPoll, PollEventsGuard};

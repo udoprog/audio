@@ -6,12 +6,12 @@ use core::slice;
 use crate::wasapi::Error;
 use crate::wasapi::error::ErrorKind;
 
-use windows::Win32::Media::Audio as audio;
+use windows::Win32::Media::Audio::IAudioRenderClient;
 
 /// A typed mutable data buffer.
 pub struct BufferMut<'a, T> {
     pub(super) tag: ste::Tag,
-    pub(super) render_client: &'a mut audio::IAudioRenderClient,
+    pub(super) render_client: &'a mut IAudioRenderClient,
     pub(super) data: *mut T,
     pub(super) frames: u32,
     pub(super) len: usize,

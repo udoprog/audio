@@ -3,7 +3,7 @@ use core::fmt;
 
 use windows::core::Error as WindowsError;
 
-//// WASAPI-specific result alias.
+/// WASAPI-specific result alias.
 pub type Result<T, E = Error> = ::core::result::Result<T, E>;
 
 /// WASAPI-specific errors.
@@ -30,6 +30,7 @@ impl CoreError for Error {
     fn source(&self) -> Option<&(dyn CoreError + 'static)> {
         match self.kind {
             ErrorKind::CreateInstance(ref error) => Some(error),
+            ErrorKind::Activate(ref error) => Some(error),
             ErrorKind::WaitError(ref error) => Some(error),
             ErrorKind::IsFormatSupported(ref error) => Some(error),
             ErrorKind::GetBufferSize(ref error) => Some(error),
@@ -58,6 +59,7 @@ impl From<ErrorKind> for Error {
 #[derive(Debug)]
 pub(crate) enum ErrorKind {
     CreateInstance(WindowsError),
+    Activate(WindowsError),
     WaitError(WindowsError),
     IsFormatSupported(WindowsError),
     GetBufferSize(WindowsError),
@@ -78,50 +80,50 @@ impl fmt::Display for ErrorKind {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::CreateInstance(error) => {
-                write!(f, "Error creating COM instance: {error}")
+            Self::CreateInstance { .. } => {
+                write!(f, "Error creating COM instance")
             }
-            Self::WaitError(error) => {
-                write!(f, "Error waiting for event: {error}")
+            Self::Activate { .. } => {
+                write!(f, "Error activating COM instance")
             }
-            Self::IsFormatSupported(error) => {
-                write!(f, "Error checking format support: {error}")
+            Self::WaitError { .. } => {
+                write!(f, "Error waiting for event")
             }
-            Self::GetBufferSize(error) => {
-                write!(f, "Error getting buffer size: {error}")
+            Self::IsFormatSupported { .. } => {
+                write!(f, "Error checking format support")
             }
-            Self::GetBuffer(error) => {
-                write!(f, "Error getting buffer from render client: {error}")
+            Self::GetBufferSize { .. } => {
+                write!(f, "Error getting buffer size")
             }
-            Self::ReleaseBuffer(error) => {
-                write!(f, "Error releasing buffer to render client: {error}")
+            Self::GetBuffer { .. } => {
+                write!(f, "Error getting buffer from render client")
             }
-            Self::GetCurrentPadding(error) => {
-                write!(
-                    f,
-                    "Error getting current padding from render client: {error}"
-                )
+            Self::ReleaseBuffer { .. } => {
+                write!(f, "Error releasing buffer to render client")
             }
-            Self::Start(error) => {
-                write!(f, "Error starting audio client: {error}")
+            Self::GetCurrentPadding { .. } => {
+                write!(f, "Error getting current padding from render client")
             }
-            Self::Stop(error) => {
-                write!(f, "Error stopping audio client: {error}")
+            Self::Start { .. } => {
+                write!(f, "Error starting audio client")
             }
-            Self::Initialize(error) => {
-                write!(f, "Error initializing audio client: {error}")
+            Self::Stop { .. } => {
+                write!(f, "Error stopping audio client")
             }
-            Self::MakeEvent(error) => {
-                write!(f, "Error creating event: {error}")
+            Self::Initialize { .. } => {
+                write!(f, "Error initializing audio client")
             }
-            Self::GetService(error) => {
-                write!(f, "Error getting audio service: {error}")
+            Self::MakeEvent { .. } => {
+                write!(f, "Error creating event")
             }
-            Self::GetMixFormat(error) => {
-                write!(f, "Error getting device mix format: {error}")
+            Self::GetService { .. } => {
+                write!(f, "Error getting audio service")
             }
-            Self::SetEventHandle(error) => {
-                write!(f, "Error setting event handle: {error}")
+            Self::GetMixFormat { .. } => {
+                write!(f, "Error getting device mix format")
+            }
+            Self::SetEventHandle { .. } => {
+                write!(f, "Error setting event handle")
             }
             Self::UnsupportedMixFormat => {
                 write!(f, "Device doesn't support a compatible mix format")

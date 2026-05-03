@@ -1,11 +1,12 @@
 use anyhow::{Result, anyhow};
 use audio_device::wasapi;
 use audio_generator::{self as g, Generator as _};
+use rand::distr::{Distribution, StandardUniform};
 
 fn run_output<T>(client: wasapi::Client, mut config: wasapi::ClientConfig) -> Result<()>
 where
     T: Copy + wasapi::Sample + audio_core::Translate<f32>,
-    [T]: rand::Fill,
+    StandardUniform: Distribution<T>,
 {
     config.sample_rate = 120000;
 

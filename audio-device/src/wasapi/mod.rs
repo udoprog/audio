@@ -1,7 +1,11 @@
 //! An idiomatic Rust WASAPI interface.
 
-use windows::Win32::Media::Audio as audio;
-use windows::Win32::System::Com as com;
+use windows::Win32::Media::Audio::{
+    IAudioClient, IMMDeviceEnumerator, MMDeviceEnumerator, eConsole, eRender,
+};
+use windows::Win32::System::Com::{
+    CLSCTX_ALL, COINIT_MULTITHREADED, CoCreateInstance, CoInitializeEx,
+};
 
 mod error;
 use self::error::ErrorKind;
@@ -25,7 +29,7 @@ pub use self::sample::Sample;
 /// The audio prelude to use for wasapi.
 pub fn audio_prelude() {
     unsafe {
-        let result = com::CoInitializeEx(None, com::COINIT_MULTITHREADED);
+        let result = CoInitializeEx(None, COINIT_MULTITHREADED);
 
         if result.is_err() {
             panic!("failed to initialize multithreaded apartment: {result}");
@@ -62,15 +66,17 @@ pub fn default_output_client() -> Result<Option<Client>, Error> {
     let tag = ste::Tag::current_thread();
 
     unsafe {
-        let enumerator: audio::IMMDeviceEnumerator =
-            com::CoCreateInstance(&audio::MMDeviceEnumerator, None, com::CLSCTX_ALL)
+        let enumerator: IMMDeviceEnumerator =
+            CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL)
                 .map_err(ErrorKind::CreateInstance)?;
 
-        let Ok(device) = enumerator.GetDefaultAudioEndpoint(audio::eRender, audio::eConsole) else {
+        let Ok(device) = enumerator.GetDefaultAudioEndpoint(eRender, eConsole) else {
             return Ok(None);
         };
 
-        let audio_client: audio::IAudioClient = device.Activate(com::CLSCTX_ALL, None)?;
+        let audio_client: IAudioClient = device
+            .Activate(CLSCTX_ALL, None)
+            .map_err(ErrorKind::Activate)?;
         tracing::trace!("got audio client");
         Ok(Some(Client { tag, audio_client }))
     }

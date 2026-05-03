@@ -500,63 +500,63 @@ impl Pcm {
         unsafe { Ok(Writer::new(self, channels)) }
     }
 
-    cfg_poll_driver! {
-        /// Construct a checked safe writer with the given number of channels and
-        /// the specified sample type.
-        ///
-        /// This will error if the type `T` is not appropriate for this device, or
-        /// if the number of channels does not match the number of configured
-        /// channels.
-        ///
-        /// # Panics
-        ///
-        /// Panics if the audio runtime is not available.
-        ///
-        /// See [Runtime][crate::runtime::Runtime] for more.
-        ///
-        /// # Examples
-        ///
-        /// ```no_run
-        /// use audio_device::alsa;
-        ///
-        /// # fn main() -> anyhow::Result<()> {
-        /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
-        /// let config = pcm.configure::<i16>().install()?;
-        ///
-        /// let mut writer = pcm.writer::<i16>()?;
-        /// // use writer with the resulting config.
-        /// # Ok(()) }
-        /// ```
-        pub fn async_writer<T>(&mut self) -> Result<AsyncWriter<'_, T>>
-        where
-            T: Sample,
-        {
-            self.tag.ensure_on_thread();
+    /// Construct a checked safe writer with the given number of channels and
+    /// the specified sample type.
+    ///
+    /// This will error if the type `T` is not appropriate for this device, or
+    /// if the number of channels does not match the number of configured
+    /// channels.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the audio runtime is not available.
+    ///
+    /// See [Runtime][crate::runtime::Runtime] for more.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use audio_device::alsa;
+    ///
+    /// # fn main() -> anyhow::Result<()> {
+    /// let mut pcm = alsa::Pcm::open_default(alsa::Stream::Playback)?;
+    /// let config = pcm.configure::<i16>().install()?;
+    ///
+    /// let mut writer = pcm.writer::<i16>()?;
+    /// // use writer with the resulting config.
+    /// # Ok(()) }
+    /// ```
+    #[cfg(feature = "poll-driver")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "poll-driver")))]
+    pub fn async_writer<T>(&mut self) -> Result<AsyncWriter<'_, T>>
+    where
+        T: Sample,
+    {
+        self.tag.ensure_on_thread();
 
-            let hw = self.hardware_parameters()?;
-            let channels = hw.channels()? as usize;
+        let hw = self.hardware_parameters()?;
+        let channels = hw.channels()? as usize;
 
-            // NB: here we check that `T` is appropriate for the current format.
-            let format = hw.format()?;
+        // NB: here we check that `T` is appropriate for the current format.
+        let format = hw.format()?;
 
-            if !T::test(format) {
-                return Err(Error::from(ErrorKind::FormatMismatch {
-                    ty: T::describe(),
-                    format,
-                }));
-            }
-
-            let mut fds = Vec::new();
-            self.poll_descriptors_vec(&mut fds)?;
-
-            if fds.len() != 1 {
-                return Err(Error::from(ErrorKind::MissingPollFds));
-            }
-
-            let fd = fds[0];
-
-            Ok(unsafe { AsyncWriter::new(self, fd, channels)? })
+        if !T::test(format) {
+            return Err(Error::from(ErrorKind::FormatMismatch {
+                ty: T::describe(),
+                format,
+            }));
         }
+
+        let mut fds = Vec::new();
+        self.poll_descriptors_vec(&mut fds)?;
+
+        if fds.len() != 1 {
+            return Err(Error::from(ErrorKind::MissingPollFds));
+        }
+
+        let fd = fds[0];
+
+        Ok(unsafe { AsyncWriter::new(self, fd, channels)? })
     }
 
     /// Return number of frames ready to be read (capture) / written (playback).

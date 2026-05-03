@@ -1,6 +1,6 @@
 use core::marker;
 
-use windows::Win32::Media::Audio as audio;
+use windows::Win32::Media::Audio::{IAudioClient, IAudioRenderClient};
 
 use crate::loom::sync::Arc;
 use crate::wasapi::error::ErrorKind;
@@ -12,7 +12,7 @@ use crate::wasapi::{ClientConfig, Error, RenderClient, Sample};
 /// use with WASAPI.
 pub struct InitializedClient<T, E> {
     pub(super) tag: ste::Tag,
-    pub(super) audio_client: audio::IAudioClient,
+    pub(super) audio_client: IAudioClient,
     pub(super) config: ClientConfig,
     pub(super) buffer_size: u32,
     pub(super) event: Arc<E>,
@@ -35,7 +35,7 @@ where
 
         self.tag.ensure_on_thread();
 
-        let render_client: audio::IAudioRenderClient = unsafe {
+        let render_client: IAudioRenderClient = unsafe {
             self.audio_client
                 .GetService()
                 .map_err(ErrorKind::GetService)?

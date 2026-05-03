@@ -1,27 +1,30 @@
-use core::mem;
 use core::future::Future;
+use core::mem;
 use core::pin::Pin;
 use core::task::{Context, Poll};
 
 use alloc::vec::Vec;
 
-use windows::core::Result as WindowsResult;
-use windows::Win32::Foundation as f;
-use windows::Win32::System::Threading as th;
+use windows::Win32::Foundation::{
+    HANDLE, INVALID_HANDLE_VALUE, WAIT_ABANDONED_0, WAIT_EVENT, WAIT_FAILED, WAIT_OBJECT_0,
+    WAIT_TIMEOUT,
+};
+use windows::Win32::System::Threading::{INFINITE, WaitForMultipleObjects};
 use windows::core::Error as WindowsError;
+use windows::core::Result as WindowsResult;
 
+use crate::Result;
 use crate::loom::sync::atomic::{AtomicBool, Ordering};
 use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
 use crate::runtime::atomic_waker::AtomicWaker;
 use crate::windows::{Event, RawEvent};
-use crate::Result;
 
 /// Data on the waker for a handle.
 struct Waker {
     ready: AtomicBool,
     waker: AtomicWaker,
-    handle: f::HANDLE,
+    handle: HANDLE,
 }
 
 unsafe impl Send for Waker {}
@@ -80,19 +83,22 @@ impl EventsDriver {
     ///
     /// This panics if the background thread panicked. But this should only ever
     /// happen if there's a bug.
-    pub fn join(mut self) {
-        self.inner_join();
+    pub fn join(mut self) -> Result<()> {
+        self.inner_join()?;
+        Ok(())
     }
 
-    fn inner_join(&mut self) {
+    fn inner_join(&mut self) -> WindowsResult<()> {
         if let Some(thread) = self.thread.take() {
             self.shared.running.store(false, Ordering::Release);
-            self.shared.parker.set();
+            self.shared.parker.set()?;
 
             if thread.join().is_err() {
                 panic!("event handler thread panicked");
             }
         }
+
+        Ok(())
     }
 }
 
@@ -103,7 +109,7 @@ impl Drop for EventsDriver {
 }
 
 struct Driver {
-    events: Vec<f::HANDLE>,
+    events: Vec<HANDLE>,
     wakers: Vec<Arc<Waker>>,
     shared: Arc<Shared>,
 }
@@ -116,22 +122,16 @@ impl Driver {
         };
 
         while self.shared.running.load(Ordering::Acquire) {
-            let result = unsafe {
-                th::WaitForMultipleObjects(
-                    &self.events,
-                    false,
-                    th::INFINITE,
-                )
-            };
+            let result = unsafe { WaitForMultipleObjects(&self.events, false, INFINITE) };
 
             match result {
-                f::WAIT_ABANDONED_0 => panic!("wait abandoned"),
-                f::WAIT_TIMEOUT => panic!("timed out"),
-                f::WAIT_FAILED => {
+                WAIT_ABANDONED_0 => panic!("wait abandoned"),
+                WAIT_TIMEOUT => panic!("timed out"),
+                WAIT_FAILED => {
                     panic!("wait failed: {}", WindowsError::from_thread())
                 }
-                f::WAIT_EVENT(other) => {
-                    let base = f::WAIT_OBJECT_0.0;
+                WAIT_EVENT(other) => {
+                    let base = WAIT_OBJECT_0.0;
 
                     if other < base {
                         panic!("other out of bounds; other = {}", other);
@@ -235,7 +235,7 @@ impl AsyncEvent {
             });
 
             events.shared.holders.lock().added.push(waker.clone());
-            events.shared.parker.set();
+            events.shared.parker.set()?;
 
             Ok(AsyncEvent {
                 shared: events.shared.clone(),
@@ -247,12 +247,6 @@ impl AsyncEvent {
 
     /// Wait for the specified event handle to become set.
     pub async fn wait(&self) {
-        return WaitFor {
-            shared: &*self.shared,
-            waker: &*self.waker,
-        }
-        .await;
-
         struct WaitFor<'a> {
             shared: &'a Shared,
             waker: &'a Waker,
@@ -274,27 +268,38 @@ impl AsyncEvent {
                 Poll::Pending
             }
         }
+
+        let future = WaitFor {
+            shared: &*self.shared,
+            waker: &*self.waker,
+        };
+
+        future.await
     }
 
     /// Set the current event handle.
-    pub fn set(&self) {
-        self.event.as_ref().unwrap().set();
+    pub fn set(&self) -> WindowsResult<()> {
+        self.event.as_ref().unwrap().set()
     }
 }
 
 impl RawEvent for AsyncEvent {
-    unsafe fn raw_event(&self) -> f::HANDLE {
+    unsafe fn raw_event(&self) -> HANDLE {
         unsafe {
-            self.event.as_ref().unwrap().raw_event()
+            match &self.event {
+                Some(event) => event.raw_event(),
+                None => INVALID_HANDLE_VALUE,
+            }
         }
     }
 }
 
 impl Drop for AsyncEvent {
     fn drop(&mut self) {
-        let event = self.event.take().unwrap();
-        self.shared.holders.lock().removed.push(event);
-        self.shared.parker.set();
+        if let Some(event) = self.event.take() {
+            self.shared.holders.lock().removed.push(event);
+            _ = self.shared.parker.set();
+        }
     }
 }
 

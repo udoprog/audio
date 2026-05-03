@@ -37,10 +37,11 @@ pub use self::channel_area::ChannelArea;
 mod writer;
 pub use self::writer::Writer;
 
-cfg_poll_driver! {
-    mod async_writer;
-    pub use self::async_writer::AsyncWriter;
-}
+#[cfg(feature = "poll-driver")]
+mod async_writer;
+#[cfg(feature = "poll-driver")]
+#[cfg_attr(docsrs, doc(cfg(feature = "poll-driver")))]
+pub use self::async_writer::AsyncWriter;
 
 mod sample;
 pub use self::sample::Sample;

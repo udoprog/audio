@@ -57,10 +57,6 @@ extern crate alloc;
 
 pub(crate) mod loom;
 
-#[macro_use]
-#[doc(hidden)]
-mod macros;
-
 #[cfg(feature = "unix")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unix")))]
 #[macro_use]
@@ -70,7 +66,7 @@ pub mod unix;
 #[cfg_attr(docsrs, doc(cfg(feature = "wasapi")))]
 pub mod wasapi;
 
-#[cfg(any(feature = "windows"))]
+#[cfg(feature = "windows")]
 #[cfg_attr(docsrs, doc(cfg(any(feature = "windows"))))]
 pub mod windows;
 

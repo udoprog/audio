@@ -1,17 +1,17 @@
+use core::ffi::{c_int, c_short, c_ulong, c_void};
 use core::mem::{forget, replace, take};
-use core::ffi::{c_void, c_int, c_short, c_ulong};
 
 use alloc::vec::Vec;
 
 use std::collections::HashMap;
 
+use crate::Result;
 use crate::libc as c;
 use crate::loom::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use crate::loom::sync::{Arc, Mutex};
 use crate::loom::thread;
 use crate::runtime::atomic_waker::AtomicWaker;
 use crate::unix::Errno;
-use crate::Result;
 
 macro_rules! errno {
     ($expr:expr) => {{
