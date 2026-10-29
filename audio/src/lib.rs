@@ -75,7 +75,7 @@
 //! ## Examples
 //!
 //! ```rust
-//! use rand::Rng;
+//! use rand::RngExt;
 //!
 //! let mut buf = audio::buf::Dynamic::<f32>::new();
 //!
@@ -83,9 +83,9 @@
 //! buf.resize_frames(2048);
 //!
 //! /// Fill both channels with random noise.
-//! let mut rng = rand::thread_rng();
-//! rng.fill(&mut buf[0]);
-//! rng.fill(&mut buf[1]);
+//! let mut rng = rand::rng();
+//! buf[0].fill_with(|| rng.random());
+//! buf[1].fill_with(|| rng.random());
 //! ```
 //!
 //! For convenience we also provide several macros for constructing various

@@ -343,7 +343,7 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```
-    /// use rand::Rng as _;
+    /// use rand::RngExt as _;
     ///
     /// let buf = audio::buf::Sequential::<f32>::with_topology(4, 256);
     ///
@@ -362,13 +362,13 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```
-    /// use rand::Rng as _;
+    /// use rand::RngExt as _;
     ///
     /// let mut buf = audio::buf::Sequential::<f32>::with_topology(4, 256);
-    /// let mut rng = rand::thread_rng();
+    /// let mut rng = rand::rng();
     ///
     /// for mut chan in buf.iter_channels_mut() {
-    ///     rng.fill(chan.as_mut());
+    ///     chan.as_mut().fill_with(|| rng.random());
     /// }
     /// ```
     pub fn iter_channels_mut(&mut self) -> IterChannelsMut<'_, T> {
@@ -537,21 +537,21 @@ impl<T> Sequential<T> {
     /// # Examples
     ///
     /// ```
-    /// use rand::Rng as _;
+    /// use rand::RngExt as _;
     ///
     /// let mut buf = audio::buf::Sequential::<f32>::new();
     ///
     /// buf.resize_channels(2);
     /// buf.resize_frames(256);
     ///
-    /// let mut rng = rand::thread_rng();
+    /// let mut rng = rand::rng();
     ///
     /// if let Some(mut left) = buf.get_mut(0) {
-    ///     rng.fill(left.as_mut());
+    ///     left.as_mut().fill_with(|| rng.random());
     /// }
     ///
     /// if let Some(mut right) = buf.get_mut(1) {
-    ///     rng.fill(right.as_mut());
+    ///     right.as_mut().fill_with(|| rng.random());
     /// }
     /// ```
     pub fn get_mut(&mut self, channel: usize) -> Option<LinearChannelMut<'_, T>> {

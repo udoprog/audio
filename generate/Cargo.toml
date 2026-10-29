@@ -6,5 +6,5 @@ publish = false
 
 [dependencies]
 anyhow = "1.0.57"
-bindgen = "0.72.1"
+bindgen = "0.73.2"
 pkg-config = "0.3.25"

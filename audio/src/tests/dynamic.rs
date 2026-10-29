@@ -168,7 +168,7 @@ fn test_from_array() {
 
 #[test]
 fn test_get_mut() {
-    use rand::Rng as _;
+    use rand::RngExt as _;
 
     let mut buf = crate::buf::Dynamic::<f32>::new();
 
@@ -178,11 +178,11 @@ fn test_get_mut() {
     let mut rng = rand::rng();
 
     if let Some(mut left) = buf.get_mut(0) {
-        rng.fill(left.as_mut());
+        left.as_mut().fill_with(|| rng.random());
     }
 
     if let Some(mut right) = buf.get_mut(1) {
-        rng.fill(right.as_mut());
+        right.as_mut().fill_with(|| rng.random());
     }
 }
 

@@ -234,7 +234,7 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```
-    /// use rand::Rng;
+    /// use rand::RngExt;
     ///
     /// let mut buf = audio::buf::Dynamic::<f32>::with_topology(4, 256);
     ///
@@ -254,13 +254,13 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```
-    /// use rand::Rng;
+    /// use rand::RngExt;
     ///
     /// let mut buf = audio::buf::Dynamic::<f32>::with_topology(4, 256);
-    /// let mut rng = rand::thread_rng();
+    /// let mut rng = rand::rng();
     ///
     /// for mut chan in buf.iter_channels_mut() {
-    ///     rng.fill(chan.as_mut());
+    ///     chan.as_mut().fill_with(|| rng.random());
     /// }
     /// ```
     pub fn iter_channels_mut(&mut self) -> IterChannelsMut<'_, T> {
@@ -452,21 +452,21 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```
-    /// use rand::Rng;
+    /// use rand::RngExt;
     ///
     /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
     /// buf.resize_channels(2);
     /// buf.resize_frames(256);
     ///
-    /// let mut rng = rand::thread_rng();
+    /// let mut rng = rand::rng();
     ///
     /// if let Some(mut left) = buf.get_mut(0) {
-    ///     rng.fill(left.as_mut());
+    ///     left.as_mut().fill_with(|| rng.random());
     /// }
     ///
     /// if let Some(mut right) = buf.get_mut(1) {
-    ///     rng.fill(right.as_mut());
+    ///     right.as_mut().fill_with(|| rng.random());
     /// }
     /// ```
     pub fn get_mut(&mut self, channel: usize) -> Option<LinearChannelMut<'_, T>> {
@@ -487,16 +487,16 @@ impl<T> Dynamic<T> {
     /// # Examples
     ///
     /// ```
-    /// use rand::Rng;
+    /// use rand::RngExt;
     ///
     /// let mut buf = audio::buf::Dynamic::<f32>::new();
     ///
     /// buf.resize_frames(256);
     ///
-    /// let mut rng = rand::thread_rng();
+    /// let mut rng = rand::rng();
     ///
-    /// rng.fill(buf.get_or_default_mut(0));
-    /// rng.fill(buf.get_or_default_mut(1));
+    /// buf.get_or_default_mut(0).fill_with(|| rng.random());
+    /// buf.get_or_default_mut(1).fill_with(|| rng.random());
     ///
     /// assert_eq!(buf.channels(), 2);
     /// ```
