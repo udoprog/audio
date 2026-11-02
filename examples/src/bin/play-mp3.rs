@@ -1,7 +1,8 @@
 use anyhow::{Result, anyhow, bail};
 use audio::BufMut;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use rubato::{InterpolationParameters, InterpolationType, SincFixedIn, WindowFunction};
+use rubato::audioadapter_buffers::direct::{InterleavedSlice, SequentialSlice};
+use rubato::{Async, FixedAsync, SincInterpolationParameters, WindowFunction};
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -30,12 +31,13 @@ fn main() -> anyhow::Result<()> {
         cpal::SampleFormat::F32 => run::<f32>(&path, &device, &config),
         cpal::SampleFormat::I16 => run::<i16>(&path, &device, &config),
         cpal::SampleFormat::U16 => run::<u16>(&path, &device, &config),
+        format => bail!("unsupported sample format {format:?}"),
     }
 }
 
 fn run<T>(path: &Path, device: &cpal::Device, config: &cpal::SupportedStreamConfig) -> Result<()>
 where
-    T: 'static + Send + cpal::Sample + audio::Sample + audio::Translate<f32>,
+    T: 'static + Send + cpal::SizedSample + audio::Sample + audio::Translate<f32>,
     f32: audio::Translate<i16>,
 {
     let source = io::BufReader::new(fs::File::open(path)?);
@@ -47,7 +49,6 @@ where
         buffer_size: cpal::BufferSize::Default,
     };
 
-    let pcm = audio::buf::Interleaved::new();
     let output = audio::buf::Interleaved::with_topology(config.channels as usize, 1024);
     let resample = audio::buf::Sequential::with_topology(config.channels as usize, CHUNK_SIZE);
 
@@ -55,17 +56,17 @@ where
         frames: 0,
         seconds: 0.0,
         decoder,
-        pcm: audio::io::Read::new(pcm),
+        pcm: audio::io::Read::new(audio::buf::Interleaved::new()),
         resampler: None,
         output: audio::io::ReadWrite::empty(output),
         resample: audio::io::ReadWrite::empty(resample),
-        device_sample_rate: config.sample_rate.0,
+        device_sample_rate: config.sample_rate,
         device_channels: config.channels as usize,
         last_frame: None,
     };
 
     let stream = device.build_output_stream(
-        &config,
+        config,
         move |data: &mut [T], _: &cpal::OutputCallbackInfo| {
             if let Err(e) = writer.write_to(data) {
                 println!("failed to write data: {}", e);
@@ -74,6 +75,7 @@ where
         move |err| {
             println!("audio output error: {}", err);
         },
+        None,
     )?;
 
     stream.play()?;
@@ -98,10 +100,10 @@ where
     // Buffer used for mp3 decoding.
     pcm: audio::io::Read<audio::buf::Interleaved<i16>>,
     // The last mp3 frame decoded.
-    last_frame: Option<minimp3::FrameInfo>,
+    last_frame: Option<FrameInfo>,
     // Sampler that is used in case the sample rate of a decoded frame needs to
     // be resampled.
-    resampler: Option<rubato::SincFixedIn<f32>>,
+    resampler: Option<Async<f32>>,
     // Output buffer to flush to device buffer.
     output: audio::io::ReadWrite<audio::buf::Interleaved<f32>>,
     // Resample buffer.
@@ -110,6 +112,11 @@ where
     device_sample_rate: u32,
     // Number of channels in the device.
     device_channels: usize,
+}
+
+struct FrameInfo {
+    sample_rate: u32,
+    channels: usize,
 }
 
 impl<R> Writer<R>
@@ -152,35 +159,44 @@ where
                 if self.resample.remaining() == CHUNK_SIZE {
                     let device_sample_rate = self.device_sample_rate;
 
-                    let resampler = self.resampler.get_or_insert_with(|| {
-                        let params = InterpolationParameters {
-                            sinc_len: 256,
-                            f_cutoff: 0.95,
-                            interpolation: InterpolationType::Linear,
-                            oversampling_factor: 256,
-                            window: WindowFunction::BlackmanHarris2,
-                        };
-
-                        let f_ratio = device_sample_rate as f64 / frame.sample_rate as f64;
-                        SincFixedIn::<f32>::new(
-                            f_ratio,
-                            params,
-                            CHUNK_SIZE,
-                            frame.channels as usize,
-                        )
-                    });
+                    let resampler = match &mut self.resampler {
+                        Some(resampler) => resampler,
+                        None => {
+                            let params = SincInterpolationParameters::new(
+                                256,
+                                WindowFunction::BlackmanHarris2,
+                            );
+                            let ratio = device_sample_rate as f64 / frame.sample_rate as f64;
+                            let resampler = Async::new_sinc(
+                                ratio,
+                                1.0,
+                                &params,
+                                CHUNK_SIZE,
+                                frame.channels,
+                                FixedAsync::Input,
+                            )?;
+                            self.resampler.insert(resampler)
+                        }
+                    };
 
                     tracing::trace!("processing resample chunk");
 
-                    resampler.process_with_buffer(
-                        self.resample.as_ref(),
-                        self.output.as_mut(),
-                        &bittle::all(),
+                    let output = self.output.as_mut();
+                    output.resize_channels(frame.channels);
+                    output.resize_frames(resampler.output_frames_max());
+
+                    let input = SequentialSlice::new(
+                        self.resample.as_ref().as_slice(),
+                        frame.channels,
+                        CHUNK_SIZE,
                     )?;
+                    let frames = output.frames();
+                    let mut output =
+                        InterleavedSlice::new_mut(output.as_slice_mut(), frame.channels, frames)?;
+
+                    let (_, frames) = resampler.process_into_buffer(&input, &mut output, None)?;
 
                     self.resample.clear();
-                    let frames = self.output.as_ref().frames();
-
                     self.output.set_read(0);
                     self.output.set_written(frames);
                     continue;
@@ -204,14 +220,29 @@ where
                 "decode frame",
             };
 
-            let frame = self.decoder.next_frame_with_pcm(self.pcm.as_mut())?;
-            self.pcm.set_read(0);
+            let frame = self.decoder.next_frame()?;
+
+            if frame.channels == 0 {
+                bail!("tried to play stream with zero channels")
+            }
+
+            let frame_count = frame.data.len() / frame.channels;
+            self.pcm = io::Read::new(audio::buf::Interleaved::from_vec(
+                frame.data,
+                frame.channels,
+                frame_count,
+            ));
             self.resample.as_mut().resize_channels(frame.channels);
+
+            let frame = FrameInfo {
+                sample_rate: frame.sample_rate as u32,
+                channels: frame.channels,
+            };
 
             // If the sample rate of the decoded frames matches the expected
             // output exactly, copy it directly to the output frame without
             // resampling.
-            if frame.sample_rate as u32 == self.device_sample_rate {
+            if frame.sample_rate == self.device_sample_rate {
                 tracing::trace! {
                     remaining_mut = self.pcm.remaining(),
                     remaining = self.resample.remaining_mut(),

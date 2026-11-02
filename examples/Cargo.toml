@@ -6,10 +6,9 @@ publish = false
 
 [dependencies]
 audio = { path = "../audio" }
-bittle = "0.7.0"
 cpal = "0.18.2"
-minimp3 = { git = "https://github.com/udoprog/minimp3-rs", branch = "next" }
-rubato = { git = "https://github.com/udoprog/rubato", branch = "next" }
+minimp3 = "0.6.1"
+rubato = "5.0.1"
 anyhow = "1.0.57"
 tracing = "0.1.36"
 tracing-subscriber = { version = "0.3.3", features = ["env-filter"] }
