@@ -13,4 +13,4 @@ keywords = ["audio", "buffer", "dsp"]
 categories = ["multimedia::audio"]
 
 [dependencies]
-audio-core = { version = "0.2.1", path = "../audio-core" }
+audio-core = { version = "0.2.2", path = "../audio-core" }

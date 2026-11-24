@@ -1,6 +1,6 @@
 [package]
 name = "audio"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["John-John Tedro <udoprog@tedro.se>"]
 edition = "2024"
 rust-version = "1.85"
@@ -17,7 +17,7 @@ default = ["std"]
 std = ["audio-core/std"]
 
 [dependencies]
-audio-core = { version = "0.2.1", path = "../audio-core" }
+audio-core = { version = "0.2.2", path = "../audio-core" }
 
 [dev-dependencies]
 rand = "0.10.3"

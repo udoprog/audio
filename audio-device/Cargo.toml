@@ -67,7 +67,7 @@ sync = []
 
 [dependencies]
 tracing = { version = "0.1.36", optional = true }
-audio-core = { version = "0.2.1", path = "../audio-core", optional = true }
+audio-core = { version = "0.2.2", path = "../audio-core", optional = true }
 ste = { version = "0.1.0", path = "../ste", optional = true }
 
 pulse-sys = { package = "audio-device-pulse-sys", version = "0.1.0-alpha.1", path = "../audio-device-pulse-sys", optional = true }
@@ -78,8 +78,8 @@ alsa-sys = { package = "audio-device-alsa-sys", version = "0.1.0", path = "../au
 libc = { version = "0.2.125", optional = true }
 
 [dev-dependencies]
-audio = { version = "0.2.1", path = "../audio" }
-audio-core = { version = "0.2.1", path = "../audio-core" }
+audio = { version = "0.2.2", path = "../audio" }
+audio-core = { version = "0.2.2", path = "../audio-core" }
 audio-generator = { version = "0.1.0-alpha.2", path = "../audio-generator" }
 
 ste = { version = "0.1.0", path = "../ste" }
