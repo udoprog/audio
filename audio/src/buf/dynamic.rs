@@ -436,11 +436,23 @@ impl<T> Dynamic<T> {
     ///
     /// assert_eq!(buf.channels(), 2);
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This method panics if channel is creater than `isize::MAX`.
+    ///
+    /// ```expect_panic
+    /// let mut buf = audio::buf::Dynamic::<f32>::new();
+    ///
+    /// _ = buf.get_or_default((isize::MAX as usize) + 1);
+    /// ```
     pub fn get_or_default(&mut self, channel: usize) -> &[T]
     where
         T: Sample,
     {
-        self.resize_channels(channel + 1);
+        let capacity = channel.checked_add(1).expect("Channel index overflow");
+
+        self.resize_channels(capacity);
 
         // Safety: We initialized the given index just above and we know the
         // trusted length.
@@ -500,11 +512,23 @@ impl<T> Dynamic<T> {
     ///
     /// assert_eq!(buf.channels(), 2);
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This method panics if channel is creater than `isize::MAX`.
+    ///
+    /// ```expect_panic
+    /// let mut buf = audio::buf::Dynamic::<f32>::new();
+    ///
+    /// _ = buf.get_or_default((isize::MAX as usize) + 1);
+    /// ```
     pub fn get_or_default_mut(&mut self, channel: usize) -> &mut [T]
     where
         T: Sample,
     {
-        self.resize_channels(channel + 1);
+        let capacity = channel.checked_add(1).expect("Channel index overflow");
+
+        self.resize_channels(capacity);
 
         // Safety: We initialized the given index just above and we know the
         // trusted length.

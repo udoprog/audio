@@ -36,6 +36,11 @@ where
 }
 
 /// Trait used to operate over a slice.
+///
+/// # Safety
+///
+/// Implementors of this trait must ensure that as_ptr returns a pointer to a
+/// valid slice of length `len`.
 pub unsafe trait Slice: sealed::Sealed
 where
     Self: Sized,
