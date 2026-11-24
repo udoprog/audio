@@ -7,6 +7,16 @@
 
 use core::ptr::NonNull;
 
+mod sealed {
+    pub trait Sealed {}
+
+    impl<T> Sealed for &[T] where T: Copy {}
+    impl<T, const N: usize> Sealed for [T; N] where T: Copy {}
+    impl<T> Sealed for &mut [T] where T: Copy {}
+    impl<T, const N: usize> Sealed for &mut [T; N] where T: Copy {}
+    impl<T, const N: usize> Sealed for &[T; N] where T: Copy {}
+}
+
 /// Describes how a buffer can be indexed.
 pub trait SliceIndex: Slice
 where
@@ -26,7 +36,7 @@ where
 }
 
 /// Trait used to operate over a slice.
-pub trait Slice
+pub unsafe trait Slice: sealed::Sealed
 where
     Self: Sized,
 {
@@ -78,7 +88,7 @@ where
     }
 }
 
-impl<T> Slice for &[T]
+unsafe impl<T> Slice for &[T]
 where
     T: Copy,
 {
@@ -100,7 +110,7 @@ where
     }
 }
 
-impl<T, const N: usize> Slice for [T; N]
+unsafe impl<T, const N: usize> Slice for [T; N]
 where
     T: Copy,
 {
@@ -122,7 +132,7 @@ where
     }
 }
 
-impl<T, const N: usize> Slice for &[T; N]
+unsafe impl<T, const N: usize> Slice for &[T; N]
 where
     T: Copy,
 {
@@ -164,7 +174,7 @@ where
     }
 }
 
-impl<T> Slice for &mut [T]
+unsafe impl<T> Slice for &mut [T]
 where
     T: Copy,
 {
@@ -186,7 +196,7 @@ where
     }
 }
 
-impl<T, const N: usize> Slice for &mut [T; N]
+unsafe impl<T, const N: usize> Slice for &mut [T; N]
 where
     T: Copy,
 {
