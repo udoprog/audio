@@ -7,7 +7,6 @@ rust-version = "1.85"
 description = "Audio generator APIs"
 documentation = "https://docs.rs/audio"
 readme = "README.md"
-homepage = "https://github.com/udoprog/audio"
 repository = "https://github.com/udoprog/audio"
 license = "MIT OR Apache-2.0"
 keywords = ["audio", "buffer", "dsp"]
