@@ -68,7 +68,6 @@ impl CoreError for Error {
     #[inline]
     fn source(&self) -> Option<&(dyn CoreError + 'static)> {
         match self.kind {
-            #[cfg(feature = "unix")]
             ErrorKind::Errno(ref error) => Some(error),
             _ => None,
         }

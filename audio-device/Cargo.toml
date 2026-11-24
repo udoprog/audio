@@ -25,16 +25,33 @@ rustdoc-args = ["--cfg", "docsrs"]
 default = ["std"]
 std = ["alloc"]
 alloc = []
-alsa = ["alsa-sys", "poll-driver", "dep:audio-core"]
-pulse = ["pulse-sys", "libc", "unix"]
-pipewire = ["pipewire-sys", "libc"]
-events-driver = ["windows", "dep:tracing"]
-poll-driver = ["unix", "dep:tracing"]
-unix = ["libc"]
-wasapi = [
-    "windows",
-    "events-driver",
+alsa = [
+    "poll-driver",
+    "dep:alsa-sys",
+    "dep:audio-core",
+    "dep:ste",
+]
+pulse = [
+    "dep:pulse-sys",
+    "dep:libc",
+]
+pipewire = [
+    "dep:pipewire-sys",
+    "dep:libc"
+]
+events-driver = [
+    "dep:windows",
     "dep:tracing",
+]
+poll-driver = [
+    "dep:libc",
+    "dep:tracing"
+]
+wasapi = [
+    "events-driver",
+    "dep:windows",
+    "dep:tracing",
+    "dep:ste",
     "windows/Win32_Foundation",
     "windows/Win32_Media_Audio",
     "windows/Win32_Media_KernelStreaming",
@@ -61,9 +78,13 @@ alsa-sys = { package = "audio-device-alsa-sys", version = "0.1.0", path = "../au
 libc = { version = "0.2.125", optional = true }
 
 [dev-dependencies]
-rand = "0.10.1"
 audio = { version = "0.2.1", path = "../audio" }
+audio-core = { version = "0.2.1", path = "../audio-core" }
 audio-generator = { version = "0.1.0-alpha.2", path = "../audio-generator" }
+
+ste = { version = "0.1.0-alpha.11", path = "../ste" }
+
+rand = "0.10.1"
 anyhow = "1.0.57"
 tokio = { version = "1.18.1", features = ["full"] }
 tracing-subscriber = { version = "0.3.3", features = ["env-filter"] }

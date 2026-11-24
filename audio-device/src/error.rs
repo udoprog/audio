@@ -1,10 +1,10 @@
 use core::error::Error as CoreError;
 use core::fmt;
 
-#[cfg(feature = "windows")]
+#[cfg(feature = "wasapi")]
 use windows::core::Error as WindowsError;
 
-#[cfg(feature = "unix")]
+#[cfg(any(feature = "pulse", feature = "alsa"))]
 use crate::unix::Errno;
 
 /// Audio device-specific result alias.
@@ -33,9 +33,9 @@ impl CoreError for Error {
     #[inline]
     fn source(&self) -> Option<&(dyn CoreError + 'static)> {
         match self.kind {
-            #[cfg(feature = "unix")]
+            #[cfg(any(feature = "pulse", feature = "alsa"))]
             ErrorKind::Unix(ref error) => Some(error),
-            #[cfg(feature = "windows")]
+            #[cfg(feature = "wasapi")]
             ErrorKind::Windows(ref error) => Some(error),
         }
     }
@@ -43,10 +43,10 @@ impl CoreError for Error {
 
 #[derive(Debug)]
 enum ErrorKind {
-    #[cfg(feature = "unix")]
+    #[cfg(any(feature = "pulse", feature = "alsa"))]
     /// A unix system error.
     Unix(Errno),
-    #[cfg(feature = "windows")]
+    #[cfg(feature = "wasapi")]
     /// A windows system error.
     Windows(WindowsError),
 }
@@ -55,15 +55,15 @@ impl fmt::Display for ErrorKind {
     #[inline]
     fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            #[cfg(feature = "unix")]
+            #[cfg(any(feature = "pulse", feature = "alsa"))]
             Self::Unix(ref error) => write!(_f, "unix system error: {error}"),
-            #[cfg(feature = "windows")]
+            #[cfg(feature = "wasapi")]
             Self::Windows(ref error) => write!(_f, "windows system error: {error}"),
         }
     }
 }
 
-#[cfg(feature = "unix")]
+#[cfg(any(feature = "pulse", feature = "alsa"))]
 impl From<Errno> for Error {
     #[inline]
     fn from(errno: Errno) -> Self {
@@ -73,7 +73,7 @@ impl From<Errno> for Error {
     }
 }
 
-#[cfg(feature = "windows")]
+#[cfg(feature = "wasapi")]
 impl From<WindowsError> for Error {
     #[inline]
     fn from(error: WindowsError) -> Self {

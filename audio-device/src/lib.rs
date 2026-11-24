@@ -57,8 +57,8 @@ extern crate alloc;
 
 pub(crate) mod loom;
 
-#[cfg(feature = "unix")]
-#[cfg_attr(docsrs, doc(cfg(feature = "unix")))]
+#[cfg(any(feature = "pulse", feature = "alsa"))]
+#[cfg_attr(docsrs, doc(cfg(any(feature = "pulse", feature = "alsa"))))]
 #[macro_use]
 pub mod unix;
 
@@ -66,12 +66,12 @@ pub mod unix;
 #[cfg_attr(docsrs, doc(cfg(feature = "wasapi")))]
 pub mod wasapi;
 
-#[cfg(feature = "windows")]
-#[cfg_attr(docsrs, doc(cfg(any(feature = "windows"))))]
+#[cfg(feature = "wasapi")]
+#[cfg_attr(docsrs, doc(cfg(any(feature = "wasapi"))))]
 pub mod windows;
 
-#[cfg(feature = "libc")]
-#[cfg_attr(docsrs, doc(cfg(feature = "libc")))]
+#[cfg(any(feature = "pulse", feature = "alsa"))]
+#[cfg_attr(docsrs, doc(cfg(any(feature = "pulse", feature = "alsa"))))]
 pub mod libc;
 
 #[cfg(feature = "alsa")]
